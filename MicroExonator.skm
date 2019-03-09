@@ -13,19 +13,13 @@ import random
 import csv
 from collections import defaultdict
 
-#DATA = [os.path.basename(f).split(".")[0] for f in config["samples"]]
 
 
-#DATA = [os.path.basename(f).split(".")[0] for f in glob.glob(config["fastq_path"] + '*.fastq')]
 
-
-#DATA = [os.path.basename(f).split(".")[0] for f in glob.glob("FASTQ/" + '*.fastq')]
-
-
-# for f in glob.glob(config["fastq_path"] + '*.fastq'):
-#     print(os.path.basename(f))
-
-
+try:
+    os.mkdir("FASTQ")
+except FileExistsError:
+    pass
 
 try:
     os.mkdir("download")
@@ -35,33 +29,83 @@ except FileExistsError:
 
 DATA = set([])
 
+if os.path.isfile('./NCBI_accession_list.txt'):
 
-with open("SRR_Acc_List_.txt") as file :
 
-    reader = csv.reader(file, delimiter="\t")
+    with open("NCBI_accession_list.txt") as file :
 
-    for row in reader:
+        reader = csv.reader(file, delimiter="\t")
 
-        RUN = row[0]
-        DATA.add(RUN)
+        for row in reader:
 
-        file_name = "download/" + RUN + ".download.sh"
-        command = "fastq-dump --split-files -O FASTQ "
+            RUN = row[0]
+            DATA.add(RUN)
 
-        if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+            file_name = "download/" + RUN + ".download.sh"
+            command = "fastq-dump --split-files -O FASTQ "
 
-            download_file =  open(file_name, "w")
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-            download_file.write("#!/bin/bash" + "\n")
-            download_file.write('srr="' + RUN + '"' + "\n" )
-            download_file.write(command + " " + RUN + "\n")
-            download_file.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
-            download_file.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write('srr="' + RUN + '"' + "\n" )
+                download_file.write(command + " " + RUN + "\n")
+                download_file.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+                download_file.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+
+
+            file_name_round2 = "download/" + RUN  + ".round2.download.sh"
+
+            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file_round2 =  open(file_name_round2, "w")
+
+                download_file_round2.write("#!/bin/bash" + "\n")
+                download_file_round2.write('srr="' + RUN + '"' + "\n" )
+                download_file_round2.write(command + " " + RUN + "\n")
+                download_file_round2.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+                download_file_round2.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+                download_file_round2.write("mv $srr.fastq $srr.fastq.round2" + "\n")
+
+
+
+if os.path.isfile("./desing.tvs"):
+
+
+    with open("desing.tvs") as file :
+
+        reader = csv.DictReader(file, delimiter="\t")
+
+        for row in reader:
+
+            DATA.add(row["sample"])
+
+            file_name = "download/" + row["sample"]  + ".download.sh"
+
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+
+
+            file_name_round2 = "download/" + row["sample"]  + ".round2.download.sh"
+
+
+            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file_round2 =  open(file_name_round2, "w")
+
+                download_file_round2.write("#!/bin/bash" + "\n")
+                download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
 
 
 print(DATA)
 
-rule all:
+rule round2:
     input:
         "Report/out.high_quality.txt"
         #"Report/out_filtered_ME.txt"
@@ -70,17 +114,16 @@ rule all:
         #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
         #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
 
+
 rule round1:
     input:
-        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA)
-	
-
+        "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
 #### MicroExonator ####
 
 include : "rules/Get_FASTQs.skm"
-#include : "rules/Round1.skm"
-#include : "rules/Round1_post_processing.skm"
+include : "rules/Round1.skm"
+include : "rules/Round1_post_processing.skm"
 include : "rules/Round2.skm"
 include : "rules/Round2_post_processing.skm"
 
@@ -100,3 +143,5 @@ include : "rules/Whippet.skm"
 # python2 ../../../Simulation/Bechmark/src/Get_introns_from_sam.py test.sam Rd1 40 1000000 8
 
 #snakemake -s MicroExonator.skm -j 30000  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" -k
+
+#snakemake -j 30000  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" -k -s MicroExonator.skm --use-conda
