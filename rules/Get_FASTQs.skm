@@ -4,7 +4,7 @@ rule download_fastq:
     output:
         temp("FASTQ/{sample}.fastq")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bash {input}"
 
@@ -19,7 +19,7 @@ rule Splice_Junction_Library:
     output:
         "Round1/ME_TAGs.fa"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
 
