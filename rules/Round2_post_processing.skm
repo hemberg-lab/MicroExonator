@@ -5,7 +5,7 @@ rule ME_reads:
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/round2_ME_reads_fastq.py {input} > {output}"
 
@@ -16,7 +16,7 @@ rule bowtie_Genome_index:
     output:
         config["Genome_fasta"] + ".1.ebwt"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bowtie-build {input} {input}"
 
@@ -28,7 +28,7 @@ rule bowtie_to_genome:
     output:
         temp("Round2/{sample}.sam.pre_processed.hg19.sam")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2| awk '$2==0 || $2==16'> {output}"
 
@@ -40,7 +40,7 @@ rule Round2_filter:
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/Filter1_round2.py {input} > {output}"
 
@@ -56,7 +56,7 @@ rule ME_SJ_coverage:
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
@@ -67,7 +67,7 @@ rule GetPSI:
     output:
         "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
       "python3 src/GetPSI.py {input} 5 > {output}"
 
@@ -78,7 +78,7 @@ rule Total_sample_exon_counts:
     output:
         "Round2/TOTAL.filter1.ME_SJ_coverage"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
       "cat Round2/*.filter1.ME_SJ_coverage > {output}"
 
@@ -114,6 +114,6 @@ rule high_confident_filters:
     output:
         "Report/out.high_quality.txt"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python src/high_confident_list.py {input}  > {output}"
