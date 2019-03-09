@@ -1,0 +1,87 @@
+{
+    "__default__" :
+    {
+        "queue"     : "normal",
+        "nCPUs"     : "1",
+        "memory"    : 10000,
+        "resources" : "\"select[mem>10000] rusage[mem=10000] span[hosts=1]\"",
+        "name"      : "JOBNAME.{rule}.{wildcards}",
+        "output"    : "$TEAM/temp.logs/{rule}.{wildcards}.out",
+        "error"     : "$TEAM/temp.logs/{rule}.{wildcards}.err",
+        "Group"     : "team_hemberg",
+        "tCPU"      : "99999"
+    },
+
+    "Round1_bwa_mem_to_tags" :
+    {
+        "nCPUs"    : 5
+    },
+
+
+    "hisat2_Genome_index" :
+    {
+        "nCPUs"     : 5
+    },
+
+    "whippet_quant" :
+    {
+        "nCPUs"     : 1,
+        "memory"    : 2000,
+        "resources" : "\"select[mem>2000] rusage[mem=2000] span[hosts=1]\""
+
+    },
+
+    "indexBam" :
+    {
+        "nCPUs"     : 1,
+        "memory"    : 2000,
+        "resources" : "\"select[mem>2000] rusage[mem=2000] span[hosts=1]\""
+
+    },
+
+
+    "Round2_bowtie_to_tags" :
+    {
+        "nCPUs"    : 1
+    },
+
+
+    "bowtie_to_genome" :
+    {
+        "nCPUs"    : 2
+    },
+
+    "Output" :
+    {
+        "nCPUs"    : 2,
+        "memory"    : 30000,
+        "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
+    },
+
+    "total_hisat2_to_Genome" :
+    {
+        "nCPUs"    : 5
+    },
+
+
+    "total_olego_to_Genome" :
+    {
+        "nCPUs"    : 5,
+        "queue"     : "long"
+    },
+
+    "total_STAR_to_Genome" :
+    {
+        "nCPUs"    : 5,
+        "memory"    : 30000,
+        "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
+    },
+
+
+    "total_tophat_to_Genome" :
+    {
+        "nCPUs"    : 5
+    },
+
+
+}

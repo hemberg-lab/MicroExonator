@@ -1,0 +1,78 @@
+rule Get_ME_from_annotation:
+    input:
+        config["Genome_fasta"],
+        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+        config["Gene_anontation_bed12"],
+        config["GT_AG_U2_5"],
+        config["GT_AG_U2_3"],
+        config["vertebrates_phylop"],
+        config["ME_DB"]
+    params:
+        ME_len = config["ME_len"]
+    output:
+        "ME_canonical_SJ_tags.DB.fa",
+        "DB.ME_centric"
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {input[5]} {params.ME_len} {input[6]} "
+
+
+rule merge_tags:
+    input:
+        "Round2/ME_canonical_SJ_tags.de_novo.fa",
+        "ME_canonical_SJ_tags.DB.fa"
+    output:
+        "Round2/ME_canonical_SJ_tags.fa"
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "cat {input[0]} {input[1]} > {output}"
+
+
+rule merge_ME_centric:
+    input:
+        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+        "DB.ME_centric"
+    output:
+        "Round2/TOTAL.ME_centric.txt"
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "cat {input[0]} {input[1]} > {output}"
+
+
+rule Round2_bowtie_tags_index:
+    input:
+        "Round2/ME_canonical_SJ_tags.fa"
+    output:
+        "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "bowtie-build {input} {input}"
+
+
+rule Round2_bowtie_to_tags:
+    input:
+        "Round2/ME_canonical_SJ_tags.fa",
+        "FASTQ/{sample}.fastq",
+        "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
+    output:
+        temp("Round2/{sample}.sam")
+    threads: 1
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "bowtie {input[0]} -p {threads} -q {input[1]} -S -v 2 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /*/)' > {output}"
+
+
+rule Round2_alingment_pre_processing:
+    input:
+        "Round2/{sample}.sam"
+    output:
+        temp("Round2/{sample}.sam.pre_processed")
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"

@@ -1,0 +1,501 @@
+
+---
+title: "Micro-exon final filtering report"
+author: "Guillermo Parada"
+piline: Micro-Exonator
+params:
+  ME_table: "~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric"
+  ME_coverage: "~/Google_Drive/Results/ME/Single_cell/TOTAL.filter1.ME_SJ_coverage"
+  min_number_files_detected: 3
+
+  out_total: "~/Google_Drive/Results/ME/Single_cell/out_TOTAL"
+  out_filtered_ME: "~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.txt"
+  out_low_scored_ME: "~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt"
+  out_shorter_than_3_ME: "~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"
+  out_filtered_ME_cov: "~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.cov.txt"
+
+---
+
+
+## Loading libraries
+
+The libraries which are used by this script are:
+
+* ggplot2
+* reshape2
+* stringr
+* mixtools
+* simecol # not found in anaconda for py3.5
+* data.table
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(mixtools)
+#library(simecol)
+library(data.table)
+
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+
+ME_table="~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric"
+ME_coverage="~/Google_Drive/Results/ME/Single_cell/TOTAL.filter1.ME_SJ_coverage"
+
+out_filtered_ME="~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.txt"
+out_low_scored_ME="~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt"
+out_shorter_than_3_ME="~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"
+
+```
+
+
+```{r, echo=FALSE, eval=TRUE}
+
+ME_table=params$ME_table
+ME_coverage=params$ME_coverage
+
+out_filtered_ME=params$out_filtered_ME
+out_low_scored_ME=params$out_low_scored_ME
+out_shorter_than_3_ME=params$out_shorter_than_3_ME
+
+
+out_filtered_ME_cov = params$out_filtered_ME_cov
+
+```
+
+
+
+
+
+## Input micro-exon profiling
+
+De-novo discovery of micro-exons by uExonator relies on the detection of inserted sequenses over exon-exon junctions, which then are re-mapped inside the cognate introns. Inserted sequences smaller than 6 nucleotides are very likely to be mapped by chance, therefore detected micro-exons smaller than 6 nt are prone to be artefacts by sequencing error or genomic variations. The following plot shows the spurious micro-exon/intron match probability distribution for micro-exon in between 1-15 nt.
+
+```{r, echo=FALSE}
+min_number_files_detected = 3
+
+ME_centric_raw <- read.delim(ME_table, header=FALSE, stringsAsFactors=FALSE)
+colnames(ME_centric_raw) <- c('ME', 'transcript', 'sum_total_coverage', 'total_SJs', 'total_coverages', 'len_micro_exon_seq_found', 'micro_exon_seq_found', 'total_number_of_micro_exons_matches', 'U2_scores', 'mean_conservations_vertebrates', 'P_MEs', 'total_ME')
+
+ME_centric_raw <- data.table(ME_centric_raw)
+
+ggplot(ME_centric_raw[len_micro_exon_seq_found<=15, ],
+       aes(x=factor(len_micro_exon_seq_found), y=P_MEs) ) +
+  geom_violin(scale = "width") +
+  xlab("Micro-exon leght") +
+  ylab("Spurious micro-exon/intron match probability") +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+```
+
+
+The higher spurious micro-exon/intron match probability is reflected on the number of micro-exon/intron matches inside the corresponding intron.
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(ME_centric_raw[len_micro_exon_seq_found<=15, ],
+       aes(x=factor(len_micro_exon_seq_found), y=total_number_of_micro_exons_matches) ) +
+  geom_jitter() +
+  ylim(0,100) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+```
+
+
+
+True splicing events relies on splicing signals, therefore false micro-exons will have weaker splicing signals than the true micro-exons. The following plot show the distribution of U2/GT-AG splicing signal strengh (U2_score) for population the total micro-exons and longer or equal then 3, 6, and 9 nt. Micro-exons equal or longer than 9 nt are less prone to be artefacts, therefore have a U2_score distribution which is expected from real splicng events. The following plot show
+
+
+```{r,echo= FALSE, warning=FALSE}
+
+ME_matches <- unlist(strsplit(ME_centric_raw$total_ME, "[,]"))
+ME_matches <- read.table(text=ME_matches, sep="|")
+
+colnames(ME_matches) <- c("ME", "U2_score", "Vertebrate_conservation")
+ME_matches <- data.table(ME_matches)
+
+
+ME_matches$ME_len <-  ME_centric_raw[, rep(len_micro_exon_seq_found, total_number_of_micro_exons_matches)]
+
+ME_matches$ME_max_U2 <- ME_centric_raw[, rep( ME, total_number_of_micro_exons_matches)]
+
+
+
+ggplot( ) +
+  geom_freqpoly(data=ME_matches, binwidth=5, aes(x=U2_score, ..density.., colour=">=0"  ) ) +
+  geom_freqpoly(data=ME_matches[ME_len>=3], binwidth=5, aes(x=U2_score, ..density.., colour=">=3"  )) +
+  geom_freqpoly(data=ME_matches[ME_len>=6], binwidth=5, aes(x=U2_score, ..density.., colour=">=6"  )) +
+  geom_freqpoly(data=ME_matches[ME_len>=9], binwidth=5, aes(x=U2_score, ..density.., colour=">=9"  )) +
+  xlim(40, 100) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+
+
+```
+
+
+
+
+
+
+## Micro-exon coverage analysis
+
+
+```{r, echo= FALSE, warning=FALSE}
+
+
+
+ME_count_round2 <- read.delim(ME_coverage, header=FALSE, stringsAsFactors = FALSE)
+
+colnames(ME_count_round2) <- c('FILE_NAME', 'ME', 'total_SJs', 'ME_SJ_coverages', 'sum_ME_coverage', 'sum_ME_SJ_coverage_up_down_uniq', 'sum_ME_SJ_coverage_up', 'sum_ME_SJ_coverage_down', 'SJ_coverages', 'sum_SJ_coverage', 'is_alternative_5', 'is_alternative_3', 'alternatives_5', 'cov_alternatives_5', 'total_cov_alternatives_5', 'alternatives_3', 'cov_alternatives_3',  'total_cov_alternatives_3' )
+
+ME_count_round2 <- data.table(ME_count_round2)
+
+
+
+```
+
+
+After round2 micro-exons gained more reads
+
+
+```{r, echo= FALSE, warning=FALSE}
+
+
+ME_count_round1_TOTAL_cov <- ME_centric_raw[, c("ME", "sum_total_coverage")]
+colnames(ME_count_round1_TOTAL_cov) <- c("ME", "Round1.counts")
+
+ME_count_round2_TOTAL_cov <- ME_count_round2[ ,sum(sum_ME_coverage), by=ME ]
+colnames(ME_count_round2_TOTAL_cov) <- c("ME", "Round2.counts")
+
+ME_count_round1_round2_TOTAL_cov <- merge(ME_count_round1_TOTAL_cov, ME_count_round2_TOTAL_cov, by="ME")
+
+ME_count_round1_round2_TOTAL_cov[, round1_round2_log2:=log2(Round2.counts/Round1.counts) ]
+
+ggplot(data=ME_count_round1_round2_TOTAL_cov, aes(x=log2(Round1.counts), y=log2(Round2.counts) )) +
+  geom_abline(lwd = 1, lty=2, colour="red")+
+  geom_point(alpha=0.3) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+```
+
+Only the micro-exons that are at least detected with 5 different sequences across 3 data sets remain in the analysis. (Costumise by parameters)
+
+
+```{r, echo= FALSE, warning=FALSE}
+
+ME_number_files_detected <- ME_count_round2[sum_ME_SJ_coverage_up_down_uniq>=5, .N, by=ME]
+
+ggplot(data=ME_number_files_detected, aes(x=N, colour=N>=min_number_files_detected)) +
+  geom_histogram(binwidth=1) +
+  xlab("Number of files which detect the micro-exon") +
+  ylab("Micro-exon count") +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+ggplot(data=ME_number_files_detected[N >=min_number_files_detected, ], aes(x=N)) +
+  geom_histogram(binwidth=1) +
+  xlab("Number of files which detect the micro-exon") +
+  ylab("Micro-exon count") +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+ME_centric_raw_filter_uniq <- ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME], ]
+uniq_seq_filter <-  ME_centric_raw_filter_uniq[, ME]
+```
+
+
+
+
+
+##Unique filter
+
+Because these are more likely to be derived squencing errors a aditional filter were needed.
+
+```{r,  eval=FALSE, echo= FALSE, warning=FALSE}
+
+
+
+ggplot( ) +
+  geom_freqpoly(data=ME_matches[ME_max_U2 %in% uniq_seq_filter, ], binwidth=5, aes(x=U2_score, ..density.., colour=">=0"  ) ) +
+  geom_freqpoly(data=ME_matches[ME_max_U2 %in% uniq_seq_filter & ME_len>=3, ], binwidth=5, aes(x=U2_score, ..density.., colour=">=3"  )) +
+  geom_freqpoly(data=ME_matches[ME_max_U2 %in% uniq_seq_filter & ME_len>=6, ], binwidth=5, aes(x=U2_score, ..density.., colour=">=6"  )) +
+  geom_freqpoly(data=ME_matches[ME_max_U2 %in% uniq_seq_filter & ME_len>=9, ], binwidth=5, aes(x=U2_score, ..density.., colour=">=9"  )) +
+  xlim(40, 100) +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+```
+
+
+
+
+
+## Splicing strenth analisys - Mixture Gausioan Model
+
+The GT-AG canonical signals were requierd for the indentification of micro-exons. As correspond to the ~99% in vertebrates, this is a fair aproximation. However this signal alone it is not enought yield a confident list of micro-exons. A futher filter by splicing strength is need it. Small micro-exons shorter than 7 nt
+
+
+
+```{r , echo= FALSE, warning=FALSE}
+plot_mix_comps <- function(x, mu, sigma, lam) {
+  lam * dnorm(x, mu, sigma)
+}
+
+
+plot_mix_comps_total <- function(x, mu1, sigma1, lam1, mu2, sigma2, lam2) {
+ lam1* dnorm(x, mu1, sigma1) + lam2* dnorm(x, mu2, sigma2)
+}
+
+ggplot_mix_comps <-function(mixmdl, title) {
+
+data.frame(x = mixmdl$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 1, colour = "black",
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(mixmdl$mu[1], mixmdl$sigma[1], lam = mixmdl$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(mixmdl$mu[2], mixmdl$sigma[2], lam = mixmdl$lambda[2]),
+                colour = "green", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps_total,
+                args = list(mixmdl$mu[1], mixmdl$sigma[1], mixmdl$lambda[1],  mixmdl$mu[2], mixmdl$sigma[2], mixmdl$lambda[2] ),
+                colour = "black", lwd = 0.5, lty=2) +
+
+     ggtitle(title)+
+  ylab("Density") +
+  xlab("U2 Score") +
+
+   theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+}
+
+
+
+
+```
+
+
+
+
+
+```{r, echo= FALSE, warning=FALSE}
+ME_number_files_detected <- ME_count_round2[sum_ME_SJ_coverage_up_down_uniq>=5, .N, by=ME]
+ME_centric_raw_filtered <- ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] &  len_micro_exon_seq_found>=3,]
+uniq_seq_filter <-  ME_centric_raw_filtered[, ME]
+
+
+
+ME_matches_filter <- ME_matches[ME %in% uniq_seq_filter , ]
+ME_matches_filter <- ME_matches_filter[sample(dim(ME_matches_filter)[1])]
+ME_matches_filter <- unique(ME_matches_filter, by = "ME_max_U2")
+
+
+fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05)
+ggplot_mix_comps(fit_U2_score, "Mixture model Micro-exon >=3 after coverge filter")
+post.df <- as.data.frame(cbind(x = fit_U2_score$x, fit_U2_score$posterior))
+
+```
+
+
+
+
+
+
+
+
+##Micro-exon score filter
+
+
+
+```{r, echo= FALSE, warning=FALSE}
+ME_final <- ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] & len_micro_exon_seq_found>=3, ]
+
+if(fit_U2_score$mu[1]<=fit_U2_score$mu[2]){
+
+  ME_final$ME_P_value <-  1 - (1 - approx(post.df$x, post.df$comp.1, ME_final$U2_scores)$y * ME_final$P_MEs) / ME_final$total_number_of_micro_exons_matches
+
+} else {
+
+  ME_final$ME_P_value <-  1 - (1 - approx(post.df$x, post.df$comp.2, ME_final$U2_scores)$y * ME_final$P_MEs)/ ME_final$total_number_of_micro_exons_matches
+
+}
+
+
+
+
+
+
+
+
+```
+
+
+
+
+```{r, echo= FALSE, warning=FALSE}
+
+
+
+
+error_sim_asim <- NULL
+
+
+
+for (i in seq(0.1,1, 0.01)){
+
+  len_freq <- ME_final[ME_P_value <=i, .N, by=len_micro_exon_seq_found]
+
+  sim <-  len_freq[len_micro_exon_seq_found%%3==0, ]
+  asim <- len_freq[len_micro_exon_seq_found%%3!=0, ]
+
+  sim_fit <- lm(data = sim,  N ~ len_micro_exon_seq_found)
+  sim_error <- summary(sim_fit)$sigma
+
+  asim_fit <- lm(data = asim,  N ~ len_micro_exon_seq_found)
+  asim_error <- summary(asim_fit)$sigma
+
+
+  error_sim_asim <- rbind(error_sim_asim, c(i, sim_error, asim_error))
+
+}
+
+error_sim_asim <- data.table(error_sim_asim)
+colnames(error_sim_asim) <- c("P_ME", "sim_error", "asim_error")
+error_sim_asim_melt <- melt(error_sim_asim, id.vars = "P_ME", value.name = "error")
+
+ggplot(error_sim_asim, aes(x=P_ME, y=sim_error+asim_error)) +
+  geom_line() +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+error_sim_asim[ , total_error:=(sim_error + asim_error)]
+P_ME_fit <- error_sim_asim[ total_error==error_sim_asim[, min(total_error)], P_ME]
+
+
+```
+
+
+
+```{r, eval=FALSE}
+
+ggplot(ME_final, aes(x=len_micro_exon_seq_found)) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(ME_final$ME_P_value <= P_ME_fit ~ .)+
+  labs(x = "Microexon length", y = "Count") +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+
+```
+
+
+
+
+```{r}
+
+ME_final[ME_P_value <= P_ME_fit, ME_type:="IN"]
+ME_final[ME_P_value > P_ME_fit, ME_type:="OUT"]
+ME_final[ME_P_value > P_ME_fit & mean_conservations_vertebrates>=2, ME_type:="RESCUED"]
+
+
+ME_final[,ME_type:=factor(ME_type, levels=c("OUT", "RESCUED", "IN"))]
+
+
+ggplot(ME_final, aes(x=U2_scores, y=mean_conservations_vertebrates, colour = ME_type)) +
+  geom_point() +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'), legend.position="none")
+
+
+ggplot(ME_final, aes(x=len_micro_exon_seq_found,  fill=ME_type)) +
+  geom_histogram( binwidth = 1) +
+  labs(x = "Microexon length", y = "Count", fill = "Microexon class") +
+  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+
+
+```
+
+
+
+
+
+```{r}
+
+
+
+
+
+write.table(ME_final[ME_P_value <= P_ME_fit],
+            out_filtered_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+write.table(ME_final[ME_P_value > P_ME_fit],
+            out_low_scored_ME , col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+
+write.table(ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] & len_micro_exon_seq_found<3, ],
+            out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+
+write.table(ME_count_round2[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] ,],
+            out_filtered_ME_cov, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+
+#write.table(ME_final, out_total, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+
+```
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+#R -e "ME <- '~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric'; rmarkdown::render('../../../Software/Micro-Exonator/src/final_filters.Rmd',output_file='/Users/gp7/Google_Drive/Results/ME/Single_cell/test.html')"
+
+
+rule Output:
+    input:
+        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+        "Round2/TOTAL.filter1.ME_SJ_coverage"
+    output:
+        "Report/out_filtered_ME.txt",
+        "Report/out_low_scored_ME.txt",
+        "Report/out_shorter_than_3_ME.txt",
+        "Report/report.html"
+    shell:
+  R -e  'rmarkdown::render("src/final_filters.Rmd", params = list(ME_table="Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric", ME_coverage="Round2/TOTAL.filter1.ME_SJ_coverage", out_filtered_ME= "Report/out_filtered_ME.txt", out_low_scored_ME="Report/out_low_scored_ME.txt", out_shorter_than_3_ME="Report/out_shorter_than_3_ME.txt"), output_file="Report/report.html")'
+
+
+
+R -e ' rmarkdown::render("../../../Software/Micro-Exonator/src/final_filters.Rmd", params = list(ME_table="~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric", ME_U2_sim="~/Google_Drive/Results/ME/mm10/Round2/ME_U2.sim1.txt", ME_coverage="~/Google_Drive/Results/ME/Single_cell/TOTAL.filter1.ME_SJ_coverage", out_filtered_ME="~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.txt", out_low_scored_ME="~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt", out_shorter_than_3_ME="~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"), output_file="/Users/gp7/Google_Drive/Results/ME/Single_cell/test.html")'
+
+
+
+ME_table="~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric", ME_U2_sim="~/Google_Drive/Results/ME/mm10/Round2/ME_U2.sim1.txt", ME_coverage="~/Google_Drive/Results/ME/Single_cell/TOTAL.filter1.ME_SJ_coverage", out_filtered_ME="~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.txt", out_low_scored_ME="~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt", out_shorter_than_3_ME="~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"
+
+
+
+
+R -e  'rmarkdown::render("src/final_filters.Rmd", params = list(ME_table="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric", ME_coverage="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Round2/TOTAL.filter1.ME_SJ_coverage", out_filtered_ME= "/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_filtered_ME.txt", out_low_scored_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_low_scored_ME.txt", out_shorter_than_3_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_shorter_than_3_ME.txt"), output_file="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/report.html"), out_filtered_ME_cov="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_filtered_ME.cov.txt" '
+
+
+R -e  'rmarkdown::render("src/final_filters.Rmd",params = list(ME_table="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric", ME_coverage="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Round2/TOTAL.filter1.ME_SJ_coverage", out_filtered_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_filtered_ME.txt", out_low_scored_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_low_scored_ME.txt", out_shorter_than_3_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_shorter_than_3_ME.txt", min_number_files_detected=1, out_filtered_ME_cov="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/out_filtered_ME.cov.txt" ), output_file="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Report/report.html")'
+
+
+
+
+R -e  'rmarkdown::render("../../src/final_filters2.Rmd",params = list(ME_table="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric", ME_coverage="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Round2/TOTAL.filter1.ME_SJ_coverage", out_total="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Report/out_TOTAL_ME.txt", out_filtered_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Report/out_filtered_ME.txt", out_low_scored_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Report/out_low_scored_ME.txt", out_shorter_than_3_ME="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Report/out_shorter_than_3_ME.txt", min_number_files_detected=3), output_file="/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator/Results/ENCODE/Report/report.html")'
+
+
+
+
+
+```

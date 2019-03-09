@@ -1,0 +1,102 @@
+configfile : "config.yaml"
+
+############ Params #############################
+
+
+
+##################################################
+
+
+
+import glob, os
+import random
+import csv
+from collections import defaultdict
+
+#DATA = [os.path.basename(f).split(".")[0] for f in config["samples"]]
+
+
+#DATA = [os.path.basename(f).split(".")[0] for f in glob.glob(config["fastq_path"] + '*.fastq')]
+
+
+#DATA = [os.path.basename(f).split(".")[0] for f in glob.glob("FASTQ/" + '*.fastq')]
+
+
+# for f in glob.glob(config["fastq_path"] + '*.fastq'):
+#     print(os.path.basename(f))
+
+
+
+try:
+    os.mkdir("download")
+except FileExistsError:
+    pass
+
+
+DATA = set([])
+
+
+with open("SRR_Acc_List_.txt") as file :
+
+    reader = csv.reader(file, delimiter="\t")
+
+    for row in reader:
+
+        RUN = row[0]
+        DATA.add(RUN)
+
+        file_name = "download/" + RUN + ".download.sh"
+        command = "fastq-dump --split-files -O FASTQ "
+
+        if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+            download_file =  open(file_name, "w")
+
+            download_file.write("#!/bin/bash" + "\n")
+            download_file.write('srr="' + RUN + '"' + "\n" )
+            download_file.write(command + " " + RUN + "\n")
+            download_file.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+            download_file.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+
+
+print(DATA)
+
+rule all:
+    input:
+        "Report/out.high_quality.txt"
+        #"Report/out_filtered_ME.txt"
+        #expand("Genome_aligments/{Software}/TOTAL.exons.{Software}", Software=["Hisat2", "STAR", "Olego"])
+        # expand("Genome_aligments/{Software}/{sample}.sam.SJ_count", sample=DATA, Software=["Hisat2", "STAR"]),
+        #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
+        #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
+
+rule round1:
+    input:
+        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA)
+	
+
+
+#### MicroExonator ####
+
+include : "rules/Get_FASTQs.skm"
+#include : "rules/Round1.skm"
+#include : "rules/Round1_post_processing.skm"
+include : "rules/Round2.skm"
+include : "rules/Round2_post_processing.skm"
+
+#### Benchmark ####
+
+include : "rules/Benchmark.skm"
+
+##### Downstream Analysis ####
+
+include : "rules/Whippet.skm"
+
+
+
+
+
+
+# python2 ../../../Simulation/Bechmark/src/Get_introns_from_sam.py test.sam Rd1 40 1000000 8
+
+#snakemake -s MicroExonator.skm -j 30000  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" -k

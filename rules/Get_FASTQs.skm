@@ -1,0 +1,67 @@
+rule download_fastq:
+    input:
+        "download/{sample}.download.sh"
+    output:
+        temp("FASTQ/{sample}.fastq")
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "bash {input}"
+
+
+rule Splice_Junction_Library:
+    input:
+        config["Genome_fasta"],
+        config["Gene_anontation_fasta"],
+        config["Gene_anontation_bed12"]
+    params:
+        ME_len = config["ME_len"]
+    output:
+        "Round1/ME_TAGs.fa"
+    conda:
+        "../envs/MicroExonator.yaml"
+    shell:
+        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
+
+
+# rule sra_to_fastq:
+#     input:
+#         config["input_dir"] + "/{sample}.sra"
+#     output:
+#         temp("data/fastq_paired/{sample}.fastq")
+#     shell:
+#         "fastq-dump {input} -O data/fastq_paired/"
+
+
+# rule fastq_gz_to_fastq:
+#     input:
+#         config["input_dir"] + "/{sample}.fastq.gz"
+#     output:
+#         temp("data/fastq/{sample}.fastq")
+#     shell:
+#         "gzip -dc {input} > {output}"
+#
+# rule fastq_input:
+#     input:
+#         config["input_dir"] + "/{sample}.fastq"
+#     output:
+#         "data/fastq/{sample}.fastq"
+#     shell:
+#         "ln -s {input} {output}"
+
+#rule download_to_fastq:
+#    input:
+#        "download/{sample}.download.sh"
+#    output:
+#        "data/fastq/{sample}.fastq"
+#    shell:
+#        "bash {input}"
+
+
+# rule split_fastq:
+#     input:
+#         "data/fastq_paired/{sample}.fastq"
+#     output:
+#         temp("data/fastq/{sample}.fastq")
+#     shell:
+#         "python2 src/split_paired_end.py {input} > {output}"
