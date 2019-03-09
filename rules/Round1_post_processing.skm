@@ -8,7 +8,7 @@ rule row_Micro_Exon_reads:
         temp("Round1/{sample}.sam.row_ME"),
         temp("Round1/{sample}.sam.row_ME.fastq")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/row_ME.py {input} > {output[0]}"
 
@@ -20,7 +20,7 @@ rule hisat2_Genome_index:
         temp("data/Genome.1.ht2")
     threads: 5
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "hisat2-build {input} data/Genome"
 
@@ -33,7 +33,7 @@ rule hisat2_to_Genome:
         temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
     threads: 1
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "hisat2 -x data/Genome -U {input[0]} > {output}"
 
@@ -51,7 +51,7 @@ rule Round1_filter:
     output:
         protected("Round1/{sample}.sam.row_ME.filter1")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/ME_filter1.py {input} {params.ME_len} > {output}"
 
@@ -62,7 +62,7 @@ rule Micro_Exon_table:
     output:
         protected("Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "cat {input} > Round1/TOTAL/TOTAL.sam.row_ME.filter1 &&"
         "python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
@@ -75,6 +75,6 @@ rule Micro_Exon_Tags:
     output:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/Micro_exons_tags.py  {input} > {output}"
