@@ -13,7 +13,7 @@ rule Get_ME_from_annotation:
         "ME_canonical_SJ_tags.DB.fa",
         "DB.ME_centric"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {input[5]} {params.ME_len} {input[6]} "
 
@@ -25,7 +25,7 @@ rule merge_tags:
     output:
         "Round2/ME_canonical_SJ_tags.fa"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "cat {input[0]} {input[1]} > {output}"
 
@@ -37,7 +37,7 @@ rule merge_ME_centric:
     output:
         "Round2/TOTAL.ME_centric.txt"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "cat {input[0]} {input[1]} > {output}"
 
@@ -48,7 +48,7 @@ rule Round2_bowtie_tags_index:
     output:
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bowtie-build {input} {input}"
 
@@ -62,7 +62,7 @@ rule Round2_bowtie_to_tags:
         temp("Round2/{sample}.sam")
     threads: 1
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bowtie {input[0]} -p {threads} -q {input[1]} -S -v 2 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /*/)' > {output}"
 
@@ -73,6 +73,6 @@ rule Round2_alingment_pre_processing:
     output:
         temp("Round2/{sample}.sam.pre_processed")
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
