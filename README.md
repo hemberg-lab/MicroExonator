@@ -5,5 +5,5 @@ reproducible discovery and quantification of microexons using RNA-seq data
 
 * git clone https://github.com/geparada/MicroExonator
 * create `config.yaml` and `cluster.json` inside `MicroExonator\`
-* run `snakemake  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" -k -s MicroExonator.skm --use-conda  -j 40`
+* run `snakemake -s MicroExonator.skm  [cluster system params] --use-conda -k  -j 40` . Where in the case of lsf, cluster system params will be `-cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`
 
