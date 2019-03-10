@@ -8,30 +8,3 @@ ME_len : 30
 working_directory : /lustre/scratch117/cellgen/team218/igs_gp7/MicroExons/COSMIC/
 ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/hg19.VastDb.bed12
 input_dir : data
-
-fastq_path : /lustre/scratch117/cellgen/team218/igs_gp7/MicroExons/COSMIC/FASTQ/
-
-# #### SnakePool
-#
-# GTF : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/out_filtered_ME.no_chrM.gtf
-# whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia/share/julia/site/v0.6/Whippet/bin
-# samtools : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/g4/bin/samtools
-# cluster_metadata : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Tasic_clustering.txt
-# cluster_name : broad_type
-# file_basename : Run_s
-# run_metadata : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Tasic_run.txt
-#
-#
-# #####
-#
-samples : ['data/FASTQ/sample1.fastq',  'data/FASTQ/sample3.fastq ', 'data/FASTQ/sample5.fastq',  'data/FASTQ/sample7.fastq',
-'data/FASTQ/sample2.fastq',  'data/FASTQ/sample4.fastq',  'data/FASTQ/sample6.fastq',  'data/FASTQ/sample8.fastq' ]
-
-
-
-
-#### SnakePool
-
-GTF : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Simulation/Bechmark/Report/out_filtered_ME.no_chrM.gtf
-whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia/share/julia/site/v0.6/Whippet/bin
-samtools : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/g4/bin/samtools
