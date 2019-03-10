@@ -8,7 +8,7 @@ clone MicroExonator
 
     git clone https://github.com/geparada/MicroExonator
 
-Then, install Miniconda 2.
+Then, install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
 
     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
     chmod +x Miniconda2-latest-Linux-x86_64.sh
