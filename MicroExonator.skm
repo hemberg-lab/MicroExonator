@@ -55,9 +55,9 @@ if os.path.isfile('./NCBI_accession_list.txt'):
                 download_file.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq; fi"  + "\n")
 
 
-            file_name_round2 = "download/" + RUN  + ".round2.download.sh"
+#            file_name_round2 = "download/" + RUN  + ".round2.download.sh"
 
-            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+#            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
 #                download_file_round2 =  open(file_name_round2, "w")
 
