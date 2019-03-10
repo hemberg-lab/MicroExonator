@@ -3,7 +3,7 @@ channels:
   - bioconda
   - defaults
   - cgat
-  dependencies:
+dependencies:
   - bcftools=1.7=0
   - bedtools=2.27.1=he941832_2
   - hisat2=2.1.0=py36pl5.22.0_0
@@ -17,5 +17,3 @@ channels:
   - python=3.6.6=h5001a0f_0
   - numpy=1.14.3
   - numpy-base=1.14.3=py36h0ea5e3f_1
-
-  
