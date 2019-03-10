@@ -40,7 +40,7 @@ Where in the case of lsf, cluster system params will be `"bsub -n {cluster.nCPUs
     
 For large dataset runnig the pipeline in two strands:
     
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster [cluster system params] --use-conda -k  -j 40 discovery
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster [cluster system params] --use-conda -k  -j 40 quant
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
   
 
