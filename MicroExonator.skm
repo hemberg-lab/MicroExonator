@@ -42,7 +42,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
             DATA.add(RUN)
 
             file_name = "download/" + RUN + ".download.sh"
-            command = "fastq-dump --split-files -O FASTQ "
+            command = "fastq-dump.2.9.1 --split-files -O FASTQ "
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
