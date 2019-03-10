@@ -105,7 +105,7 @@ if os.path.isfile("./desing.tvs"):
 
 print(DATA)
 
-rule round2:
+rule quant:
     input:
         "Report/out.high_quality.txt"
         #"Report/out_filtered_ME.txt"
@@ -115,7 +115,7 @@ rule round2:
         #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
 
 
-rule round1:
+rule discovery:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
