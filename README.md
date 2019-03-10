@@ -36,7 +36,7 @@ Then run
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs}
     
-Where in the case of lsf, cluster system params will be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can have any int number, this deppend of your machinne work load capacity.
+Notice that you should usee `--cluster` only if you are working in a computer cluster that works with queue systems such as lsf, qsub, SLURM, etc. We provide an example of `cluster.json` to work with lsf and in that case the cluster system params should be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can have any int number, this deppend of your machinne work load capacity. 
     
 For large dataset runnig the pipeline in two strands:
     
