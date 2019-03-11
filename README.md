@@ -26,7 +26,7 @@ Before running MicroExonator you need to have certain files at `MicroExonator/`.
 
 If you are working remotely or even in your own machine, we highly recommend create an screen before running MicroExonator
 
-    screen -S test_run
+    screen -S session_name
 
 Then activate snakemake enviroment
 
