@@ -1,4 +1,4 @@
-rule Get_ME_from_annotation:
+  rule Get_ME_from_annotation:
     input:
         config["Genome_fasta"],
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
@@ -10,8 +10,8 @@ rule Get_ME_from_annotation:
     params:
         ME_len = config["ME_len"]
     output:
-        "ME_canonical_SJ_tags.DB.fa",
-        "DB.ME_centric"
+        "data/ME_canonical_SJ_tags.DB.fa",
+        "data/DB.ME_centric"
     conda:
         "../envs/core.yaml"
     shell:
@@ -21,7 +21,7 @@ rule Get_ME_from_annotation:
 rule merge_tags:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa",
-        "ME_canonical_SJ_tags.DB.fa"
+        "data/ME_canonical_SJ_tags.DB.fa"
     output:
         "Round2/ME_canonical_SJ_tags.fa"
     conda:
@@ -33,7 +33,7 @@ rule merge_tags:
 rule merge_ME_centric:
     input:
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
-        "DB.ME_centric"
+        "data/DB.ME_centric"
     output:
         "Round2/TOTAL.ME_centric.txt"
     conda:
