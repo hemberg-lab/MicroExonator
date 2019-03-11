@@ -26,7 +26,7 @@ rule Round1_bwa_mem_to_tags:
 
 rule Round1_alingment_pre_processing:
     input:
-        temp("Round1/{sample}.sam")
+        "Round1/{sample}.sam"
     output:
         temp("Round1/{sample}.sam.pre_processed")
     priority: 100
