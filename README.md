@@ -20,7 +20,7 @@ Finally create an enviroment to run snakemake
 
 # Configure
 
-Before running MicroExonator you need to have certain files at `MicroExonator\`. You need to create `config.yaml` and `cluster.json` inside . Finally, to declare the input, you need to create `desing.tsv` (for fastq.gz files that are locally in your machine) and/or `NCBI_accession_list.txt`(for SRA accession names). Take a look to Examples folder.
+Before running MicroExonator you need to have certain files at `MicroExonator/`. You need to create `config.yaml` and `cluster.json` inside . Finally, to declare the input, you need to create `desing.tsv` (for fastq.gz files that are locally in your machine) and/or `NCBI_accession_list.txt`(for SRA accession names). Take a look to Examples folder.
 
 # Run
 
