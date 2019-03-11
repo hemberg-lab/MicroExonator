@@ -1,7 +1,11 @@
 import sys
 import csv
 from collections import defaultdict
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
 
+Genome = {}
 
 def Genomictabulator(fasta):
 
@@ -34,14 +38,11 @@ def main(bed12):
         for q, b in zip(qstarts, blocksizes):
 
 
-			estart = start + q
-			eend = start + q + b
-			elength = eend - estart
+            estart = start + q
+            eend = start + q + b
+            elength = eend - estart
 
-			exon_seq = Genome[chrom][estart:eend]
-
-
-			exon_seq = str(dn).upper()
+            exon_seq = Genome[chrom][estart:eend]
 
             transcripts_seq[(transcript, strand)] += exon_seq
 
@@ -51,8 +52,10 @@ def main(bed12):
         transcript_strand, seq = key_value
         transcript, strand = transcript_strand
 
-		if strand=="-":
-			seq = seq.reverse_complement()
+        if strand=="-":
+            seq = seq.reverse_complement()
+
+        seq = str(seq).upper()
 
         print(">" + transcript)
         print(seq)
