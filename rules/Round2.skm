@@ -1,4 +1,4 @@
-  rule Get_ME_from_annotation:
+rule Get_ME_from_annotation:
     input:
         config["Genome_fasta"],
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
