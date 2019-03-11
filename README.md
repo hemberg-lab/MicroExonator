@@ -1,6 +1,10 @@
 environment# MicroExonator
 reproducible discovery and quantification of microexons using RNA-seq data
 
+# Introduction
+
+MicroExonator is a fully-integrated computational pipeline that allows for systematic de novo discovery and quantification of microexons using raw RNA-seq data for any organism. Compared to other available methods MicroExonator is more sensitive to the discovery of smaller microexons. Moreover, MicroExonator provides integrated downstream comparative analysis between cell types or tissues using Whippet (Sterne-Weiler et al. 2018). As a proof of principle MicroExonator identified X novel microexons in Y RNA-seq samples from mouse and systematically characterised microexons in terms of tissue and cell type specificity.
+
 
 # Install
 
