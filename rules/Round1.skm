@@ -5,7 +5,7 @@ rule bwa_index:
     output:
         "Round1/ME_TAGs.fa.amb"
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bwa index {input}"
 
@@ -19,7 +19,7 @@ rule Round1_bwa_mem_to_tags:
     threads: 5
     priority: 100
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "bwa mem -t {threads} -O 6,2 -L 25 {input[0]} {input[1]} | awk '$6 ~ /I/' > {output}"
 
@@ -31,6 +31,6 @@ rule Round1_alingment_pre_processing:
         temp("Round1/{sample}.sam.pre_processed")
     priority: 100
     conda:
-        "../envs/MicroExonator.yaml"
+        "../envs/core.yaml"
     shell:
         "python2 src/alingment_pre_processing.py {input} F > {output}"
