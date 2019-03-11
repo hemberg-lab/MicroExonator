@@ -16,6 +16,8 @@ rule generate_fasta_from_bed12:
         "data/transcripts.fa"
     conda:
         "../envs/core.yaml"
+    shell:
+        " python src/Get_fasta_from_bed12.py {input} > {output}"
 
 
 rule Splice_Junction_Library:
