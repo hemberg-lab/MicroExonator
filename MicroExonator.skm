@@ -42,7 +42,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
             DATA.add(RUN)
 
             file_name = "download/" + RUN + ".download.sh"
-            command = "fastq-dump --split-files -O FASTQ "
+            command = "fastq-dump.2.9.1 --split-files -O FASTQ "
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
@@ -52,22 +52,21 @@ if os.path.isfile('./NCBI_accession_list.txt'):
                 download_file.write('srr="' + RUN + '"' + "\n" )
                 download_file.write(command + " " + RUN + "\n")
                 download_file.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
-                download_file.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
-
-
-            file_name_round2 = "download/" + RUN  + ".round2.download.sh"
-
-            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
-
-                download_file_round2 =  open(file_name_round2, "w")
-
-                download_file_round2.write("#!/bin/bash" + "\n")
-                download_file_round2.write('srr="' + RUN + '"' + "\n" )
-                download_file_round2.write(command + " " + RUN + "\n")
-                download_file_round2.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
-                download_file_round2.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
-                download_file_round2.write("mv $srr.fastq $srr.fastq.round2" + "\n")
-
+                download_file.write( "if [ $numLines -eq 8 ]; then cat FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq > FASTQ/$srr.fastq && rm FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq; fi"  + "\n")
+            #
+            # file_name_round2 = "download/" + RUN  + ".round2.download.sh"
+            #
+            # if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+            #
+            #     download_file_round2 =  open(file_name_round2, "w")
+            #
+            #     download_file_round2.write("#!/bin/bash" + "\n")
+            #     download_file_round2.write('srr="' + RUN + '"' + "\n" )
+            #     download_file_round2.write(command + " " + RUN + "\n")
+            #     download_file_round2.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+            #     download_file_round2.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+            #     download_file_round2.write("mv $srr.fastq $srr.fastq.round2" + "\n")
+            #
 
 
 if os.path.isfile("./desing.tvs"):
