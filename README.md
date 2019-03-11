@@ -4,7 +4,7 @@ reproducible discovery and quantification of microexons using RNA-seq data
 
 # Install
 
-clone MicroExonator
+clone MicroExonator.
 
     git clone https://github.com/geparada/MicroExonator
 
