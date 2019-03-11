@@ -129,11 +129,11 @@ include : "rules/Round2_post_processing.skm"
 
 #### Benchmark ####
 
-include : "rules/Benchmark.skm"
+#include : "rules/Benchmark.skm"
 
 ##### Downstream Analysis ####
 
-include : "rules/Whippet.skm"
+#include : "rules/Whippet.skm"
 
 
 
