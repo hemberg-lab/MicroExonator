@@ -57,6 +57,7 @@ def main(bed12, in_GT_AG_U2_5, in_GT_AG_U2_3, out_GT_AG_U2_5, out_GT_AG_U2_3):
 
                     dn = ME3[3:5] + ME5[-5:-3]
 
+
                     if dn=="GTAG":
 
                         for pos, nt in enumerate(ME3):

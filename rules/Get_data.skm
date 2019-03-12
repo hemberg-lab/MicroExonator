@@ -49,7 +49,7 @@ rule GetPWM:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/Get_splicing_PWMs.py {input} {params} {output}"
+        "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
 
 
