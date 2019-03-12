@@ -4,7 +4,7 @@ rule Get_ME_from_annotation:
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
         config["Gene_anontation_bed12"],
         "data/GT_AG_U2_5.pwm",
-        "data/GT_AG_U2_5.pwm",
+        "data/GT_AG_U2_3.pwm",
         config["conservation_bigwig"],
         config["ME_DB"]
     params:
