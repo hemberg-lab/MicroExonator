@@ -34,7 +34,7 @@ The `config.yaml` file is an standar yaml file that should have the path of the 
     ME_DB : /path/to/VastDb.bed12
     ME_len : 30
 
-Whereas `Genome_fasta` is a multifaste file containg the genome cromosomes. `Gene_anontation_bed12` is a BED file containing the transcript annotation, which can be found at [UCSC genome browser](http://genome.ucsc.edu/cgi-bin/hgTables). GT_AG_U2_5 and GT_AG_U2_5 are splice site PWMs that can be either get from [SpliceRack](http://katahdin.cshl.edu/SpliceRack/poster_data.html) or generated using our costume script.  
+Whereas `Genome_fasta` is a multifaste file containg the genome cromosomes. `Gene_anontation_bed12` is a BED file containing the transcript annotation, which can be found at [UCSC genome browser](http://genome.ucsc.edu/cgi-bin/hgTables). `GT_AG_U2_5` and `GT_AG_U2_5` are splice site PWMs that can be from [SpliceRack](http://katahdin.cshl.edu/SpliceRack/poster_data.html) (as this server is currently down, we provisionally provide the PWM for human and mouse), but if you do not have these PWM for the specie for which you want to conduct the analysis, you can leave it as `NA` and MicroExonator will generate these PWMs internaly.   
 
 # Run
 
