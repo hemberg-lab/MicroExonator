@@ -43,8 +43,22 @@ For large dataset running the pipeline in two strands:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
+
+# Troubleshooting
+
+Before running it is recommended to see if SnakeMake can corretly generate all the steps given your input. For this, you can do a dry-run using `-np` parameters:
+
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
+
+If the dry-run cannot be iniciated, make sure you are running MicroExonator from inside the folder you cloned from this repository. Make sure you have the right configuration inside `config.yaml`. 
+
+The current version of MicroExonator does not support chromosome names that has `_` or `|`, for example some chromosome names can be `chr1_KZ111v2_alt` and in this case you migth have some errors that will prevent you to complete the run. For now we recommed to replace these caracters by any string you can recognise, for example:
+
+    sed 's/_/SEP/g' genome.fa > genome.fa.sed
     
+And then use this modified genome (`genome.fa.sed`) as an input. Future versions of MicroExonator will overcome this issue withouth requering this step.
+
 
 # Contact
 
-gp7@sanger.ac.ak
+For questions, ideas, feature requests and potential bug reports please contact gp7@sanger.ac.uk.
