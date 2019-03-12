@@ -23,6 +23,19 @@ Finally create an enviroment to run snakemake
 
 Before running MicroExonator you need to have certain files at `MicroExonator/`. You need to create `config.yaml` and `cluster.json` inside . Finally, to declare the input, you need to create `desing.tsv` (for fastq.gz files that are locally in your machine) and/or `NCBI_accession_list.txt`(for SRA accession names). Take a look to Examples folder.
 
+The `config.yaml` file is an standar yaml file that should have the path of the input files and certain paramethers:
+
+    Genome_fasta : /path/to/danRer11.fa
+    Gene_anontation_bed12 : /path/to/danRer11.ensembl.bed12
+    GT_AG_U2_5 : /path/to/danRer11_GT_AG_U2_5.good.matrix
+    GT_AG_U2_3 : /path/to/Zebrafish/Data/danRer11_GT_AG_U2_3.good.matrix
+    vertebrates_phylop : /path/to/danRer11.chrom.sizes.bw.sep  
+    working_directory : /path/to/Zebrafish/
+    ME_DB : /path/to/VastDb.bed12
+    ME_len : 30
+
+Whereas `Genome_fasta` is a multifaste file containg the genome cromosomes. `Gene_anontation_bed12` is a BED file containing the transcript annotation, which can be found at [UCSC genome browser](http://genome.ucsc.edu/cgi-bin/hgTables). GT_AG_U2_5 and GT_AG_U2_5 are splice site PWMs that can be either get from [SpliceRack](http://katahdin.cshl.edu/SpliceRack/poster_data.html) or generated using our costume script.  
+
 # Run
 
 If you are working remotely or even in your own machine, we highly recommend create an screen before running MicroExonator
@@ -39,10 +52,12 @@ Then run
 
 Notice that you should use `--cluster` only if you are working in a computer cluster that works with queue systems such as lsf, qsub, SLURM, etc. We provide an example of `cluster.json` to work with lsf and in that case the cluster system params should be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can have any int number, this depend of your machine work load capacity. 
 
-For large dataset running the pipeline in two strands:
+If you want to process a large dataset, we recommend to run MicroExonator in two stages:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
+    
+By doing this, you will optimise disk space, which is often a restrictive resource for running large data sets. 
 
 # Troubleshooting
 
