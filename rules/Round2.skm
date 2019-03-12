@@ -3,8 +3,8 @@ rule Get_ME_from_annotation:
         config["Genome_fasta"],
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
         config["Gene_anontation_bed12"],
-        config["GT_AG_U2_5"],
-        config["GT_AG_U2_3"],
+        "data/GT_AG_U2_5.pwm",
+        "data/GT_AG_U2_5.pwm",
         config["vertebrates_phylop"],
         config["ME_DB"]
     params:
