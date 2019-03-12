@@ -70,6 +70,7 @@ If the dry-run cannot be iniciated, make sure you are running MicroExonator from
 The current version of MicroExonator does not support chromosome names that has `_` or `|`, for example some chromosome names can be `chr1_KZ111v2_alt` and in this case you migth have some errors that will prevent you to complete the run. For now we recommed to replace these caracters by any string you can recognise, for example:
 
     sed 's/_/SEP/g' genome.fa > genome.fa.sed
+    sed 's/_/SEP/g' transcripts.bed > transcripts.bed.sed
     
 And then use this modified genome (`genome.fa.sed`) as an input. Future versions of MicroExonator will overcome this issue withouth requering this step.
 
