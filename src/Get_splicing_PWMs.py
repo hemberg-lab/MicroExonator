@@ -114,4 +114,4 @@ def main(bed12, in_GT_AG_U2_5, in_GT_AG_U2_3, out_GT_AG_U2_5, out_GT_AG_U2_3):
 
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])
-	main(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
+    main(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
