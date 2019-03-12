@@ -39,7 +39,7 @@ rule Splice_Junction_Library:
 rule GetPWM:
     input:
         config["Genome_fasta"],
-        config["Gene_anontation_bed12"],
+        config["Gene_anontation_bed12"]
     params:
         config["GT_AG_U2_5"],
         config["GT_AG_U2_3"]
