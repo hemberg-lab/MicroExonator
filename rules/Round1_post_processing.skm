@@ -45,7 +45,7 @@ rule Round1_filter:
         "Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam",
         "data/GT_AG_U2_5.pwm",
         "data/GT_AG_U2_5.pwm",
-        config["vertebrates_phylop"]
+        config["conservation_bigwig"]
     params:
         ME_len = config["ME_len"]
     output:

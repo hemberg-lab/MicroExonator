@@ -5,7 +5,7 @@ rule Get_ME_from_annotation:
         config["Gene_anontation_bed12"],
         "data/GT_AG_U2_5.pwm",
         "data/GT_AG_U2_5.pwm",
-        config["vertebrates_phylop"],
+        config["conservation_bigwig"],
         config["ME_DB"]
     params:
         ME_len = config["ME_len"]
