@@ -40,6 +40,7 @@ rule GetPWM:
     input:
         config["Genome_fasta"],
         config["Gene_anontation_bed12"],
+    params:
         config["GT_AG_U2_5"],
         config["GT_AG_U2_3"]
     output:
@@ -48,7 +49,7 @@ rule GetPWM:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/Get_splicing_PWMs.py {input} {output}"
+        "python2 src/Get_splicing_PWMs.py {input} {params} {output}"
 
 
 
