@@ -1,3 +1,4 @@
+
 rule download_fastq:
     input:
         "download/{sample}.download.sh"
@@ -33,6 +34,22 @@ rule Splice_Junction_Library:
         "../envs/core.yaml"
     shell:
         "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
+
+
+rule GetPWM:
+    input:
+        config["Genome_fasta"],
+        config["Gene_anontation_bed12"],
+        config["GT_AG_U2_5"],
+        config["GT_AG_U2_3"]
+    output:
+        "data/GT_AG_U2_5.pwm",
+        "data/GT_AG_U2_3.pwm"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python2 src/Get_splicing_PWMs.py {input} {output}"
+
 
 
 # rule sra_to_fastq:
