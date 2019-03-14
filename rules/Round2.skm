@@ -15,7 +15,7 @@ rule Get_ME_from_annotation:
     conda:
         "../envs/pybedtools.yaml"
     shell:
-        "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {input[5]} {params.ME_len} {input[6]} "
+        "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {input[5]} {params.ME_len} {input[6]} "
 
 
 rule merge_tags:
