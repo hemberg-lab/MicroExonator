@@ -7,7 +7,7 @@ MicroExonator is a fully-integrated computational pipeline that allows for syste
 
 Start by cloning MicroExonator
 
-    git clone https://github.com/geparada/MicroExonator
+    git clone https://github.com/hemberg-lab/MicroExonator
 
 Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
 
