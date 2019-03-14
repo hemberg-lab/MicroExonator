@@ -14,6 +14,16 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
     chmod +x Miniconda2-latest-Linux-x86_64.sh
     ./Miniconda2-latest-Linux-x86_64.sh -b -p /cvmfs/softdrive.nl/$USER/Miniconda2
+   
+Miniconda will modify your `~/.bashrc` file and add a like like this:
+
+    export PATH="$HOME/conda/bin:$PATH"
+
+After the release of conda 4.4, we need to change this like to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend you relace that line added by Miniconda for the following line:
+
+    . $HOME/miniconda/etc/profile.d/conda.sh
+
+Where `$HOME` is the directory where you installed Miniconda, which is your home directory by default, but during Miniconda instalation can be set as any directory.
 
 Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.io/en/stable/)
 
