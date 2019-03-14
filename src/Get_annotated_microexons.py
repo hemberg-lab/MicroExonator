@@ -21,14 +21,14 @@ def percent (c, total):
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
+	#print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
 
 	f = open(fasta)
 
 	for chrfa in SeqIO.parse(f, "fasta"):
 		Genome[chrfa.id] = chrfa.seq
 
-	print >> sys.stderr, "OK"
+	#print >> sys.stderr, "OK"
 
 	f.close()
 
@@ -131,8 +131,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
-		blocksizes = map(int, row[10].strip(",").split(","))
-		qstarts = map (int, row[11].strip(",").split(","))
+		blocksizes = list(map(int, row[10].strip(",").split(",")))
+		qstarts = list(map(int, row[11].strip(",").split(",")))
 
 
 		start = int(row[1])
@@ -252,8 +252,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			if len(row)==12:
 
 
-				blocksizes = map(int, row[10].strip(",").split(","))
-				qstarts = map (int, row[11].strip(",").split(","))
+				blocksizes = list(map(int, row[10].strip(",").split(",")))
+				qstarts = list(map(int, row[11].strip(",").split(",")))
 
 
 				start = int(row[1])
