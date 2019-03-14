@@ -6,6 +6,5 @@ channels:
 dependencies:
  - pybedtools=0.8.0
  - bedtools=2.27.1
- - python=2.*
  - biopython
  - pyBigWig
