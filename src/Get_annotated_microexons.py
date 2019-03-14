@@ -308,7 +308,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_ends = set([])
 
 
-	with open('ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('DB.ME_centric', 'w') as out_ME_centric :
+	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric :
 
 
 
