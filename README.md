@@ -19,7 +19,7 @@ Miniconda will modify your `~/.bashrc` file and add a like like this:
 
     export PATH="$HOME/conda/bin:$PATH"
 
-After the release of conda 4.4, we need to change this like to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend you relace that line added by Miniconda for the following line:
+After the release of conda 4.4, we need to change this line to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend you relace that line added by Miniconda for the following line:
 
     . $HOME/miniconda/etc/profile.d/conda.sh
 
