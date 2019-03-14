@@ -17,11 +17,11 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
    
 Miniconda will modify your `~/.bashrc` file and add a like like this:
 
-    export PATH="$HOME/conda/bin:$PATH"
+    export PATH="/path/to/miniconda/bin:$PATH"
 
 After the release of conda 4.4, we need to change this line to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend you relace that line added by Miniconda for the following line:
 
-    . $HOME/miniconda/etc/profile.d/conda.sh
+    . /path/to/miniconda/etc/profile.d/conda.sh
 
 Where `$HOME` is the directory where you installed Miniconda, which is your home directory by default, but during Miniconda instalation can be set as any directory.
 
