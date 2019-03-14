@@ -60,7 +60,7 @@ Finnaly, if you are working on a high performace cluster, then it is very likely
 
 We highly recommend creating a screen before running MicroExonator
 
-    screen -S session_name
+    screen -S session_name  #choose a meaning full name to you
 
 To activate snakemake enviroment
 
@@ -77,7 +77,16 @@ If you want to process a large dataset, we recommend running MicroExonator in tw
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
     
-By doing this, you will optimise disk space, which is often a limiting resource for large datasets. 
+By doing this, you will optimise disk space, which is often a limiting resource for large datasets.
+
+If you are working remotelly, the connection is likely to die before MicroExonator finish. However, as long as you are working within an screen, loggin off will not kill snakemake. To list your active screens you can do:
+
+    screen -ls
+ 
+To reattached and detach screens just use:
+
+    screen -r session_name  # only detached screen can be reattached  
+    screen -d session_name
 
 # Troubleshooting
 
