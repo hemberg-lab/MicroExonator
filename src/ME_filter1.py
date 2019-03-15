@@ -302,7 +302,8 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 
 
-			ME_chr, ME_strand, ME_start, ME_end = i
+			ME_strand, ME_start, ME_end = i[-3:]
+			ME_chr = "_".join(i[:-3])
 
 			ME_start = int(ME_start)
 			ME_end = int(ME_end)
