@@ -55,7 +55,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
 
         for row in reader:
 
-            chrom, strand, estart, eend = row["ME"].split("_")
+            chrom = "_".join(row["ME"].split("_")[:-3]) 
+            strand, estart, eend = row["ME"].split("_")[-3:]
             exon = (chrom, strand, estart, eend)
 
             estart_exons[(chrom, strand, estart)].add(exon)
@@ -69,8 +70,9 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
         for row in reader:
 
             if row["ME_type"]=="RESCUED":
-
-                chrom, strand, estart, eend = row["ME"].split("_")
+                
+                chrom = "_".join(row["ME"].split("_")[:-3]) 
+                strand, estart, eend = row["ME"].split("_")[-3:]
                 exon = (chrom, strand, estart, eend)
 
                 estart_exons[(chrom, strand, estart)].add(exon)
@@ -84,7 +86,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
 
         for row in reader:
 
-            chrom, strand, estart, eend = row["ME"].split("_")
+            chrom = "_".join(row["ME"].split("_")[:-3]) 
+            strand, estart, eend = row["ME"].split("_")[-3:]
             exon = (chrom, strand, estart, eend)
 
             sum_ME_SJ_coverage_up = int(row["sum_ME_SJ_coverage_up"])
@@ -103,7 +106,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
 
         for row in reader:
 
-            chrom, strand, estart, eend = row["ME"].split("_")
+            chrom = "_".join(row["ME"].split("_")[:-3]) 
+            strand, estart, eend = row["ME"].split("_")[-3:]
             exon = (chrom, strand, estart, eend)
 
             sum_ME_SJ_coverage_up = total_ME_up[row["ME"]]
@@ -140,7 +144,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
 
         for row in reader:
 
-            chrom, strand, estart, eend = row["ME"].split("_")
+            chrom = "_".join(row["ME"].split("_")[:-3]) 
+            strand, estart, eend = row["ME"].split("_")[-3:]
             exon = (chrom, strand, estart, eend)
 
             sum_ME_SJ_coverage_up = total_ME_up[row["ME"]]
