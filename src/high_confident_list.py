@@ -43,8 +43,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
                 elenght = eend - estart
                 exon = (chrom, strand, estart, eend)
 
-            estart_exons[(chrom, strand, estart)].add(exon)
-            eend_exons[(chrom, strand, eend)].add(exon)
+                estart_exons[(chrom, strand, estart)].add(exon)
+                eend_exons[(chrom, strand, eend)].add(exon)
 
 
         #### Counting exons that have the same start/end
