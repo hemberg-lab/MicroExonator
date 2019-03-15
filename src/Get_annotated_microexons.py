@@ -109,8 +109,9 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 		ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
 
-		ME_chrom, ME_strand, ME_start, ME_end = ME.split("_")
-
+		ME_strand, ME_start, ME_end = ME.split("_")[-3:]
+		ME_chrom =  "_".join(ME.split("_")[:-3])
+		
 		found_ME.add(ME)
 		ME_chroms.add(ME_chrom)
 
