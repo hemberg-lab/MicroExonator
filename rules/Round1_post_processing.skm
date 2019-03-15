@@ -51,7 +51,7 @@ rule Round1_filter:
     output:
         protected("Round1/{sample}.sam.row_ME.filter1")
     conda:
-        "../envs/core.yaml"
+        "../envs/pybedtools.yaml"
     shell:
         "python2 src/ME_filter1.py {input} {params.ME_len} > {output}"
 
