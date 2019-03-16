@@ -13,7 +13,7 @@ rule Get_Genome:
     input:
         config["Genome_fasta"]
     output:
-        "data/Genome"
+        temp("data/Genome")
     shell:
         "cp {input} {output}"
 
