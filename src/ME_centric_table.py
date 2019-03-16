@@ -83,7 +83,7 @@ def main(row_ME_filter1):
 
 		for SJ_MEseq in i.split(" "):
 
-			SJ = SJ_MEseq.split("_")[0]
+			SJ = "_".join(SJ_MEseq.split("_")[:-1])
 
 			coverage, transcript, len_micro_exon_seq_found, micro_exon_seq_found, number_of_micro_exons_matches, max_U2_scores, max_mean_conservations,  micro_exons_coords, U2_scores, mean_conservations = SJ_info[SJ_MEseq].split(" ")
 
@@ -104,7 +104,7 @@ def main(row_ME_filter1):
 			SJ_max_mean_conservations.append(float(max_mean_conservations))
 
 
-
+			#print SJ_MEseq, SJ
 			SJ_chr = "_".join((re.findall(r"[\w']+", SJ)[:-2]))
 			SJ_istart, SJ_iend = re.findall(r"[\w']+", SJ)[-2:]
 			SJ_istart = int(SJ_istart)
