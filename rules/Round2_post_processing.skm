@@ -10,7 +10,7 @@ rule ME_reads:
         "python2 src/round2_ME_reads_fastq.py {input} > {output}"
         
 rule Get_Genome:
-    intput:
+    input:
         config["Genome_fasta"]
     output:
         "data/Genome"
