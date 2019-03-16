@@ -105,7 +105,8 @@ def main(row_ME_filter1):
 
 
 
-			SJ_chr, SJ_istart, SJ_iend = re.findall(r"[\w']+", SJ)
+			SJ_chr = "_".join((re.findall(r"[\w']+", SJ)[:-2]))
+			SJ_istart, SJ_iend = re.findall(r"[\w']+", SJ)[-2:]
 			SJ_istart = int(SJ_istart)
 			SJ_iend = int(SJ_iend)
 
