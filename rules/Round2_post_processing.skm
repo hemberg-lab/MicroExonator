@@ -13,7 +13,7 @@ rule bowtie_Genome_index:
     input:
         config["Genome_fasta"]
     output:
-        data/Genome_bowtie + ".1.ebwt"
+        "data/Genome_bowtie" + ".1.ebwt"
     conda:
         "../envs/core.yaml"
     shell:
@@ -22,8 +22,8 @@ rule bowtie_Genome_index:
 rule bowtie_to_genome:
     input:
         "Round2/{sample}.sam.pre_processed.fastq",
-        data/Genome_bowtie,
-        data/Genome_bowtie + ".1.ebwt"
+        "data/Genome_bowtie",
+        "data/Genome_bowtie" + ".1.ebwt"
     output:
         temp("Round2/{sample}.sam.pre_processed.hg19.sam")
     conda:
