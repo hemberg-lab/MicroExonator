@@ -9,22 +9,21 @@ rule ME_reads:
     shell:
         "python2 src/round2_ME_reads_fastq.py {input} > {output}"
 
-
 rule bowtie_Genome_index:
     input:
         config["Genome_fasta"]
     output:
-        config["Genome_fasta"] + ".1.ebwt"
+        data/Genome_bowtie + ".1.ebwt"
     conda:
         "../envs/core.yaml"
     shell:
-        "bowtie-build {input} {input}"
+        "bowtie-build {input} data/Genome_bowtie"
 
 rule bowtie_to_genome:
     input:
         "Round2/{sample}.sam.pre_processed.fastq",
-        config["Genome_fasta"],
-        config["Genome_fasta"] + ".1.ebwt"
+        data/Genome_bowtie,
+        data/Genome_bowtie + ".1.ebwt"
     output:
         temp("Round2/{sample}.sam.pre_processed.hg19.sam")
     conda:
