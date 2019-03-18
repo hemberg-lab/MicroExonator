@@ -43,64 +43,69 @@ def main(sam_pre_processed):
 
 			istart = int(istart)
 			iend = int(iend)
+			
+			try:
 
-			intron_seq = str(Genome[chr][istart:iend]).upper()
+				intron_seq = str(Genome[chr][istart:iend]).upper()
 
-			micro_exons_coords = []
+				micro_exons_coords = []
 
-			island = "AG" + DR_corrected_micro_exon_seq_found + "GT"
-			rev_island = str(Seq(island).reverse_complement())
+				island = "AG" + DR_corrected_micro_exon_seq_found + "GT"
+				rev_island = str(Seq(island).reverse_complement())
 
-			strand = "+"
+				strand = "+"
 
-			if "-" in intron_tag:
-				strand = "-"
+				if "-" in intron_tag:
+					strand = "-"
 
-			if strand == "+" and island in intron_seq:
+				if strand == "+" and island in intron_seq:
 
-				for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(island, i)]:
+					for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(island, i)]:
 
-					ME_start = i + 2 + istart
-					ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
-					ME_chr = chr
-					ME_strand = strand
+						ME_start = i + 2 + istart
+						ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
+						ME_chr = chr
+						ME_strand = strand
 
-					micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
-
-
-			elif strand == "-" and rev_island in intron_seq:
-
-
-				for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(rev_island, i)]:
-
-					ME_start = i + 2 + istart
-					ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
-					ME_chr = chr
-					ME_strand = strand
-
-					micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
-
-			micro_exons_coords = ",".join(micro_exons_coords)
-
-			if micro_exons_coords!="":
-				print "\t".join(row) + "\t" + micro_exons_coords
-
-				fastq_out.write("@" + read + "\n")
-				fastq_out.write(seq + "\n")
-				fastq_out.write("+" + "\n")
-				fastq_out.write(qual + "\n")
-
-				# ME_fastq = SeqRecord( seq, id = read, description = "" )
-				# ME_fastq.letter_annotations["phred_quality"] = qual
-
-				# fastq_out.write(ME_fastq.format("fastq"))
+						micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
 
 
-				# print "@" + read.qname
-				# print seq
-				# print "+"
-				# print q
+				elif strand == "-" and rev_island in intron_seq:
 
+
+					for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(rev_island, i)]:
+
+						ME_start = i + 2 + istart
+						ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
+						ME_chr = chr
+						ME_strand = strand
+
+						micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
+
+				micro_exons_coords = ",".join(micro_exons_coords)
+
+				if micro_exons_coords!="":
+					print "\t".join(row) + "\t" + micro_exons_coords
+
+					fastq_out.write("@" + read + "\n")
+					fastq_out.write(seq + "\n")
+					fastq_out.write("+" + "\n")
+					fastq_out.write(qual + "\n")
+
+					# ME_fastq = SeqRecord( seq, id = read, description = "" )
+					# ME_fastq.letter_annotations["phred_quality"] = qual
+
+					# fastq_out.write(ME_fastq.format("fastq"))
+
+
+					# print "@" + read.qname
+					# print seq
+					# print "+"
+					# print q
+
+					
+			except KeyError:
+				pass 
 
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
