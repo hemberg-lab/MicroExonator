@@ -63,8 +63,7 @@ rule download_fastq2:
     conda:
         "../envs/core.yaml"
     shell:
-        "bash {input}"
-        "mv {params} {output}"
+        "bash {input} && mv {params}[0] {output}"
 
 
 rule Round2_bowtie_to_tags:
