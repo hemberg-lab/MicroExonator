@@ -129,10 +129,11 @@ rule annotation_stats:
     input:
         config["Gene_anontation_bed12"],
         "Report/out.high_quality.txt",
+    params:
         30
     output:
         "Report/stats/Microexons.not_consensus"
     conda:
         "../envs/core.yaml"
     shell:
-        "python3 src/stats/discovery_stats.py {input} > {output}"
+        "python3 src/stats/discovery_stats.py {input} {params} > {output}"
