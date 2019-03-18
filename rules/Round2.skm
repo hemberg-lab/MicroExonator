@@ -56,12 +56,15 @@ rule download_fastq2:
     input:
         "download/{sample}.download.sh",
         "Round2/TOTAL.ME_centric.txt"
+    params:
+        "FASTQ/{sample}.fastq"
     output:
         temp("FASTQ/{sample}.round2.fastq")
     conda:
         "../envs/core.yaml"
     shell:
         "bash {input}"
+        "mv {params} {output}"
 
 
 rule Round2_bowtie_to_tags:
