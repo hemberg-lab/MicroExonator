@@ -37,7 +37,9 @@ def main(sam_pre_processed):
 		if len(row)==14: #To avoid rare errors (like SRR2138604.sam.pre_processed)
 			read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found = row
 			intron_tag, transcript_ID, anchors = tag.split("|")
-			chr, istart, iend = re.findall(r"[\w']+", intron_tag)
+
+			chr = "_".join(re.findall(r"[\w']+", intron_tag)[:-2])
+			istart, iend = re.findall(r"[\w']+", intron_tag)[-2:]
 
 			istart = int(istart)
 			iend = int(iend)
