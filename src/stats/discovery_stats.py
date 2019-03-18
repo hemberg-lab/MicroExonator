@@ -25,7 +25,7 @@ def bed12_microexon_extract(bed12_path,ME_len):
 			eend = start + q2 + b2
 			elength = eend - estart
 			exon = (chrom, strand, str(estart), str(eend))
- 	                transcript = row[3]
+			transcript = row[3]
 			SJ_start = start + q1 + b1
 			SJ_end = start + q3
 			ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
