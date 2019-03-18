@@ -41,10 +41,10 @@ def microexonator_output_reader(high_qual_filters):
 	next(reader)
 	for row in reader:
 		ME = row[0]
-            	chrom = "_".join(ME.split("_")[:-3])  # To avoid errors with chrom_
-            	strand, start, end = ME.split("_")[-3:]
-            	ME = (chrom, strand, start, end)
-            	ME_MicroExonator.add(ME)
+		chrom = "_".join(ME.split("_")[:-3])  # To avoid errors with chrom_
+		strand, start, end = ME.split("_")[-3:]
+		ME = (chrom, strand, start, end)
+		ME_MicroExonator.add(ME)
 	return ME_MicroExonator
 
 def compare(set_Microexonator,set_consensus):
@@ -58,7 +58,7 @@ def compare(set_Microexonator,set_consensus):
         datafile=open("Microexons.annotation.stats","w")
         for line in set_total:
 		if line in set_novel:
-        	        datafile.write('\t'.join([str(x) for x in line])+'\t'+str(1)+'\n')
+			datafile.write('\t'.join([str(x) for x in line])+'\t'+str(1)+'\n')
 		else:
 			datafile.write('\t'.join([str(x) for x in line])+'\t'+str(0)+'\n')
         datafile.close()
