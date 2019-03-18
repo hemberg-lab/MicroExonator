@@ -37,9 +37,9 @@ def bed12_microexon_extract(bed12_path,ME_len):
 
 def microexonator_output_reader(high_qual_filters):
 	ME_MicroExonator = set()
-        reader = csv.reader(open(high_qual_filters), delimiter = '\t')
+	reader = csv.reader(open(high_qual_filters), delimiter = '\t')
 	next(reader)
-        for row in reader:
+	for row in reader:
 		ME = row[0]
             	chrom = "_".join(ME.split("_")[:-3])  # To avoid errors with chrom_
             	strand, start, end = ME.split("_")[-3:]
