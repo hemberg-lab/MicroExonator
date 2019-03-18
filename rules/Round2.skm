@@ -52,11 +52,22 @@ rule Round2_bowtie_tags_index:
     shell:
         "bowtie-build {input} {input}"
 
+rule download_fastq2:
+    input:
+        "download/{sample}.download.sh",
+        "Round2/TOTAL.ME_centric.txt"
+    output:
+        temp("FASTQ/{sample}.round2.fastq")
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "bash {input}"
+
 
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
-        "FASTQ/{sample}.fastq",
+        "FASTQ/{sample}.round2.fastq",
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
         temp("Round2/{sample}.sam")
