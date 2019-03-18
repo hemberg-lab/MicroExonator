@@ -15,7 +15,7 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
     chmod +x Miniconda2-latest-Linux-x86_64.sh
     ./Miniconda2-latest-Linux-x86_64.sh -b -p /cvmfs/softdrive.nl/$USER/Miniconda2
 
-After the release of conda 4.4, we need to change this line to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
+After the release of conda 4.4 some additional configuration might be required to work with snakemake worflow that have fix conda enviroments, particulaly there might be some inteference of some conda enviroments when that pipeline call is done from an screen [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
 
     . /path/to/miniconda/etc/profile.d/conda.sh
 
