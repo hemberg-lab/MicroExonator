@@ -14,12 +14,8 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
     chmod +x Miniconda2-latest-Linux-x86_64.sh
     ./Miniconda2-latest-Linux-x86_64.sh -b -p /cvmfs/softdrive.nl/$USER/Miniconda2
-   
-Miniconda will modify your `~/.bashrc` file and add a like like this:
 
-    export PATH="/path/to/miniconda/bin:$PATH"
-
-After the release of conda 4.4, we need to change this line to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend you relace that line added by Miniconda for the following line:
+After the release of conda 4.4, we need to change this line to avoid [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
 
     . /path/to/miniconda/etc/profile.d/conda.sh
 
