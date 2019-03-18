@@ -71,7 +71,7 @@ rule Round2_bowtie_to_tags:
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
         temp("Round2/{sample}.sam")
-    threads: 1
+    threads: 5
     conda:
         "../envs/core.yaml"
     shell:
