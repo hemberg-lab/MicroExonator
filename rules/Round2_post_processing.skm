@@ -122,9 +122,6 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-python bed12 MicroExonator_high_qual ME_len
-
-
 rule annotation_stats:
     input:
         config["Gene_anontation_bed12"],
