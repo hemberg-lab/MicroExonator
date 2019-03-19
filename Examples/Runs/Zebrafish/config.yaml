@@ -7,3 +7,4 @@ conservation_bigwig : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/
 ME_len : 30
 working_directory : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/
 ME_DB : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/VastDb.bed12
+Optimize_hard_drive : F
