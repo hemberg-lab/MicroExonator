@@ -129,8 +129,9 @@ rule annotation_stats:
     params:
         30
     output:
-        "Report/stats/Microexons.not_consensus"
+        "Report/stats/Microexons.not_consensus",
+        "Report/stats/Microexons.annotation.stats"
     conda:
         "../envs/core.yaml"
     shell:
-        "python3 src/stats/discovery_stats.py {input} {params} > {output}"
+        "python3 src/stats/discovery_stats.py {input} {params}"
