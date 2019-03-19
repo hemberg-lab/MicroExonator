@@ -49,13 +49,13 @@ def microexonator_output_reader(high_qual_filters):
 
 def compare(set_Microexonator,set_consensus):
 	set_novel = set_Microexonator-set_consensus
-	datafile=open("Microexons.not_consensus","w")
+	datafile=open("Report/stats/Microexons.not_consensus","w")
 	for line in set_novel:
 		datafile.write('\t'.join([str(x) for x in line])+'\n')
 	datafile.close()
 
 	set_total = set_Microexonator | set_consensus
-	datafile=open("Microexons.annotation.stats","w")
+	datafile=open("Report/stats/Microexons.annotation.stats","w")
 	for line in set_total:
 		if line in set_novel:
 			datafile.write('\t'.join([str(x) for x in line])+'\t'+str(1)+'\n')
