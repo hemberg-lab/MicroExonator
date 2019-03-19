@@ -65,11 +65,16 @@ rule download_fastq2:
     shell:
         "bash {input[0]} && mv {params} {output}"
 
+def hard_drive_behavior(fastq):
+    if config["Optimize_hard_drive"]=="T":
+        return(fastq + ".round2.fastq")
+    elif onfig["Optimize_hard_drive"]=="F":
+        return(fastq + ".fastq")
 
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
-        "FASTQ/{sample}.round2.fastq",
+        hard_drive_behavior("FASTQ/{sample}"),
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
         temp("Round2/{sample}.sam")
