@@ -19,7 +19,7 @@ After the release of conda 4.4 some additional configuration might be required t
 
     . /path/to/miniconda/etc/profile.d/conda.sh
 
-Where `$HOME` is the directory where you installed Miniconda, which is your home directory by default, but during Miniconda instalation can be set as any directory.
+Where `/path/to/miniconda` is the directory where you installed Miniconda, which is at your home directory by default, but during Miniconda instalation can be set at any directory.
 
 Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.io/en/stable/)
 
