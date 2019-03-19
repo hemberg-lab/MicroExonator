@@ -7,3 +7,4 @@ conservation_bigwig : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/
 ME_len : 30
 working_directory : /lustre/scratch117/cellgen/team218/igs_gp7/MicroExons/COSMIC/
 ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/hg19.VastDb.bed12
+Optimize_hard_drive : T
