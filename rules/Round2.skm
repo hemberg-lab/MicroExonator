@@ -79,6 +79,7 @@ rule Round2_bowtie_to_tags:
     output:
         temp("Round2/{sample}.sam")
     threads: 5
+    priority: 100
     conda:
         "../envs/core.yaml"
     shell:
@@ -90,6 +91,7 @@ rule Round2_alingment_pre_processing:
         "Round2/{sample}.sam"
     output:
         temp("Round2/{sample}.sam.pre_processed")
+    priority: 100
     conda:
         "../envs/core.yaml"
     shell:
