@@ -27,7 +27,7 @@ Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.i
 
 # Configuration
 
-Before running MicroExonator you need to have certain files in the `MicroExonator/` directory. First, you need to create a `config.yaml`, which should contain the path of the input files and certain paramethers. The format for the `config.yaml` file is shown below:
+Before running MicroExonator you need to have certain files in the `MicroExonator/` directory. By default, all the downloaded files and the results will be stored in the `MicroExonator/` folder which means that several GBs of disk space may be required. First, you need to create a `config.yaml`, which should contain the path of the input files and certain paramethers. The format for the `config.yaml` file is shown below:
 
     Genome_fasta : /path/to/Genome.fa
     Gene_anontation_bed12 : /path/to/ensembl.bed12
