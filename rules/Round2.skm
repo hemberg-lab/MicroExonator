@@ -68,7 +68,7 @@ rule download_fastq2:
 def hard_drive_behavior(fastq):
     if config["Optimize_hard_drive"]=="T":
         return(fastq + ".round2.fastq")
-    elif onfig["Optimize_hard_drive"]=="F":
+    elif config["Optimize_hard_drive"]=="F":
         return(fastq + ".fastq")
 
 rule Round2_bowtie_to_tags:
