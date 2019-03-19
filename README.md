@@ -71,12 +71,13 @@ Then run
 
 Notice that you should use `--cluster` only if you are working in a computer cluster that uses a queuing systems. We provide an example of `cluster.json` to work with lsf and in that case the cluster system params should be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can be a positive integer, the appropriate value depends on the capacity of your machine but for most users a value between 5 and 50 is appropriate. 
 
-If you want to process a large dataset, we recommend running MicroExonator in two stages:
+If you want to process a large dataset, we recommend to set `Optimize_hard_drive` as `T`. If you tho this, you can also run the pipeline in two steps:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
+
+Once the pipeline finish the discovery module, it can be resumed any time later as:
+
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
-    
-By doing this, you will optimise disk space, which is often a limiting resource for large datasets.
 
 If you are working remotelly, the connection is likely to die before MicroExonator finish. However, as long as you are working within an screen, loggin off will not kill snakemake. To list your active screens you can do:
 
@@ -89,19 +90,13 @@ To reattached and detach screens just use:
 
 # Troubleshooting
 
-Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameters:
+Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameter:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
 
-If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
+The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
 
-The current version of MicroExonator does not support chromosome names that have `_` or `|`. An example of such a chromosome name is `chr1_KZ111v2_alt` and when this occurs you may encounter errors that will prevent the run from completing. For now we recommed to replace these caracters, for example:
-
-    sed 's/_/SEP/g' genome.fa > genome.fa.sed
-    sed 's/_/SEP/g' transcripts.bed > transcripts.bed.sed
-    
-And then use this modified genome (`genome.fa.sed`) as an input. Future versions of MicroExonator will address this issue.
-
+If you experice any errors during the pipeline run, we recomend to check the error logs. As long as the snakemake call was not interrupted, you can allways resume the run, as snakemake keep track of any error and is able keep track of the complete and incomplete steps. To make sure snakemake will not overide already completed files, do a dry-run call before resuming MicroExonator. If on the dry-run you realise some steps are going to be re-runed, remove `FASTQ\` directory from MicroExonator folder.
 
 # Contact
 
