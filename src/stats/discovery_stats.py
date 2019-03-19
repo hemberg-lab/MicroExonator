@@ -54,7 +54,7 @@ def compare(set_Microexonator,set_consensus):
 		datafile.write('\t'.join([str(x) for x in line])+'\n')
 	datafile.close()
 
-	set_total = set_Microexonator+set_consensus
+	set_total = set_Microexonator | set_consensus
 	datafile=open("Microexons.annotation.stats","w")
 	for line in set_total:
 		if line in set_novel:
