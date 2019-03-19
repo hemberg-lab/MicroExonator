@@ -20,3 +20,4 @@ dependencies:
   - pybedtools
   - pyBigWig
   - bwa=0.7.15
+  - bowtie
