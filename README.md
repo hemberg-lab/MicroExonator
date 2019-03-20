@@ -15,11 +15,6 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
     chmod +x Miniconda2-latest-Linux-x86_64.sh
     ./Miniconda2-latest-Linux-x86_64.sh -b -p /cvmfs/softdrive.nl/$USER/Miniconda2
 
-After the release of conda 4.4 some additional configuration might be required to work with snakemake worflow that have fix conda enviroments, particulaly there might be some inteference of some conda enviroments when that pipeline call is done from an screen [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
-
-    . /path/to/miniconda/etc/profile.d/conda.sh
-
-Where `/path/to/miniconda` is the directory where you installed Miniconda, which is at your home directory by default, but during Miniconda instalation can be set at any directory.
 
 Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.io/en/stable/)
 
@@ -68,6 +63,12 @@ To activate snakemake enviroment
 Then run
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs}
+    
+Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameter:
+
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
+
+The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
 
 Notice that you should use `--cluster` only if you are working in a computer cluster that uses a queuing systems. We provide an example of `cluster.json` to work with lsf and in that case the cluster system params should be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can be a positive integer, the appropriate value depends on the capacity of your machine but for most users a value between 5 and 50 is appropriate. 
 
@@ -92,13 +93,16 @@ To reattached and detach screens just use:
 
 # Troubleshooting
 
-Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameter:
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
+After the release of conda 4.4 some additional configuration might be required to work with snakemake worflow that have fix conda enviroments, particulaly there might be some inteference of some conda enviroments when that pipeline call is done from an screen [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
 
-The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
+    . /path/to/miniconda/etc/profile.d/conda.sh
 
-If you experice any errors during the pipeline run, we recomend to check the error logs. As long as the snakemake call was not interrupted, you can allways resume the run, as snakemake keep track of any error and is able keep track of the complete and incomplete steps. To make sure snakemake will not overide already completed files, do a dry-run call before resuming MicroExonator. If on the dry-run you realise some steps are going to be re-runed, remove `FASTQ\` directory from MicroExonator folder.
+Where `/path/to/miniconda` is the directory where you installed Miniconda, which is at your home directory by default, but during Miniconda instalation can be set at any directory.
+
+If you have any errors while you are running MicroExonator is useful to read the logs that are reported by the queuing system. Some errors may occur because when not enough memory has been allocated for a given step. Resources for each step can be this can be configured inside `cluster.json` (check example file at MicroExonator/Examples/Cluster_config/lsf/)
+
+When some step fails, you can always resume MicroExonator run to avoid starting from scratch. To do this is important to check that there are not interrupted files. If snakemake finish or is manually interrupted (only once) it will flag interrupted files and delete them before you resume the pipeline. However, when downloading steps are interrupted, snakemake will not check whether the fastq files inside `FASTQ/` are complete or not. Thus, if you are not sure if fastq files inside  `FASTQ` are complete, please delete all fastq files inside `FASTQ/` before running MicroExonator again. Once you do this, you run MicroExonator again as dry-mode (with `-np`), some jobs might be already completed, so you might have less remaining steps to finish the analysis.
 
 # Contact
 
