@@ -6,8 +6,8 @@
         "memory"    : 10000,
         "resources" : "\"select[mem>10000] rusage[mem=10000] span[hosts=1]\"",
         "name"      : "JOBNAME.{rule}.{wildcards}",
-        "output"    : "$TEAM/temp.logs/{rule}.{wildcards}.out",
-        "error"     : "$TEAM/temp.logs/{rule}.{wildcards}.err",
+        "output"    : "tmp/{rule}.{wildcards}.out",
+        "error"     : "tmp/{rule}.{wildcards}.err",
         "Group"     : "team_hemberg",
         "tCPU"      : "99999"
     },
