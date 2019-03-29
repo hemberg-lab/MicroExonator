@@ -1,15 +1,14 @@
-
 rule whippet_index:
     input:
-        config["Genome_fasta"],
-        config['GTF']
+        Genome = config["Genome_fasta"],
+        ME_GTF = "Report/out.high_quality.gtf.txt"
     params:
         bin = config["whippet_bin_folder"]
     output:
         "Whippet/Index/whippet.jls",
         "Whippet/Index/whippet.jls.exons.tab.gz"
     shell:
-        "julia {params.bin}/whippet-index.jl --fasta {input[0]} --gtf {input[1]} --index {output[0]}"
+        "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]}"
 
 
 rule  whippet_quant:
@@ -29,6 +28,8 @@ rule  whippet_quant:
         "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output}"
 
 
+
+
 rule unzip_quant:
     input:
         "Whippet/Quant/{sample}.psi.gz"
@@ -45,7 +46,17 @@ rule ME_psi_to_quant:
     output:
         ME_psi :  "Whippet/Quant/{sample}.ME.psi"
     shell:
-        "python3 {input} > {output}"
+        "python3 {input} > {output} "
+
+
+rule gzip_ME_psi_to_quant:
+    input:
+        ME_psi :  "Whippet/Quant/{sample}.ME.psi"
+    output:
+        ME_psi_gz :  "Whippet/Quant/{sample}.ME.psi.gz"
+    shell:
+        "gzip {input}"
+
 
 
 rule whippet_delta:
@@ -61,3 +72,20 @@ rule whippet_delta:
         o = "Whippet/Delta/" + compare_name
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+
+
+
+rule whippet_delta_ME:
+    input:
+        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=neurons),
+        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=glias)
+    output:
+        "Whippet/Delta/" + compare_name + ".diff.gz"
+    params:
+        bin = config["whippet_bin_folder"],
+        a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=neurons)),
+        b = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=glias)),
+        o = "Whippet/Delta/" + compare_name + ".ME"
+    shell:
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+
