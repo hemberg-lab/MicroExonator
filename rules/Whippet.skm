@@ -61,7 +61,7 @@ rule gzip_ME_psi_to_quant:
 
 condition1 = config["condition1"].split(",") 
 condition2 = config["condition2"].split(",")  
-compare_name = config["compare_name"]
+comparison_name = config["comparison_name"]
 
 
 rule whippet_delta:
@@ -69,7 +69,7 @@ rule whippet_delta:
         expand("Whippet/Quant/{sample}.psi.gz", sample=condition1),
         expand("Whippet/Quant/{sample}.psi.gz", sample=condition2)
     output:
-        "Whippet/Delta/" + compare_name + ".diff.gz"
+        "Whippet/Delta/" + comparison_name + ".diff.gz"
     params:
         bin = config["whippet_bin_folder"],
         a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=neurons)),
@@ -84,7 +84,7 @@ rule whippet_delta_ME:
         expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1),
         expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)
     output:
-        "Whippet/Delta/" + compare_name + ".diff.gz"
+        "Whippet/Delta/" + comparison_name + ".ME.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
         a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=neurons)),
@@ -96,4 +96,6 @@ rule whippet_delta_ME:
 
 rule differential_inclusion:
     input:
+        "Whippet/Delta/" + comparison_name + ".diff.gz",
+        "Whippet/Delta/" + comparison_name + ".ME.diff.gz"
         
