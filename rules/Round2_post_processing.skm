@@ -128,13 +128,13 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-rule get_gtf:
+rule get_GTF:
     input:
         annotation_bed12: config["Gene_anontation_bed12"],
-        annotation_gtf : config["Gene_anontation_gtf"],
+        annotation_GTF : config["Gene_anontation_GTF"],
         out_filtered_ME : "Report/out.high_quality.txt"
     output:
-        ME_gtf = "Report/out.high_quality.gtf.txt"
+        ME_GTF = "Report/out.high_quality.gtf.txt"
     conda:
         "../envs/core.yaml"
     shell:
