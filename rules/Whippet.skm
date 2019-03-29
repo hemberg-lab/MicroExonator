@@ -12,13 +12,13 @@ rule whippet_index:
         "julia {params.bin}/whippet-index.jl --fasta {input[0]} --gtf {input[1]} --index {output[0]}"
 
 
-rule FASTQ_compress:
-    input:
-        "FASTQ/{sample}.fastq"
-    output:
-        config["fastq_path"] + '{sample}.fastq.gz'
-    shell:
-        "gzip {input}"
+#rule FASTQ_compress:
+#    input:
+#        "FASTQ/{sample}.fastq"
+#    output:
+#        config["fastq_path"] + '{sample}.fastq.gz'
+#    shell:
+#        "gzip {input}"
 
 
 # rule FASTQ_decompress:
@@ -50,7 +50,7 @@ rule FASTQ_compress:
 
 rule  whippet_quant:
     input:
-        config["fastq_path"] + '{sample}.fastq.gz',
+        config["fastq_path"] + '{sample}.fastq',
         "Whippet/Index/whippet.jls"
     params:
         bin = config["whippet_bin_folder"],
