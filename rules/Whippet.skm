@@ -37,19 +37,19 @@ rule unzip_quant:
 
 rule ME_psi_to_quant:
     input:
-        ME_PSI : "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
-        whippet_PSI : "Whippet/Quant/{sample}.psi"
+        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
+        whippet_PSI = "Whippet/Quant/{sample}.psi"
     output:
-        ME_psi :  "Whippet/Quant/{sample}.ME.psi"
+        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
     shell:
         "python3 {input} > {output} "
 
 
 rule gzip_ME_psi_to_quant:
     input:
-        ME_psi :  "Whippet/Quant/{sample}.ME.psi"
+        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
     output:
-        ME_psi_gz :  "Whippet/Quant/{sample}.ME.psi.gz"
+        ME_psi_gz =  "Whippet/Quant/{sample}.ME.psi.gz"
     shell:
         "gzip {input}"
 
