@@ -103,7 +103,7 @@ if os.path.isfile("./desing.tvs"):
                 download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
 
 
-print(DATA)
+#print(DATA)
 
 rule quant:
     input:
