@@ -69,7 +69,7 @@ rule whippet_delta:
         bin = config["whippet_bin_folder"],
         a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=condition1)),
         b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=condition2)),
-        o = "Whippet/Delta/" + compare_name
+        o = "Whippet/Delta/" + comparison_name
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
@@ -84,7 +84,7 @@ rule whippet_delta_ME:
         bin = config["whippet_bin_folder"],
         a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1)),
         b = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)),
-        o = "Whippet/Delta/" + compare_name + ".ME"
+        o = "Whippet/Delta/" + comparison_name + ".ME"
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
