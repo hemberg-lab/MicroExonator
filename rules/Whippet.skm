@@ -12,42 +12,6 @@ rule whippet_index:
         "julia {params.bin}/whippet-index.jl --fasta {input[0]} --gtf {input[1]} --index {output[0]}"
 
 
-#rule FASTQ_compress:
-#    input:
-#        "FASTQ/{sample}.fastq"
-#    output:
-#        config["fastq_path"] + '{sample}.fastq.gz'
-#    shell:
-#        "gzip {input}"
-
-
-# rule FASTQ_decompress:
-#     input:
-#         config["fastq_path"] + '{sample}.fastq.gz'
-#     output:
-#         "FASTQ/{sample}.fastq"
-#     shell:
-#         "gzip -d {input}"
-
-
-# rule  whippet_quant:
-#     input:
-#         "data/fastq/{sample}.fastq.gz",
-#         "Whippet/Index/whippet.jls"
-#     params:
-#         bin = config["whippet_bin_folder"],
-#         output = "Whippet/Quant/{sample}"
-#     output:
-#         temp("Whippet/SAM/{sample}.sam"),
-#         "Whippet/Quant/{sample}.gene.tpm.gz",
-#         "Whippet/Quant/{sample}.isoform.tpm.gz",
-#         "Whippet/Quant/{sample}.jnc.gz",
-#         "Whippet/Quant/{sample}.map.gz",
-#         "Whippet/Quant/{sample}.psi.gz"
-#     shell:
-#         "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} --sam > {output[0]}"
-
-
 rule  whippet_quant:
     input:
         config["fastq_path"] + '{sample}.fastq',
@@ -63,3 +27,18 @@ rule  whippet_quant:
         "Whippet/Quant/{sample}.psi.gz"
     shell:
         "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output}"
+
+
+rule whippet_delta:
+    input:
+        expand("Whippet/Quant/{sample}.psi.gz", sample=neurons),
+        expand("Whippet/Quant/{sample}.psi.gz", sample=glias)
+    output:
+        "Whippet/Delta/" + compare_name + ".diff.gz"
+    params:
+        bin = config["whippet_bin_folder"],
+        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=neurons)),
+        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=glias)),
+        o = "Whippet/Delta/" + compare_name
+    shell:
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
