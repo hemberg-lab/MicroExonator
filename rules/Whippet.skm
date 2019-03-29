@@ -95,5 +95,5 @@ rule whippet_delta_ME:
 
 
 rule differential_inclusion:
-    intput:
+    input:
         
