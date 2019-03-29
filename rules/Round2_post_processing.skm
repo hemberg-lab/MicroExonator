@@ -128,6 +128,18 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
+rule get_gtf:
+    input:
+        annotation_bed12: config["Gene_anontation_bed12"],
+        annotation_gtf : config["Gene_anontation_gtf"],
+        out_filtered_ME : "Report/out.high_quality.txt"
+    output:
+        ME_gtf = "Report/out.high_quality.gtf.txt"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python src/get_isoforms.py {input}  > {output}
+
 rule annotation_stats:
     input:
         config["Gene_anontation_bed12"],
