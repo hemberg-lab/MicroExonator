@@ -13,7 +13,7 @@ rule whippet_index:
 
 rule  whippet_quant:
     input:
-        config["fastq_path"] + '{sample}.fastq',
+        'FASTQ/{sample}.fastq',
         "Whippet/Index/whippet.jls"
     params:
         bin = config["whippet_bin_folder"],
@@ -27,9 +27,6 @@ rule  whippet_quant:
     shell:
         "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output}"
 
-
-
-
 rule unzip_quant:
     input:
         "Whippet/Quant/{sample}.psi.gz"
@@ -37,7 +34,6 @@ rule unzip_quant:
         temp("Whippet/Quant/{sample}.psi")
     shell:
         "zcat {input} > {output}"
-
 
 rule ME_psi_to_quant:
     input:
@@ -56,7 +52,6 @@ rule gzip_ME_psi_to_quant:
         ME_psi_gz :  "Whippet/Quant/{sample}.ME.psi.gz"
     shell:
         "gzip {input}"
-
 
 
 condition1 = config["condition1"].split(",") 
