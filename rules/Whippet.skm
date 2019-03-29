@@ -37,7 +37,7 @@ rule unzip_quant:
 
 rule ME_psi_to_quant:
     input:
-        ME_PSI : "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
+        ME_PSI : "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
         whippet_PSI : "Whippet/Quant/{sample}.psi"
     output:
         ME_psi :  "Whippet/Quant/{sample}.ME.psi"
