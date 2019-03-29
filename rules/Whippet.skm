@@ -67,8 +67,8 @@ rule whippet_delta:
         "Whippet/Delta/" + comparison_name + ".diff.gz"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=neurons)),
-        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=glias)),
+        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=condition1)),
+        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=condition2)),
         o = "Whippet/Delta/" + compare_name
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
@@ -82,8 +82,8 @@ rule whippet_delta_ME:
         "Whippet/Delta/" + comparison_name + ".ME.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=neurons)),
-        b = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=glias)),
+        a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1)),
+        b = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)),
         o = "Whippet/Delta/" + compare_name + ".ME"
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
