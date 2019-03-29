@@ -133,7 +133,7 @@ include : "rules/Round2_post_processing.skm"
 
 ##### Downstream Analysis ####
 
-#include : "rules/Whippet.skm"
+include : "rules/Whippet.skm"
 
 
 
