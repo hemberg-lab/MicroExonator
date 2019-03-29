@@ -59,10 +59,15 @@ rule gzip_ME_psi_to_quant:
 
 
 
+condition1 = config["condition1"].split(",") 
+condition2 = config["condition2"].split(",")  
+compare_name = config["compare_name"]
+
+
 rule whippet_delta:
     input:
-        expand("Whippet/Quant/{sample}.psi.gz", sample=neurons),
-        expand("Whippet/Quant/{sample}.psi.gz", sample=glias)
+        expand("Whippet/Quant/{sample}.psi.gz", sample=condition1),
+        expand("Whippet/Quant/{sample}.psi.gz", sample=condition2)
     output:
         "Whippet/Delta/" + compare_name + ".diff.gz"
     params:
@@ -74,11 +79,10 @@ rule whippet_delta:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
 
-
 rule whippet_delta_ME:
     input:
-        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=neurons),
-        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=glias)
+        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1),
+        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)
     output:
         "Whippet/Delta/" + compare_name + ".diff.gz"
     params:
@@ -89,3 +93,7 @@ rule whippet_delta_ME:
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
+
+rule differential_inclusion:
+    intput:
+        
