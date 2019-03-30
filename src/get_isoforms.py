@@ -82,10 +82,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
             tag_dict = dict()
 
             for t in tags:
-                print(t, " " in t)			
-                field, value = t.split(' "')
-                value = value.strip('"')
-                tag_dict[field] = value
+                if " " in t:	
+			
+                	field, value = t.split(' "')
+                	value = value.strip('"')
+                	tag_dict[field] = value
 
 
             gene_id = tag_dict["gene_id"]
