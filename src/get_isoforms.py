@@ -82,7 +82,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
             tag_dict = dict()
 
             for t in tags:	
-                field, value = t.split(" ")
+                field, value = t.split(' "')
                 value = value.strip('"')
                 tag_dict[field] = value
 
