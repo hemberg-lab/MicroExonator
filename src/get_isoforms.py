@@ -113,7 +113,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
 
     gene_ME_intron = set([])
 
-
+	print(gene_coordinates)
 
     with open(annotation_bed12) as F:
 
