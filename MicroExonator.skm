@@ -25,6 +25,12 @@ try:
     os.mkdir("download")
 except FileExistsError:
     pass
+    
+    
+try:
+    os.mkdir("logs")
+except FileExistsError:
+    pass
 
 
 DATA = set([])
