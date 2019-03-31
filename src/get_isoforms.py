@@ -82,8 +82,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
             tag_dict = dict()
 
             for t in tags:
-                if " " in t:	
-			
+                if " " in t:
                 	field, value = t.split(' "')
                 	value = value.strip('"')
                 	tag_dict[field] = value
@@ -113,7 +112,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
 
     gene_ME_intron = set([])
 
-    print(gene_coordinates)
 
     with open(annotation_bed12) as F:
 
