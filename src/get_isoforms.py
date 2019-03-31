@@ -247,8 +247,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 					
 
         if chrM==False:
-                t_chrom!="chrM":
-                    print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
+            t_chrom!="chrM":
+                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
         else:
             print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
 
