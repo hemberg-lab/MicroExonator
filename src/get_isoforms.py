@@ -234,23 +234,23 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 
 
-    if  gene_id not in printed_genes:
+        if  gene_id not in printed_genes:
             
-        if chrM==False:
+            if chrM==False:
 
-            if g_chrom!="chrM":
-                print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
-                printed_genes.add(gene_id)		
-            else:
-                print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
-                printed_genes.add(gene_id)
-					
+                if g_chrom!="chrM":
+                    print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
+                    printed_genes.add(gene_id)		
+                else:
+                    print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
+                    printed_genes.add(gene_id)
 
-        if chrM==False:
-            t_chrom!="chrM":
-                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
-            else:
-                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
+
+            if chrM==False:
+                t_chrom!="chrM":
+                    print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
+                else:
+                    print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
 
 
 
