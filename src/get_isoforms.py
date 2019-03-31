@@ -156,8 +156,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     ilen = iend - istart
 
                     intron  =  (chrom, strand, istart, iend)
-
-
                     non_ME_transcripts[transcript_id].append(exon)
 
                     if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
@@ -167,8 +165,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     if (chrom, eend, strand) in ME_starts:
 
                         ME = ME_starts[(chrom, eend, strand)]
-
-
 
                         ME = ME.split("_")
                         ME_chrom, ME_strand, ME_start, ME_end  = ME
@@ -266,15 +262,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             else:
                 print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";"  ])))
 
-
-
-
-
-
         if len(ME_transcripts[transcript_id]) - len(non_ME_transcripts[transcript_id]) > 0:
-
-
-
 
             for e in ME_transcripts[transcript_id]:
 
@@ -305,7 +293,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 if tuple(e) in new_MEs:
 
                     if chrM==False:
-                        if e_chrom=="chrM":
+                        if e_chrom!="chrM":
                             print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
                     else:
                         print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
@@ -313,7 +301,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 elif e_start not in new_ME_starts and e_end not in new_ME_ends:
 
                     if chrM==False:
-                        if e_chrom=="chrM":
+                        if e_chrom!="chrM":
                             print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
                     else:
                         print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
