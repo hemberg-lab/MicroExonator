@@ -83,7 +83,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME):
 
             for t in tags:
                 if " " in t:
-                	field, value = t.split(' "')
+                	field, value = t.split(' ')
                 	value = value.strip('"')
                 	tag_dict[field] = value
 
