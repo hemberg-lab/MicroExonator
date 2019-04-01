@@ -54,7 +54,7 @@ rule Round2_bowtie_tags_index:
 
 rule download_fastq2:
     input:
-        "download/{sample}.download.sh",
+        "download/{sample}.download.round2.sh",
         "Round2/TOTAL.ME_centric.txt"
     params:
         "FASTQ/{sample}.fastq"
