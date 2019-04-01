@@ -11,7 +11,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     
     header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
 
-    print(["exon_ID"] + "\t".join(header ) )
+    print("\t".join(["exon_ID"] + header))
 
 
     with open(high_qual_ME) as F:
