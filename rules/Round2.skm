@@ -59,7 +59,7 @@ rule download_fastq2:
     params:
         "FASTQ/{sample}.fastq"
     output:
-        temp("FASTQ/round2/{sample}.fastq")
+        temp("FASTQ/{sample}.round2.fastq")
     conda:
         "../envs/core.yaml"
     shell:
@@ -67,7 +67,7 @@ rule download_fastq2:
 
 def hard_drive_behavior(fastq):
     if config["Optimize_hard_drive"]=="T":
-        return( round2/{sample}.fastq  + ".round2.fastq")
+        return( fastq + ".round2.fastq")
     elif config["Optimize_hard_drive"]=="F":
         return(fastq + ".fastq")
 
