@@ -97,9 +97,9 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                         exon_ID = new_exon_ID
 
 
-                #if exon_ID in MEs:
+                if exon_ID in MEs:
           
-                print([row[x] for x in header]) + exon_ID
+                    print([row[x] for x in header]) + exon_ID
           
 
 if __name__ == '__main__':
