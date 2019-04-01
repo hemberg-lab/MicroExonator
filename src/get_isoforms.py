@@ -122,7 +122,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         reader = csv.reader(F, delimiter="\t")
 
         for row in reader:
-            chrom, start, end, transcript_id, score, strand, trickStart, trickEnd, score2, blocknumber, blocksizes, qstarts = row
+            chrom, start, end, transcript_id, score, strand, trickStart, trickEnd, score2, blocknumber, blocksizes, qstarts = row[:12]
 
             qstarts = list(map (int, qstarts.strip(",").split(",")))
             blocksizes = list(map(int, blocksizes.strip(",").split(",")))
