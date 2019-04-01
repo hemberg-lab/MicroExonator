@@ -76,7 +76,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
             #
 
 
-if os.path.isfile("./local_samples.tvs"):
+if os.path.isfile("./local_samples.tsv"):
 
 
     with open("desing.tvs") as file :
