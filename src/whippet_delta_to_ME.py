@@ -11,7 +11,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     
     header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
 
-    print( "\t".join(header + ["exon_ID"]) )
+    print(["exon_ID"] + "\t".join(header ) )
 
 
     with open(high_qual_ME) as F:
@@ -100,7 +100,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 if exon_ID in MEs:
                 #if exon_ID!="":
           
-                    print("\t".join([row[x] for x in header] + [exon_ID]))
+                    print("\t".join([exon_ID] + [row[x] for x in header] ))
           
 
 if __name__ == '__main__':
