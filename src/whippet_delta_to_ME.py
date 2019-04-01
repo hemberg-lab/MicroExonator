@@ -34,7 +34,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 node_exons[(row["Gene"], node)] = [row["Potential_Exon"], row["Is_Annotated"]]
 
 
-    with open(delta) as F: 
+    with gzip.open(delta) as F: 
 
         reader = csv.DictReader(F, delimiter="\t")
         
