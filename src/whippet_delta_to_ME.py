@@ -11,7 +11,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     
     header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
 
-    print( "\t".join(header + ["Is_Annotated"]) )
+    print( "\t".join(header + ["exon_ID"]) )
 
 
     with open(high_qual_ME) as F:
@@ -52,7 +52,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 
                 if row["Type"]=="AD":
             
-                    nchrom, nstrand, nstart, nend = row['exon_ID'].split("_")
+                    nchrom, nstrand, nstart, nend = exon_ID.split("_")
 
 
                     echrom, eloci, estrand =  row["Potential_Exon"].split(":")
@@ -77,7 +77,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                 elif row["Type"]=="AA":
 
-                    nchrom, nstrand, nstart, nend = row['exon_ID'].split("_")
+                    nchrom, nstrand, nstart, nend = exon_ID.split("_")
 
 
                     echrom, eloci, estrand =  row["Potential_Exon"].split(":")
