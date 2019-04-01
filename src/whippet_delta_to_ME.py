@@ -37,8 +37,6 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     with gzip.open(delta, mode="rt") as F: 
 
         reader = csv.DictReader(F, delimiter="\t")
-        
-
 
         for row in reader:
             
@@ -68,14 +66,11 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                         exon_ID = new_exon_ID
 
-
-
                     if estrand == "-" and estart == nstart:
 
                         new_exon_ID = "_".join([echrom, estrand, estart, eend ])
 
                         exon_ID = new_exon_ID
-
 
 
                 elif row["Type"]=="AA":
@@ -102,9 +97,9 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                         exon_ID = new_exon_ID
 
 
-                if exon_ID in MEs:
+                #if exon_ID in MEs:
           
-                    print([row[x] for x in header]) + exon_ID
+                print([row[x] for x in header]) + exon_ID
           
 
 if __name__ == '__main__':
