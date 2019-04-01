@@ -1,4 +1,4 @@
-import csv
+import csv, sys
 from collections import defaultdict
 import gzip
 
