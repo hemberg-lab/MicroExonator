@@ -226,7 +226,8 @@ def main(sam, stranded):
 
 		read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found = i
 		intron_tag, transcript_ID, anchors = tag.split("|")
-		chr, istart, iend = re.findall(r"[\w']+", intron_tag)
+		chr = "_".join(re.findall(r"[\w']+", intron_tag)[:-2])
+		istart, iend = re.findall(r"[\w']+", intron_tag)[-2:])
 
 		q_block_starts = ",".join(map(str, q_block_starts))
 		q_block_ends = ",".join(map(str, q_block_ends))
