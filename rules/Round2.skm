@@ -74,7 +74,7 @@ def hard_drive_behavior(fastq):
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
-        hard_drive_behavior("FASTQ/round2/{sample}.fastq"),
+        hard_drive_behavior("FASTQ/{sample}"),
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
         temp("Round2/{sample}.sam")
