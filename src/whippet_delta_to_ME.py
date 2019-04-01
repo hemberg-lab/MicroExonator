@@ -22,7 +22,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             MEs.add(row["ME"])
     
     
-    with gzip.open(jls_exons_tab, 'rb') as F:
+    with gzip.open(jls_exons_tab, mode="rt") as F:
 
         reader = csv.DictReader(F, delimiter="\t")
         
@@ -34,7 +34,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 node_exons[(row["Gene"], node)] = [row["Potential_Exon"], row["Is_Annotated"]]
 
 
-    with gzip.open(delta, 'rb') as F: 
+    with gzip.open(delta, mode="rt") as F: 
 
         reader = csv.DictReader(F, delimiter="\t")
         
