@@ -54,7 +54,7 @@ rule Round2_bowtie_tags_index:
 
 rule download_fastq2:
     input:
-        "download/{sample}.download.sh",
+        "download/{sample}.round2.download.sh",
         "Round2/TOTAL.ME_centric.txt"
     params:
         "FASTQ/{sample}.fastq"
@@ -63,7 +63,8 @@ rule download_fastq2:
     conda:
         "../envs/core.yaml"
     shell:
-        "bash {input[0]} && mv {params} {output}"
+        "bash {input[0]}"
+        #"bash {input[0]} && mv {params} {output}"
 
 def hard_drive_behavior(fastq):
     if config["Optimize_hard_drive"]=="T":
