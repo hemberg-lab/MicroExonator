@@ -9,7 +9,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     MEs = set([])
     ME_info = dict()
     
-    header  = ["ME_cluster", "Tissue_cluster" , "Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy", "Potential_Exon"]
+    header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
 
     print( "\t".join(header + ["Is_Annotated"]) )
 
