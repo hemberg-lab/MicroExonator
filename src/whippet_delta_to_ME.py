@@ -1,5 +1,7 @@
 import csv
 from collections import defaultdict
+import gzip
+
 
 def main(jls_exons_tab, delta, high_qual_ME ):
 
@@ -20,7 +22,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             MEs.add(row["ME"])
     
     
-    with open(jls_exons_tab) as F:
+    with gzip.open(jls_exons_tab) as F:
 
         reader = csv.DictReader(F, delimiter="\t")
         
