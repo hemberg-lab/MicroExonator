@@ -260,7 +260,9 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 					for e in exon5_exon[ME_chrom + "_" + ME_start]:
 						alternatives_3.append(e)
 
-						chr, estart, eend = re.findall(r"[\w']+", e)
+						chr = "_".join(re.findall(r"[\w']+", e)[:-2])
+						estart, eend = re.findall(r"[\w']+", e)[-2:]
+						
 						cov_e = 0
 						for i in estart_introns[chr + "_" +  str(estart)]:
 							cov_e += ME_SJ[i]
@@ -277,7 +279,8 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 					for e in exon3_exon[ME_chrom + "_" + ME_end]:
 						alternatives_5.append(e)
 
-						chr, estart, eend = re.findall(r"[\w']+", e)
+						chr = "_".join(re.findall(r"[\w']+", e)[:-2]) 
+						estart, eend = re.findall(r"[\w']+", e)[-2:]
 						cov_e = 0
 						for i in estart_introns[chr + "_" +  str(estart)]:
 							cov_e += ME_SJ[i]
@@ -297,7 +300,9 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 					for e in exon5_exon[ME_chrom + "_" + ME_end]:
 						alternatives_3.append(e)
 
-						chr, estart, eend = re.findall(r"[\w']+", e)
+						chr = "_".join(re.findall(r"[\w']+", e)[:-2]) 
+						estart, eend = re.findall(r"[\w']+", e)[-2:]
+
 						cov_e = 0
 						for i in estart_introns[chr + "_" +  str(estart)]:
 							cov_e += ME_SJ[i]
@@ -314,7 +319,9 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 					for e in exon3_exon[ME_chrom + "_" + ME_start]:
 						alternatives_5.append(e)
 
-						chr, estart, eend = re.findall(r"[\w']+", e)
+						chr = "_".join(re.findall(r"[\w']+", e)[:-2]) 
+						estart, eend = re.findall(r"[\w']+", e)[-2:])
+						
 						cov_e = 0
 						for i in estart_introns[chr + "_" +  str(estart)]:
 							cov_e += ME_SJ[i]
