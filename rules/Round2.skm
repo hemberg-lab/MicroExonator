@@ -59,7 +59,7 @@ rule download_fastq2:
     params:
         "FASTQ/{sample}.fastq"
     output:
-        temp("FASTQ/{sample}.round2.fastq")
+        temp("FASTQ/round2/{sample}.fastq")
     conda:
         "../envs/core.yaml"
     shell:
@@ -74,7 +74,7 @@ def hard_drive_behavior(fastq):
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
-        hard_drive_behavior("FASTQ/{sample}.round2.fastq"),
+        hard_drive_behavior("FASTQ/round2/{sample}.fastq"),
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
         temp("Round2/{sample}.sam")
