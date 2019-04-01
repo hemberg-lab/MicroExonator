@@ -48,6 +48,9 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             exon_ID = "_".join([chrom, row["Strand"], estart, eend])
 
             if (row["Gene"], row["Node"] ) in node_exons:
+                
+                Potential_Exon, Is_Annotated = node_exons[(row["Gene"], row["Node"] )]
+                
                 out =  [row[x] for x in header] + node_exons[(row["Gene"], row["Node"] )]
                 
                 if row["Type"]=="AD":
@@ -55,7 +58,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                     nchrom, nstrand, nstart, nend = exon_ID.split("_")
 
 
-                    echrom, eloci, estrand =  row["Potential_Exon"].split(":")
+                    echrom, eloci, estrand =  Potential_Exon.split(":")
 
                     estart, eend =  eloci.split("-")
 
@@ -80,7 +83,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                     nchrom, nstrand, nstart, nend = exon_ID.split("_")
 
 
-                    echrom, eloci, estrand =  row["Potential_Exon"].split(":")
+                    echrom, eloci, estrand =  Potential_Exon.split(":")
 
                     estart, eend =  eloci.split("-")
 
