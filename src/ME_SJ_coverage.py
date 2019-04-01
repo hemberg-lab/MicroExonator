@@ -320,7 +320,7 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 						alternatives_5.append(e)
 
 						chr = "_".join(re.findall(r"[\w']+", e)[:-2]) 
-						estart, eend = re.findall(r"[\w']+", e)[-2:])
+						estart, eend = re.findall(r"[\w']+", e)[-2:]
 						
 						cov_e = 0
 						for i in estart_introns[chr + "_" +  str(estart)]:
