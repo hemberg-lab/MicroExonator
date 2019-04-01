@@ -38,12 +38,14 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
         reader = csv.DictReader(F, delimiter="\t")
         
-        chrom, pos = row["Coord"].split(":")
-        estart, eend = pos.split("-")
-        estart = str(int(estart)-1)
-        exon_ID = "_".join([chrom, row["Strand"], estart, eend])
+
 
         for row in reader:
+            
+            chrom, pos = row["Coord"].split(":")
+            estart, eend = pos.split("-")
+            estart = str(int(estart)-1)
+            exon_ID = "_".join([chrom, row["Strand"], estart, eend])
 
             if (row["Gene"], row["Node"] ) in node_exons:
                 out =  [row[x] for x in header] + node_exons[(row["Gene"], row["Node"] )]
@@ -101,20 +103,6 @@ def main(jls_exons_tab, delta, high_qual_ME ):
           
                     print([row[x] for x in header]) + exon_ID
           
-                    
-                    
-                    
-                    
-    
+
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3])
-   
-                
-
-    
-    
-            
-   
-            
-            
-    
