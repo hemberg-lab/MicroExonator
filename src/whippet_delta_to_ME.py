@@ -6,6 +6,11 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     node_exons = dict()
     MEs = set([])
     ME_info = dict()
+    
+    header  = ["ME_cluster", "Tissue_cluster" , "Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy", "Potential_Exon"]
+
+    print( "\t".join(header + ["Is_Annotated"]) )
+
 
     with open(high_qual_ME) as F:
 
@@ -91,10 +96,16 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
 
                 if exon_ID in MEs:
-                    ME_info[exon_ID] = out
+          
+                    print([row[x] for x in header]) + exon_ID
+          
+                    
+                    
+                    
                     
     
-
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2], sys.argv[3])
    
                 
 
