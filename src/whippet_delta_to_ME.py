@@ -1,7 +1,7 @@
 import csv
 from collections import defaultdict
 
-def main(jls_exons_tab, delta ):
+def main(jls_exons_tab, delta, high_qual_ME ):
 
     node_exons = dict()
 
@@ -22,6 +22,11 @@ def main(jls_exons_tab, delta ):
     with open(delta) as F: 
 
         reader = csv.DictReader(F, delimiter="\t")
+        
+        chrom, pos = row["Coord"].split(":")
+        estart, eend = pos.split("-")
+        estart = str(int(estart)-1)
+        exon_ID = "_".join([chrom, row["Strand"], estart, eend])
 
         for row in reader:
 
@@ -30,3 +35,17 @@ def main(jls_exons_tab, delta ):
                 out =  [row[x] for x in header] + node_exons[(row["Gene"], row["Node"] )]
 
                 TOTAL_DIFF.writerow(out)
+                
+                
+    MEs = set([])
+
+    with open(high_qual_ME) as F:
+
+        reader = csv.DictReader(F, delimiter="\t")
+
+        for row in reader:
+
+            MEs.add(row["ME"])
+            
+            
+    
