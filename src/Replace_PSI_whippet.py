@@ -1,13 +1,14 @@
 import sys
 import csv
+import gzip
 csv.field_size_limit(300000000000000)
+
 
 def main(ME_PSI, whippet_PSI):
 
     Coord_info = dict()
 
     reader1 = csv.reader(open(ME_PSI), delimiter="\t")
-
     header1 = next(reader1)
 
     for row in reader1:
@@ -17,7 +18,7 @@ def main(ME_PSI, whippet_PSI):
 
         Coord_info[Coord] = row
 
-    reader2 = csv.reader(open(whippet_PSI), delimiter="\t")
+    reader2 = csv.reader(gzip.open(whippet_PSI, mode="rt"), delimiter="\t")
     header2 = next(reader2)
 
     print( "\t".join(header2) )
