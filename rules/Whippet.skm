@@ -35,16 +35,6 @@ rule unzip_quant:
     shell:
         "zcat {input} > {output}"
 
-rule ME_psi_to_quant:
-    input:
-        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
-        whippet_PSI = "Whippet/Quant/{sample}.psi"
-    output:
-        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
-    shell:
-        "python3 {input} > {output} "
-
-
 rule gzip_ME_psi_to_quant:
     input:
         ME_psi =  "Whippet/Quant/{sample}.ME.psi"
@@ -53,6 +43,14 @@ rule gzip_ME_psi_to_quant:
     shell:
         "gzip {input}"
 
+rule ME_psi_to_quant:
+    input:
+        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
+        whippet_PSI = "Whippet/Quant/{sample}.psi"
+    output:
+        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
+    shell:
+        "python3 src/Replace_PSI_whippet.py {input} > {output} "
 
 condition1 = config["condition1"].split(",") 
 condition2 = config["condition2"].split(",")  
