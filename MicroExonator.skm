@@ -98,15 +98,15 @@ if os.path.isfile("./local_samples.tsv"):
                 download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
 
 
-            file_name_round2 = "download/" + row["sample"]  + ".round2.download.sh"
+#            file_name_round2 = "download/" + row["sample"]  + ".round2.download.sh"
 
 
-            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+#            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-                download_file_round2 =  open(file_name_round2, "w")
+#                download_file_round2 =  open(file_name_round2, "w")
 
-                download_file_round2.write("#!/bin/bash" + "\n")
-                download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
+#                download_file_round2.write("#!/bin/bash" + "\n")
+#                download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
 
 
 #print(DATA)
