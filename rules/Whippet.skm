@@ -9,14 +9,6 @@ rule whippet_index:
         "Whippet/Index/whippet.jls.exons.tab.gz"
     shell:
         "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]}"
-        
-rule unzip_exons:
-    input:
-        "Whippet/Index/whippet.jls.exons.tab.gz"
-    output:
-        "Whippet/Index/whippet.jls.exons.tab"
-    shell:
-        "gzip -d {input}"
 
 
 rule  whippet_quant:
@@ -99,7 +91,7 @@ rule whippet_delta_ME:
 
 rule delta_ME_from_whippet:
     input:
-        "Whippet/Index/whippet.jls.exons.tab",
+        "Whippet/Index/whippet.jls.exons.tab.gz",
         "Whippet/Delta/" + comparison_name + ".diff.gz",
         "Report/out.high_quality.txt"
     output:
@@ -109,7 +101,7 @@ rule delta_ME_from_whippet:
 
 rule delta_ME_from_MicroExonator:
     input:
-        "Whippet/Index/whippet.jls.exons.tab",
+        "Whippet/Index/whippet.jls.exons.tab.gz",
         "Whippet/Delta/" + comparison_name + ".ME.diff.gz",
         "Report/out.high_quality.txt"
     output:
