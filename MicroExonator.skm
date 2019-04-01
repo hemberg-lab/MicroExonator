@@ -79,7 +79,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
 if os.path.isfile("./local_samples.tsv"):
 
 
-    with open("desing.tvs") as file :
+    with open("./local_samples.tsv") as file :
 
         reader = csv.DictReader(file, delimiter="\t")
 
