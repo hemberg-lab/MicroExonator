@@ -35,13 +35,24 @@ rule  whippet_quant:
     shell:
         "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output}"
 
-rule unzip_quant:
+#rule unzip_quant:
+#    input:
+#        "Whippet/Quant/{sample}.psi.gz"
+#    output:
+#        temp("Whippet/Quant/{sample}.psi")
+#    shell:
+#        "zcat {input} > {output}"
+
+
+rule ME_psi_to_quant:
     input:
-        "Whippet/Quant/{sample}.psi.gz"
+        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
+        whippet_PSI = "Whippet/Quant/{sample}.psi.gz"
     output:
-        temp("Whippet/Quant/{sample}.psi")
+        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
     shell:
-        "zcat {input} > {output}"
+        "python3 src/Replace_PSI_whippet.py {input} > {output} "
+
 
 rule gzip_ME_psi_to_quant:
     input:
@@ -50,15 +61,6 @@ rule gzip_ME_psi_to_quant:
         ME_psi_gz =  "Whippet/Quant/{sample}.ME.psi.gz"
     shell:
         "gzip {input}"
-
-rule ME_psi_to_quant:
-    input:
-        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
-        whippet_PSI = "Whippet/Quant/{sample}.psi"
-    output:
-        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
-    shell:
-        "python3 src/Replace_PSI_whippet.py {input} > {output} "
 
 condition1 = config["condition1"].split(",") 
 condition2 = config["condition2"].split(",")  
