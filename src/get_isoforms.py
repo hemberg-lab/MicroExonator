@@ -87,10 +87,10 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
             for t in tags:
                 if " " in t:
-			print(t)
-                	field, value = t.split(' ')
-                	value = value.strip('"')
-                	tag_dict[field] = value
+                    print(t)
+                    field, value = t.split(' ')
+                    value = value.strip('"')
+                    tag_dict[field] = value
 
 
             gene_id = tag_dict["gene_id"]
