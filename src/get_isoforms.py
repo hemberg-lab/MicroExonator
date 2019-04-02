@@ -87,6 +87,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
             for t in tags:
                 if " " in t:
+			print(t)
                 	field, value = t.split(' ')
                 	value = value.strip('"')
                 	tag_dict[field] = value
@@ -229,7 +230,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
 	
         
-        print(transcript_id, gene_id, g_chrom, g_start, g_end, g_strand, t_chrom, t_start, t_end, t_strand)
 
 
 
