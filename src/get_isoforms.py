@@ -86,9 +86,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             tag_dict = dict()
 
             for t in tags:
-                if " " in t:
-                    print(t)
-                    field, value = t.split(' ')
+		tag = strip(" ")
+                if len(tag.split(' '))==2:
+                    field, value = tag.split(' ')
                     value = value.strip('"')
                     tag_dict[field] = value
 
