@@ -1,0 +1,17 @@
+Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/mm10.fa
+Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/gencode.vM16.annotation.bed12
+GT_AG_U2_5 : /lustre/scratch117/cellgen/team218/MH/MicroExonator/PWM/Mouse/mm10_GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /lustre/scratch117/cellgen/team218/MH/MicroExonator/PWM/Mouse/mm10_GT_AG_U2_3.good.matrix
+conservation_bigwig : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Phylop/mm10.60way.phyloP60way.bw
+working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Test_Martin/MicroExonator/
+ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/VastDb.bed12
+ME_len : 30
+Optimize_hard_drive : F
+
+# Whippet
+
+whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
+Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/gencode.vM16.annotation.gtf
+condition1 : ENCFF920CNZ,ENCFF320FJX,ENCFF528EVC,ENCFF663SNC
+condition2 : ENCFF270GKY,ENCFF460TCF,ENCFF126IRS,ENCFF748SRJ
+comparison_name : forebrain_10.5_vs_forebrain_14.5
