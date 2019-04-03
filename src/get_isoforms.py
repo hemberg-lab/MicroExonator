@@ -244,7 +244,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         
         if g_chrom in chrom_sizes:  #This is to avoid indexing problems with chromosomes that are in the anotation but not at the genome
             
-            if chrom_sizes[g_chrom] > g_end: # this should solve the mouse mithocodrial genes issues
+            if chrom_sizes[g_chrom] > int(g_end): # this should solve the mouse mithocodrial genes issues
             
              if  gene_id not in printed_genes:
 
