@@ -1,6 +1,9 @@
 import csv
 import sys
 from collections import defaultdict
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
 
 annotated_ME  = set([])
 
