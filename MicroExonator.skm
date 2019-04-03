@@ -109,6 +109,30 @@ if os.path.isfile("./local_samples.tsv"):
 #                download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
 
 
+
+if os.path.isfile("./sample_url.tsv"):
+    
+    with open("./sample_url.tsv") as file :
+
+        reader = csv.DictReader(file, delimiter="\t")
+
+        for row in reader:
+
+            DATA.add(row["sample"])
+
+            file_name = "download/" + row["sample"]  + ".download.sh"
+
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write("wget -r" + row["url"] +  "-O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+
+
+
 #print(DATA)
 
 rule quant:
