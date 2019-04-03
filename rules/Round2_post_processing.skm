@@ -102,7 +102,7 @@ rule Output:
         "Round2/TOTAL.ME_centric.txt",
         "Round2/TOTAL.filter1.ME_SJ_coverage"
     params:
-        wd = config["working_directory"]
+        wd = config["working_directory"],
         min_number_files_detected = config["min_number_files_detected"]
     output:
         "Report/out_filtered_ME.txt",
