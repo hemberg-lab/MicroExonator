@@ -7,6 +7,7 @@ working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Test
 ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/VastDb.bed12
 ME_len : 30
 Optimize_hard_drive : F
+min_number_files_detected : 2
 
 # Whippet
 
