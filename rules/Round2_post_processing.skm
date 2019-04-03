@@ -14,7 +14,7 @@ rule Get_Genome:
     input:
         config["Genome_fasta"]
     output:
-        temp("data/Genome")
+        "data/Genome"
     priority: 100
     shell:
         "cp {input} {output}"
@@ -131,7 +131,7 @@ rule high_confident_filters:
 
 rule get_GTF:
     input:
-        genome_fasta = "data/Genome",
+        genome_fasta = config["Genome_fasta"],
         annotation_bed12 = config["Gene_anontation_bed12"],
         annotation_GTF = config["Gene_anontation_GTF"],
         out_filtered_ME = "Report/out.high_quality.txt"
