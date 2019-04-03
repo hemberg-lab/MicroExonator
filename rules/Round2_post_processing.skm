@@ -131,11 +131,12 @@ rule high_confident_filters:
 
 rule get_GTF:
     input:
+        genome_fasta = "data/Genome",
         annotation_bed12 = config["Gene_anontation_bed12"],
         annotation_GTF = config["Gene_anontation_GTF"],
         out_filtered_ME = "Report/out.high_quality.txt"
     params:
-        chrM = False
+        chrM = True
     output:
         ME_GTF = "Report/out.high_quality.gtf.txt"
     conda:
