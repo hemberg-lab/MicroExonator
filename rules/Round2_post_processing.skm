@@ -129,20 +129,6 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-rule get_GTF:
-    input:
-        genome_fasta = config["Genome_fasta"],
-        annotation_bed12 = config["Gene_anontation_bed12"],
-        annotation_GTF = config["Gene_anontation_GTF"],
-        out_filtered_ME = "Report/out.high_quality.txt"
-    params:
-        chrM = False
-    output:
-        ME_GTF = "Report/out.high_quality.gtf.txt"
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "python src/get_isoforms.py {input} {params}  > {output}"
 
 rule annotation_stats:
     input:
