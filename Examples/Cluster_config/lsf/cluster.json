@@ -31,18 +31,10 @@
 
     },
 
-    "indexBam" :
-    {
-        "nCPUs"     : 1,
-        "memory"    : 2000,
-        "resources" : "\"select[mem>2000] rusage[mem=2000] span[hosts=1]\""
-
-    },
-
 
     "Round2_bowtie_to_tags" :
     {
-        "nCPUs"    : 1
+        "nCPUs"    : 5
     },
 
     "bowtie_Genome_index" :
@@ -68,28 +60,4 @@
         "nCPUs"    : 5
     },
 
-
-    "total_olego_to_Genome" :
-    {
-        "nCPUs"    : 5,
-        "queue"     : "long"
-    },
-
-    "total_STAR_to_Genome" :
-    {
-        "nCPUs"    : 5,
-        "memory"    : 30000,
-        "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
-    },
-
-
-    "total_tophat_to_Genome" :
-    {
-        "nCPUs"    : 5
-    },
-
-
 }
-
-
-#snakemake  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" -k -s MicroExonator.skm --use-conda -j 40
