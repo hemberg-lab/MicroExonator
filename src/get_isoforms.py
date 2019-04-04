@@ -293,7 +293,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                             new_ME_ends.add(ME_end)
 
 
-                    transcript_id_ME =  "_".join( [  transcript_id, ".".join(map (str, new_ME_starts ))  ])
+                    if len(new_ME_starts)!=0:
+                        transcript_id_ME =  "_".join( [  transcript_id, ".".join(map (str, new_ME_starts ))  ])
+                    else:
+                        transcript_id_ME = transcript_id
+                    
 
                     if chrM==False:
                         if t_chrom!="chrM":
