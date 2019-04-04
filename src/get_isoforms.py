@@ -232,7 +232,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                 ME_transcripts[transcript_id].append(exon)
 
-                printed_genes = set()
+    printed_genes = set()
 
     for transcript_id in non_ME_transcripts:
 
@@ -251,21 +251,20 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             
                 if  gene_id not in printed_genes:
 
-                        if chrM==False:
-                            if g_chrom!="chrM":
-                                print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
-                                printed_genes.add(gene_id)		
-                        else:
+                    if chrM==False:
+                        if g_chrom!="chrM":
                             print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
-                            printed_genes.add(gene_id)
+                            printed_genes.add(gene_id)		
+                    else:
+                        print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
+                        printed_genes.add(gene_id)
 
 
-                        if chrM==False:
-                            if t_chrom!="chrM":
-                                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
-                        else:
-                            print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
-
+                if chrM==False:
+                    if t_chrom!="chrM":
+                        print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
+                else:
+                    print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";" ])))
 
 
                 for e in non_ME_transcripts[transcript_id]:
