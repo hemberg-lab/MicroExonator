@@ -278,8 +278,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     else:
                         print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id +'"'+ ";"  ])))
 
-                #if len(ME_transcripts[transcript_id]) - len(non_ME_transcripts[transcript_id]) > 0:
-                if transcript_id in ME_transcripts:
+                if len(ME_transcripts[transcript_id]) - len(non_ME_transcripts[transcript_id]) > 0:
+                #if transcript_id in ME_transcripts:
 
                     for e in ME_transcripts[transcript_id]:
 
