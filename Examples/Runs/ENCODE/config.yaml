@@ -2,7 +2,7 @@ Genome_fasta : /touch/mm10.fa
 Gene_anontation_bed12 : /touch/gencode.vM16.annotation.bed12
 GT_AG_U2_5 : /touch/mm10_GT_AG_U2_5.good.matrix
 GT_AG_U2_3 : /touch/mm10_GT_AG_U2_3.good.matrix
-conservation_bigwig : /touch//mm10.60way.phyloP60way.bw
+conservation_bigwig : /touch/mm10.60way.phyloP60way.bw
 working_directory : /touch/MicroExonator/
 ME_DB : /touch/VastDb.bed12
 ME_len : 30
@@ -11,7 +11,7 @@ min_number_files_detected : 2
 
 # Whippet
 
-whippet_bin_folder : /touch//bin
+whippet_bin_folder : /touch/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin/
 Gene_anontation_GTF : /touch/gencode.vM16.annotation.gtf
 condition1 : ENCFF920CNZ,ENCFF320FJX,ENCFF528EVC,ENCFF663SNC
 condition2 : ENCFF270GKY,ENCFF460TCF,ENCFF126IRS,ENCFF748SRJ
