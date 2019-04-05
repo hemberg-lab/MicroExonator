@@ -18,7 +18,7 @@ Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
 
 Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.io/en/stable/)
 
-    conda create -n snakemake snakemake python=3.6 pandas cookiecutter
+    conda create -n snakemake_env snakemake
 
 # Configuration
 
