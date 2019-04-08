@@ -143,7 +143,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             qstarts = list(map (int, qstarts.strip(",").split(",")))
             blocksizes = list(map(int, blocksizes.strip(",").split(",")))
 
-            start = int(start) + 1 #GTF is 1-based
+            start = int(start)
             end = int(end)
 
             blocknumber = int(blocknumber)
@@ -161,7 +161,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 
                 for q1, q2, b in zip(qstarts, qstarts[1:], blocksizes):
-                    estart = start + q1
+                    estart = start + q1  + 1 #GTF is 1-based
                     eend = start + q1 + b
                     elenght = eend - estart
 
@@ -222,7 +222,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 
                 q1, b = qstarts[-1], blocksizes[-1]
-                estart = start + q1
+                estart = start + q1  + 1 #GTF is 1-based
                 eend = start + q1 + b
                 elenght = eend - estart
 
