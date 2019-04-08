@@ -143,7 +143,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             qstarts = list(map (int, qstarts.strip(",").split(",")))
             blocksizes = list(map(int, blocksizes.strip(",").split(",")))
 
-            start = int(start)
+            start = int(start) + 1 #GTF is 1-based
             end = int(end)
 
             blocknumber = int(blocknumber)
@@ -244,6 +244,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
         t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
         
+
         
         if g_chrom in chrom_sizes:  #This is to avoid indexing problems with chromosomes that are in the anotation but not at the genome
             
