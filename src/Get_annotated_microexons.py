@@ -145,98 +145,100 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 		f_seq = ""
 		r_seq= ""
+		
+		if chrom in Genome:
 
 
 
-		for q1, q2, b1 in zip(qstarts, qstarts[1:], blocksizes):
+			for q1, q2, b1 in zip(qstarts, qstarts[1:], blocksizes):
 
-			istart = start + q1 + b1
-			iend = start + q2
+				istart = start + q1 + b1
+				iend = start + q2
 
-			SJ_ID =  transcript + str(istart)
-
-
-			intron = " ".join([chrom, str(istart), str(iend), "SJ", "0", strand])
-
-			#if chrom in ME_chroms:
-
-			introns.add(intron)
+				SJ_ID =  transcript + str(istart)
 
 
- 			# Indexing tag library
-
-
-			estart = start + q1
-			eend = start + q1 + b1
-
-			f_seq += str(Genome[chrom][estart:eend])
-
-
-			if (chrom, eend) in SJ_start_seqs:
-
-				if f_seq[-100:] > len(SJ_start_seqs[(chrom, eend )]):
-
-					SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
-
-			else:
-
-				SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
-
-
-
-
-		for q1, b1 in zip(qstarts[::-1],  blocksizes[::-1]):
-
-			estart = start + q1
-			eend =  start + q1 + b1
-
-			r_seq = str(Genome[chrom][estart:eend]) + r_seq
-
-
-			if (chrom, estart) in SJ_end_seqs:
-
-				if r_seq[:100] > len(SJ_end_seqs[(chrom, estart )]):
-
-					SJ_end_seqs[(chrom, estart )] = r_seq[:100]
-
-			else:
-
-				SJ_end_seqs[(chrom, estart )] = r_seq[:100]
-
-
-
-
-
-
-		for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
-
-			estart = start + q2
-			eend = start + q2 + b2
-			elength = eend - estart
-			exon = "_".join([chrom, strand, str(estart),  str(eend)])
-
-			SJ_start = start + q1 + b1
-			SJ_end = start + q3
-			ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
-
-
-
-			dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
-
-			if strand=="-":
-				dn = dn.reverse_complement()
-
-			dn = str(dn).upper()
-
-
-
-			if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+				intron = " ".join([chrom, str(istart), str(iend), "SJ", "0", strand])
 
 				#if chrom in ME_chroms:
 
-				introns.add(ME_intron)
+				introns.add(intron)
 
-				non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+
+				# Indexing tag library
+
+
+				estart = start + q1
+				eend = start + q1 + b1
+
+				f_seq += str(Genome[chrom][estart:eend])
+
+
+				if (chrom, eend) in SJ_start_seqs:
+
+					if f_seq[-100:] > len(SJ_start_seqs[(chrom, eend )]):
+
+						SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
+
+				else:
+
+					SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
+
+
+
+
+			for q1, b1 in zip(qstarts[::-1],  blocksizes[::-1]):
+
+				estart = start + q1
+				eend =  start + q1 + b1
+
+				r_seq = str(Genome[chrom][estart:eend]) + r_seq
+
+
+				if (chrom, estart) in SJ_end_seqs:
+
+					if r_seq[:100] > len(SJ_end_seqs[(chrom, estart )]):
+
+						SJ_end_seqs[(chrom, estart )] = r_seq[:100]
+
+				else:
+
+					SJ_end_seqs[(chrom, estart )] = r_seq[:100]
+
+
+
+
+
+
+			for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
+
+				estart = start + q2
+				eend = start + q2 + b2
+				elength = eend - estart
+				exon = "_".join([chrom, strand, str(estart),  str(eend)])
+
+				SJ_start = start + q1 + b1
+				SJ_end = start + q3
+				ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
+
+
+
+				dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+
+				if strand=="-":
+					dn = dn.reverse_complement()
+
+				dn = str(dn).upper()
+
+
+
+				if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+
+					#if chrom in ME_chroms:
+
+					introns.add(ME_intron)
+
+					non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
 
 
 
@@ -262,39 +264,41 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				strand = row[5]
 				bn = int(row[9])
 				chrom = row[0]
+				
+				if chrom in Genome:
 
 
-				for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
+					for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
 
 
-					estart = start + q2
-					eend = start + q2 + b2
-					elength = eend - estart
-					exon = "_".join([chrom, strand, str(estart), str(eend)])
-					transcript = row[3]
+						estart = start + q2
+						eend = start + q2 + b2
+						elength = eend - estart
+						exon = "_".join([chrom, strand, str(estart), str(eend)])
+						transcript = row[3]
 
-					SJ_start = start + q1 + b1
-					SJ_end = start + q3
-					ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
-
-
-
-					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
-
-					if strand=="-":
-						dn = dn.reverse_complement()
-
-					dn = str(dn).upper()
+						SJ_start = start + q1 + b1
+						SJ_end = start + q3
+						ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
 
 
 
+						dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+
+						if strand=="-":
+							dn = dn.reverse_complement()
+
+						dn = str(dn).upper()
 
 
-					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
-						#introns.add(ME_intron)
 
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+
+						if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+
+							#introns.add(ME_intron)
+
+							non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
 
 
 
