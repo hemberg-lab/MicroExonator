@@ -147,7 +147,7 @@ rule delta_ME_from_MicroExonator:
         "Whippet/Index/whippet.jls.exons.tab.gz",
         "Whippet/Delta/{comparison_name}.ME.diff.gz",
         "Report/out.high_quality.txt"
-   output:
+    output:
         "Whippet/Delta/{comparison_name}.ME.diff.microexons"
     shell:
         "python src/whippet_delta_to_ME.py {input} > {output}"
