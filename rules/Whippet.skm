@@ -117,15 +117,15 @@ rule whippet_delta:
 #"julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
 
-#rule delta_ME_from_whippet:
-#    input:
-#        "Whippet/Index/whippet.jls.exons.tab.gz",
-#        "Whippet/Delta/" + comparison_name + ".diff.gz",
-#        "Report/out.high_quality.txt"
-#    output:
-#        "Whippet/Delta/" + comparison_name + ".diff.microexons"
-#    shell:
-#        "python src/whippet_delta_to_ME.py {input} > {output}"
+rule delta_ME_from_whippet:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/" + comparison_name + ".diff.gz",
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/" + comparison_name + ".diff.microexons"
+    shell:
+        "python src/whippet_delta_to_ME.py {input} > {output}"
 
 #rule delta_ME_from_MicroExonator:
 #    input:
