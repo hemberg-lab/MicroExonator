@@ -140,8 +140,8 @@ rule delta_ME_from_whippet:
 
 rule differential_inclusion:
     input:
-        #expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
-        expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names)
+        expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
+        #expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names)
         #"Whippet/Delta/" + comparison_name + ".ME.diff.microexons"
         
 
