@@ -18,7 +18,7 @@ rule discovery:
 
 #### MicroExonator ####
 
-include : "rules/init.skm
+include : "rules/init.skm"
 include : "rules/Get_data.skm"
 
 #if ("downstream_only" in config)==False:
@@ -30,19 +30,19 @@ include : "rules/Get_data.skm"
 
 #elif config["downstream_only"])==False:
 
-#    include : "rules/Round1.skm"
-#    include : "rules/Round1_post_processing.skm"
-#    include : "rules/Round2.skm"
-#    include : "rules/Round2_post_processing.skm"
+    include : "rules/Round1.skm"
+    include : "rules/Round1_post_processing.skm"
+    include : "rules/Round2.skm"
+    include : "rules/Round2_post_processing.skm"
 
-#else:
-#    pass
+else:
+    pass
 
 ##### Downstream Analysis ####
 
-#if "whippet_bin_folder" in config:
-#   include : "rules/Whippet.skm"
+if "whippet_bin_folder" in config:
+   include : "rules/Whippet.skm"
 
 #### Benchmark ####
 
-#include : "rules/Benchmark.skm"
+include : "rules/Benchmark.skm"
