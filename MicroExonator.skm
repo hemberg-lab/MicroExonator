@@ -16,6 +16,7 @@ rule discovery:
 
 #### MicroExonator ####
 
+include : "rules/init.skm
 include : "rules/Get_data.skm"
 include : "rules/Round1.skm"
 include : "rules/Round1_post_processing.skm"
