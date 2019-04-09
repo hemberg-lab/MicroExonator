@@ -1,4 +1,5 @@
 #version 0.9.0
+configfile : "config.yaml"
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
