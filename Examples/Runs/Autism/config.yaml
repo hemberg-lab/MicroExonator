@@ -15,6 +15,8 @@ min_number_files_detected : 3
 downstream_only : T
 whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
 Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.gtf
-condition1 : SRR309144,SRR309143,SRR309142,SRR309141
-condition2 : SRR309136,SRR309135,SRR309134,SRR309133
-comparison_name : Control_vs_Autism
+
+whippet_delta:
+    Control_vs_Autism :
+        condition1 : SRR309144,SRR309143,SRR309142,SRR309141
+        condition2 : SRR309136,SRR309135,SRR309134,SRR309133
