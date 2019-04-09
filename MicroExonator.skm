@@ -40,11 +40,8 @@ else:
 
 ##### Downstream Analysis ####
 
-try:
-    if config["whippet"])==True:
-        include : "rules/Whippet.skm"
-except KeyError:
-    pass
+if "whippet_bin_folder" in config:
+    include : "rules/Whippet.skm"
 
 #### Benchmark ####
 
