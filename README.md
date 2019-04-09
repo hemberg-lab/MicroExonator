@@ -115,13 +115,17 @@ Exit interactive julia session (`control + d`) and find Whippet's binary folder,
 
     whippet_bin_folder : path/to/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
     Gene_anontation_GTF : path/to/gene_annotation.gtf
-    condition1 : sample1,sample2,sample3... 
-    condition2 : sample4,sample5,sample6... 
-    comparison_name :  cond1_vs_cond2
+    whippet_delta:
+        Control_vs_TreatmentA :
+            A : SRR309144,SRR309143,SRR309142,SRR309141
+            B : SRR309136,SRR309135,SRR309134,SRR309133
+        Control_vs_TreatmentB :
+            A : SRR309140,SRR309139
+            B : SRR309138,SRR309137
 
-Where:
-* condition1 and condition2 are coma-separated list of the sample names that you want to compare.
-* comparison_name is the name of the comparison.
+
+Where `whippet_delta` correspond to a dictionary that has all the comparions betweeen samples that you would like to do. Each comparison can have an arbitrary name (here as `Control_vs_TreatmentA` and `Control_vs_TreatmentB`). For each comparison two groups of samples are compared; `A` and `B`. These correspond to comma-separated list of the replicates for the conditions you are interested to compare.
+
 
 Then we recomend to do a `dry-run` to check that all the inputs are in place:
 
