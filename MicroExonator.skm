@@ -12,7 +12,6 @@ rule quant:
         #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
         #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
 
-
 rule discovery:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
