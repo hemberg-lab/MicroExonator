@@ -148,7 +148,7 @@ rule delta_ME_from_MicroExonator:
         "Whippet/Delta/{comparison_name}.ME.diff.gz",
         "Report/out.high_quality.txt"
     output:
-        "Whippet/Delta/{comparison_name}.ME.diff.microexons"
+        "Whippet/Delta/{comparison_name}.diff.ME.microexons"
     shell:
         "python src/whippet_delta_to_ME.py {input} > {output}"
 
@@ -157,7 +157,7 @@ rule differential_inclusion:
     input:
         #expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
         expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names),
-        expand("Whippet/Delta/{comparison_name}.ME.diff.microexons", comparison_name=comparison_names)
+        expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
         #"Whippet/Delta/" + comparison_name + ".ME.diff.microexons"
         
 
