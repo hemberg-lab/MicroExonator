@@ -130,7 +130,7 @@ Then we recomend to do a `dry-run` to check that all the inputs are in place:
  
 **Importat**: If you arlready run MicroExonator quantification and discovery, and now you want to perform the these downstream alternative splicing analyses, you might need to skip microexonator steps to avoid them be re-run. To only perfom downstream alternative splicing analyses, you will need to include these extra key in config.yaml:
 
-downstream_only : T
+    downstream_only : T
 
 If you do this, you will schedule processes that are related with `whippet` indexing, quantification and differential inclusion. For example if you have a total of 6 samples, you will see something this:
 
@@ -156,6 +156,7 @@ After you are sure everthing is in place, you can sumbit the runnig command:
 
 # Troubleshooting
 
+Check that every necesary key is writen correctly at `config.yaml`. Also, when you provide the gene annotation files, ensure that all the gene chromosomes are available at the genome fasta that you are providing. Any missing chromosome, will generate errors at different parts of the workflow.
 
 After the release of conda 4.4 some additional configuration might be required to work with snakemake worflow that have fix conda enviroments, particulaly there might be some inteference of some conda enviroments when that pipeline call is done from an screen [interference with screen comand](https://stackoverflow.com/questions/50591901/screen-inside-the-conda-environment-doesnt-work). Thus, we recomend modify your `~/.bashrc` file and add the following line:
 
