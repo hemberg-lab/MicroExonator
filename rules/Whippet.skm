@@ -89,8 +89,8 @@ comparison_names = config["whippet_delta"].keys()
 
 rule whippet_delta:
     input:
-        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"]),
-        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"])
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(",")),
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))
     output:
         "Whippet/Delta/{comparison_name}.diff.gz"
     params:
