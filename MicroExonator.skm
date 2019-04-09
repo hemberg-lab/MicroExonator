@@ -45,4 +45,4 @@ if "whippet_bin_folder" in config:
 
 #### Benchmark ####
 
-include : "rules/Benchmark.skm"
+#include : "rules/Benchmark.skm"
