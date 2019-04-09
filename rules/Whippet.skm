@@ -121,14 +121,14 @@ rule whippet_delta_ME:
         lambda wildcards : expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(",")),
         lambda wildcards : expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))
     output:
-        "Whippet/Delta/{comparison_name}.diff.gz"
+        "Whippet/Delta/{comparison_name}.ME.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
         a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(","))),
         b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))),
-        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name
+        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name 
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} "
 
 
 
@@ -145,7 +145,7 @@ rule delta_ME_from_whippet:
 rule delta_ME_from_MicroExonator:
     input:
         "Whippet/Index/whippet.jls.exons.tab.gz",
-        "Whippet/Delta/{comparison_name}.diff.ME.gz",
+        "Whippet/Delta/{comparison_name}.ME.diff.gz",
         "Report/out.high_quality.txt"
     output:
         "Whippet/Delta/{comparison_name}.diff.ME.microexons"
