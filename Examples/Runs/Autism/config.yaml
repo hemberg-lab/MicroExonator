@@ -18,8 +18,8 @@ Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/
 
 whippet_delta:
     Control_vs_Autism-temporal_cortex :
-        condition1 : SRR309144,SRR309143,SRR309142,SRR309141
-        condition2 : SRR309136,SRR309135,SRR309134,SRR309133
+        A : SRR309144,SRR309143,SRR309142,SRR309141
+        B : SRR309136,SRR309135,SRR309134,SRR309133
     Control_vs_Autism-frontal_cortex :
-        condition1 : SRR309140,SRR309139
-        condition2 : SRR309138,SRR309137
+        A : SRR309140,SRR309139
+        B : SRR309138,SRR309137
