@@ -123,6 +123,36 @@ Where:
 * condition1 and condition2 are coma-separated list of the sample names that you want to compare.
 * comparison_name is the name of the comparison.
 
+Then we recomend to do a `dry-run` to check that all the inputs are in place:
+
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion -np
+    
+ 
+**Importat**: If you arlready run MicroExonator quantification and discovery, and now you want to perform the these downstream alternative splicing analyses, you might need to skip microexonator steps to avoid them be re-run. To only perfom downstream alternative splicing analyses, you will need to include these extra key in config.yaml:
+
+downstream_only : T
+
+If you do this, you will schedule processes that are related with `whippet` indexing, quantification and differential inclusion. For example if you have a total of 6 samples, you will see something this:
+
+    Job counts:
+            count   jobs
+            6       ME_psi_to_quant
+            1       delta_ME_from_MicroExonator
+            1       delta_ME_from_whippet
+            1       differential_inclusion
+            6       download_fastq
+            1       get_GTF
+            6       gzip_ME_psi_to_quant
+            1       whippet_delta
+            1       whippet_delta_ME
+            1       whippet_index
+            6       whippet_quant
+            31
+
+After you are sure everthing is in place, you can sumbit the runnig command:
+
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion
+
 
 # Troubleshooting
 
