@@ -1,0 +1,127 @@
+
+import glob, os
+import random
+import csv
+from collections import defaultdict
+
+
+
+
+try:
+    os.mkdir("FASTQ")
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir("download")
+except FileExistsError:
+    pass
+    
+    
+try:
+    os.mkdir("logs")
+except FileExistsError:
+    pass
+
+
+DATA = set([])
+
+if os.path.isfile('./NCBI_accession_list.txt'):
+
+
+    with open("NCBI_accession_list.txt") as file :
+
+        reader = csv.reader(file, delimiter="\t")
+
+        for row in reader:
+
+            RUN = row[0]
+            DATA.add(RUN)
+
+            file_name = "download/" + RUN + ".download.sh"
+            command = "fastq-dump.2.9.1 --split-files -O FASTQ "
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write('srr="' + RUN + '"' + "\n" )
+                download_file.write(command + " " + RUN + "\n")
+                download_file.write( "numLines=$(fastq-dump.2.9.1 -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+                download_file.write( "if [ $numLines -eq 8 ]; then cat FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq > FASTQ/$srr.fastq && rm FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq; fi"  + "\n")
+                download_file.write( "if [ -f FASTQ/${srr}_1.fastq ]; then mv FASTQ/${srr}_1.fastq FASTQ/${srr}.fastq ; elif [ -f FASTQ/${srr}_2.fastq ]; then mv FASTQ/${srr}_2.fastq FASTQ/${srr}.fastq; fi"  + "\n")
+            #
+            # file_name_round2 = "download/" + RUN  + ".round2.download.sh"
+            #
+            # if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+            #
+            #     download_file_round2 =  open(file_name_round2, "w")
+            #
+            #     download_file_round2.write("#!/bin/bash" + "\n")
+            #     download_file_round2.write('srr="' + RUN + '"' + "\n" )
+            #     download_file_round2.write(command + " " + RUN + "\n")
+            #     download_file_round2.write( "numLines=$(fastq-dump -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+            #     download_file_round2.write( "if [ $numLines -eq 8 ]; then cat ${srr}_1.fastq ${srr}_2.fastq > $srr.fastq && rm ${srr}_1.fastq ${srr}_2.fastq fi " + "\n")
+            #     download_file_round2.write("mv $srr.fastq $srr.fastq.round2" + "\n")
+            #
+
+
+if os.path.isfile("./local_samples.tsv"):
+
+
+    with open("./local_samples.tsv") as file :
+
+        reader = csv.DictReader(file, delimiter="\t")
+
+        for row in reader:
+
+            DATA.add(row["sample"])
+
+            file_name = "download/" + row["sample"]  + ".download.sh"
+
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+
+
+#            file_name_round2 = "download/" + row["sample"]  + ".round2.download.sh"
+
+
+#            if len(glob.glob(file_name_round2))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+#                download_file_round2 =  open(file_name_round2, "w")
+
+#                download_file_round2.write("#!/bin/bash" + "\n")
+#                download_file_round2.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq.round2" + "\n")
+
+
+
+if os.path.isfile("./sample_url.tsv"):
+    
+    with open("./sample_url.tsv") as file :
+
+        reader = csv.DictReader(file, delimiter="\t")
+
+        for row in reader:
+
+            DATA.add(row["sample"])
+
+            file_name = "download/" + row["sample"]  + ".download.sh"
+
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write("wget -r" + row["url"] +  "-O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+
+
+
+#print(DATA)
