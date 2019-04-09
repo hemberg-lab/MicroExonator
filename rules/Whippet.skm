@@ -126,7 +126,7 @@ rule whippet_delta_ME:
         bin = config["whippet_bin_folder"],
         a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(","))),
         b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))),
-        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name 
+        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name + ".ME"
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} "
 
