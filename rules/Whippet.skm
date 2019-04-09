@@ -56,16 +56,16 @@ rule ME_psi_to_quant:
         ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
         whippet_PSI = "Whippet/Quant/{sample}.psi.gz"
     output:
-        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
+        ME_psi =  "Whippet/Quant/{sample}.psi.ME"
     shell:
         "python3 src/Replace_PSI_whippet.py {input} > {output} "
 
 
 rule gzip_ME_psi_to_quant:
     input:
-        ME_psi =  "Whippet/Quant/{sample}.ME.psi"
+        ME_psi =  "Whippet/Quant/{sample}.psi.ME"
     output:
-        ME_psi_gz =  "Whippet/Quant/{sample}.ME.psi.gz"
+        ME_psi_gz =  "Whippet/Quant/{sample}.psi.ME.gz"
     shell:
         "gzip {input}"
 
@@ -118,14 +118,14 @@ rule whippet_delta:
 
 rule whippet_delta_ME:
     input:
-        lambda wildcards : expand("Whippet/Quant/{sample}.ME.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(",")),
-        lambda wildcards : expand("Whippet/Quant/{sample}.ME.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(",")),
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))
     output:
         "Whippet/Delta/{comparison_name}.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
-        a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(","))),
-        b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))),
+        a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(","))),
+        b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition2"].split(","))),
         o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
@@ -145,7 +145,7 @@ rule delta_ME_from_whippet:
 rule delta_ME_from_MicroExonator:
     input:
         "Whippet/Index/whippet.jls.exons.tab.gz",
-        "Whippet/Delta/{comparison_name}.ME.diff.gz",
+        "Whippet/Delta/{comparison_name}.diff.ME.gz",
         "Report/out.high_quality.txt"
     output:
         "Whippet/Delta/{comparison_name}.diff.ME.microexons"
