@@ -120,7 +120,7 @@ rule whippet_delta:
 rule delta_ME_from_whippet:
     input:
         "Whippet/Index/whippet.jls.exons.tab.gz",
-        "Whippet/Delta/{comparison_name}.diff.gz",
+        lambda wildcards : "Whippet/Delta/{wilcards.comparison_name}.diff.gz",
         "Report/out.high_quality.txt"
     output:
         "Whippet/Delta/{comparison_name}.diff.microexons"
