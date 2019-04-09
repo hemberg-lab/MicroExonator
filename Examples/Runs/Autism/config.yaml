@@ -1,0 +1,20 @@
+Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/hg19.fa
+Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.bed12
+GT_AG_U2_5 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/SpliceRack/hg19_GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/SpliceRack/hg19_GT_AG_U2_3.good.matrix
+conservation_bigwig : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Phylop/hg19.100way.phyloP100way.bw  
+working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Test_Martin/Autism/MicroExonator/
+ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/hg19.VastDb.bed12
+ME_len : 30
+Optimize_hard_drive : F
+min_number_files_detected : 3
+
+
+# Whippet
+
+downstream_only : T
+whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
+Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.gtf
+condition1 : SRR309144,SRR309143,SRR309142,SRR309141
+condition2 : SRR309136,SRR309135,SRR309134,SRR309133
+comparison_name : Control_vs_Autism
