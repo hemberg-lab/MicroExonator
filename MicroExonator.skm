@@ -1,5 +1,8 @@
 #version 0.9.0
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
 rule quant:
     input:
         "Report/out.high_quality.txt"
@@ -18,16 +21,31 @@ rule discovery:
 
 include : "rules/init.skm
 include : "rules/Get_data.skm"
-include : "rules/Round1.skm"
-include : "rules/Round1_post_processing.skm"
-include : "rules/Round2.skm"
-include : "rules/Round2_post_processing.skm"
 
+if ("downstream_only" in config)==False:
+
+    include : "rules/Round1.skm"
+    include : "rules/Round1_post_processing.skm"
+    include : "rules/Round2.skm"
+    include : "rules/Round2_post_processing.skm"
+
+elif config["downstream_only"])==False:
+
+    include : "rules/Round1.skm"
+    include : "rules/Round1_post_processing.skm"
+    include : "rules/Round2.skm"
+    include : "rules/Round2_post_processing.skm"
+
+else:
+    pass
 
 ##### Downstream Analysis ####
 
-include : "rules/Whippet.skm"
-
+try:
+    if config["whippet"])==True:
+        include : "rules/Whippet.skm"
+except KeyError:
+    pass
 
 #### Benchmark ####
 
