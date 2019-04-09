@@ -77,16 +77,6 @@ rule gzip_ME_psi_to_quant:
 comparison_names = config["whippet_delta"].keys()
 
 
-
-
-#def get_input_whippet_delta()  
- #   for 
-    
-    
-    
-
-
-
 rule whippet_delta:
     input:
         lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= config["whippet_delta"][wildcards.comparison_name]["condition1"].split(",")),
@@ -102,19 +92,6 @@ rule whippet_delta:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
 
-#rule whippet_delta_ME:
-#    input:
-#        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1),
-#        expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)
-#    output:
-#        "Whippet/Delta/" + comparison_name + ".ME.diff.gz"
-#    params:
-#        bin = config["whippet_bin_folder"],
-#        a = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition1)),
-#       b = ",".join(expand("Whippet/Quant/{sample}.ME.psi.gz", sample=condition2)),
-#        o = "Whippet/Delta/" + comparison_name + ".ME"
-#    shell:
-#"julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
 rule whippet_delta_ME:
     input:
@@ -160,5 +137,4 @@ rule differential_inclusion:
         expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
         #"Whippet/Delta/" + comparison_name + ".ME.diff.microexons"
         
-
 
