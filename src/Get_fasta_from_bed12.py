@@ -34,17 +34,18 @@ def main(bed12):
         transcript = row[3]
         blocksizes = map(int, row[10].strip(",").split(","))
         qstarts = map (int, row[11].strip(",").split(","))
+        
+        if chrom in Genome:
 
-        for q, b in zip(qstarts, blocksizes):
+            for q, b in zip(qstarts, blocksizes):
 
+                estart = start + q
+                eend = start + q + b
+                elength = eend - estart
 
-            estart = start + q
-            eend = start + q + b
-            elength = eend - estart
+                exon_seq = Genome[chrom][estart:eend]
 
-            exon_seq = Genome[chrom][estart:eend]
-
-            transcripts_seq[(transcript, strand)] += exon_seq
+                transcripts_seq[(transcript, strand)] += exon_seq
 
 
     for key_value in transcripts_seq.items():
