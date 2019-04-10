@@ -37,36 +37,37 @@ def main(bed12, in_GT_AG_U2_5, in_GT_AG_U2_3, out_GT_AG_U2_5, out_GT_AG_U2_3):
                 strand = row[5]
                 bn = int(row[9])
                 chrom = row[0]
+                
+                if chrom in Genome:
+
+                    for q1, b in zip(qstarts, blocksizes):
+                        estart = start + q1
+                        eend = start + q1 + b
+                        elenght = eend - estart
 
 
-                for q1, b in zip(qstarts, blocksizes):
-                    estart = start + q1
-                    eend = start + q1 + b
-                    elenght = eend - estart
+                        ME5 = str(Genome[chrom][estart-14:estart+3]).upper()  #exon-centric
+                        ME3 = str(Genome[chrom][eend-3:eend+10]).upper()
 
 
-                    ME5 = str(Genome[chrom][estart-14:estart+3]).upper()  #exon-centric
-                    ME3 = str(Genome[chrom][eend-3:eend+10]).upper()
+                        if strand == "-":
+
+                            ME5 = str(Genome[chrom][eend-3:eend+14].reverse_complement()).upper()
+                            ME3 = str(Genome[chrom][estart-10:estart+3].reverse_complement()).upper()
 
 
-                    if strand == "-":
-
-                        ME5 = str(Genome[chrom][eend-3:eend+14].reverse_complement()).upper()
-                        ME3 = str(Genome[chrom][estart-10:estart+3].reverse_complement()).upper()
+                        dn = ME3[3:5] + ME5[-5:-3]
 
 
-                    dn = ME3[3:5] + ME5[-5:-3]
+                        if dn=="GTAG":
 
+                            for pos, nt in enumerate(ME3):
 
-                    if dn=="GTAG":
+                                GT_AG_U2_5[(pos, nt)] += 1
 
-                        for pos, nt in enumerate(ME3):
+                            for pos, nt in enumerate(ME5):
 
-                            GT_AG_U2_5[(pos, nt)] += 1
-
-                        for pos, nt in enumerate(ME5):
-
-                            GT_AG_U2_3[(pos, nt)] += 1
+                                GT_AG_U2_3[(pos, nt)] += 1
 
 
 
