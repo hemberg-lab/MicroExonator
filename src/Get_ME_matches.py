@@ -18,7 +18,7 @@ def main(ME_centric):
 		
         for ME_match in total_ME.split("|"):
 		
-	        print(ME_match)
+            print(ME_match)
 
             #ME_match_ME, ME_match_U2_score, ME_match_Vertebrate_conservation =  ME_match.split(",")
             
