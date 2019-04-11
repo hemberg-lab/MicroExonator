@@ -83,7 +83,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	min_intron_lenght = 80
 
 
-	phylop_bw = pyBigWig.open(phylop)
+	if phylop!="NA":
+		phylop_bw = pyBigWig.open(phylop)
 
 
 	U2_GTAG_5 = PWM_to_dict(U2_GTAG_5_file)
@@ -331,17 +332,21 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 			if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-
-
-				try:
-					mean_conservation= phylop_bw.stats(chrom, estart-2, eend+2, type="mean")[0]
-				except RuntimeError:
+				
+				
+				if phylop=="NA":
+					
 					mean_conservation=0
+					
+				else:
 
+					try:
+						mean_conservation= phylop_bw.stats(chrom, estart-2, eend+2, type="mean")[0]
+					except RuntimeError:
+						mean_conservation=0
 
-				if mean_conservation==None:
-
-					mean_conservation=0
+					if mean_conservation==None:
+						mean_conservation=0
 
 
 				ME5 = str(Genome[chrom][estart-14:estart+3]).upper()
