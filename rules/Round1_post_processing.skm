@@ -44,16 +44,16 @@ rule Round1_filter:
         "Round1/{sample}.sam.row_ME",
         "Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam",
         "data/GT_AG_U2_5.pwm",
-        "data/GT_AG_U2_3.pwm",
-        config["conservation_bigwig"]
+        "data/GT_AG_U2_3.pwm"
     params:
+        bw = config["conservation_bigwig"],
         ME_len = config["ME_len"]
     output:
         protected("Round1/{sample}.sam.row_ME.filter1")
     conda:
         "../envs/pybedtools.yaml"
     shell:
-        "python2 src/ME_filter1.py {input} {params.ME_len} > {output}"
+        "python2 src/ME_filter1.py {input} {params.bw} {params.ME_len} > {output}"
 
 
 rule Micro_Exon_table:
