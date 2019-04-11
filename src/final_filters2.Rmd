@@ -61,7 +61,7 @@ ME_matches="~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_ce
 
 ME_table=params$ME_table
 ME_coverage=params$ME_coverage
-ME_matches_file = =params$ME_matches_file
+ME_matches_file=params$ME_matches_file
 
 out_filtered_ME=params$out_filtered_ME
 out_low_scored_ME=params$out_low_scored_ME
