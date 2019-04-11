@@ -3,7 +3,7 @@ import sys
 import csv
 
 
-def main():
+def main(ME_centric):
 
     for row in csv.reader(open(ME_centric), delimiter = '\t'):
 
@@ -11,8 +11,9 @@ def main():
 
 		ME_strand, ME_start, ME_end = ME.split("_")[-3:]
 		ME_chrom =  "_".join(ME.split("_")[:-3])
+		
+		total_ME.split(",")
     
     
 if __name__ == '__main__':
-        Genomictabulator(sys.argv[1])
-        main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8])
+        main (sys.argv[1])
