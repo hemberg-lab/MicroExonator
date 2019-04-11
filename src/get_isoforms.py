@@ -239,7 +239,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             if transcript_id.split(".")[0] in transcript_to_gene:  ### zebrafish fix
 		
 		
-		transcript_id = transcript_id.split(".")[0]
+                transcript_id = transcript_id.split(".")[0]
 
                 gene_id = transcript_to_gene[transcript_id]
                 g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
