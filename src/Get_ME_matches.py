@@ -16,11 +16,11 @@ def main(ME_centric):
         ME_strand, ME_start, ME_end = ME.split("_")[-3:]
         ME_chrom =  "_".join(ME.split("_")[:-3])
         
-        print(total_ME.split("|"))
+        #print(total_ME.split("|"))
 		
-        for ME_match in total_ME.split("|"):
+        for ME_match in total_ME.split(","):
             
-            print("\t".join(ME_match.split(",") + [len_micro_exon_seq_found, U2_scores]))
+            print("\t".join(ME_match.split("|") + [len_micro_exon_seq_found, U2_scores]))
 
 if __name__ == '__main__':
         main (sys.argv[1])
