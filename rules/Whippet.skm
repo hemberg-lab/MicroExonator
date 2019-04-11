@@ -22,8 +22,10 @@ rule whippet_index:
     output:
         "Whippet/Index/whippet.jls",
         "Whippet/Index/whippet.jls.exons.tab.gz"
+    log:
+        "logs/whippet_index.log"
     shell:
-        "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]}"
+        "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
 
 
 rule  whippet_quant:
