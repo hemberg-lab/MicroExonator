@@ -107,7 +107,8 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 
 
-	phylop_bw = pyBigWig.open(phylop)
+	if phylop!="NA":
+		phylop_bw = pyBigWig.open(phylop)
 
 
 	U2_GTAG_5 = PWM_to_dict(U2_GTAG_5_file)
@@ -309,18 +310,13 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 			ME_end = int(ME_end)
 
 
-
-			mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
-
-
-
-
-			if mean_conservation==None:
-
-				mean_conservation=0
-
-
-
+			if phylop=="NA":
+				
+				mean_conservation = 0
+				
+			else:
+		
+				mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
 
 
 			TOTAL_mean_conservation.append(mean_conservation)
