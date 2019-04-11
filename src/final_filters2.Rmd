@@ -109,7 +109,7 @@ ggplot(ME_centric_raw[len_micro_exon_seq_found<=15, ],
 True splicing events relies on splicing signals, therefore false micro-exons will have weaker splicing signals than the true micro-exons. The following plot show the distribution of U2/GT-AG splicing signal strengh (U2_score) for population the total micro-exons and longer or equal then 3, 6, and 9 nt. Micro-exons equal or longer than 9 nt are less prone to be artefacts, therefore have a U2_score distribution which is expected from real splicng events. The following plot show
 
 
-```{r,echo= FALSE, warning=FALSE}
+```{r,echo= FALSE, warning=FALSE, eval=FALSE}
 
 ME_matches <- unlist(strsplit(ME_centric_raw$total_ME, "[,]"))
 ME_matches <- read.table(text=ME_matches, sep="|")
@@ -216,7 +216,7 @@ uniq_seq_filter <-  ME_centric_raw_filter_uniq[, ME]
 
 Because these are more likely to be derived squencing errors a aditional filter were needed.
 
-```{r,  eval=FALSE, echo= FALSE, warning=FALSE}
+```{r,  eval=FALSE, echo= FALSE, warning=FALSE, eval=FALSE}
 
 
 
