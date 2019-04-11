@@ -13,6 +13,7 @@ params:
   out_low_scored_ME: "~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt"
   out_shorter_than_3_ME: "~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"
   out_filtered_ME_cov: "~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.cov.txt"
+  ME_matches_file : "~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric.ME_matches"
 
 ---
 
@@ -49,6 +50,8 @@ ME_coverage="~/Google_Drive/Results/ME/Single_cell/TOTAL.filter1.ME_SJ_coverage"
 out_filtered_ME="~/Google_Drive/Results/ME/Single_cell/out_filtered_ME.txt"
 out_low_scored_ME="~/Google_Drive/Results/ME/Single_cell/out_low_scored_ME.txt"
 out_shorter_than_3_ME="~/Google_Drive/Results/ME/Single_cell/out_shorter_than_3_ME.txt"
+
+ME_matches="~/Google_Drive/Results/ME/Single_cell/TOTAL.sam.row_ME.filter1.ME_centric.ME_matches"
 
 ```
 
@@ -109,20 +112,20 @@ ggplot(ME_centric_raw[len_micro_exon_seq_found<=15, ],
 True splicing events relies on splicing signals, therefore false micro-exons will have weaker splicing signals than the true micro-exons. The following plot show the distribution of U2/GT-AG splicing signal strengh (U2_score) for population the total micro-exons and longer or equal then 3, 6, and 9 nt. Micro-exons equal or longer than 9 nt are less prone to be artefacts, therefore have a U2_score distribution which is expected from real splicng events. The following plot show
 
 
-```{r,echo= FALSE, warning=FALSE, eval=FALSE}
+```{r,echo= FALSE, warning=FALSE}
 
-ME_matches <- unlist(strsplit(ME_centric_raw$total_ME, "[,]"))
-ME_matches <- read.table(text=ME_matches, sep="|")
+#ME_matches <- unlist(strsplit(ME_centric_raw$total_ME, "[,]"))
+#ME_matches <- read.table(text=ME_matches, sep="|")
 
-colnames(ME_matches) <- c("ME", "U2_score", "Vertebrate_conservation")
-ME_matches <- data.table(ME_matches)
-
-
-ME_matches$ME_len <-  ME_centric_raw[, rep(len_micro_exon_seq_found, total_number_of_micro_exons_matches)]
-
-ME_matches$ME_max_U2 <- ME_centric_raw[, rep( ME, total_number_of_micro_exons_matches)]
+#colnames(ME_matches) <- c("ME", "U2_score", "Vertebrate_conservation")
+#ME_matches <- data.table(ME_matches)
 
 
+#ME_matches$ME_len <-  ME_centric_raw[, rep(len_micro_exon_seq_found, total_number_of_micro_exons_matches)]
+
+#ME_matches$ME_max_U2 <- ME_centric_raw[, rep( ME, total_number_of_micro_exons_matches)]
+
+ME_matches <- fread(ME_matches_file)
 
 ggplot( ) +
   geom_freqpoly(data=ME_matches, binwidth=5, aes(x=U2_score, ..density.., colour=">=0"  ) ) +
@@ -216,7 +219,7 @@ uniq_seq_filter <-  ME_centric_raw_filter_uniq[, ME]
 
 Because these are more likely to be derived squencing errors a aditional filter were needed.
 
-```{r,  eval=FALSE, echo= FALSE, warning=FALSE, eval=FALSE}
+```{r,  eval=FALSE, echo= FALSE, warning=FALSE}
 
 
 
