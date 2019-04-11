@@ -15,12 +15,10 @@ def main(ME_centric):
 
         ME_strand, ME_start, ME_end = ME.split("_")[-3:]
         ME_chrom =  "_".join(ME.split("_")[:-3])
+        
+        print(total_ME.split("|"))
 		
         for ME_match in total_ME.split("|"):
-		
-            #print(ME_match)
-
-            #ME_match_ME, ME_match_U2_score, ME_match_Vertebrate_conservation =  ME_match.split(",")
             
             print("\t".join(ME_match.split(",") + [len_micro_exon_seq_found, U2_scores]))
 
