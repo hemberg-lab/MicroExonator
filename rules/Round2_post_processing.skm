@@ -110,10 +110,12 @@ rule Output:
         "Report/out_shorter_than_3_ME.txt",
         "Report/report.html",
         "Report/out_filtered_ME.cov.txt"
+    log:
+        "logs/Output.log"
     conda:
         "../envs/R.yaml"
     shell:
-        '''R -e  'rmarkdown::render("src/final_filters2.Rmd",params = list(ME_table="{params.wd}{input[0]}", ME_coverage="{params.wd}{input[1]}", out_filtered_ME="{params.wd}{output[0]}", out_low_scored_ME="{params.wd}{output[1]}", out_shorter_than_3_ME="{params.wd}{output[2]}", min_number_files_detected={params.min_number_files_detected}, out_filtered_ME_cov="{params.wd}{output[4]}" ), output_file="{params.wd}{output[3]}")'  '''
+        '''R -e  'rmarkdown::render("src/final_filters2.Rmd",params = list(ME_table="{params.wd}{input[0]}", ME_coverage="{params.wd}{input[1]}", out_filtered_ME="{params.wd}{output[0]}", out_low_scored_ME="{params.wd}{output[1]}", out_shorter_than_3_ME="{params.wd}{output[2]}", min_number_files_detected={params.min_number_files_detected}, out_filtered_ME_cov="{params.wd}{output[4]}" ), output_file="{params.wd}{output[3]}")' 2> {log} '''
 
 
 rule high_confident_filters:
