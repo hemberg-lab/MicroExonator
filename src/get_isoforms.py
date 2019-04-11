@@ -184,7 +184,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                         ME = ME.split("_")
                         ME_chrom = "_".join(ME[:-3])
-			ME_strand, ME_start, ME_end  = ME[-3:]
+                        ME_strand, ME_start, ME_end  = ME[-3:]
 			
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
@@ -203,7 +203,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     if (chrom, estart, strand) in ME_ends:
 
                         ME = ME_ends[(chrom, estart, strand)].split("_")
-			ME_chrom = "_".join(ME[:-3])
+                        ME_chrom = "_".join(ME[:-3])
                         ME_strand, ME_start, ME_end  = ME[-3:]
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
