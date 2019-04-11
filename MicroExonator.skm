@@ -29,7 +29,7 @@ if ("downstream_only" in config)==False:
     include : "rules/Round2.skm"
     include : "rules/Round2_post_processing.skm"
 
-elif (config["downstream_only"])==False:
+elif str2bool(config["downstream_only"])==False:
 
     include : "rules/Round1.skm"
     include : "rules/Round1_post_processing.skm"
