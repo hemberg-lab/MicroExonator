@@ -1,11 +1,10 @@
-Genome_fasta : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11.fa
-Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11.ensembl.bed12
-Gene_anontation_fasta : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11.ensembl_.fa
+Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/danRer11.fa
+Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/darRer11.Ensembl.genes.bed12
 GT_AG_U2_5 : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11_GT_AG_U2_5.good.matrix
 GT_AG_U2_3 : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11_GT_AG_U2_3.good.matrix
-conservation_bigwig : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11.chrom.sizes.bw.sep
+conservation_bigwig : NA
 ME_len : 30
-working_directory : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/
+working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Zebrafish/MicroExonator/
 ME_DB : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/VastDb.bed12
 Optimize_hard_drive : F
 min_number_files_detected : 2
@@ -14,7 +13,7 @@ min_number_files_detected : 2
 
 downstream_only : F
 whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
-Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.gtf
+Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/Danio_rerio.GRCz11.96.chr.gtf.UCSC_style
 
 whippet_delta:
     ZT16_vs_ZT4-20Mo:
