@@ -292,12 +292,15 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 				mean_conservation = 0
 				
 			else:
-		
-				mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
-
+				try:
+					
+					mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
+				
+				except RuntimeError:
+					
+					mean_conservation = 0
 
 			TOTAL_mean_conservation.append(mean_conservation)
-
 
 
 			ME5 = str(Genome[ME_chr][ME_start-14:ME_start+3]).upper()
