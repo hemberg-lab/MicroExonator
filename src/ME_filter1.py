@@ -62,7 +62,7 @@ def cigar_parser(cigar):
 
 def PWM_to_dict(file):
 	
-	reader = csv.DictReader(file, delimiter = '\t')
+	reader = csv.DictReader(open(file), delimiter = '\t')
 	
 	A_frec = []
 	C_frec = []
