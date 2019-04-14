@@ -100,8 +100,10 @@ def main(row_ME_filter1):
 
 			# 	print SJ_info
 
-
-			SJ_max_mean_conservations.append(float(max_mean_conservations))
+			try:
+				SJ_max_mean_conservations.append(float(max_mean_conservations))
+			except ValueError:
+				SJ_max_mean_conservations.append(0)
 
 
 			#print SJ_MEseq, SJ
