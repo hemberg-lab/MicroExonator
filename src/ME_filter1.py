@@ -24,7 +24,7 @@ def percent (c, total):
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
+	print >> sys.stderr, "Loading genome on RAM memory",
 
 	f = open(fasta)
 
@@ -61,50 +61,35 @@ def cigar_parser(cigar):
 	return cigar_vars
 
 def PWM_to_dict(file):
-	reader = csv.reader(open(file), delimiter = '\t')
-	header = reader.next()
-	header_dict = {}
-	col = 0
-
-	matrix = {}
-
-	for name in header:
-		header_dict[name] = col
-		col += 1
-
+	
+	reader = csv.DictReader(file, delimiter = '\t')
+	
 	A_frec = []
 	C_frec = []
 	G_frec = []
 	T_frec = []
 	N_freq = []
-
+	
+	matrix = {}
+	
 	for row in reader:
-		A = row[header_dict["A"]]
-		C = row[header_dict["C"]]
-		G = row[header_dict["G"]]
-		T = row[header_dict["T"]]
-
-		A_frec.append(float(A))
-		C_frec.append(float(C))
-		G_frec.append(float(G))
-		T_frec.append(float(T))
+			
+		A_frec.append(float(row["A"]))
+		C_frec.append(float(row["C"]))
+		G_frec.append(float(row["G"]))
+		T_frec.append(float(row["T"]))
 		N_freq.append(0)
-
+			
 	matrix["A"] = A_frec
 	matrix["C"] = C_frec
 	matrix["G"] = G_frec
 	matrix["T"] = T_frec
 	matrix["N"] = N_freq
-
+	
 	return matrix
 
 
-#def main(row_ME, reads_genome, dust, repbase, U2_GTAG_5_file, U2_GTAG_3_file, phylop_vertebrates, phylop_primates): old
-
-
 def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
-
-
 
 
 	if phylop!="NA":
@@ -128,14 +113,6 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 	black_list = set([])
 	exons_reads_genome = defaultdict(list)
-
-	# for row in csv.reader(open(dust), delimiter = '>'):
-
-	# 	black_list.add(row[1])
-
-	# for row in csv.reader(open(repbase), delimiter = '\t'):
-
-	# 	black_list.add(row[9])
 
 	forward = "Rd1"
 
@@ -374,7 +351,7 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 					if "_".join(map(str, [g_chr, g_strand, s, e])) in micro_exons_coords:
 
 						same_ME = True
-#
+
 
 				if same_ME:
 					print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
@@ -389,17 +366,4 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
-	#main(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9] ) # Old
 	main(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]))
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py _clip10.trim.sam.row_ME _clip10.trim.sam.row_ME.hg19.sam _clip10.trim.sam.row_ME.fastq.dust _clip10.trim.sam.row_ME.fastq.Repbase
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py _clip1.trim.sam.row_ME _clip1.trim.sam.row_ME.hg19.sam _clip1.trim.sam.row_ME.fastq.dust _clip1.trim.sam.row_ME.fastq.Repbase
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py _clip1.trim.sam.row_ME _clip1.trim.sam.row_ME.hg19.sam _clip1.trim.sam.row_ME.fastq.dust _clip1.trim.sam.row_ME.fastq.Repbase ~/db/PWM/hg19_GT_AG_U2_5.good.matrix ~/db/PWM/hg19_GT_AG_U2_3.good.matrix
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py ~/db/genome/hg19.fa _clip1.trim.sam.row_ME _clip1.trim.sam.row_ME.hg19.sam _clip1.trim.sam.row_ME.fastq.dust _clip1.trim.sam.row_ME.fastq.Repbase ~/db/PWM/hg19_GT_AG_U2_5.good.matrix ~/db/PWM/hg19_GT_AG_U2_3.good.matrix
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py ~/db/genome/hg19.fa _clip1.trim.sam.row_ME _clip1.trim.sam.row_ME.hg19.sam _clip1.trim.sam.row_ME.fastq.dust _clip1.trim.sam.row_ME.fastq.Repbase ~/db/PWM/hg19_GT_AG_U2_5.good.matrix ~/db/PWM/hg19_GT_AG_U2_3.good.matrix ~/db/hg19.100way.phyloP100way.bw
-
-#python ~/my_src/ME/Pipeline/ME_filter1.py ~/db/genome/hg19.fa _clip1.trim.sam.row_ME _clip1.trim.sam.row_ME.hg19.sam _clip1.trim.sam.row_ME.fastq.dust _clip1.trim.sam.row_ME.fastq.Repbase ~/db/PWM/hg19_GT_AG_U2_5.good.matrix ~/db/PWM/hg19_GT_AG_U2_3.good.matrix ~/db/hg19.100way.phyloP100way.bw ~/db/hg19.46way.phyloP46way.primates.bw
