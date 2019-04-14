@@ -119,7 +119,7 @@ if os.path.isfile("./sample_url.tsv"):
                 download_file =  open(file_name, "w")
 
                 download_file.write("#!/bin/bash" + "\n")
-                download_file.write("wget -r" + row["url"] +  "-O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                download_file.write("wget -r" + row["url"] +  " -O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
                 download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
