@@ -136,7 +136,7 @@ Then we recomend to do a `dry-run` to check that all the inputs are in place:
 
     downstream_only : T
 
-If you do this, you will schedule processes that are related with `whippet` indexing, quantification and differential inclusion. For example if you have a total of 6 samples, you will see something this:
+If you do this, you will schedule processes that are related with `whippet` indexing, quantification and differential inclusion. For example if you have a total of 6 samples, you will see something like this:
 
     Job counts:
             count   jobs
