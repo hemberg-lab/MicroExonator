@@ -159,8 +159,10 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
                     SJ_seq_up = str(Genome[SJ_chrom][SJ_end-ME_len:SJ_end].reverse_complement()).upper()
                     SJ_seq_down = str(Genome[SJ_chrom][SJ_start:SJ_start+ME_len].reverse_complement()).upper()
                 
-                SJ_end_seqs.add(SJ_seq_up)
-                SJ_end_seqs.add(SJ_seq_down)
+                if SJ_start!=int(estart) and SJ_end!=int(eend):
+                
+                    SJ_end_seqs.add(SJ_seq_up)
+                    SJ_end_seqs.add(SJ_seq_down)
                 
 
             if sum_ME_SJ_coverage_up+sum_ME_SJ_coverage_down>0:
@@ -197,6 +199,7 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
             SJ_end_seqs = set([])
             
             for SJ in row["total_SJs"].split(","):  #Checking if sequences at the end of introns matches ME sequences
+				 
                 
                 SJ_chrom = SJ.split(":")[0]
                 SJ_start, SJ_end = SJ.split(":")[1].split(strand)
@@ -209,9 +212,11 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
                 if strand=="-":
                     SJ_seq_up = str(Genome[SJ_chrom][SJ_end-ME_len:SJ_end].reverse_complement()).upper()
                     SJ_seq_down = str(Genome[SJ_chrom][SJ_start:SJ_start+ME_len].reverse_complement()).upper()
+                    
+                if SJ_start!=int(estart) and SJ_end!=int(eend):
                 
-                SJ_end_seqs.add(SJ_seq_up)
-                SJ_end_seqs.add(SJ_seq_down)
+                    SJ_end_seqs.add(SJ_seq_up)
+                    SJ_end_seqs.add(SJ_seq_down)
 
 
             if sum_ME_SJ_coverage_up+sum_ME_SJ_coverage_down>0 and row["ME_type"]=="RESCUED":
