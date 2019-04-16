@@ -114,9 +114,9 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
             total_ME_down[row["ME"]] += sum_ME_SJ_coverage_down
 
 
-		ambiguous = open("Report/out.ambiguous.txt", "w")
+        ambiguous = open("Report/out.ambiguous.txt", "w")
 	
-		ambiguous.write( "\t".join(["ME", "transcript", "sum_total_coverage", "total_SJs", "total_coverages", "len_micro_exon_seq_found", "micro_exon_seq_found", "total_number_of_micro_exons_matches", "U2_scores",  "mean_conservations_vertebrates", "P_MEs", "total_ME",   "ME_P_value", "ME_type"]) + "\n")
+        ambiguous.write( "\t".join(["ME", "transcript", "sum_total_coverage", "total_SJs", "total_coverages", "len_micro_exon_seq_found", "micro_exon_seq_found", "total_number_of_micro_exons_matches", "U2_scores",  "mean_conservations_vertebrates", "P_MEs", "total_ME",   "ME_P_value", "ME_type"]) + "\n")
 
         print("ME", "transcript", "sum_total_coverage", "total_SJs", "total_coverages", "len_micro_exon_seq_found", "micro_exon_seq_found", "total_number_of_micro_exons_matches", "U2_scores",  "mean_conservations_vertebrates", "P_MEs", "total_ME",   "ME_P_value", "ME_type", sep="\t")
 
@@ -175,10 +175,9 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
                     pass
 
                 elif row["micro_exon_seq_found"] in SJ_end_seqs:
-					ambiguous.write("\t".join(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ) + "\n" )
-				else:
+                    ambiguous.write("\t".join(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ) + "\n" )
+                else:
                     print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
-
 
 
         reader = csv.DictReader(ME_low, delimiter="\t")
@@ -225,8 +224,8 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
                     pass
 
                 elif row["micro_exon_seq_found"] in SJ_end_seqs:
-					ambiguous.write("\t".join(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ) + "\n" )
-				else:
+                    ambiguous.write("\t".join(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ) + "\n" )
+                else:
                     print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
 
 
