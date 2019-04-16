@@ -131,7 +131,7 @@ rule Output:
 
 rule high_confident_filters:
     input:
-        config["Genome"],
+        config["Genome_fasta"],
         config["Gene_anontation_bed12"],
         "Report/out_filtered_ME.cov.txt",
         "Report/out_filtered_ME.txt",
