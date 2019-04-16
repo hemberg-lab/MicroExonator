@@ -146,7 +146,7 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
             for SJ in row["total_SJs"].split(","):  #Checking if sequences at the end of introns matches ME sequences
                 
                 SJ_chrom = SJ.split(":")[0]
-                SJ_start, SJ_end = SJ.split(":")[0].split(strand)
+                SJ_start, SJ_end = SJ.split(":")[1].split(strand)
                 SJ_start = int(SJ_start)
                 SJ_end = int(SJ_end)
                 
@@ -196,7 +196,7 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
             for SJ in row["total_SJs"].split(","):  #Checking if sequences at the end of introns matches ME sequences
                 
                 SJ_chrom = SJ.split(":")[0]
-                SJ_start, SJ_end = SJ.split(":")[0].split(strand)
+                SJ_start, SJ_end = SJ.split(":")[1].split(strand)
                 SJ_start = int(SJ_start)
                 SJ_end = int(SJ_end)
                 
