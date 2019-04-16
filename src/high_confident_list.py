@@ -7,14 +7,12 @@ Genome = {}
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Loading genome on RAM memory",
 
 	f = open(fasta)
 
 	for chrfa in SeqIO.parse(f, "fasta"):
 		Genome[chrfa.id] = chrfa.seq
 
-	print >> sys.stderr, "OK"
 
 	f.close()
 
