@@ -10,6 +10,11 @@ ME_len : 30
 Optimize_hard_drive : F
 min_number_files_detected : 2
 
+#Whippet
+
+downstream_only : F
+whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
+Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/Danio_rerio.GRCz11.96.chr.gtf.UCSC_style
 
 
 whippet_delta:
