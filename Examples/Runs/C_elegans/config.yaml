@@ -1,4 +1,14 @@
 
+Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Fabian/Caenorhabditis_elegans.WBcel235.dna.fa
+Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Fabian/ce11.Ensembl.genes.bed12.Ensembl
+GT_AG_U2_5 : NA
+GT_AG_U2_3 : NA
+conservation_bigwig : NA
+working_directory : /lustre/scratch117/cellgen/team218/gp7/Fabian/MicroExonator/
+ME_DB : /lustre/scratch117/cellgen/team218/gp7/Fabian/empty_DB
+ME_len : 30
+Optimize_hard_drive : F
+min_number_files_detected : 2
 
 
 
