@@ -16,7 +16,7 @@ rule generate_fasta_from_bed12:
     output:
         "data/transcripts.fa"
     conda:
-        "../envs/core.yaml"
+        "../envs/pybedtools.yaml"
     shell:
         "python2 src/Get_fasta_from_bed12.py {input} > {output}"
 
