@@ -66,7 +66,7 @@ rule ME_SJ_coverage:
     params:
         ME_len = config["ME_len"]
     output:
-        temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     priority: 100
     conda:
         "../envs/core.yaml"
@@ -80,7 +80,7 @@ rule GetPSI:
     output:
         "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
     conda:
-        "../envs/core.yaml"
+        "../envs/core_py3.yaml"
     shell:
       "python3 src/GetPSI.py {input} 5 > {output}"
 
@@ -101,9 +101,9 @@ rule write_ME_matches:
     output:
         "Round2/TOTAL.ME_centric.ME_matches.txt"
     conda:
-        "../envs/core.yaml"
+        "../envs/core_py3.yaml"
     shell:
-        "python src/Get_ME_matches.py {input} > {output}"
+        "python3 src/Get_ME_matches.py {input} > {output}"
     
 
 rule Output:
@@ -154,6 +154,6 @@ rule annotation_stats:
         "Report/stats/Microexons.not_consensus",
         "Report/stats/Microexons.annotation.stats"
     conda:
-        "../envs/core.yaml"
+        "../envs/core_py3.yaml"
     shell:
         "python3 src/stats/discovery_stats.py {input} {params}"
