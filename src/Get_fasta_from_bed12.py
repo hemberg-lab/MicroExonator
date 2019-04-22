@@ -47,8 +47,8 @@ def main(bed12):
                 exon_seq = Genome[chrom][estart:eend]
 
                 transcripts_seq[(transcript, strand)] += exon_seq
-        else:
-            print(chrom)
+#         else:
+#             print(chrom)
 
 
     for key_value in transcripts_seq.items():
