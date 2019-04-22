@@ -52,11 +52,13 @@ def main(bed12, ME_len):
 
 		try:
 			
-			print(qName, seq)
+			
 
 
 			qName = row[3]
 			seq = Transcriptome[qName]
+			
+			print(qName, seq)
 
 			qstarts = map (int, row[11].strip(",").split(","))
 			blocksizes = map(int, row[10].strip(",").split(","))
