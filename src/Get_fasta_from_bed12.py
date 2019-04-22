@@ -24,6 +24,7 @@ def Genomictabulator(fasta):
 def main(bed12):
 
     transcripts_seq = defaultdict(str)
+	
 
     for row in csv.reader(open(bed12), delimiter = '\t'):
         start = int(row[1])
@@ -46,6 +47,9 @@ def main(bed12):
                 exon_seq = Genome[chrom][estart:eend]
 
                 transcripts_seq[(transcript, strand)] += exon_seq
+		else:
+			
+			print(chrom)
 
 
     for key_value in transcripts_seq.items():
