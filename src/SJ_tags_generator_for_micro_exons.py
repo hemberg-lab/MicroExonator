@@ -51,6 +51,8 @@ def main(bed12, ME_len):
 	for row in csv.reader(open(bed12), delimiter = '\t'):
 
 		try:
+			
+			print(qName, seq)
 
 
 			qName = row[3]
