@@ -74,17 +74,6 @@ rule ME_SJ_coverage:
         "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
 
-rule GetPSI:
-    input:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-    output:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
-    conda:
-        "../envs/core_py3.yaml"
-    shell:
-      "python3 src/GetPSI.py {input} 5 > {output}"
-
-
 rule Total_sample_exon_counts:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA )
