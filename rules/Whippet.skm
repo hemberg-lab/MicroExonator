@@ -1,3 +1,13 @@
+rule GetPSI:
+    input:
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+    output:
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
+    conda:
+        "../envs/core_py3.yaml"
+    shell:
+      "python3 src/GetPSI.py {input} 5 > {output}"
+
 rule get_GTF:
     input:
         genome_fasta = config["Genome_fasta"],
