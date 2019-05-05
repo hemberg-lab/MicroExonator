@@ -76,6 +76,8 @@ def calcBin(vx, vN, vCL = 95):
 def main(ME_SJ_coverage, min_sum_PSI):
 
     with open(ME_SJ_coverage) as F:
+	
+	
 
 
         reader = csv.reader(F, delimiter="\t")
@@ -153,7 +155,7 @@ def main(ME_SJ_coverage, min_sum_PSI):
 
                     print( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
 
-
+	#open file
 
             if is_alternative_3=="True":
 
@@ -203,11 +205,11 @@ def main(ME_SJ_coverage, min_sum_PSI):
                         alt3_CI_Lo, alt3_CI_Hi = ["NA", "NA"]
 
 
-                    print( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) )
+                    out.write( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) + "\n" )
 
 
 
-            print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) )
+            out.write(print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
 
 
 if __name__ == '__main__':
