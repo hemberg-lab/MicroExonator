@@ -73,7 +73,7 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(ME_SJ_coverage, min_sum_PSI, path):
+def main(ME_SJ_coverage, min_sum_PSI):  #, path):
 
     with open(ME_SJ_coverage) as F:
 
@@ -106,109 +106,112 @@ def main(ME_SJ_coverage, min_sum_PSI, path):
             Coord = ME_chrom + ":" + str(int(ME_start)+1) + "-" + ME_end
 
 	
-            if path[-1]!="/":
-                path += "/"
-			
-            with open(path + FILE + ".sam.pre_processed.filter1.ME_SJ_coverage.PSI", "a") as out:	
+#             if path[-1]!="/":
+#                 path += "/"		
+#             with open(path + FILE + ".sam.pre_processed.filter1.ME_SJ_coverage.PSI", "a") as out:	
 	
-                if is_alternative_5=="True":
+            if is_alternative_5=="True":
 
 
-                    for alt5, alt5_cov in zip(alternatives_5.split(","), cov_alternatives_5.split(",")):
+                for alt5, alt5_cov in zip(alternatives_5.split(","), cov_alternatives_5.split(",")):
 
-                        alt5_crom, alt5_loci = alt5.split(":")
+                    alt5_crom, alt5_loci = alt5.split(":")
 
-                        if "+" in alt5_loci:
-
-
-                            alt5_start, alt5_end = alt5_loci.split("+")
-                            alt5_strand = "+"
-
-                            alt5_Coord_start = str(int(alt5_start) + 1)
-                            alt5_Coord_end = str(int(ME_start) )
-
-                            alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
+                    if "+" in alt5_loci:
 
 
-                        elif "-" in alt5_loci:
+                        alt5_start, alt5_end = alt5_loci.split("+")
+                        alt5_strand = "+"
 
-                            alt5_start, alt5_end = alt5_loci.split("-")
-                            alt5_strand = "-"
+                        alt5_Coord_start = str(int(alt5_start) + 1)
+                        alt5_Coord_end = str(int(ME_start) )
 
-                            alt5_Coord_start = str(int(ME_end) + 1)
-                            alt5_Coord_end = str(int(alt5_end))
-
-                            alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
+                        alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
 
 
+                    elif "-" in alt5_loci:
 
-                        alt5_SUM_PSI = float(alt5_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt5_cov) ) + float(sum_ME_coverage)  )
+                        alt5_start, alt5_end = alt5_loci.split("-")
+                        alt5_strand = "-"
 
-                        if alt5_SUM_PSI>=min_sum_PSI:
+                        alt5_Coord_start = str(int(ME_end) + 1)
+                        alt5_Coord_end = str(int(alt5_end))
 
-                            alt5_PSI= float(alt5_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
-
-                            alt5_CI_Lo, alt5_CI_Hi = calcBin(float(alt5_cov),  SUM_PSI)
-
-                        else:
-
-                            alt5_PSI = "NA"
-                            alt5_CI_Lo, alt5_CI_Hi = ["NA", "NA"]
-
-
-                        out.write( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
-
-                        
-                if is_alternative_3=="True":
-
-                    for alt3, alt3_cov in zip(alternatives_3.split(","), cov_alternatives_3.split(",")):
-
-                        alt3_crom, alt3_loci = alt3.split(":")
-
-                        if "-" in alt3_loci:
-
-
-                            alt3_start, alt3_end = alt3_loci.split("-")
-                            alt3_strand = "-"
-
-                            alt3_Coord_start = str(int(alt3_start) + 1)
-                            alt3_Coord_end = str(int(ME_start))
-
-                            alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
-
-
-                        elif "+" in alt3_loci:
-
-                            alt3_start, alt3_end = alt3_loci.split("+")
-                            alt3_strand = "+"
-
-                            alt3_Coord_start = str(int(ME_end) + 1)
-                            alt3_Coord_end = str(int(alt3_end))
-
-                            alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
+                        alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
 
 
 
-                        alt3_SUM_PSI = float(alt3_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt3_cov) ) + float(sum_ME_coverage)  )
+                    alt5_SUM_PSI = float(alt5_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt5_cov) ) + float(sum_ME_coverage)  )
 
-                        if alt3_SUM_PSI>=min_sum_PSI:
+                    if alt5_SUM_PSI>=min_sum_PSI:
 
-                            alt3_PSI= float(alt3_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
+                        alt5_PSI= float(alt5_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
 
-                            alt3_CI_Lo, alt3_CI_Hi = calcBin(float(alt3_cov),  SUM_PSI)
+                        alt5_CI_Lo, alt5_CI_Hi = calcBin(float(alt5_cov),  SUM_PSI)
 
-                        else:
+                    else:
 
-                            alt3_PSI = "NA"
-                            alt3_CI_Lo, alt3_CI_Hi = ["NA", "NA"]
-
-
-                        out.write( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) + "\n" )
+                        alt5_PSI = "NA"
+                        alt5_CI_Lo, alt5_CI_Hi = ["NA", "NA"]
 
 
+                    #out.write( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
+                    print("\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])))
 
-                out.write( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
+
+            if is_alternative_3=="True":
+
+                for alt3, alt3_cov in zip(alternatives_3.split(","), cov_alternatives_3.split(",")):
+
+                    alt3_crom, alt3_loci = alt3.split(":")
+
+                    if "-" in alt3_loci:
+
+
+                        alt3_start, alt3_end = alt3_loci.split("-")
+                        alt3_strand = "-"
+
+                        alt3_Coord_start = str(int(alt3_start) + 1)
+                        alt3_Coord_end = str(int(ME_start))
+
+                        alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
+
+
+                    elif "+" in alt3_loci:
+
+                        alt3_start, alt3_end = alt3_loci.split("+")
+                        alt3_strand = "+"
+
+                        alt3_Coord_start = str(int(ME_end) + 1)
+                        alt3_Coord_end = str(int(alt3_end))
+
+                        alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
+
+
+
+                    alt3_SUM_PSI = float(alt3_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt3_cov) ) + float(sum_ME_coverage)  )
+
+                    if alt3_SUM_PSI>=min_sum_PSI:
+
+                        alt3_PSI= float(alt3_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
+
+                        alt3_CI_Lo, alt3_CI_Hi = calcBin(float(alt3_cov),  SUM_PSI)
+
+                    else:
+
+                        alt3_PSI = "NA"
+                        alt3_CI_Lo, alt3_CI_Hi = ["NA", "NA"]
+
+
+                    #out.write( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) + "\n" )
+                    print( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])))
+
+
+
+
+            #out.write( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
+            print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])))
 
 
 if __name__ == '__main__':
-	main(sys.argv[1], int(sys.argv[2]), sys.argv[3]  )
+	main(sys.argv[1], int(sys.argv[2])) #, sys.argv[3]  )
