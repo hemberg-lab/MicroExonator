@@ -109,7 +109,7 @@ def main(ME_SJ_coverage, min_sum_PSI, path):
             if path[-1]!="/":
                 path += "/"
 			
-            with open(path + FILE + ".sam.pre_processed.filter1.ME_SJ_coverage.PSI", "w") as out:	
+            with open(path + FILE + ".sam.pre_processed.filter1.ME_SJ_coverage.PSI", "a") as out:	
 	
                 if is_alternative_5=="True":
 
