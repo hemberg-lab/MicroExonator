@@ -207,7 +207,7 @@ def main(ME_SJ_coverage, min_sum_PSI, path):
 
 
 
-                out.write(print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
+                out.write( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
 
 
 if __name__ == '__main__':
