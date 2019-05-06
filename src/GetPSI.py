@@ -105,58 +105,60 @@ def main(ME_SJ_coverage, min_sum_PSI, path):
 
             Coord = ME_chrom + ":" + str(int(ME_start)+1) + "-" + ME_end
 
-            if is_alternative_5=="True":
-
-
-                for alt5, alt5_cov in zip(alternatives_5.split(","), cov_alternatives_5.split(",")):
-
-                    alt5_crom, alt5_loci = alt5.split(":")
-
-                    if "+" in alt5_loci:
-
-
-                        alt5_start, alt5_end = alt5_loci.split("+")
-                        alt5_strand = "+"
-
-                        alt5_Coord_start = str(int(alt5_start) + 1)
-                        alt5_Coord_end = str(int(ME_start) )
-
-                        alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
-
-
-                    elif "-" in alt5_loci:
-
-                        alt5_start, alt5_end = alt5_loci.split("-")
-                        alt5_strand = "-"
-
-                        alt5_Coord_start = str(int(ME_end) + 1)
-                        alt5_Coord_end = str(int(alt5_end))
-
-                        alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
-
-
-
-                    alt5_SUM_PSI = float(alt5_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt5_cov) ) + float(sum_ME_coverage)  )
-
-                    if alt5_SUM_PSI>=min_sum_PSI:
-
-                        alt5_PSI= float(alt5_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
-
-                        alt5_CI_Lo, alt5_CI_Hi = calcBin(float(alt5_cov),  SUM_PSI)
-
-                    else:
-
-                        alt5_PSI = "NA"
-                        alt5_CI_Lo, alt5_CI_Hi = ["NA", "NA"]
-
-
-                    print( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
-			
+	
             if path[0]!="/":
-				path += "/"
+                path += "/"
 			
-			with open(path + "FILE") as out:
+            with open(path + "FILE") as out:	
+	
+                if is_alternative_5=="True":
 
+
+                    for alt5, alt5_cov in zip(alternatives_5.split(","), cov_alternatives_5.split(",")):
+
+                        alt5_crom, alt5_loci = alt5.split(":")
+
+                        if "+" in alt5_loci:
+
+
+                            alt5_start, alt5_end = alt5_loci.split("+")
+                            alt5_strand = "+"
+
+                            alt5_Coord_start = str(int(alt5_start) + 1)
+                            alt5_Coord_end = str(int(ME_start) )
+
+                            alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
+
+
+                        elif "-" in alt5_loci:
+
+                            alt5_start, alt5_end = alt5_loci.split("-")
+                            alt5_strand = "-"
+
+                            alt5_Coord_start = str(int(ME_end) + 1)
+                            alt5_Coord_end = str(int(alt5_end))
+
+                            alt5_Coord = alt5_crom + ":" + alt5_Coord_start + "-" + alt5_Coord_end
+
+
+
+                        alt5_SUM_PSI = float(alt5_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt5_cov) ) + float(sum_ME_coverage)  )
+
+                        if alt5_SUM_PSI>=min_sum_PSI:
+
+                            alt5_PSI= float(alt5_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
+
+                            alt5_CI_Lo, alt5_CI_Hi = calcBin(float(alt5_cov),  SUM_PSI)
+
+                        else:
+
+                            alt5_PSI = "NA"
+                            alt5_CI_Lo, alt5_CI_Hi = ["NA", "NA"]
+
+
+                        out.write( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
+
+                        
                 if is_alternative_3=="True":
 
                     for alt3, alt3_cov in zip(alternatives_3.split(","), cov_alternatives_3.split(",")):
