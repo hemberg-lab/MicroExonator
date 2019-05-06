@@ -1,14 +1,24 @@
+#rule GetPSI:
+#    input:
+#        "Round2/TOTAL.filter1.ME_SJ_coverage"
+#    output:
+#        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI", sample=DATA)
+#    params:
+#        path = "Round2/"
+#    conda:
+#        "../envs/core_py3.yaml"
+#    shell:
+#      "python3 src/GetPSI.py {input} 5 {params.path}"
+      
 rule GetPSI:
     input:
-        "Round2/TOTAL.filter1.ME_SJ_coverage"
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     output:
-        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI", sample=DATA)
-    params:
-        path = "Round2/"
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
     conda:
         "../envs/core_py3.yaml"
     shell:
-      "python3 src/GetPSI.py {input} 5 {params.path}"
+      "python3 src/GetPSI.py {input} 5 > {output}"
 
 rule get_GTF:
     input:
