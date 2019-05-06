@@ -3,10 +3,12 @@ rule GetPSI:
         "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     output:
         "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
+    params:
+        path = "Round2/"
     conda:
         "../envs/core_py3.yaml"
     shell:
-      "python3 src/GetPSI.py {input} 5 > {output}"
+      "python3 src/GetPSI.py {input} 5 {params.path}> {output}"
 
 rule get_GTF:
     input:
