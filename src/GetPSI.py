@@ -106,10 +106,10 @@ def main(ME_SJ_coverage, min_sum_PSI, path):
             Coord = ME_chrom + ":" + str(int(ME_start)+1) + "-" + ME_end
 
 	
-            if path[0]!="/":
+            if path[-2]!="/":
                 path += "/"
 			
-            with open(path + "FILE") as out:	
+            with open(path + FILE) as out:	
 	
                 if is_alternative_5=="True":
 
