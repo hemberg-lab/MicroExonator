@@ -154,62 +154,61 @@ def main(ME_SJ_coverage, min_sum_PSI):
 
 
                     print( "\t".join( map(str, [ alt5, alt5_Coord, alt5_PSI, alt5_CI_Lo, alt5_CI_Hi, "alt5" ])) )
+			
+            if path[0]!="/":
+				path += "/"
+			
+			with open(path + "FILE") as out:
 
-	#open file
+                if is_alternative_3=="True":
 
-            if is_alternative_3=="True":
+                    for alt3, alt3_cov in zip(alternatives_3.split(","), cov_alternatives_3.split(",")):
 
-                for alt3, alt3_cov in zip(alternatives_3.split(","), cov_alternatives_3.split(",")):
+                        alt3_crom, alt3_loci = alt3.split(":")
 
-
-
-                    alt3_crom, alt3_loci = alt3.split(":")
-
-
-
-                    if "-" in alt3_loci:
-
-
-                        alt3_start, alt3_end = alt3_loci.split("-")
-                        alt3_strand = "-"
-
-                        alt3_Coord_start = str(int(alt3_start) + 1)
-                        alt3_Coord_end = str(int(ME_start))
-
-                        alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
+                        if "-" in alt3_loci:
 
 
-                    elif "+" in alt3_loci:
+                            alt3_start, alt3_end = alt3_loci.split("-")
+                            alt3_strand = "-"
 
-                        alt3_start, alt3_end = alt3_loci.split("+")
-                        alt3_strand = "+"
+                            alt3_Coord_start = str(int(alt3_start) + 1)
+                            alt3_Coord_end = str(int(ME_start))
 
-                        alt3_Coord_start = str(int(ME_end) + 1)
-                        alt3_Coord_end = str(int(alt3_end))
-
-                        alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
+                            alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
 
 
+                        elif "+" in alt3_loci:
 
-                    alt3_SUM_PSI = float(alt3_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt3_cov) ) + float(sum_ME_coverage)  )
+                            alt3_start, alt3_end = alt3_loci.split("+")
+                            alt3_strand = "+"
 
-                    if alt3_SUM_PSI>=min_sum_PSI:
+                            alt3_Coord_start = str(int(ME_end) + 1)
+                            alt3_Coord_end = str(int(alt3_end))
 
-                        alt3_PSI= float(alt3_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
-
-                        alt3_CI_Lo, alt3_CI_Hi = calcBin(float(alt3_cov),  SUM_PSI)
-
-                    else:
-
-                        alt3_PSI = "NA"
-                        alt3_CI_Lo, alt3_CI_Hi = ["NA", "NA"]
-
-
-                    out.write( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) + "\n" )
+                            alt3_Coord = alt3_crom + ":" + alt3_Coord_start + "-" + alt3_Coord_end
 
 
 
-            out.write(print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
+                        alt3_SUM_PSI = float(alt3_cov) + (float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+(float(total_cov_alternatives_5)- float(alt3_cov) ) + float(sum_ME_coverage)  )
+
+                        if alt3_SUM_PSI>=min_sum_PSI:
+
+                            alt3_PSI= float(alt3_cov)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+ float(total_cov_alternatives_5) + float(sum_ME_coverage)  )
+
+                            alt3_CI_Lo, alt3_CI_Hi = calcBin(float(alt3_cov),  SUM_PSI)
+
+                        else:
+
+                            alt3_PSI = "NA"
+                            alt3_CI_Lo, alt3_CI_Hi = ["NA", "NA"]
+
+
+                        out.write( "\t".join( map(str, [ alt3, alt3_Coord, alt3_PSI, alt3_CI_Lo, alt3_CI_Hi, "alt3" ])) + "\n" )
+
+
+
+                out.write(print( "\t".join( map(str, [ ME, Coord, PSI, CI_Lo, CI_Hi, "ME" ])) + "\n" )
 
 
 if __name__ == '__main__':
