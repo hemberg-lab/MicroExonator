@@ -73,12 +73,9 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(ME_SJ_coverage, min_sum_PSI):
+def main(ME_SJ_coverage, min_sum_PSI, path):
 
     with open(ME_SJ_coverage) as F:
-	
-	
-
 
         reader = csv.reader(F, delimiter="\t")
 
@@ -212,4 +209,4 @@ def main(ME_SJ_coverage, min_sum_PSI):
 
 
 if __name__ == '__main__':
-	main(sys.argv[1], int(sys.argv[2])  )
+	main(sys.argv[1], int(sys.argv[2]), sys.argv[3]  )
