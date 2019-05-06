@@ -1,8 +1,8 @@
 rule GetPSI:
     input:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+        "Round2/TOTAL.filter1.ME_SJ_coverage"
     output:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
+        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI", sample=DATA)
     params:
         path = "Round2/"
     conda:
