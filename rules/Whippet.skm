@@ -8,7 +8,7 @@ rule GetPSI:
     conda:
         "../envs/core_py3.yaml"
     shell:
-      "python3 src/GetPSI.py {input} 5 {params.path}> {output}"
+      "python3 src/GetPSI.py {input} 5 {params.path}"
 
 rule get_GTF:
     input:
