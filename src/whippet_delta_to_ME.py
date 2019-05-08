@@ -45,7 +45,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             estart = str(int(estart)-1)
             exon_ID = "_".join([chrom, row["Strand"], estart, eend])
             
-            if row["Coord]=="chr10:127272438-127272444":
+            if row["Coord"]=="chr10:127272438-127272444":
                 print(row )
 
             if (row["Gene"], row["Node"] ) in node_exons:
