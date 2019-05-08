@@ -79,7 +79,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 if row["ME"] not in annotated_ME:
 
 
-                    ME_starts[(chrom, int(SJ_start)+1, strand)] = row["ME"] ## GTF 1-based
+                    ME_starts[(chrom, int(SJ_start), strand)] = row["ME"] ## GTF 1-based
                     ME_ends[(chrom, int(SJ_end), strand)] = row["ME"]
 
     transcript_to_gene = dict()
