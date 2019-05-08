@@ -185,11 +185,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME = ME.split("_")
                         ME_chrom = "_".join(ME[:-3])
                         ME_strand, ME_start, ME_end  = ME[-3:]
+                        ME_start = int(ME_start)
+                        ME_end = int(ME_end)
 			
 			ME_start += 1 ## GTF 1-based
 			
-                        ME_start = int(ME_start)
-                        ME_end = int(ME_end)
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
 
@@ -209,6 +209,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME_strand, ME_start, ME_end  = ME[-3:]
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
+			
+			ME_start += 1 ## GTF 1-based
+			
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
                         if ((gene_id, past_intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
