@@ -49,8 +49,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
             if (row["Gene"], row["Node"] ) in node_exons:
                 
-                if row["Coord"]=="chr10:127272438-127272444":
-                    print(row )
+
                 
                 Potential_Exon, Is_Annotated = node_exons[(row["Gene"], row["Node"] )]
                 
@@ -101,6 +100,8 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                         exon_ID = new_exon_ID
 
+                if row["Coord"]=="chr10:127272438-127272444":
+                    print(exon_ID )                
 
                 #if exon_ID in MEs:
                 #if exon_ID!="":
