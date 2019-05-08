@@ -190,7 +190,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
 			
-			ME_start += 1 ## GTF 1-based
+                        ME_start += 1 ## GTF 1-based
 			
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
@@ -214,7 +214,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
 			
-			ME_start += 1 ## GTF 1-based
+                        ME_start += 1 ## GTF 1-based
 			
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
