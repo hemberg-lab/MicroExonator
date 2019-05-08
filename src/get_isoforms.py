@@ -204,7 +204,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                                 gene_ME_intron.add((gene_id, intron))
 
 
-                    if (chrom, estart, strand) in ME_ends:
+                    if (chrom, estart-1, strand) in ME_ends:
 			
                         print(chrom, estart, strand, "estart")
 
