@@ -160,89 +160,94 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 
                 past_intron = ""
+                
+                if transcript_id=="ENSMUST00000159763":
+                    print("ENSMUST00000159763")
 
 
-                for q1, q2, b in zip(qstarts, qstarts[1:], blocksizes):
+                    for q1, q2, b in zip(qstarts, qstarts[1:], blocksizes):
+                        estart = start + q1  + 1 #GTF is 1-based
+                        eend = start + q1 + b
+                        elenght = eend - estart
+
+                        exon = [chrom, strand, estart, eend]
+
+                        istart = start + q1 + b
+                        iend = start + q2
+                        ilen = iend - istart
+
+                        intron  =  (chrom, strand, istart, iend)
+                        non_ME_transcripts[transcript_id].append(exon)
+
+                        if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
+
+                            ME_transcripts[transcript_id].append(exon)
+
+                        if (chrom, eend, strand) in ME_starts:
+
+
+                            ME = ME_starts[(chrom, eend, strand)]
+
+                            ME = ME.split("_")
+                            ME_chrom = "_".join(ME[:-3])
+                            ME_strand, ME_start, ME_end  = ME[-3:]
+                            ME_start = int(ME_start)
+                            ME_end = int(ME_end)
+
+                            ME_start += 1 ## GTF 1-based
+
+                            ME = [ME_chrom, ME_strand, ME_start, ME_end ]
+                            print(ME)
+
+
+                            if ((gene_id, intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
+
+                                if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
+
+                                    ME_transcripts[transcript_id].append(ME)
+
+                                    gene_ME_intron.add((gene_id, intron))
+
+
+                        if (chrom, estart-1, strand) in ME_ends:
+
+
+                            ME = ME_ends[(chrom, estart-1, strand)].split("_")
+                            ME_chrom = "_".join(ME[:-3])
+                            ME_strand, ME_start, ME_end  = ME[-3:]
+                            ME_start = int(ME_start)
+                            ME_end = int(ME_end)
+
+                            ME_start += 1 ## GTF 1-based
+
+                            ME = [ME_chrom, ME_strand, ME_start, ME_end ]
+                            print(ME)
+
+                            if ((gene_id, past_intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
+
+                                if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
+
+                                    ME_transcripts[transcript_id].insert(-2, ME)
+
+                                    gene_ME_intron.add((gene_id, past_intron))
+
+
+                        past_intron = intron
+
+
+                    #last exon
+
+
+                    q1, b = qstarts[-1], blocksizes[-1]
                     estart = start + q1  + 1 #GTF is 1-based
                     eend = start + q1 + b
                     elenght = eend - estart
 
                     exon = [chrom, strand, estart, eend]
 
-                    istart = start + q1 + b
-                    iend = start + q2
-                    ilen = iend - istart
-
-                    intron  =  (chrom, strand, istart, iend)
                     non_ME_transcripts[transcript_id].append(exon)
 
-                    if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
-
-                        ME_transcripts[transcript_id].append(exon)
-
-                    if (chrom, eend, strand) in ME_starts:
-			
-
-                        ME = ME_starts[(chrom, eend, strand)]
-
-                        ME = ME.split("_")
-                        ME_chrom = "_".join(ME[:-3])
-                        ME_strand, ME_start, ME_end  = ME[-3:]
-                        ME_start = int(ME_start)
-                        ME_end = int(ME_end)
-			
-                        ME_start += 1 ## GTF 1-based
-			
-                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]
-
-
-                        if ((gene_id, intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
-
-                            if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
-
-                                ME_transcripts[transcript_id].append(ME)
-
-                                gene_ME_intron.add((gene_id, intron))
-
-
-                    if (chrom, estart-1, strand) in ME_ends:
-			
-
-                        ME = ME_ends[(chrom, estart-1, strand)].split("_")
-                        ME_chrom = "_".join(ME[:-3])
-                        ME_strand, ME_start, ME_end  = ME[-3:]
-                        ME_start = int(ME_start)
-                        ME_end = int(ME_end)
-			
-                        ME_start += 1 ## GTF 1-based
-			
-                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]
-
-                        if ((gene_id, past_intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
-
-                            if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
-
-                                ME_transcripts[transcript_id].insert(-2, ME)
-
-                                gene_ME_intron.add((gene_id, past_intron))
-
-
-                    past_intron = intron
-
-
-                #last exon
-
-
-                q1, b = qstarts[-1], blocksizes[-1]
-                estart = start + q1  + 1 #GTF is 1-based
-                eend = start + q1 + b
-                elenght = eend - estart
-
-                exon = [chrom, strand, estart, eend]
-
-                non_ME_transcripts[transcript_id].append(exon)
-
-                ME_transcripts[transcript_id].append(exon)
+                    ME_transcripts[transcript_id].append(exon)
 				
 
             if transcript_id.split(".")[0] in transcript_to_gene:  ### zebrafish fix
@@ -271,6 +276,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                     intron  =  (chrom, strand, istart, iend)
                     non_ME_transcripts[transcript_id].append(exon)
+                    
+
+                    
 
                     if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
 
