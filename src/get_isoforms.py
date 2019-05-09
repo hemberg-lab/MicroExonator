@@ -52,6 +52,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
     ME_starts = dict()
     ME_ends =  dict()
 
+    secondary_ME = defaultdict(set)  #Sometimes more than one microexon is located at the same intron. This object is used to overcome that issue
+
     with open(out_filtered_ME) as F:
 
         reader = csv.DictReader(F, delimiter="\t")
@@ -75,15 +77,25 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                     SJ_start, SJ_end = SJ.split(":")[1].split("+")
 
-
                 if row["ME"] not in annotated_ME:
-
-                    ME_starts[(chrom, int(SJ_start), strand)] = row["ME"]
-                    ME_ends[(chrom, int(SJ_end), strand)] = row["ME"]
+                    
+                    if (chrom, int(SJ_start), strand) in ME_starts:
+                        primary_ME = ME_starts[(chrom, int(SJ_start), strand)]
+                        secondary_ME[primary_ME].add(row["ME"])
+                    else:
+                        ME_starts[(chrom, int(SJ_start), strand)] = row["ME"]
+                        
+                    if (chrom, int(SJ_end), strand) in ME_ends:
+                        primary_ME = ME_ends[(chrom, int(SJ_end), strand)]
+                        secondary_ME[primary_ME].add(row["ME"])
+                    else:
+                        ME_ends[(chrom, int(SJ_end), strand)] = row["ME"]
 
     transcript_to_gene = dict()
     gene_coordinates = dict()
     transcript_coordinates  = dict()
+    
+    print(secondary_ME)
 
     for row in csv.reader(open(annotation_gtf), delimiter = '\t'):
 
