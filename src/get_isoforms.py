@@ -500,6 +500,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 
                 for sec_ME in list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]:  #Only one secondary microexon will be included... for now
 
+                    print(sec_ME)
+			
                     sec_ME = sec_ME.split("_")
                     ME_chrom = "_".join(sec_ME[:-3])
                     ME_strand, ME_start, ME_end  = sec_ME[-3:]
