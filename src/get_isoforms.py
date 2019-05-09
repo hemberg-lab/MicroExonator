@@ -161,8 +161,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                 past_intron = ""
                 
-                if transcript_id=="ENSMUST00000159763":
-                    print("ENSMUST00000159763")
+                if transcript_id=="ENSMUST00000159763.7":
+                    print("ENSMUST00000159763.7")
 
 
                     for q1, q2, b in zip(qstarts, qstarts[1:], blocksizes):
