@@ -79,7 +79,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 if row["ME"] not in annotated_ME:
                     
                     if row["ME"]=="chr1_-_162075774_162075786":
-                        print(row)
+                        print((chrom, int(SJ_start), strand), (chrom, int(SJ_end), strand))
 
                     ME_starts[(chrom, int(SJ_start), strand)] = row["ME"]
                     ME_ends[(chrom, int(SJ_end), strand)] = row["ME"]
@@ -182,6 +182,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
 
                             ME_transcripts[transcript_id].append(exon)
+                        
+                        print( (chrom, eend, strand) )
 
                         if (chrom, eend, strand) in ME_starts:
 
@@ -207,7 +209,8 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                                     ME_transcripts[transcript_id].append(ME)
 
                                     gene_ME_intron.add((gene_id, intron))
-
+                        
+                        print( (chrom, estart-1, strand) )
 
                         if (chrom, estart-1, strand) in ME_ends:
 
