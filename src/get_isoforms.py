@@ -498,24 +498,22 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
             if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) in secondary_ME:
                 
-                for sec_ME in list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]:  #Only one secondary microexon will be included... for now
+                sec_ME = list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]:  #Only one secondary microexon will be included... for now
 
-                    print(sec_ME)
-			
-                    sec_ME = sec_ME.split("_")
-                    ME_chrom = "_".join(sec_ME[:-3])
-                    ME_strand, ME_start, ME_end  = sec_ME[-3:]
+                sec_ME = sec_ME.split("_")
+                ME_chrom = "_".join(sec_ME[:-3])
+                ME_strand, ME_start, ME_end  = sec_ME[-3:]
 
-                    ME_start = int(ME_start)
-                    ME_end = int(ME_end)
+                ME_start = int(ME_start)
+                ME_end = int(ME_end)
 
-                    ME_start += 1 ## GTF 1-based	 
+                ME_start += 1 ## GTF 1-based	 
 
-                    if chrM==False:
-                        if e_chrom!="chrM":
-                            print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
-                    else:
+                if chrM==False:
+                    if e_chrom!="chrM":
                         print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+                else:
+                    print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
 
             else:
 
