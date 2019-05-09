@@ -59,7 +59,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         for row in reader:
 
             chrom = "_".join(row["ME"].split("_")[:-3])
-            starnd, start, end = row["ME"].split("_")[-3:]
+            strand, start, end = row["ME"].split("_")[-3:]
 
             ME_start = [chrom, start, strand]
             ME_end = [chrom, end, strand]
