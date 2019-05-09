@@ -77,7 +77,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 
                 if row["ME"] not in annotated_ME:
-
+                    
+                    if row["ME"]=="chr1_-_162075774_162075786":
+                        print(row)
 
                     ME_starts[(chrom, int(SJ_start), strand)] = row["ME"]
                     ME_ends[(chrom, int(SJ_end), strand)] = row["ME"]
