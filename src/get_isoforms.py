@@ -499,7 +499,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
             if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) in secondary_ME:
                 
-                for sec_ME in random.choice(secondary_ME[e_chrom, e_strand, str(e_start-1), str(e_end)]):  #Only one secondary microexon will be included... for now
+                for sec_ME in random.choice(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])]):  #Only one secondary microexon will be included... for now
 
                     sec_ME = sec_ME.split("_")
                     ME_chrom = "_".join(sec_ME[:-3])
