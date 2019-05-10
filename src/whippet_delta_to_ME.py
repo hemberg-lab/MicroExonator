@@ -99,16 +99,12 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                         new_exon_ID = "_".join([echrom, estrand, estart, eend ])
 
                         exon_ID = new_exon_ID
+           
 
-                #if row["Coord"]=="chr10:127272438-127272444":
-                if  eend=="127272444":
-                    
-                    print(exon_ID )                
-
-                #if exon_ID in MEs:
+                if exon_ID in MEs:
                 #if exon_ID!="":
           
-                 #   print("\t".join([exon_ID] + [row[x] for x in header] ))
+                   print("\t".join([exon_ID] + [row[x] for x in header] ))
           
 
 if __name__ == '__main__':
