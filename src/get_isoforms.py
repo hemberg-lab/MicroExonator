@@ -189,11 +189,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                         ME_transcripts[transcript_id].append(exon)
 
-                    if transcript_id=="ENSMUST00000223859.1":
-                        print((chrom, eend, strand), (chrom, estart-1, strand))
-						
-
-
                     if (chrom, eend, strand) in ME_starts:
 
 
@@ -207,27 +202,16 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                         ME_start += 1 ## GTF 1-based
 
-                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]
-                        
-                        if transcript_id=="ENSMUST00000223859.1":
-                            print(ME)                        
-   
-
+                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]                  
+ 
 
                         if ((gene_id, intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
 
                             if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
-
-                                if transcript_id=="ENSMUST00000223859.1":
-                                    print(ME) 
                 
                                 ME_transcripts[transcript_id].append(ME)
 
                                 gene_ME_intron.add((gene_id, intron))
-
-                        
-                        
-
 
                     if (chrom, estart-1, strand) in ME_ends:
 
