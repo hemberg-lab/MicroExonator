@@ -49,23 +49,42 @@ rule whippet_index:
     shell:
         "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
 
+if "--sam" in config["whippet_flags"]:
+      rule  whippet_quant:
+          input:
+              'FASTQ/{sample}.fastq',
+              "Whippet/Index/whippet.jls"
+          params:
+              bin = config["whippet_bin_folder"],
+              output = "Whippet/Quant/{sample}",
+              flags = config["whippet_flags"]
+          output:
+              "Whippet/Quant/{sample}.gene.tpm.gz",
+              "Whippet/Quant/{sample}.isoform.tpm.gz",
+              "Whippet/Quant/{sample}.jnc.gz",
+              "Whippet/Quant/{sample}.map.gz",
+              "Whippet/Quant/{sample}.psi.gz",
+              sam = "Whippet/Quant/{sample}.sam"
+          shell:
+              "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"
 
-rule  whippet_quant:
-    input:
-        'FASTQ/{sample}.fastq',
-        "Whippet/Index/whippet.jls"
-    params:
-        bin = config["whippet_bin_folder"],
-        output = "Whippet/Quant/{sample}",
-        flags = config["whippet_flags"]
-    output:
-        "Whippet/Quant/{sample}.gene.tpm.gz",
-        "Whippet/Quant/{sample}.isoform.tpm.gz",
-        "Whippet/Quant/{sample}.jnc.gz",
-        "Whippet/Quant/{sample}.map.gz",
-        "Whippet/Quant/{sample}.psi.gz"
-    shell:
-        "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"
+else:
+      rule  whippet_quant:
+          input:
+              'FASTQ/{sample}.fastq',
+              "Whippet/Index/whippet.jls"
+          params:
+              bin = config["whippet_bin_folder"],
+              output = "Whippet/Quant/{sample}",
+              flags = config["whippet_flags"]
+          output:
+              "Whippet/Quant/{sample}.gene.tpm.gz",
+              "Whippet/Quant/{sample}.isoform.tpm.gz",
+              "Whippet/Quant/{sample}.jnc.gz",
+              "Whippet/Quant/{sample}.map.gz",
+              "Whippet/Quant/{sample}.psi.gz"
+          shell:
+              "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
 
 #rule unzip_quant:
 #    input:
