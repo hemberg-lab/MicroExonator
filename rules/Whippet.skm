@@ -56,7 +56,8 @@ rule  whippet_quant:
         "Whippet/Index/whippet.jls"
     params:
         bin = config["whippet_bin_folder"],
-        output = "Whippet/Quant/{sample}"
+        output = "Whippet/Quant/{sample}",
+        flags = config["whippet_flags"]
     output:
         "Whippet/Quant/{sample}.gene.tpm.gz",
         "Whippet/Quant/{sample}.isoform.tpm.gz",
@@ -64,7 +65,7 @@ rule  whippet_quant:
         "Whippet/Quant/{sample}.map.gz",
         "Whippet/Quant/{sample}.psi.gz"
     shell:
-        "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output}"
+        "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"
 
 #rule unzip_quant:
 #    input:
