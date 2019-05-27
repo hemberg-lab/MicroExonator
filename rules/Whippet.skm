@@ -72,7 +72,7 @@ if str2bool(config["Get_Bamfiles"])==True:
               "Whippet/Quant/{sample}.jnc.gz",
               "Whippet/Quant/{sample}.map.gz",
               "Whippet/Quant/{sample}.psi.gz",
-              sam = "Whippet/BAM/{sample}.sam"
+              sam = temp("Whippet/BAM/{sample}.sam")
           shell:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"
 
