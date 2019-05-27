@@ -49,7 +49,9 @@ rule whippet_index:
     shell:
         "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
 
-if config["Get_Bamfiles"]==True:
+
+
+if str2bool(config["Get_Bamfiles"])==True:
 
       if "whippet_flags" in config:
             quant_flags = config["whippet_flags"]
