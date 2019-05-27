@@ -19,8 +19,8 @@ rule discovery:
 
 rule bamfiles:
     input
-        expand("Whippet/BAM/{samples}", samples=DATA)
-        
+        expand("Whippet/BAM/{samples}.bam", samples=DATA), 
+        expand("Whippet/BAM/{samples}.bam.bai", samples=DATA), 
 
 #### MicroExonator ####
 
