@@ -72,7 +72,7 @@ if str2bool(config["Get_Bamfiles"])==True:
               "Whippet/Quant/{sample}.jnc.gz",
               "Whippet/Quant/{sample}.map.gz",
               "Whippet/Quant/{sample}.psi.gz",
-              sam = "Whippet/Quant/{sample}.sam"
+              sam = "Whippet/BAM/{sample}.sam"
           shell:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"
 
@@ -93,6 +93,17 @@ else:
               "Whippet/Quant/{sample}.psi.gz"
           shell:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
+
+
+rule SamToBamIndex:
+    input:
+        sam = "Round2/BAM{sample}.sam"
+    output:
+        bam = "Round2/BAM{sample}.bam",
+        index = "Round2/BAM{sample}.bai"
+    shell:
+        "samtools sort  -o {output.bam} -O BAM {input} && samtools index {output.bam}"
+
 
 #rule unzip_quant:
 #    input:
