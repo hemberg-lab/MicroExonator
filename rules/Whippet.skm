@@ -100,7 +100,7 @@ rule SamToBamIndex:
         sam = "Whippet/BAM/{sample}.sam"
     output:
         bam = "Whippet/BAM/{sample}.bam",
-        index = "Whippet/BAM/{sample}.bai"
+        index = "Whippet/BAM/{sample}.bam.bai"
     shell:
         "samtools sort  -o {output.bam} -O BAM {input} && samtools index {output.bam}"
 
