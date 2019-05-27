@@ -3,7 +3,12 @@ configfile : "config.yaml"
 DATA = set([])
 
 def str2bool(v):
-  return v.lower() in ("yes", "true", "t", "1")
+  if v==True:
+    rerun True
+  elif v==False:
+    return False
+  else:
+    return v.lower() in ("yes", "true", "t", "1")
 
 rule quant:
     input:
