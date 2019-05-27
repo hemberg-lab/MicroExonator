@@ -23,15 +23,18 @@ rule discovery:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
-rule bamfiles:
-    input:
-        expand("Whippet/BAM/{samples}.bam", samples=DATA), 
-        expand("Whippet/BAM/{samples}.bam.bai", samples=DATA), 
 
 #### MicroExonator ####
 
 include : "rules/init.skm"
 include : "rules/Get_data.skm"
+
+
+rule bamfiles:
+    input:
+        expand("Whippet/BAM/{samples}.bam", samples=DATA), 
+        expand("Whippet/BAM/{samples}.bam.bai", samples=DATA)
+
 
 if ("downstream_only" in config)==False:
 
