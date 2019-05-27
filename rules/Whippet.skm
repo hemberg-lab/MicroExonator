@@ -97,10 +97,10 @@ else:
 
 rule SamToBamIndex:
     input:
-        sam = "Round2/BAM{sample}.sam"
+        sam = "Round2/BAM/{sample}.sam"
     output:
-        bam = "Round2/BAM{sample}.bam",
-        index = "Round2/BAM{sample}.bai"
+        bam = "Round2/BAM/{sample}.bam",
+        index = "Round2/BAM/{sample}.bai"
     shell:
         "samtools sort  -o {output.bam} -O BAM {input} && samtools index {output.bam}"
 
