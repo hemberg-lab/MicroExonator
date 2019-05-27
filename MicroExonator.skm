@@ -4,7 +4,7 @@ DATA = set([])
 
 def str2bool(v):
   if v==True:
-    rerun True
+    return True
   elif v==False:
     return False
   else:
