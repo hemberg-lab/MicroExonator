@@ -17,6 +17,11 @@ rule discovery:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
+rule bamfiles:
+    input
+        expand("Whippet/BAM/{samples}", samples=DATA)
+        
+
 #### MicroExonator ####
 
 include : "rules/init.skm"
