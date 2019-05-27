@@ -18,7 +18,7 @@ rule discovery:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
 rule bamfiles:
-    input
+    input:
         expand("Whippet/BAM/{samples}.bam", samples=DATA), 
         expand("Whippet/BAM/{samples}.bam.bai", samples=DATA), 
 
