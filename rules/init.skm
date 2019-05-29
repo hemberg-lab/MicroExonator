@@ -118,6 +118,6 @@ if os.path.isfile("./local_samples_cram.tsv"):
 
                 download_file.write("#!/bin/bash" + "\n")
                 download_file.write("samtools view -b " + row["path"] +  " | samtools bam2fq -1 FASTQ/" + row["sample"]  + ".rd1.fastq -2 FASTQ/" +  row["sample"] + ".rd2.fastq -0 /dev/null -s /dev/null -n -F 0x900 -" + "\n")
-                download_file.write("cat  FASTQ/" + row["sample"]  + ".rd1.fastq " +  row["sample"] + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n")  
+                download_file.write("cat  FASTQ/" + row["sample"]  + ".rd1.fastq FASTQ/" +  row["sample"] + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n")  
 
 #print(DATA)
