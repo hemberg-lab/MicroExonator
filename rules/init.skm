@@ -98,5 +98,25 @@ if os.path.isfile("./sample_url.tsv"):
                 download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
+if os.path.isfile("./local_samples_cram.tsv"):
+
+
+    with open("./local_samples_cram.tsv") as file :
+
+        reader = csv.DictReader(file, delimiter="\t")
+
+        for row in reader:
+
+            DATA.add(row["sample"])
+
+            file_name = "download/" + row["sample"]  + ".download.sh"
+
+
+            if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
+
+                download_file =  open(file_name, "w")
+
+                download_file.write("#!/bin/bash" + "\n")
+                download_file.write("cramtools fastq -I " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
 
 #print(DATA)
