@@ -21,3 +21,4 @@ dependencies:
   - pyBigWig
   - bwa=0.7.15
   - bowtie
+  - cramtools
