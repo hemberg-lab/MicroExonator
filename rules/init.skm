@@ -178,4 +178,4 @@ if os.path.isfile("./local_samples_cram.tsv"):
 
             
 
-#print(DATA)
+print(DATA)
