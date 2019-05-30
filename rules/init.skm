@@ -154,7 +154,7 @@ if os.path.isfile("./local_samples_cram.tsv"):
                     download_file.write("cat  FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n") 
 
 
-
+        print(files_cramtofastq)
         
         for out_name in files_cramtofastq:
 
