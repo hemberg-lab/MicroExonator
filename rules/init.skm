@@ -136,7 +136,7 @@ if os.path.isfile("./local_samples_cram.tsv"):
                     out_name =  row["sample"] 
                     
                     
-                    files_cramtofastq[file_name].append()
+                    files_cramtofastq[file_name].append(out_name)
                    
                     
                     
