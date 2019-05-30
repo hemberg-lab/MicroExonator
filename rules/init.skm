@@ -169,12 +169,11 @@ if os.path.isfile("./local_samples_cram.tsv"):
 
                 download_file.write(cramtofastq)
 
-            cat = "cat " + "".join(subcats) +  " > FASTQ/" + row["sample"]  + ".fastq &&" + "\n"
+            cat = "cat " + "".join(subcats) +  " > FASTQ/" + out_name + ".fastq &&" + "\n"
             rm  = "rm " + "".join(subcats)  + "\n"
 
             download_file.write(cat)
             download_file.write(rm)
 
-            
 
 #print(DATA)
