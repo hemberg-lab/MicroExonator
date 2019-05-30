@@ -100,26 +100,45 @@ if os.path.isfile("./sample_url.tsv"):
 
 if os.path.isfile("./local_samples_cram.tsv"):
 
+    
+
 
     with open("./local_samples_cram.tsv") as file :
 
         reader = csv.DictReader(file, delimiter="\t")
 
         for row in reader:
+            
+            basename = row["sample"]
+            
+            if "multiplex" in row:
+                
+                basename = "_".join([row["sample"],  row["multiplex"]])
+            
 
-            DATA.add(row["sample"])
+            DATA.add(basename)
 
-            file_name = "download/" + row["sample"]  + ".download.sh"
+            file_name = "download/" + basename  + ".download.sh"
 
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
+
+
+                
                 download_file =  open(file_name, "w")
 
                 download_file.write("#!/bin/bash" + "\n")
                 download_file.write("samtools view -b " + row["path"] +  " | samtools bam2fq -1 FASTQ/" + row["sample"]  + ".rd1.fastq -2 FASTQ/" +  row["sample"] + ".rd2.fastq -0 /dev/null -s /dev/null -n -F 0x900 - &&" + "\n")
-                download_file.write("cat  FASTQ/" + row["sample"]  + ".rd1.fastq FASTQ/" +  row["sample"] + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n") 
-                download_file.write("")
+                
+                if "multiplex" in row: 
+                
+                    download_file.write("")                    
+
+                else:
+                
+                    download_file.write("cat  FASTQ/" + row["sample"]  + ".rd1.fastq FASTQ/" +  row["sample"] + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n") 
+
                 
 
 #print(DATA)
