@@ -117,7 +117,7 @@ if os.path.isfile("./local_samples_cram.tsv"):
                 basename = "_".join([row["sample"],  row["multiplex"]])
             
 
-            DATA.add(basename)
+            DATA.add(row["sample"])
 
             file_name = "download/" + row["sample"]  + ".download.sh"
 
