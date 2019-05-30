@@ -159,6 +159,8 @@ if os.path.isfile("./local_samples_cram.tsv"):
             for out_name in files_cramtofastq:
 
                 file_name = "download/" + out_name  + ".download.sh"
+                
+                print(file_name)
 
                 download_file =  open(file_name, "w")
                 download_file.write("#!/bin/bash" + "\n")
