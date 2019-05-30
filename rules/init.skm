@@ -135,15 +135,15 @@ if os.path.isfile("./local_samples_cram.tsv"):
                 
                     out_name =  row["sample"] 
                 
-                    if row["multiplex"] == config["multiplex_number"]:
+                    #if row["multiplex"] == config["multiplex_number"]:
                     
-                        download_file.write("cat " + subcat + "> FASTQ/" + row["sample"]  + ".fastq " + "\n")
-                        
-                        cramtofastq = "samtools view -b " + row["path"] +  " | samtools bam2fq -1 FASTQ/" + basename  + ".rd1.fastq -2 FASTQ/" +  basename + ".rd2.fastq -0 /dev/null -s /dev/null -n -F 0x900 - &&" + "\n"
-                        subcat = "FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq "
-                        
-                        files_cramtofastq[out_name].append(cramtofastq)
-                        files_subcat[out_name].append(subcat)
+                    download_file.write("cat " + subcat + "> FASTQ/" + row["sample"]  + ".fastq " + "\n")
+
+                    cramtofastq = "samtools view -b " + row["path"] +  " | samtools bam2fq -1 FASTQ/" + basename  + ".rd1.fastq -2 FASTQ/" +  basename + ".rd2.fastq -0 /dev/null -s /dev/null -n -F 0x900 - &&" + "\n"
+                    subcat = "FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq "
+
+                    files_cramtofastq[out_name].append(cramtofastq)
+                    files_subcat[out_name].append(subcat)
                 else:
                 
                     download_file =  open(file_name, "w")
