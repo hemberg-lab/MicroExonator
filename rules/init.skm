@@ -134,13 +134,7 @@ if os.path.isfile("./local_samples_cram.tsv"):
                 if "multiplex" in row: 
                 
                     out_name =  row["sample"] 
-                    
-                    
-                    files_cramtofastq[file_name].append(out_name)
-                   
-                    
-                    
-                    
+                
                     if row["multiplex"] == config["multiplex_number"]:
                     
                         download_file.write("cat " + subcat + "> FASTQ/" + row["sample"]  + ".fastq " + "\n")
