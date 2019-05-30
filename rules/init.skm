@@ -110,6 +110,7 @@ if os.path.isfile("./local_samples_cram.tsv"):
         reader = csv.DictReader(file, delimiter="\t")
         
         files_cramtofastq = defaultdict(list)
+        files_subcat  = defaultdict(list)
 
         for row in reader:
             
@@ -132,21 +133,23 @@ if os.path.isfile("./local_samples_cram.tsv"):
 
                 if "multiplex" in row: 
                 
-                    file_name = "> FASTQ/" + row["sample"]  + ".fastq " + "\n"
+                    out_name =  row["sample"] 
                     
                     
                     files_cramtofastq[file_name].append()
                    
                     
-                    subcat = "FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq "
+                    
                     
                     if row["multiplex"] == config["multiplex_number"]:
                     
                         download_file.write("cat " + subcat + "> FASTQ/" + row["sample"]  + ".fastq " + "\n")
                         
                         cramtofastq = "samtools view -b " + row["path"] +  " | samtools bam2fq -1 FASTQ/" + basename  + ".rd1.fastq -2 FASTQ/" +  basename + ".rd2.fastq -0 /dev/null -s /dev/null -n -F 0x900 - &&" + "\n"
+                        subcat = "FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq "
                         
-                        files_cramtofastq[file_name].append(cramtofastq)
+                        files_cramtofastq[out_name].append(cramtofastq)
+                        files_subcat[out_name].append(subcat)
                 else:
                 
                     download_file =  open(file_name, "w")
@@ -156,6 +159,27 @@ if os.path.isfile("./local_samples_cram.tsv"):
                 
                     download_file.write("cat  FASTQ/" + basename  + ".rd1.fastq FASTQ/" +  basename + ".rd2.fastq > " + " FASTQ/" + row["sample"]  + ".fastq " + "\n") 
 
+
+        if "multiplex" in row:
+        
+            for out_name in files_cramtofastq:
+
+                file_name = "download/" + out_name  + ".download.sh"
+
+                download_file =  open(file_name, "w")
+                download_file.write("#!/bin/bash" + "\n")
+
+                cramtofastqs = files_cramtofastq[out_name]
+                subcats = files_subcat[out_name]
+
+                for cramtofastq in cramtofastqs:
+
+                    download_file.write(cramtofastq)
+                    
+                cat = "cat " + "".join(subcats) +  " > FASTQ/" + row["sample"]  + ".fastq " + "\n"
                 
+                download_file.write(cat)
+                
+            
 
 #print(DATA)
