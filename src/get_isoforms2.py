@@ -481,57 +481,66 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                                 
     for sec_ME, primary_ME, transcript_id in transcript_secondary_exons_pairs:
-
-        sec_ME = sec_ME.split("_")
-        ME_chrom = "_".join(sec_ME[:-3])
-        ME_strand, ME_start, ME_end  = sec_ME[-3:]
-
-        ME_start = int(ME_start)
-        ME_end = int(ME_end)
-
-        ME_start += 1 ## GTF 1-based	
-
         
-        gene_id = transcript_to_gene[transcript_id]
-        g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
-        t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
-
-        
-        transcript_id_ME = transcript_id + "_" + str(ME_start) + "_" + str(ME_end)
-	
-
-
-        if chrM==False:
-            if t_chrom!="chrM":
-                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";" ])))
-        else:
-            print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";" ])))
-
-        
+       primary_ME_match = False
 	
         for e in ME_transcripts[transcript_id]:
-
             e_chrom, e_strand, e_start, e_end = e
-
             if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) == primary_ME:
+                primary_ME_match = True
                 
-                #sec_ME = list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]  #Only one secondary microexon will be included... for now
+        if primary_ME_match==True:
+        
+            sec_ME = sec_ME.split("_")
+            ME_chrom = "_".join(sec_ME[:-3])
+            ME_strand, ME_start, ME_end  = sec_ME[-3:]
 
- 
+            ME_start = int(ME_start)
+            ME_end = int(ME_end)
 
-                if chrM==False:
-                    if e_chrom!="chrM":
-                        print("\t".join(map(str, [ME_chrom, "MicroExonator", "exon", ME_start, ME_end, ".", ME_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
-                else:
-                    print("\t".join(map(str, [ME_chrom, "MicroExonator", "exon", ME_start, ME_end, ".", ME_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+            ME_start += 1 ## GTF 1-based	
 
+
+            gene_id = transcript_to_gene[transcript_id]
+            g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
+            t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
+
+
+            transcript_id_ME = transcript_id + "_" + str(ME_start) + "_" + str(ME_end)
+
+
+
+            if chrM==False:
+                if t_chrom!="chrM":
+                    print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";" ])))
             else:
+                print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";" ])))
 
-                if chrM==False:
-                    if e_chrom!="chrM":
-                        print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+
+
+            for e in ME_transcripts[transcript_id]:
+
+                e_chrom, e_strand, e_start, e_end = e
+
+                if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) == primary_ME:
+
+                    #sec_ME = list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]  #Only one secondary microexon will be included... for now
+
+
+
+                    if chrM==False:
+                        if e_chrom!="chrM":
+                            print("\t".join(map(str, [ME_chrom, "MicroExonator", "exon", ME_start, ME_end, ".", ME_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+                    else:
+                        print("\t".join(map(str, [ME_chrom, "MicroExonator", "exon", ME_start, ME_end, ".", ME_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+
                 else:
-                    print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+
+                    if chrM==False:
+                        if e_chrom!="chrM":
+                            print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
+                    else:
+                        print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
 
 
 
