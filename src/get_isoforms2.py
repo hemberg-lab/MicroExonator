@@ -482,7 +482,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                                 
     for sec_ME, primary_ME, transcript_id in transcript_secondary_exons_pairs:
         
-       primary_ME_match = False
+        primary_ME_match = False
 	
         for e in ME_transcripts[transcript_id]:
             e_chrom, e_strand, e_start, e_end = e
