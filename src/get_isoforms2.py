@@ -495,7 +495,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
 
         
-        transcript_id_ME = transcript_id + "_" + str(ME_start) "_" + str(ME_end)
+        transcript_id_ME = transcript_id + "_" + str(ME_start) + "_" + str(ME_end)
 	
 
 
