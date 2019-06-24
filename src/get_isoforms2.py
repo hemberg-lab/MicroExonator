@@ -480,9 +480,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     
                     ME_e =  [ME_chrom, ME_strand, str(int(ME_start)-1), ME_end]
                     
-                    if ME_e not in ME_transcripts[transcript_id]:
+                    #if ME_e not in ME_transcripts[transcript_id]:
 				
-                        transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
+                    transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
 		
 
 				
