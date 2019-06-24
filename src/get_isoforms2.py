@@ -480,7 +480,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 								
 
                                 
-    for sec_ME, primary_ME, transcript_id in transcript_secondary_exons:
+    for sec_ME, primary_ME, transcript_id in transcript_secondary_exons_pairs:
 
         sec_ME = sec_ME.split("_")
         ME_chrom = "_".join(sec_ME[:-3])
