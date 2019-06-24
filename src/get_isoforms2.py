@@ -459,7 +459,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
 ####								
 
-	transcript_secondary_exons_pairs = set()
+    transcript_secondary_exons_pairs = set()
 	                          
     for transcript_id in transcript_secondary_exons:
         
