@@ -480,14 +480,14 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                                 
     for sec_ME, primary_ME, transcript_id in transcript_secondary_exons:
 
-		sec_ME = sec_ME.split("_")
-		ME_chrom = "_".join(sec_ME[:-3])
-		ME_strand, ME_start, ME_end  = sec_ME[-3:]
+        sec_ME = sec_ME.split("_")
+        ME_chrom = "_".join(sec_ME[:-3])
+        ME_strand, ME_start, ME_end  = sec_ME[-3:]
 
-		ME_start = int(ME_start)
-		ME_end = int(ME_end)
+        ME_start = int(ME_start)
+        ME_end = int(ME_end)
 
-		ME_start += 1 ## GTF 1-based	
+        ME_start += 1 ## GTF 1-based	
 
         
         gene_id = transcript_to_gene[transcript_id]
