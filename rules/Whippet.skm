@@ -33,7 +33,7 @@ rule get_GTF:
     conda:
         "../envs/core.yaml"
     shell:
-        "python src/get_isoforms.py {input} {params}  > {output}"
+        "python src/get_isoforms2.py {input} {params}  > {output}"
 
 rule whippet_index:
     input:
