@@ -471,7 +471,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 
                 for sec_ME in list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])]):
 				
-					transcript_secondary_exons_pairs.add((sec_ME, e, transcript_id))
+                    transcript_secondary_exons_pairs.add((sec_ME, e, transcript_id))
 				
 ####
 								
