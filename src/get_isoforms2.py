@@ -527,13 +527,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             else:
                 print("\t".join(map(str, [  t_chrom, "MicroExonator", "transcript", t_start, t_end, ".", t_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";" ])))
 
-            previous_exon = 0
-
             for e in ME_transcripts[transcript_id]:
 
                 e_chrom, e_strand, e_start, e_end = e
 
-                if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) == primary_ME and int(e_start)>int(previous_exon):
+                if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) == primary_ME:
 
                     #sec_ME = list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])])[0]  #Only one secondary microexon will be included... for now
 
@@ -552,8 +550,6 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                             print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
                     else:
                         print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
-
-                previous_exon = int(e_end)
 
 if __name__ == '__main__':
 	make_chrom_sizes(sys.argv[1])
