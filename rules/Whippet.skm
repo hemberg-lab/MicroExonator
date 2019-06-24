@@ -49,7 +49,9 @@ rule whippet_index:
     shell:
         "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
 
-
+if "Get_Bamfiles" not in config: #To make it optional
+      config["Get_Bamfiles"]=="F"
+      
 
 if str2bool(config["Get_Bamfiles"])==True:
 
