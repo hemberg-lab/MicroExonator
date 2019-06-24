@@ -472,8 +472,19 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             if exonID in secondary_ME:
                 
                 for sec_ME in list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])]):
+			
+			
+                    sec_ME = sec_ME.split("_")
+                    ME_chrom = "_".join(sec_ME[:-3])
+                    ME_strand, ME_start, ME_end  = sec_ME[-3:]
+                    
+                    ME_e =  [ME_chrom, ME_strand, str(int(ME_start)-1), ME_end]
+                    
+                    if ME_e not in ME_transcripts[transcript_id]:
 				
-                    transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
+                        transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
+		
+
 				
 ####
 								
