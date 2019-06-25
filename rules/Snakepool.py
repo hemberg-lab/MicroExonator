@@ -4,6 +4,118 @@ repeats = 10
 
 ###############
 
+import glob, os
+import random
+import csv
+from collections import defaultdict
+
+
+def partition (list_in, n):  # Function to do random pooling
+    random.shuffle(list_in)
+    return [list_in[i::n] for i in range(n)]
+
+
+cluster_compare = dict()
+cluster_compare_np = dict()
+
+## Structure of dictionaries
+
+#cluster_compare = { "Neuronal-vs-Non_Neuronal" :( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ),
+#                    "GABA-ergic_Neuron_vs_Glutamatergic_Neuron" :( ["GABA-ergic Neuron"], ['Glutamatergic Neuron'] )     }
+
+
+#cluster_compare_np = { "Neuronal-vs-Non_Neuronal" :( 100, 10 ),
+#                    "GABA-ergic_Neuron_vs_Glutamatergic_Neuron" :( 50, 50 )     }
+
+
+
+
+with open(config["run_metadata"]) as run:   #Populating the dictionaries
+
+    run_metadata = csv.DictReader(run, delimiter="\t")
+
+    for row in run_metadata:
+
+        A_cluster_names = []
+        B_cluster_names = []
+
+        for c in row["A.cluster_names"].split(","):
+
+            A_cluster_names.append(c)
+
+        for c in row["B.cluster_names"].split(","):
+
+            B_cluster_names.append(c)
+
+        cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
+        cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
+
+
+
+cluster_files = defaultdict(list)
+
+
+#cluster_files = {"GABA" : ["fileA", ... ] }
+
+with open(config["cluster_metadata"]) as Tasic:
+
+    Tasic_clustering = csv.DictReader(Tasic, delimiter="\t")
+
+    for row in Tasic_clustering:
+
+        cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
+
+
+
+target_pool_psi = []
+target_pool_delta = []
+
+
+#cluster_compare = { "Neuronal-vs-Non_Neuronal" :( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ),
+#                    "GABA-ergic_Neuron_vs_Glutamatergic_Neuron" :( ["GABA-ergic Neuron"], ['Glutamatergic Neuron'] )     }
+
+
+#cluster_compare.items()
+
+#[ [ ["Neuronal-vs-Non_Neuronal"],  ( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ), [ ]  ] ]
+
+
+#for compare_name, c in cluster_compare.items():  #Getting the target files - key = compare_name ; value = c
+
+    # g1, g2 = c
+    #
+    # c1_names = []
+    # for c1 in g1:
+    #
+    #     c1_names += cluster_files[c1]
+    #
+    # c2_names = []
+    # for c2 in g2:
+    #     c2_names += cluster_files[c2]
+
+compare_names = []
+
+
+for compare_name in cluster_compare.keys():  #Getting the target files - key = compare_name ; value = c
+
+    compare_names.append(compare_name)
+
+    for r in range(repeats):
+
+
+        delta_name = "Whippet/Delta/Tasic/" + compare_name +  "_rep_" +  str(r+1)
+
+        print(delta_name)
+
+        target_pool_delta.append( delta_name + ".diff.gz")
+
+
+
+
+rule all:   # This rule execute all the nesesary rules to produce the target files
+   input:
+    target_pool_delta #target files
+    #expand("Whippet/Delta/Tasic/Unpooled/{compare_name}.diff.gz", compare_name=compare_names),
 
 
 ##### Single cell ####
@@ -57,7 +169,7 @@ for compare_name, c in cluster_compare.items():
 
     rule :
         input:
-            expand('Whippet/BAM/{sample}.sorted.bam', sample=c1_names)
+            expand('Whippet/BAM/{sample}.bam', sample=c1_names)
         output:
             temp("Whippet/BAM/Merge/" + compare_name + ".A.bam")
         shell:
@@ -74,7 +186,7 @@ for compare_name, c in cluster_compare.items():
 
     rule :
         input:
-            expand('Whippet/BAM/{sample}.sorted.bam', sample=c2_names)
+            expand('Whippet/BAM/{sample}.bam', sample=c2_names)
         output:
             temp("Whippet/BAM/Merge/" + compare_name + ".B.bam")
         shell:
