@@ -57,11 +57,11 @@ cluster_files = defaultdict(list)
 
 #cluster_files = {"GABA" : ["fileA", ... ] }
 
-with open(config["cluster_metadata"]) as Tasic:
+with open(config["cluster_metadata"]) as Single_Cell:
 
-    Tasic_clustering = csv.DictReader(Tasic, delimiter="\t")
+    Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
 
-    for row in Tasic_clustering:
+    for row in Single_Cell_clustering:
 
         cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
@@ -103,7 +103,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
     for r in range(repeats):
 
 
-        delta_name = "Whippet/Delta/Tasic/" + compare_name +  "_rep_" +  str(r+1)
+        delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
         print(delta_name)
 
@@ -115,7 +115,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 rule snakepool:   # This rule execute all the nesesary rules to produce the target files
    input:
     target_pool_delta #target files
-    #expand("Whippet/Delta/Tasic/Unpooled/{compare_name}.diff.gz", compare_name=compare_names),
+    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names),
 
 
 ##### Single cell ####
@@ -133,12 +133,12 @@ def partition (list_in, n):
 cluster_files = defaultdict(list)
 
 
-#with open("/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Tasic_clustering.txt") as Tasic:
-with open(config["cluster_metadata"]) as Tasic:
+#with open("/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Single_Cell_clustering.txt") as Single_Cell:
+with open(config["cluster_metadata"]) as SC:
 
-    Tasic_clustering = csv.DictReader(Tasic, delimiter="\t")
+    Single_Cell_clustering = csv.DictReader(SC, delimiter="\t")
 
-    for row in Tasic_clustering:
+    for row in Single_Cell_clustering:
 
 
         cluster_files[row[config["cluster_name"]]].append(row["Run_s"])
@@ -208,21 +208,21 @@ for compare_name, c in cluster_compare.items():
         input:
             expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
         output:
-            "Whippet/Delta/Tasic/Unpooled/" + compare_name + ".run.sh"
+            "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
         params:
             bin = config["whippet_bin_folder"],
             a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
             b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
-            o = "Whippet/Delta/Tasic/Unpooled/" + compare_name
+            o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
         shell:
             "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
 
 
     rule:  #to avoid overload shell comandline
         input:
-            "Whippet/Delta/Tasic/Unpooled/" + compare_name + ".run.sh"
+            "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
         output:
-            "Whippet/Delta/Tasic/Unpooled/" + compare_name + ".diff.gz"
+            "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
         shell:
             "bash {input}"
 
@@ -240,7 +240,7 @@ for compare_name, c in cluster_compare.items():
         target_pool_psi_A = []
         target_pool_psi_B = []
 
-        delta_name = "Whippet/Delta/Tasic/" + compare_name +  "_rep_" +  str(r+1)
+        delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
         #for pc1, pc2 in zip(c1_pools, c2_pools):
 
@@ -258,7 +258,7 @@ for compare_name, c in cluster_compare.items():
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
 
 
-            target_pool_psi_A.append("Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".psi.gz")
+            target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
 
 
@@ -268,16 +268,16 @@ for compare_name, c in cluster_compare.items():
                     fastq = FASTQ_c1,
                     index = "Whippet/Index/whippet.jls"
                 output:
-                    "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".gene.tpm.gz",
-                    "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".isoform.tpm.gz",
-                    "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".jnc.gz",
-                    "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".map.gz",
-                    "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID + ".psi.gz"
+                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".gene.tpm.gz",
+                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".isoform.tpm.gz",
+                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".jnc.gz",
+                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".map.gz",
+                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz"
                 params:
                     bin = config["whippet_bin_folder"],
-                    output = "Whippet/Quant/Tasic/" + compare_name + "_A_" + pool_ID
+                    output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
                 shell:
-                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index} --force-gz -o {params.output}"
+                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index}  -o {params.output}"
 
 
         for pc2 in c2_pools:
@@ -290,7 +290,7 @@ for compare_name, c in cluster_compare.items():
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
 
 
-            target_pool_psi_B.append("Whippet/Quant/Tasic/" + compare_name + "_B_" + pool_ID + ".psi.gz")
+            target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
 
 
@@ -299,16 +299,16 @@ for compare_name, c in cluster_compare.items():
                     fastq = FASTQ_c2,
                     index = "Whippet/Index/whippet.jls"
                 output:
-                    "Whippet/Quant/Tasic/" +  compare_name + "_B_" + pool_ID + ".gene.tpm.gz",
-                    "Whippet/Quant/Tasic/" +  compare_name + "_B_" + pool_ID + ".isoform.tpm.gz",
-                    "Whippet/Quant/Tasic/" +  compare_name + "_B_" + pool_ID + ".jnc.gz",
-                    "Whippet/Quant/Tasic/" +  compare_name + "_B_" + pool_ID + ".map.gz",
-                    "Whippet/Quant/Tasic/" +  compare_name + "_B_" + pool_ID + ".psi.gz"
+                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".gene.tpm.gz",
+                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".isoform.tpm.gz",
+                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".jnc.gz",
+                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".map.gz",
+                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".psi.gz"
                 params:
                     bin = config["whippet_bin_folder"],
-                    output = "Whippet/Quant/Tasic/" + compare_name + "_B_" + pool_ID
+                    output = "Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID
                 shell:
-                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index} --force-gz -o {params.output}"
+                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index} -o {params.output}"
 
 
 
