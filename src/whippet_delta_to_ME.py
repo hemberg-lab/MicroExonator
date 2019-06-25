@@ -45,6 +45,9 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             estart = str(int(estart)-1)
             exon_ID = "_".join([chrom, row["Strand"], estart, eend])
             
+            if exon_ID == "chr10_+_127272438_127272444":
+                print(row)
+            
 
 
             if (row["Gene"], row["Node"] ) in node_exons:
@@ -101,10 +104,10 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                         exon_ID = new_exon_ID
            
 
-                if exon_ID in MEs:
+                #if exon_ID in MEs:
                 #if exon_ID!="":
           
-                   print("\t".join([exon_ID] + [row[x] for x in header] ))
+                   #print("\t".join([exon_ID] + [row[x] for x in header] ))
           
 
 if __name__ == '__main__':
