@@ -45,7 +45,8 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             estart = str(int(estart)-1)
             exon_ID = "_".join([chrom, row["Strand"], estart, eend])
             
-            if exon_ID == "chr10_+_127272438_127272444":
+            #if exon_ID == "chr10_+_127272438_127272444":
+            if "12727243" in exon_ID: 
                 print(row)
             
 
