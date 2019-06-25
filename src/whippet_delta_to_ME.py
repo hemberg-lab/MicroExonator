@@ -60,7 +60,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 out =  [row[x] for x in header] + node_exons[(row["Gene"], row["Node"] )]
  
                 if "12727243" in exon_ID: 
-                    print(row, exon_ID)
+                    print(row, exon_ID, Potential_Exon)
                 
                 if row["Type"]=="AD":
             
