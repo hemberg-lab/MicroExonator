@@ -72,13 +72,13 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                     if estrand == "+" and eend == nend:
 
-                        new_exon_ID = "_".join([echrom, estrand, estart, eend ])
+                        new_exon_ID = "_".join([echrom, estrand, str(int(estart)-1), eend ])
 
                         exon_ID = new_exon_ID
 
-                    if estrand == "-" and estart == nstart:
+                    if estrand == "-" and str(int(estart)-1) == nstart:
 
-                        new_exon_ID = "_".join([echrom, estrand, estart, eend ])
+                        new_exon_ID = "_".join([echrom, estrand, str(int(estart)-1), eend ])
 
                         exon_ID = new_exon_ID
 
@@ -94,7 +94,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                     if estrand == "-" and eend == nend:
 
-                        new_exon_ID = "_".join([echrom, estrand, estart, eend ])
+                        new_exon_ID = "_".join([echrom, estrand, str(int(estart)-1), eend ])
 
 
                         exon_ID = new_exon_ID
@@ -102,18 +102,18 @@ def main(jls_exons_tab, delta, high_qual_ME ):
 
                     if estrand == "+" and str(int(estart)-1) == nstart:
 
-                        new_exon_ID = "_".join([echrom, estrand, estart, eend ])
+                        new_exon_ID = "_".join([echrom, estrand, str(int(estart)-1), eend ])
 
                         exon_ID = new_exon_ID
                         
-                        if "12727243" in exon_ID: 
-                            print(row, exon_ID, Potential_Exon)
+                        #if "12727243" in exon_ID: 
+                        #    print(row, exon_ID, Potential_Exon)
            
 
-                #if exon_ID in MEs:
+                if exon_ID in MEs:
                 #if exon_ID!="":
           
-                   #print("\t".join([exon_ID] + [row[x] for x in header] ))
+                   print("\t".join([exon_ID] + [row[x] for x in header] ))
           
 
 if __name__ == '__main__':
