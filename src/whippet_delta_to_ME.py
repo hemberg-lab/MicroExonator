@@ -46,8 +46,8 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             exon_ID = "_".join([chrom, row["Strand"], estart, eend])
             
             #if exon_ID == "chr10_+_127272438_127272444":
-            if "12727243" in exon_ID: 
-                print(row, exon_ID)
+            #if "12727243" in exon_ID: 
+            #    print(row, exon_ID)
             
 
 
@@ -58,6 +58,9 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 Potential_Exon, Is_Annotated = node_exons[(row["Gene"], row["Node"] )]
                 
                 out =  [row[x] for x in header] + node_exons[(row["Gene"], row["Node"] )]
+ 
+                if "12727243" in exon_ID: 
+                    print(row, exon_ID)
                 
                 if row["Type"]=="AD":
             
