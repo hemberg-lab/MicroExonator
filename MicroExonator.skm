@@ -57,6 +57,10 @@ else:
 
 if "whippet_bin_folder" in config:
    include : "rules/Whippet.skm"
+   
+#### Single Cell ###
+
+include : "rules/Snakepool.py"   
 
 #### Benchmark ####
 
