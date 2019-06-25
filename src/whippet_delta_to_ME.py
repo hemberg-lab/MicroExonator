@@ -47,7 +47,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
             
             #if exon_ID == "chr10_+_127272438_127272444":
             if "12727243" in exon_ID: 
-                print(row)
+                print(row, exon_ID)
             
 
 
