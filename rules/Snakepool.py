@@ -226,8 +226,13 @@ for compare_name, c in cluster_compare.items():
         shell:
             "bash {input}"
 
-
-
+    rule gzip_fastq:
+        input:
+            "FASTQ/{sample}.fastq"
+        output:
+            "FASTQ/{sample}.fastq.gz"
+        shell:
+            "gzip {input}"
 
     for r in range(repeats):
 
@@ -250,7 +255,7 @@ for compare_name, c in cluster_compare.items():
             p += 1
 
 
-            FASTQ_c1 = [ "FASTQ/" + x + ".fastq" for x in  pc1 ]
+            FASTQ_c1 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc1 ]
 
 
             PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
@@ -284,7 +289,7 @@ for compare_name, c in cluster_compare.items():
 
             p += 1
 
-            FASTQ_c2 = [ "FASTQ/" + x + ".fastq" for x in  pc2 ]
+            FASTQ_c2 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc2 ]
             PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
