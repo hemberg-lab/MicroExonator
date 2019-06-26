@@ -230,7 +230,7 @@ for compare_name, c in cluster_compare.items():
         input:
             "FASTQ/{sample}.fastq"
         output:
-            "FASTQ/{sample}.fastq.gz"
+            temp("FASTQ/{sample}.fastq.gz")
         priority: 100
         shell:
             "gzip {input}"
@@ -282,6 +282,7 @@ for compare_name, c in cluster_compare.items():
                 params:
                     bin = config["whippet_bin_folder"],
                     output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
+                priority: 200
                 shell:
                     "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index}  -o {params.output}"
 
@@ -313,6 +314,7 @@ for compare_name, c in cluster_compare.items():
                 params:
                     bin = config["whippet_bin_folder"],
                     output = "Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID
+                priority: 200
                 shell:
                     "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) -x {input.index} -o {params.output}"
 
