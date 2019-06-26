@@ -282,7 +282,7 @@ for compare_name, c in cluster_compare.items():
                 params:
                     bin = config["whippet_bin_folder"],
                     output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
-                priority: 200
+                priority: 1
                 shell:
                     "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
 
@@ -314,7 +314,7 @@ for compare_name, c in cluster_compare.items():
                 params:
                     bin = config["whippet_bin_folder"],
                     output = "Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID
-                priority: 200
+                priority: 1
                 shell:
                     "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index} -o {params.output}"
 
