@@ -231,6 +231,7 @@ for compare_name, c in cluster_compare.items():
             "FASTQ/{sample}.fastq"
         output:
             "FASTQ/{sample}.fastq.gz"
+        priority: 100
         shell:
             "gzip {input}"
 
