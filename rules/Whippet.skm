@@ -219,7 +219,7 @@ rule delta_ME_from_MicroExonator:
 if str2bool(config.get("Only_whippet", False)):
       rule differential_inclusion:
           input:
-              expand("Whippet/Delta/{comparison_name}.diff", comparison_name=comparison_names)
+              expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
 else:
       rule differential_inclusion:
           input:
