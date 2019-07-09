@@ -62,7 +62,7 @@ if "whippet_bin_folder" in config:
 
 if not "Single_Cell" in config:
    config["Single_Cell"]="F"
-if ("downstream_only" in config)==True:
+else:
    include : "rules/Snakepool.py"   
 
 #### Benchmark ####
