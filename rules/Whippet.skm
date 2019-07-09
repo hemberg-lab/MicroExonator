@@ -35,19 +35,38 @@ rule get_GTF:
     shell:
         "python src/get_isoforms2.py {input} {params}  > {output}"
 
-rule whippet_index:
-    input:
-        Genome = config["Genome_fasta"],
-        ME_GTF = "Report/out.high_quality.gtf.txt"
-    params:
-        bin = config["whippet_bin_folder"]
-    output:
-        "Whippet/Index/whippet.jls",
-        "Whippet/Index/whippet.jls.exons.tab.gz"
-    log:
-        "logs/whippet_index.log"
-    shell:
-        "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
+
+
+if str2bool(cofig.get("Only_whippet", False)):
+      rule whippet_index:
+          input:
+              Genome = config["Genome_fasta"],
+              ME_GTF = config["Gene_anontation_GTF"]
+          params:
+              bin = config["whippet_bin_folder"]
+          output:
+              "Whippet/Index/whippet.jls",
+              "Whippet/Index/whippet.jls.exons.tab.gz"
+          log:
+              "logs/whippet_index.log"
+          shell:
+              "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
+else:
+      rule whippet_index:
+          input:
+              Genome = config["Genome_fasta"],
+              ME_GTF = "Report/out.high_quality.gtf.txt"
+          params:
+              bin = config["whippet_bin_folder"]
+          output:
+              "Whippet/Index/whippet.jls",
+              "Whippet/Index/whippet.jls.exons.tab.gz"
+          log:
+              "logs/whippet_index.log"
+          shell:
+              "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}" 
+
+
 
 if "Get_Bamfiles" not in config: #To make it optional
       config["Get_Bamfiles"]="F"
