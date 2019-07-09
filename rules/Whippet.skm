@@ -37,7 +37,7 @@ rule get_GTF:
 
 
 
-if str2bool(cofig.get("Only_whippet", False)):
+if str2bool(config.get("Only_whippet", False)):
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
