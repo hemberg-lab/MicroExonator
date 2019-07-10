@@ -104,10 +104,13 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 
 
         delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
+        delta_name_unpooled = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name +  "_rep_" +  str(r+1)
 
         print(delta_name)
+       
 
         target_pool_delta.append( delta_name + ".diff.gz")
+        target_pool_delta.append( delta_name_unpooled + ".diff.gz")
 
 
 
