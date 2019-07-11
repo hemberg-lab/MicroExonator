@@ -215,7 +215,7 @@ for compare_name, c in cluster_compare.items():
             b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
             o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
         shell:
-            "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
+            "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
 
 
     rule:  #to avoid overload shell comandline
