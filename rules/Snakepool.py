@@ -108,13 +108,13 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         print(delta_name)
        
 
-        target_pool_delta.append( delta_name + ".diff.gz")
+        target_pool_delta.append( delta_name + ".diff.microexons")
 
 
 
 rule snakepool:   # This rule execute all the nesesary rules to produce the target files
    input:
-    #target_pool_delta ,#target files
+    target_pool_delta ,#target files
     expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.microexons", compare_name=compare_names)
 
 
