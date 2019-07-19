@@ -73,11 +73,11 @@ dependencies:
   - libiconv=1.15=h470a237_3
   - libpng=1.6.35=ha92aebf_2
   - libprotobuf=3.6.0=hd28b015_0
-  - libssh2=1.8.0=2
+  - libssh2=1.8.0
   - libstdcxx-ng=7.2.0=hdf63c60_3
   - libtiff=4.0.9=he6b73bb_2
   - libtool=2.4.6=h470a237_2
-  - libuuid=2.32.1=h470a237_2
+  - libuuid=2.32.1
   - libxcb=1.13=h470a237_2
   - libxml2=2.9.8=h422b904_5
   - markupsafe=1.0=py36h470a237_1
