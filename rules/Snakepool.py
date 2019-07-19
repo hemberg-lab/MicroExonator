@@ -141,7 +141,7 @@ with open(config["cluster_metadata"]) as SC:
     for row in Single_Cell_clustering:
 
 
-        cluster_files[row[config["cluster_name"]]].append(row["Run_s"])
+        cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
 
