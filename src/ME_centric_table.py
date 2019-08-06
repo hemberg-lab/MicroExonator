@@ -116,10 +116,10 @@ def main(row_ME_filter1):
 
 			SJ_len = SJ_iend - SJ_istart
 			Kmer = SJ_len - (len_micro_exon_seq_found+4)
-			P_ME = 1 - ( 1 - (float(1)/float(4**len_micro_exon_seq_found+4)))**Kmer
+			#P_ME = 1 - ( 1 - (float(1)/float(4**len_micro_exon_seq_found+4)))**Kmer
+			#P_ME = 	1 - ( 1 - (float(1)/float(4**len_micro_exon_seq_found+4 )))**( SJ_len - (len_micro_exon_seq_found+4))
 
-
-			P_ME = 	1 - ( 1 - (float(1)/float(4**len_micro_exon_seq_found+4)))**( SJ_len - (len_micro_exon_seq_found+4))
+			P_ME = 	1 - ( 1 - (float(1)/float(4**(len_micro_exon_seq_found+4) )))**( SJ_len - (len_micro_exon_seq_found+4))
 
 			P_MEs.append(P_ME)
 
