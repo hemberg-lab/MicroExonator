@@ -9,16 +9,16 @@ Start by cloning MicroExonator
 
     git clone https://github.com/hemberg-lab/MicroExonator
 
-Install [Miniconda 2](https://docs.conda.io/en/latest/miniconda.html)
+Install [Miniconda 3](https://docs.conda.io/en/latest/miniconda.html)
 
-    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-    chmod +x Miniconda2-latest-Linux-x86_64.sh
-    ./Miniconda2-latest-Linux-x86_64.sh -b -p /cvmfs/softdrive.nl/$USER/Miniconda2
+    wget 
+    chmod +x Miniconda3-latest-Linux-x86_64.sh
+    ./Miniconda3-latest-Linux-x86_64.sh
 
 
 Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.io/en/stable/)
 
-    conda create -n snakemake_env snakemake
+    conda create -n snakemake_env -c bioconda -c conda-forge snakemake
 
 # Configuration
 
@@ -58,7 +58,7 @@ We highly recommend creating a screen before running MicroExonator
 
 To activate snakemake enviroment
 
-    source activate snakemake
+    conda activate snakemake_env
 
 Then run
 
