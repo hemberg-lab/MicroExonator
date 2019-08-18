@@ -30,7 +30,7 @@ dependencies:
   - cryptography=2.3.1=py36hdffb7b8_0
   - cryptography-vectors=2.3.1=py36_0
   - curl=7.59.0=1
-  - datrie=0.7.1=py36_0
+  - datrie=0.7.*
   - decorator=4.3.0=py_0
   - docutils=0.14=py36_1
   - dropbox=9.0.0=py_0
@@ -40,7 +40,7 @@ dependencies:
   - fontconfig=2.13.1=h65d0f4c_0
   - freetype=2.9.1=h6debe1e_4
   - ftputil=3.4=py_0
-  - gcc=4.8.5=7
+  - gcc=4.8.*
   - gettext=0.19.8.1=h5e8e0c9_1
   - glib=2.56.2=h464dc38_0
   - gmp=6.1.2=0
