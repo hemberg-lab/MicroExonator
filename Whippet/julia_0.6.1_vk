@@ -1,0 +1,9 @@
+name: julia_0.6.1_vk
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - cgat
+dependencies:
+  - julia=0.6.1=blas_openblas_200
+  - snakemake
