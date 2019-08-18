@@ -1,4 +1,4 @@
-name: julia_0.6.1_vk
+name: julia_0.6.1
 channels:
   - conda-forge
   - bioconda
