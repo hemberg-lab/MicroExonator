@@ -18,10 +18,12 @@ rule Round1_bwa_mem_to_tags:
         temp("Round1/{sample}.sam")
     threads: 5
     priority: 100
+    param: 
+        indel : config["indel_penalty"]
     conda:
         "../envs/core.yaml"
     shell:
-        "bwa mem -t {threads} -O config["indel_penalty"] -L 25 {input[0]} {input[1]} | awk '$6 ~ /I/' > {output}"
+        "bwa mem -t {threads} -O {param.indel} -L 25 {input[0]} {input[1]} | awk '$6 ~ /I/' > {output}"
 
 
 rule Round1_alingment_pre_processing:
