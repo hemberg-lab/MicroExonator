@@ -32,7 +32,7 @@ if ("deletion_penalty" in config)==False:
 if ("insertion_penalty" in config)==False:
     config["insertion_penalty"]="2"
 
-config["indel_penalty"] = ",".join(str(config["deletion_penalty"]), str(config["insertion_penalty"]))
+config["indel_penalty"] = ",".join([str(config["deletion_penalty"]), str(config["insertion_penalty"])])
 
 
 include : "rules/init.skm"
