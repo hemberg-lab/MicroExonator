@@ -26,6 +26,15 @@ rule discovery:
 
 #### MicroExonator ####
 
+if ("deletion_penalty" in config)==False:
+    config["deletion_penalty"]="6"
+    
+if ("insertion_penalty" in config)==False:
+    config["insertion_penalty"]="2"
+
+config["indel_penalty"] = ",".join(str(config["deletion_penalty"]), str(config["insertion_penalty"]))
+
+
 include : "rules/init.skm"
 include : "rules/Get_data.skm"
 
