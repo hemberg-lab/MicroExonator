@@ -18,7 +18,7 @@ rule Round1_bwa_mem_to_tags:
         temp("Round1/{sample}.sam")
     threads: 5
     priority: 100
-    param: 
+    params: 
         indel : config["indel_penalty"]
     conda:
         "../envs/core.yaml"
