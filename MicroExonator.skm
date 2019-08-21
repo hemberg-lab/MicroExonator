@@ -34,6 +34,10 @@ if ("insertion_penalty" in config)==False:
 
 config["indel_penalty"] = ",".join([str(config["deletion_penalty"]), str(config["insertion_penalty"])])
 
+if ("ME_DB" in config)==False:
+    config["ME_DB"]="touch/VastDb.bed12"
+
+
 
 include : "rules/init.skm"
 include : "rules/Get_data.skm"
