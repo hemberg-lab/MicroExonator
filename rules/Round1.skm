@@ -21,7 +21,7 @@ rule Round1_bwa_mem_to_tags:
     conda:
         "../envs/core.yaml"
     shell:
-        "bwa mem -t {threads} -O 6,2 -L 25 {input[0]} {input[1]} | awk '$6 ~ /I/' > {output}"
+        "bwa mem -t {threads} -O config["indel_penalty"] -L 25 {input[0]} {input[1]} | awk '$6 ~ /I/' > {output}"
 
 
 rule Round1_alingment_pre_processing:
