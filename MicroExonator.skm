@@ -68,8 +68,12 @@ else:
 
 ##### Downstream Analysis ####
 
+if "whippet_bin_folder" in config:
+   include : "rules/Whippet_quant.skm"
+
 if "whippet_delta" in config:
-   include : "rules/Whippet.skm"
+   include : "rules/Whippet_delta.skm"
+   
    
 #### Single Cell ###
 
