@@ -161,3 +161,36 @@ rule gzip_ME_psi_to_quant:
 #condition1 = config["condition1"].split(",") 
 #condition2 = config["condition2"].split(",")  
 #comparison_name = config["comparison_name"]
+
+# # # # # # #
+
+
+rule delta_ME_from_whippet:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/{comparison_name}.diff.gz",
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/{comparison_name}.diff.microexons"
+    shell:
+        "python src/whippet_delta_to_ME.py {input} > {output}"
+
+rule delta_ME_from_MicroExonator:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/{comparison_name}.ME.diff.gz",
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/{comparison_name}.diff.ME.microexons"
+    shell:
+        "python src/whippet_delta_to_ME.py {input} > {output}"
+
+if str2bool(config.get("Only_whippet", False)):
+      rule differential_inclusion:
+          input:
+              expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
+else:
+      rule differential_inclusion:
+          input:
+              expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names),
+              expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
