@@ -185,12 +185,14 @@ rule delta_ME_from_MicroExonator:
     shell:
         "python src/whippet_delta_to_ME.py {input} > {output}"
 
-if str2bool(config.get("Only_whippet", False)):
-      rule differential_inclusion:
-          input:
-              expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
-else:
-      rule differential_inclusion:
-          input:
-              expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names),
-              expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
+if "whippet_delta" in config:
+
+      if str2bool(config.get("Only_whippet", False)):
+            rule differential_inclusion:
+                input:
+                    expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
+      else:
+            rule differential_inclusion:
+                input:
+                    expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names),
+                    expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
