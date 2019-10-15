@@ -9,6 +9,8 @@
 #        "../envs/core_py3.yaml"
 #    shell:
 #      "python3 src/GetPSI.py {input} 5 {params.path}"
+
+comparison_names = config["whippet_delta"].keys()
       
 rule GetPSI:
     input:
