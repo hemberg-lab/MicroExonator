@@ -1,5 +1,5 @@
 
-comparison_names = config["whippet_delta"].keys()
+comparison_names = whippet_delta.keys()
 
 
 if "whippet_delta" in config:
