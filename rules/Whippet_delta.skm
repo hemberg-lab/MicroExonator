@@ -2,6 +2,19 @@
 comparison_names = config["whippet_delta"].keys()
 
 
+if "whippet_delta" in config:
+
+      if str2bool(config.get("Only_whippet", False)):
+            rule differential_inclusion:
+                input:
+                    expand("Whippet/Delta/{comparison_name}.diff.gz", comparison_name=comparison_names)
+      else:
+            rule differential_inclusion:
+                input:
+                    expand("Whippet/Delta/{comparison_name}.diff.microexons", comparison_name=comparison_names),
+                    expand("Whippet/Delta/{comparison_name}.diff.ME.microexons", comparison_name=comparison_names)
+
+
 rule whippet_delta:
     input:
         lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["A"].split(",")),
