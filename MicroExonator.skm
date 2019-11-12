@@ -73,8 +73,8 @@ if "whippet_bin_folder" in config:
 
 if "whippet_delta" in config:
    include : "rules/Whippet_delta.skm"
-   import whippet_delta.FINAL.yaml
-   
+   with open(config["whippet_delta"], 'r') as stream:
+      whippet_delta = yaml.safe_load(stream)   
    
 #### Single Cell ###
 
