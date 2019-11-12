@@ -72,10 +72,10 @@ if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.skm"
 
 if "whippet_delta" in config:
-   include : "rules/Whippet_delta.skm"
    with open(config["whippet_delta"], 'r') as stream:
-      whippet_delta = yaml.safe_load(stream)   
-   
+      whippet_delta = yaml.safe_load(stream)
+   include : "rules/Whippet_delta.skm"
+
 #### Single Cell ###
 
 if not "Single_Cell" in config:
