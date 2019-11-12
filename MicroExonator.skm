@@ -1,4 +1,7 @@
 #version 0.9.0
+
+import yaml
+
 configfile : "config.yaml"
 DATA = set([])
 
