@@ -73,6 +73,7 @@ if "whippet_bin_folder" in config:
 
 if "whippet_delta" in config:
    include : "rules/Whippet_delta.skm"
+   from config["whippet_delta"] import whippet_delta
    
    
 #### Single Cell ###
