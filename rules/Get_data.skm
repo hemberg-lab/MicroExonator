@@ -59,8 +59,8 @@ rule gzip_fastq:
     output:
         temp("FASTQ/{sample}.fastq.gz")
     priority: 100
-        shell:
-            "gzip {input}"
+    shell:
+        "gzip {input}"
 
 
 # rule sra_to_fastq:
