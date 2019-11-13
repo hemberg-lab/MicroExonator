@@ -86,7 +86,7 @@ if str2bool(config["Get_Bamfiles"])==True:
 
       rule  whippet_quant:
           input:
-              'FASTQ/{sample}.fastq',
+              'FASTQ/{sample}.fastq.gz',
               "Whippet/Index/whippet.jls"
           params:
               bin = config["whippet_bin_folder"],
@@ -106,7 +106,7 @@ if str2bool(config["Get_Bamfiles"])==True:
 else:
       rule  whippet_quant:
           input:
-              'FASTQ/{sample}.fastq',
+              'FASTQ/{sample}.fastq.gz',
               "Whippet/Index/whippet.jls"
           params:
               bin = config["whippet_bin_folder"],
