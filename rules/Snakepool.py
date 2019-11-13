@@ -226,15 +226,6 @@ for compare_name, c in cluster_compare.items():
         shell:
             "bash {input}"
 
-    rule gzip_fastq:
-        input:
-            "FASTQ/{sample}.fastq"
-        output:
-            "FASTQ/{sample}.fastq.gz"
-        priority: 100
-        shell:
-            "gzip {input}"
-
     for r in range(repeats):
 
 
