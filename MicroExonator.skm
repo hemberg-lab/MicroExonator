@@ -26,6 +26,24 @@ rule discovery:
     input:
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
+#### Re-run incomplete round1 ####
+
+import os
+
+round1_incomplete = []
+
+for file in DATA:
+    if os.path.isfile('./Round1/' + file  + '.sam.row_ME.filter1')!=True"
+        round1_incomplete.append(file)
+  
+
+rerun_incomplete_round1:
+    input:
+        expand("Round1/{sample}.sam.row_ME.filter1", sample=round1_incomplete )
+
+
+
+
 
 #### MicroExonator ####
 
