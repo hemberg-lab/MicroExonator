@@ -33,7 +33,7 @@ import os
 round1_incomplete = []
 
 for file in DATA:
-    if os.path.isfile('./Round1/' + file  + '.sam.row_ME.filter1')!=True
+    if os.path.isfile('./Round1/' + file  + '.sam.row_ME.filter1')!=True:
         round1_incomplete.append(file)
   
 
