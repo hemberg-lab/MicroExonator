@@ -36,13 +36,9 @@ for file in DATA:
     if os.path.isfile('./Round1/' + file  + '.sam.row_ME.filter1')!=True:
         round1_incomplete.append(file)
   
-
-rerun_incomplete_round1:
+rule rerun_incomplete_round1:
     input:
         expand("Round1/{sample}.sam.row_ME.filter1", sample=round1_incomplete )
-
-
-
 
 
 #### MicroExonator ####
