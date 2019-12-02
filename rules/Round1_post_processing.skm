@@ -17,7 +17,7 @@ rule hisat2_Genome_index:
     input:
         config["Genome_fasta"]
     output:
-        temp("data/Genome.1.ht2")
+        "data/Genome.1.ht2"
     threads: 5
     conda:
         "../envs/core.yaml"
