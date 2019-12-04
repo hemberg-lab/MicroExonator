@@ -73,7 +73,7 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(total_cov):
+def main(total_cov, min_sum_PSI):
   
   with open(total_cov) as file :
     
