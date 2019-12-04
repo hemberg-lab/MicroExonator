@@ -74,7 +74,9 @@ def calcBin(vx, vN, vCL = 95):
 
 
 def main(total_cov, min_sum_PSI):
-  
+
+  print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep=")
+
   with open(total_cov) as file :
     
     reader = csv.DictReader(file, delimiter="\t")
@@ -100,7 +102,7 @@ def main(total_cov, min_sum_PSI):
           PSI = "NA"
           CI_Lo, CI_Hi = ["NA", "NA"]
           
-      print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["is_alternative_3"], row["alternatives_5"], row["cov_alternatives_5"], row["total_cov_alternatives_5"], row["alternatives_3"], row["cov_alternatives_3"], row["total_cov_alternatives_3"], sep='\t')
+      print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], sep='\t')
   
   
   
