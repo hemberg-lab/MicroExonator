@@ -100,7 +100,7 @@ def main(total_cov, min_sum_PSI):
           PSI = "NA"
           CI_Lo, CI_Hi = ["NA", "NA"]
           
-      print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["is_alternative_3"], row["alternatives_5"], row["cov_alternatives_5"], row["total_cov_alternatives_5'], row["alternatives_3"], row["cov_alternatives_3"], row["total_cov_alternatives_3"])
+      print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["is_alternative_3"], row["alternatives_5"], row["cov_alternatives_5"], row["total_cov_alternatives_5"], row["alternatives_3"], row["cov_alternatives_3"], row["total_cov_alternatives_3"])
   
   
   
