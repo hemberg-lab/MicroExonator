@@ -75,7 +75,7 @@ def calcBin(vx, vN, vCL = 95):
 
 def main(total_cov, min_sum_PSI):
 
-  print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep=")
+  print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
   with open(total_cov) as file :
     
