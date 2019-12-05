@@ -84,7 +84,7 @@ def main(total_cov, min_sum_PSI, paired=False):
 	
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
-	paired_files = set([])
+  paired_files = set([])
 	
   if str2bool(paired):
 		
