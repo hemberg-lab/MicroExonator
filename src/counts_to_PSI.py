@@ -80,7 +80,7 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(total_cov, min_sum_PSI, paired=False):
+def main(total_cov, min_sum_PSI, paired):
 	
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
@@ -95,7 +95,10 @@ def main(total_cov, min_sum_PSI, paired=False):
       paired_files.add(pair1)
       paired_files.add(pair2)
 		
-      print(paired_files)	
+      print(paired_files)
+
+  else:
+      print(paired)
 		
   with open(total_cov) as file :
     
