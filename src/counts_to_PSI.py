@@ -73,7 +73,7 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(total_cov, min_sum_PSI):
+def main(total_cov, min_sum_PSI, paired=False):
 
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
@@ -108,4 +108,4 @@ def main(total_cov, min_sum_PSI):
   
   
 if __name__ == '__main__':
-	main(sys.argv[1], int(sys.argv[2]) )
+	main(sys.argv[1], int(sys.argv[2]), paired=sys.argv[3] )
