@@ -88,14 +88,14 @@ def main(total_cov, min_sum_PSI, paired=False):
 	
   if str2bool(paired):
 		
-		for row in csv.reader(open(paired), delimiter="\t" ):
+    for row in csv.reader(open(paired), delimiter="\t" ):
 			
-			pair1, pair2 = row
+      pair1, pair2 = row
 			
-			paired_files.add(pair1)
-			paired_files.add(pair2)
+      paired_files.add(pair1)
+      paired_files.add(pair2)
 		
-		print(paired)	
+      print(paired)	
 		
   with open(total_cov) as file :
     
