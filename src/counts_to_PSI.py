@@ -133,7 +133,7 @@ def main(total_cov, min_sum_PSI, paired):
         FILE_NAME_2 = pair12[FILE_NAME_1]
         p2info = paired_info[(FILE_NAME_2, ME_1)]
         
-        sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1 = p1info[:4]
+        sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1, FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3 = p1info
         sum_ME_coverage_2, sum_SJ_coverage_2, total_cov_alternatives_3_2, total_cov_alternatives_5_2 = p2info[:4]
         
         sum_ME_coverage = int(sum_ME_coverage_1) + int(sum_ME_coverage_2)
@@ -153,7 +153,7 @@ def main(total_cov, min_sum_PSI, paired):
             PSI = "NA"
             CI_Lo, CI_Hi = ["NA", "NA"]
             
-        print(FILE_NAME_1, ME_1, PSI, CI_Lo, CI_Hi )        
+	print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3)
 
   
 if __name__ == '__main__':
