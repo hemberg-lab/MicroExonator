@@ -95,7 +95,7 @@ def main(total_cov, min_sum_PSI, paired=False):
       paired_files.add(pair1)
       paired_files.add(pair2)
 		
-      print(paired)	
+      print(paired_files)	
 		
   with open(total_cov) as file :
     
