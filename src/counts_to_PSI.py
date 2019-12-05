@@ -77,6 +77,7 @@ def main(total_cov, min_sum_PSI, paired):
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
   paired_files = set([])
+  pair12 = dict()
 	
   if paired!="F":
 		
@@ -86,14 +87,12 @@ def main(total_cov, min_sum_PSI, paired):
 			
       paired_files.add(pair1)
       paired_files.add(pair2)
-		
-      print(paired_files)
-
-  else:
-      print(paired)
+      pair12[pair1] = pair2
 		
   with open(total_cov) as file :
     
+    paired_info = dict()
+        
     reader = csv.DictReader(file, delimiter="\t")
     
     for row in reader:
@@ -117,9 +116,26 @@ def main(total_cov, min_sum_PSI, paired):
           PSI = "NA"
           CI_Lo, CI_Hi = ["NA", "NA"]
           
-      print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], sep='\t')
+      if row["FILE_NAME"] in paired_files:
+        
+        info = [sum_ME_coverage, sum_SJ_coverage, total_cov_alternatives_3, total_cov_alternatives_5, row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"]]
+      
+      else:
+      
+        print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], sep='\t')
   
-  
+    for p, p1info in paired_info.items():
+      if p in pair12:
+        pair2 = pair12[p]
+        p2info = paired_info[pair2]
+        
+        sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1 = p1info[:4]
+        sum_ME_coverage_2, sum_SJ_coverage_2, total_cov_alternatives_3_2, total_cov_alternatives_5_2 = p2info[:4]
+        
+        sum_ME_coverage = int(sum_ME_coverage_1) + int(sum_ME_coverage_2)
+        sum_SJ_coverage = int(sum_SJ_coverage_1) + int(sum_SJ_coverage_2)
+        total_cov_alternatives_3 = int(total_cov_alternatives_3_1) + int(total_cov_alternatives_3_2)
+        total_cov_alternatives_5 = int(total_cov_alternatives_5_1) + int(total_cov_alternatives_5_2)
   
   
 if __name__ == '__main__':
