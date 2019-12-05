@@ -43,6 +43,9 @@ if ("ME_DB" in config)==False:
 if ("paired_samples" in config)==False:
     config["paired_samples"]="F"
 
+if ("min_reads_PSI" in config)==False:
+    config["min_reads_PSI"]=5
+
 
 include : "rules/init.skm"
 include : "rules/Get_data.skm"
