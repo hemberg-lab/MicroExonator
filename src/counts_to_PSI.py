@@ -1,14 +1,6 @@
 import sys
 import csv
 
-def str2bool(v):
-  if v==True:
-    return True
-  elif v==False:
-    return False
-  else:
-    return v.lower() in ("yes", "true", "t", "1")
-
 def binP(N, p, x1, x2):
     p = float(p)
     q = p/(1-p)
@@ -86,7 +78,7 @@ def main(total_cov, min_sum_PSI, paired):
 
   paired_files = set([])
 	
-  if str2bool(paired)!=False:
+  if str2bool(paired)!="F":
 		
     for row in csv.reader(open(paired), delimiter="\t" ):
 			
