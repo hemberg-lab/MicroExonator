@@ -86,7 +86,7 @@ def main(total_cov, min_sum_PSI, paired=False):
 
   paired_files = set([])
 	
-  if str2bool(paired):
+  if str2bool(paired)!=False:
 		
     for row in csv.reader(open(paired), delimiter="\t" ):
 			
