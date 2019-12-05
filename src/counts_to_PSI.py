@@ -153,7 +153,7 @@ def main(total_cov, min_sum_PSI, paired):
             PSI = "NA"
             CI_Lo, CI_Hi = ["NA", "NA"]
             
-        print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3)
+        print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3, sep="\t")
 
   
 if __name__ == '__main__':
