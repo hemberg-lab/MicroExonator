@@ -74,9 +74,22 @@ def calcBin(vx, vN, vCL = 95):
 
 
 def main(total_cov, min_sum_PSI, paired=False):
-
+	
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
+	paired_files = set([])
+	
+  if paired:
+		
+		for row in csv.reader(open(paired), delimiter="\t" ):
+			
+			pair1, pair2 = row
+			
+			paired_files.add(pair1)
+			paired_files.add(pair2)
+		
+		print(paired)	
+		
   with open(total_cov) as file :
     
     reader = csv.DictReader(file, delimiter="\t")
