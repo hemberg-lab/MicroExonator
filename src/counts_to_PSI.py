@@ -119,15 +119,19 @@ def main(total_cov, min_sum_PSI, paired):
       if row["FILE_NAME"] in paired_files:
         
         info = [sum_ME_coverage, sum_SJ_coverage, total_cov_alternatives_3, total_cov_alternatives_5, row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"]]
-      
+        paired_info[(row["FILE_NAME"], row["ME"])] = info
+
       else:
       
         print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], sep='\t')
   
     for p, p1info in paired_info.items():
-      if p in pair12:
-        pair2 = pair12[p]
-        p2info = paired_info[pair2]
+
+      FILE_NAME_1, ME_1 = p
+
+      if FILE_NAME_1 in pair12:
+        FILE_NAME_2 = pair12[FILE_NAME_1]
+        p2info = paired_info[(FILE_NAME_2, ME_1)]
         
         sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1 = p1info[:4]
         sum_ME_coverage_2, sum_SJ_coverage_2, total_cov_alternatives_3_2, total_cov_alternatives_5_2 = p2info[:4]
