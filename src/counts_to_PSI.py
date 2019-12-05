@@ -141,6 +141,20 @@ def main(total_cov, min_sum_PSI, paired):
         total_cov_alternatives_3 = int(total_cov_alternatives_3_1) + int(total_cov_alternatives_3_2)
         total_cov_alternatives_5 = int(total_cov_alternatives_5_1) + int(total_cov_alternatives_5_2)
   
+        SUM_PSI = float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+float(total_cov_alternatives_5)
+        if SUM_PSI>=min_sum_PSI:
+
+            PSI= float(sum_ME_coverage)/(float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+float(total_cov_alternatives_5))
+
+            CI_Lo, CI_Hi = calcBin(float(sum_ME_coverage),  SUM_PSI)
+
+        else:
+
+            PSI = "NA"
+            CI_Lo, CI_Hi = ["NA", "NA"]
+            
+        print(FILE_NAME_1, ME_1, PSI, CI_Lo, CI_Hi )        
+
   
 if __name__ == '__main__':
 	main(sys.argv[1], int(sys.argv[2]), paired=sys.argv[3] )
