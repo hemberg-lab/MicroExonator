@@ -169,38 +169,38 @@ for compare_name, c in cluster_compare.items():
     #### these rules gereate a single indexed bam per condition which can be used for visualization
 
 
-    rule :
-        input:
-            expand('Whippet/BAM/{sample}.bam', sample=c1_names)
-        output:
-            temp("Whippet/BAM/Merge/" + compare_name + ".A.bam")
-        shell:
-            "samtools merge  {output} {input}"
+#     rule :
+#         input:
+#             expand('Whippet/BAM/{sample}.bam', sample=c1_names)
+#         output:
+#             temp("Whippet/BAM/Merge/" + compare_name + ".A.bam")
+#         shell:
+#             "samtools merge  {output} {input}"
 
-    rule :
-        input:
-            "Whippet/BAM/Merge/" + compare_name + ".A.bam"
-        output:
-            "Whippet/BAM/Merge/" + compare_name + ".A.sort.bam"
-        shell:
-            'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
+#     rule :
+#         input:
+#             "Whippet/BAM/Merge/" + compare_name + ".A.bam"
+#         output:
+#             "Whippet/BAM/Merge/" + compare_name + ".A.sort.bam"
+#         shell:
+#             'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
 
 
-    rule :
-        input:
-            expand('Whippet/BAM/{sample}.bam', sample=c2_names)
-        output:
-            temp("Whippet/BAM/Merge/" + compare_name + ".B.bam")
-        shell:
-            "samtools merge  {output} {input}"
+#     rule :
+#         input:
+#             expand('Whippet/BAM/{sample}.bam', sample=c2_names)
+#         output:
+#             temp("Whippet/BAM/Merge/" + compare_name + ".B.bam")
+#         shell:
+#             "samtools merge  {output} {input}"
 
-    rule :
-        input:
-            "Whippet/BAM/Merge/" + compare_name + ".B.bam"
-        output:
-            "Whippet/BAM/Merge/" + compare_name + ".B.sort.bam"
-        shell:
-            'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
+#     rule :
+#         input:
+#             "Whippet/BAM/Merge/" + compare_name + ".B.bam"
+#         output:
+#             "Whippet/BAM/Merge/" + compare_name + ".B.sort.bam"
+#         shell:
+#             'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
 
     ## Unpooled analysis
 
@@ -297,22 +297,6 @@ rule quant_pool:
     priority: 1
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
-
- 
-#rule whippet_delta_pool:
-#    input:
-#        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[(wildcards.comparison_name, "A")].split(",")),
-#        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[(wildcards.comparison_name, "B")].split(","))
-#    output:
-#        "Whippet/Delta/{comparison_name}.diff.gz"
-#    params:
-#        bin = config["whippet_bin_folder"],
-#        a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["A"].split(","))),
-#        b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["B"].split(","))),
-#        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name
-#    shell:
-#        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"                   
-
         
         
 rule delta_pool:
