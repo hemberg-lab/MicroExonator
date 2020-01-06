@@ -289,7 +289,7 @@ for compare_name, c in cluster_compare.items():
 
 rule quant_pool:
     input:
-        fastq = lambda w: pool_dict_quant[(compare_name, pool_ID, cond)],
+        fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
         index = "Whippet/Index/whippet.jls"
     output:
         "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.gene.tpm.gz",
