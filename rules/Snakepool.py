@@ -261,7 +261,7 @@ for compare_name, c in cluster_compare.items():
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
             pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
-            pool_dict_delta[(delta_name, "A")] = PSI_c1
+            #pool_dict_delta[(delta_name, "A")] = PSI_c1
 
             target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
@@ -275,11 +275,12 @@ for compare_name, c in cluster_compare.items():
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
             pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
-            pool_dict_delta[(delta_name, "B")] = PSI_c2
+            #pool_dict_delta[(delta_name, "B")] = PSI_c2
 
             target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
-
+        pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
+        pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
 
 rule quant_pool:
     input:
