@@ -230,6 +230,9 @@ for compare_name, c in cluster_compare.items():
             
     #pseudo pooling        
 
+    pool_dict = dict()
+    
+    
     for r in range(repeats):
 
 
@@ -246,18 +249,17 @@ for compare_name, c in cluster_compare.items():
         #for pc1, pc2 in zip(c1_pools, c2_pools):
 
 
+
         for pc1 in c1_pools:
 
             p += 1
 
-
             FASTQ_c1 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc1 ]
-
 
             PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
-
+            pool_dict[(compare_name, pool_ID, "A")] = FASTQ_c1
 
             target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
@@ -270,15 +272,16 @@ for compare_name, c in cluster_compare.items():
             PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
+            pool_dict[(compare_name, pool_ID, "B")] = FASTQ_c2
 
             target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
 
 
 
-    rule quant_pool:  #Quantification for A
+    rule quant_pool:
             input:
-                fastq = lambda w: pool_dict[(compare_name, pool_ID)][0],
+                fastq = lambda w: pool_dict[(compare_name, pool_ID, cond)],
                 index = "Whippet/Index/whippet.jls"
             output:
                 "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
@@ -288,7 +291,7 @@ for compare_name, c in cluster_compare.items():
                 "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
             params:
                 bin = config["whippet_bin_folder"],
-                output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
+                output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
             priority: 1
             shell:
                 "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
