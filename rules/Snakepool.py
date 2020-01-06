@@ -298,18 +298,33 @@ rule quant_pool:
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
 
-                    
-
-rule delta_pool:
+ 
+rule whippet_delta_pool:
     input:
-        A = lambda w: pool_dict_delta[(delta_name, "A")],
-        B = lambda w: pool_dict_delta[(delta_name, "B")]
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[(wildcards.comparison_name, "A")].split(",")),
+        lambda wildcards : expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[(wildcards.comparison_name, "B")].split(","))
     output:
-        "{delta_name}.diff.gz"
+        "Whippet/Delta/{comparison_name}.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join( pool_dict_delta[(wildcards.delta_name, "A")] ),
-        b = ",".join( pool_dict_delta[(wildcards.delta_name, "B")] ),
-        o = wildcards.delta_name
+        a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["A"].split(","))),
+        b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["B"].split(","))),
+        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"                   
+
+        
+        
+#rule delta_pool:
+#    input:
+#        A = lambda w: pool_dict_delta[(delta_name, "A")],
+#        B = lambda w: pool_dict_delta[(delta_name, "B")]
+#    output:
+#        "{delta_name}.diff.gz"
+#    params:
+#        bin = config["whippet_bin_folder"],
+#        a = ",".join( pool_dict_delta[(wildcards.delta_name, "A")] ),
+#        b = ",".join( pool_dict_delta[(wildcards.delta_name, "B")] ),
+#        o = wildcards.delta_name
+#    shell:
+#        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"    
