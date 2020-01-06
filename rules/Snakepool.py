@@ -293,7 +293,7 @@ rule quant_pool:
         "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
     params:
         bin = config["whippet_bin_folder"],
-    output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
+    output: "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
     priority: 1
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
