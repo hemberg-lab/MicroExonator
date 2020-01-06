@@ -230,7 +230,8 @@ for compare_name, c in cluster_compare.items():
             
     #pseudo pooling        
 
-    pool_dict = dict()
+    pool_dict_quant = dict()
+    pool_dict_delta = dict()
     
     
     for r in range(repeats):
@@ -259,7 +260,8 @@ for compare_name, c in cluster_compare.items():
             PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
-            pool_dict[(compare_name, pool_ID, "A")] = FASTQ_c1
+            pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
+            pool_dict_delta[(delta_name, "A")] = PSI_c1
 
             target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
@@ -272,7 +274,8 @@ for compare_name, c in cluster_compare.items():
             PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
-            pool_dict[(compare_name, pool_ID, "B")] = FASTQ_c2
+            pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
+            pool_dict_delta[(delta_name, "B")] = PSI_c2
 
             target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
@@ -280,7 +283,7 @@ for compare_name, c in cluster_compare.items():
 
 rule quant_pool:
     input:
-        fastq = lambda w: pool_dict[(compare_name, pool_ID, cond)],
+        fastq = lambda w: pool_dict_quant[(compare_name, pool_ID, cond)],
         index = "Whippet/Index/whippet.jls"
     output:
         "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
@@ -296,19 +299,17 @@ rule quant_pool:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
 
                     
-                   
-                    
 
-        rule:   #Diff
-            input:
-                target_pool_psi_A + target_pool_psi_B
-            output:
-                delta_name + ".diff.gz"
-
-            params:
-                bin = config["whippet_bin_folder"],
-                a = ",".join(target_pool_psi_A),
-                b = ",".join(target_pool_psi_B),
-                o = delta_name
-            shell:
-                "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+rule delta_pool:
+    input:
+        A = lambda w: pool_dict_delta[(delta_name, "A")],
+        B = lambda w: pool_dict_delta[(delta_name, "B")]
+    output:
+        "{delta_name}.diff.gz"
+    params:
+        bin = config["whippet_bin_folder"],
+        a = ",".join(lambda w: pool_dict_delta[(delta_name, "A")]),
+        b = ",".join( lambda w: pool_dict_delta[(delta_name, "B")]),
+        o = wildcards.delta_name
+    shell:
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
