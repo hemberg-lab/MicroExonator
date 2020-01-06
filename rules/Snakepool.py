@@ -1,5 +1,10 @@
 ###### params #####
 
+wildcard_constraints:
+    sample="^[A-Za-z0-9_-]*$"
+
+
+
 repeats = 10
 
 ###############
