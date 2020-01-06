@@ -308,8 +308,8 @@ rule delta_pool:
         "{delta_name}.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join(lambda w: pool_dict_delta[(delta_name, "A")]),
-        b = ",".join( lambda w: pool_dict_delta[(delta_name, "B")]),
+        a = ",".join( pool_dict_delta[(wildcards.delta_name, "A")] ),
+        b = ",".join( pool_dict_delta[(wildcards.delta_name, "B")] ),
         o = wildcards.delta_name
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
