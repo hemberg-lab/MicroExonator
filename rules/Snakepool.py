@@ -325,6 +325,6 @@ rule delta_pool:
         bin = config["whippet_bin_folder"],
         a = lambda w, input: ",".join( input.A ),
         b = lambda w, input: ",".join( input.B ),
-        o = wildcards.delta_name
+        o = "{delta_name}"
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"    
