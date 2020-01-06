@@ -1,7 +1,7 @@
 ###### params #####
 
-wildcard_constraints:
-    sample="^[A-Za-z0-9_-]*$"
+#wildcard_constraints:
+#    sample="^[A-Za-z0-9_-]*$"
 
 
 
