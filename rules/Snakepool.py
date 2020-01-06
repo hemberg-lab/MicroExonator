@@ -268,7 +268,7 @@ for compare_name, c in cluster_compare.items():
             pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
             #pool_dict_delta[(delta_name, "A")] = PSI_c1
 
-            target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".pool.psi.gz")
+            target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
 
         for pc2 in c2_pools:
@@ -282,7 +282,7 @@ for compare_name, c in cluster_compare.items():
             pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
             #pool_dict_delta[(delta_name, "B")] = PSI_c2
 
-            target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".pool.psi.gz")
+            target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
         pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
@@ -292,14 +292,14 @@ rule quant_pool:
         fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
         index = "Whippet/Index/whippet.jls"
     output:
-        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.gene.tpm.gz",
-        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.isoform.tpm.gz",
-        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.jnc.gz",
-        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.map.gz",
-        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool.psi.gz"
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.isoform.tpm.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.jnc.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.map.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
     params:
         bin = config["whippet_bin_folder"],
-        output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.pool"
+        output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
     priority: 1
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
