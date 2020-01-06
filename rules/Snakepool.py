@@ -264,7 +264,7 @@ for compare_name, c in cluster_compare.items():
 
             PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
 
-            pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
+            pool_ID = "pool_" +str(r + 1) + "-"  + str(p)
             pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
             #pool_dict_delta[(delta_name, "A")] = PSI_c1
 
@@ -278,7 +278,7 @@ for compare_name, c in cluster_compare.items():
             FASTQ_c2 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc2 ]
             PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
 
-            pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
+            pool_ID = "pool_" +str(r + 1) + "-"  + str(p)
             pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
             #pool_dict_delta[(delta_name, "B")] = PSI_c2
 
