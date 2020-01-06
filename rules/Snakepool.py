@@ -227,6 +227,8 @@ for compare_name, c in cluster_compare.items():
             "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
         shell:
             "bash {input}"
+            
+    #pseudo pooling        
 
     for r in range(repeats):
 
@@ -260,26 +262,6 @@ for compare_name, c in cluster_compare.items():
             target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
 
-
-
-            rule:  #Quantification for A
-                input:
-                    fastq = FASTQ_c1,
-                    index = "Whippet/Index/whippet.jls"
-                output:
-                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".gene.tpm.gz",
-                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".isoform.tpm.gz",
-                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".jnc.gz",
-                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".map.gz",
-                    "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz"
-                params:
-                    bin = config["whippet_bin_folder"],
-                    output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
-                priority: 1
-                shell:
-                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
-
-
         for pc2 in c2_pools:
 
             p += 1
@@ -289,29 +271,31 @@ for compare_name, c in cluster_compare.items():
 
             pool_ID = "pool_" +str(r + 1) + "_"  + str(p)
 
-
             target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
 
 
 
-            rule:  #Quantification for B
-                input:
-                    fastq = FASTQ_c2,
-                    index = "Whippet/Index/whippet.jls"
-                output:
-                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".gene.tpm.gz",
-                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".isoform.tpm.gz",
-                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".jnc.gz",
-                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".map.gz",
-                    "Whippet/Quant/Single_Cell/" +  compare_name + "_B_" + pool_ID + ".psi.gz"
-                params:
-                    bin = config["whippet_bin_folder"],
-                    output = "Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID
-                priority: 1
-                shell:
-                    "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index} -o {params.output}"
 
+    rule quant_pool:  #Quantification for A
+            input:
+                fastq = lambda w: pool_dict[(compare_name, pool_ID)][0],
+                index = "Whippet/Index/whippet.jls"
+            output:
+                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
+                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.isoform.tpm.gz",
+                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.jnc.gz",
+                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.map.gz",
+                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
+            params:
+                bin = config["whippet_bin_folder"],
+                output = "Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID
+            priority: 1
+            shell:
+                "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
 
+                    
+                    
+                    
 
         rule:   #Diff
             input:
