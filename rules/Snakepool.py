@@ -278,26 +278,25 @@ for compare_name, c in cluster_compare.items():
 
 
 
-
-    rule quant_pool:
-            input:
-                fastq = lambda w: pool_dict[(compare_name, pool_ID, cond)],
-                index = "Whippet/Index/whippet.jls"
-            output:
-                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
-                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.isoform.tpm.gz",
-                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.jnc.gz",
-                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.map.gz",
-                "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
-            params:
-                bin = config["whippet_bin_folder"],
-                output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
-            priority: 1
-            shell:
-                "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+rule quant_pool:
+    input:
+        fastq = lambda w: pool_dict[(compare_name, pool_ID, cond)],
+        index = "Whippet/Index/whippet.jls"
+    output:
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.gene.tpm.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.isoform.tpm.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.jnc.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.map.gz",
+        "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
+    params:
+        bin = config["whippet_bin_folder"],
+    output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
+    priority: 1
+    shell:
+        "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
 
                     
-                    
+                   
                     
 
         rule:   #Diff
