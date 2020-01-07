@@ -3,7 +3,7 @@
 #wildcard_constraints:
 #    sample="^[A-Za-z0-9_-]*$"
 
-
+random.seed(123) 
 
 repeats = 10
 
