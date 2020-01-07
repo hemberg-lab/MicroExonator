@@ -3,7 +3,7 @@ rule download_fastq:
     input:
         "download/{sample}.download.sh"
     output:
-        temp("FASTQ/{sample}.fastq")
+        pipe("FASTQ/{sample}.fastq")
     conda:
         "../envs/core.yaml"
     priority: -10
