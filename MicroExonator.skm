@@ -16,9 +16,9 @@ def str2bool(v):
 rule quant:
     input:
         "Report/out.high_quality.txt",
-        "Report/out_filtered_ME.PSI.txt",        
-        "Report/stats/Microexons.not_consensus",
-        "Report/stats/Microexons.annotation.stats"        
+        #"Report/out_filtered_ME.PSI.txt",        
+        #"Report/stats/Microexons.not_consensus",
+        #"Report/stats/Microexons.annotation.stats"        
         
         #"Report/out_filtered_ME.txt"
         #expand("Genome_aligments/{Software}/TOTAL.exons.{Software}", Software=["Hisat2", "STAR", "Olego"])
