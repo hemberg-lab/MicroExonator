@@ -4,6 +4,8 @@ rule download_fastq:
         "download/{sample}.download.sh"
     output:
         temp("FASTQ/{sample}.fastq")
+    resources:
+        sr_download = 1 
     conda:
         "../envs/core.yaml"
     priority: -10
