@@ -61,6 +61,8 @@ rule download_fastq2:
     output:
         temp("FASTQ/round2/{sample}.fastq")
     priority: -10
+    resources: 
+        get_data = 1
     conda:
         "../envs/core.yaml"
     shell:
