@@ -15,7 +15,7 @@ rule Round1_bwa_mem_to_tags:
         "FASTQ/{sample}.fastq",
         "Round1/ME_TAGs.fa.amb"
     output:
-        temp("Round1/{sample}.sam")
+        pipe("Round1/{sample}.sam")
     threads: 5
     priority: 100
     params: 
