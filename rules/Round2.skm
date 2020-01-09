@@ -79,7 +79,7 @@ rule Round2_bowtie_to_tags:
         hard_drive_behavior("{sample}"),
         "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
     output:
-        temp("Round2/{sample}.sam")
+        pipe("Round2/{sample}.sam")
     threads: 5
     priority: 100
     conda:
