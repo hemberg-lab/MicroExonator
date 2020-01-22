@@ -211,7 +211,7 @@ for compare_name, c in cluster_compare.items():
 
 
 
-    rule quant_unpool:
+    rule delta_unpool:
         input:
             expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
         output:
@@ -225,7 +225,7 @@ for compare_name, c in cluster_compare.items():
             "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
 
 
-    rule run_quant_unpool:  #to avoid overload shell comandline
+    rule run_delta_unpool:  #to avoid overload shell comandline
         input:
             "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
         output:
