@@ -113,12 +113,11 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
             total_ME_up[row["ME"]] += sum_ME_SJ_coverage_up
             total_ME_down[row["ME"]] += sum_ME_SJ_coverage_down
 
-
         ambiguous = open("Report/out.ambiguous.txt", "w")
 	
-        ambiguous.write( "\t".join(["ME", "transcript", "sum_total_coverage", "total_SJs", "total_coverages", "len_micro_exon_seq_found", "micro_exon_seq_found", "total_number_of_micro_exons_matches", "U2_scores",  "mean_conservations_vertebrates", "P_MEs", "total_ME",   "ME_P_value", "ME_type"]) + "\n")
+        ambiguous.write( "\t".join(["ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type"]) + "\n")
 
-        print("ME", "transcript", "sum_total_coverage", "total_SJs", "total_coverages", "len_micro_exon_seq_found", "micro_exon_seq_found", "total_number_of_micro_exons_matches", "U2_scores",  "mean_conservations_vertebrates", "P_MEs", "total_ME",   "ME_P_value", "ME_type", sep="\t")
+        print("ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type", sep="\t")
 
         reader = csv.DictReader(ME_out, delimiter="\t")
 
