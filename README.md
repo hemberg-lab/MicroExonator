@@ -186,6 +186,24 @@ The main results of MicroExonator discovery and quantification modules can be fo
 
 MicroExonator also reports microexons that do not meet the confidence filtering criteria. Detected microexons that are equal or shorter than 3 nt are reported at  `out_shorter_than_3_ME.txt`. Microexons that are longer than 3 nt, but did not have sufficiently low ME_P_value are reported at `out_low_scored_ME.txt`. Finally, microexons that had ME_P_values below the threshold, but they can also correspond to alternative splicing acceptors or donors (as the microexon sequence matches either at the begining or the end of an intron) are reported at `out.ambiguous.txt`.
 
+On the other hand, microexon quantification is provided as `out_filtered_ME.PSI.txt` file. This file contains the following information:
+
+|Column| Description|
+|:--|:-------|
+|`File` | Sample |
+|`ME_coords` | Microexon Coordinates|
+|`SJ_coords` | Splice junctions where the micrexon was detected ins|
+|`ME_coverages` | Coma-separtated values corresponding to microexon converage on each splice junction| 
+|`SJ_coverages` | Coma-separtated values corresponding to converage on each splice junction (exon skiping)| 
+|`PSI` | Computed PSI values for a given microexon on a given sample| 
+|`CI_Lo` | Lower bound of the PSI confidence interval |
+|`CI_Hi` | Upper bound of the PSI confidence interval |
+|`Alt5` | Alternative donor coordinate| 
+|`Alt3` | Alternative aceptor coordinate| 
+|`Alt5_coverages` | Alternative donor coverage| 
+|`Alt3_coverages` | Alternative aceptor coverage | 
+
+Differentially included microexon analyses that can be obtained with Whippet, are reported at `Whippet/Delta` folder. MicroExonator performs these analyses using both PSI values calculated internally by the pipeline and PSI values directly calculated with Whippet. These results are reported under the same format than the `diff.gz` descrived at the Whippet's GitHub [page](https://github.com/timbitz/Whippet.jl). However, to provide easier interpretation, we filter the Whippet splicing nodes that correspond to microexon inclusion events, these are reported as `.microexons` files, where `.diff.ME.microexons` files correspond to the output when MicroExonator PSI values are taken as input and `.diff.microexons` when Whippet PSI  values are taken as input. 
 
 # Troubleshooting
 
