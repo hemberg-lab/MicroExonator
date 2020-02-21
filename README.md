@@ -184,6 +184,7 @@ The main results of MicroExonator discovery and quantification modules can be fo
 |`ME_P_value` | Value used for the final microexon filters | 
 |`ME_type` | Microexon type (IN, RESCUED or OUT)| 
 
+MicroExonator also reports microexons that do not meet the confidence filtering criteria. Detected microexons that are equal or shorter than 3 nt are reported at  `out_shorter_than_3_ME.txt`. Microexons that are longer than 3 nt, but did not have sufficiently low ME_P_value are reported at `out_low_scored_ME.txt`. Finally, microexons that had ME_P_values below the threshold, but they can also correspond to alternative splicing acceptors or donors (as the microexon sequence matches either at the begining or the end of an intron) are reported at `out.ambiguous.txt`.
 
 
 # Troubleshooting
