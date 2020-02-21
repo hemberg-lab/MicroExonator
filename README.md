@@ -169,10 +169,21 @@ The main results of MicroExonator discovery and quantification modules can be fo
 
 |Column| Description|
 |--:|-------:|
-|`ME` | Tove between directories|
-|`transcript` | To change to the parent of the current directory|
-|`sum_total_coverage` | To go to previous directory| 
-|`total_SJs` | Where am I?| 
+|`ME` | Microexon Coordinates|
+|`Transcript` | Transcript where the microexon was detected |
+|`Total_coverage` | Total coverage across all microexon splice junctions| 
+|`Total_SJs` | Splice junctions where the micrexon was detected in| 
+|`ME_coverages` | Coma-separated coverage values for each microexon splice junction| 
+|`ME_length` | Microexon length|
+|`ME_seq` | Microexon sequence|
+|`ME_matches` | Microexon number of matches inside the intron| 
+|`U2_score` | U2 splicing score| 
+|`Mean_conservation` | Mean conservation values (if phylop score was provided)| 
+|`P_MEs` | Microexon confidence score |
+|`Total_ME` | ME coordinates, U2 score and conservation for all microexon matches| 
+|`ME_P_value` | Value used for the final microexon filters | 
+|`ME_type` | Microexon type (IN, RESCUED or OUT)| 
+
 
 
 # Troubleshooting
