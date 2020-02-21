@@ -168,7 +168,7 @@ The main results of MicroExonator discovery and quantification modules can be fo
 
 
 |Column| Description|
-|--:|:-------|
+|:--|:-------|
 |`ME` | Microexon Coordinates|
 |`Transcript` | Transcript where the microexon was detected |
 |`Total_coverage` | Total coverage across all microexon splice junctions| 
