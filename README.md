@@ -162,6 +162,18 @@ After you are sure everthing is in place, you can sumbit the runnig command:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion
 
+# Output
+
+The main results of MicroExonator discovery and quantification modules can be found at the Results folder. All the detected microexons that passed though the quantitative filters can be found at `out.high_quality.txt`. This is a tabular separated file with 14 columns that contain the folowing information:
+
+
+|Column| Description|
+|--:|-------:|
+|`ME` | Tove between directories|
+|`transcript` | To change to the parent of the current directory|
+|`sum_total_coverage` | To go to previous directory| 
+|`total_SJs` | Where am I?| 
+
 
 # Troubleshooting
 
