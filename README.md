@@ -69,11 +69,11 @@ Then run
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs}
     
-Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameter:
+Before running it is recommended to check if SnakeMake can correctly generate all the steps given your input. To do this you can carry out a dry-run using the `-np` parameter:
 
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
 
-The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
+The dry-run will display all the steps and commands that will be executed. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside `config.yaml`. 
 
 Notice that you should use `--cluster` only if you are working in a computer cluster that uses a queuing systems. We provide an example of `cluster.json` to work with lsf and in that case the cluster system params should be `"bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}"`. The number of parallel jobs can be a positive integer, the appropriate value depends on the capacity of your machine but for most users a value between 5 and 50 is appropriate. 
 
@@ -87,7 +87,7 @@ Once the pipeline finish the discovery module, it can be resumed any time later 
     
 If you do not have space to have a let MicroExonator to have a complete copy of the data you want to process, you can limmit the number of jobs. For instance if you limit the number of jobs to 20, you can make sure no more than 20 fastq files will be stored at `FASTQ/` directory (if `Optimize_hard_drive` is set as `T`) 
 
-If you are working remotelly, the connection is likely to die before MicroExonator finish. However, as long as you are working within an screen, loggin off will not kill snakemake. To list your active screens you can do:
+If you are working remotely, the connection is likely to die before MicroExonator finish. However, as long as you are working within an screen, loggin off will not kill snakemake. To list your active screens you can do:
 
     screen -ls
  
@@ -98,7 +98,7 @@ To reattached and detach screens just use:
 
 ## Alternative splicing analyses
 
-Microexonator can couple the annotation and quantification of microexon with other downstream tools to asses alternative splicing changing. We have incorporated [whippet](https://github.com/timbitz/Whippet.jl) into a downstream snakemake workflow that can directly use the microexon annotation and quantification files to assess differential inclusion of microexons between multiple conditions. For this porpuse we recomend to install a custumised conda enviroment that has snkamemake and julia 0.6.1 installed. This can be don by using the following command from inside a MicroExonator folder:
+Microexonator can couple the annotation and quantification of microexon with other downstream tools to assess alternative splicing changing. We have incorporated [whippet](https://github.com/timbitz/Whippet.jl) into a downstream snakemake workflow that can directly use the microexon annotation and quantification files to assess differential inclusion of microexons between multiple conditions. For this purpose we recomend to install a customised conda enviroment that has snakemake and julia 0.6.1 installed. This can be don by using the following command from inside a MicroExonator folder:
 
 `conda env create -f Whippet/julia_0.6.1.yaml`
 
@@ -137,7 +137,7 @@ Then we recomend to do a `dry-run` to check that all the inputs are in place:
     snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion -np
     
  
-**Importat**: If you arlready run MicroExonator quantification and discovery, and now you want to perform the these downstream alternative splicing analyses, you might need to skip microexonator steps to avoid them be re-run. To only perfom downstream alternative splicing analyses, you will need to include these extra key in config.yaml:
+**Importat**: If you arlready run MicroExonator quantification and discovery, and now you want to perform the these downstream alternative splicing analyses, you might need to skip microexonator steps to avoid them be re-run. To only perform downstream alternative splicing analyses, you will need to include these extra key in config.yaml:
 
     downstream_only : T
 
@@ -164,7 +164,7 @@ After you are sure everthing is in place, you can sumbit the runnig command:
 
 # Output
 
-The main results of MicroExonator discovery and quantification modules can be found at the Results folder. All the detected microexons that passed though the quantitative filters can be found at `out.high_quality.txt`. This is a tabular separated file with 14 columns that contain the folowing information:
+The main results of MicroExonator discovery and quantification modules can be found at the Results folder. All the detected microexons that passed though the quantitative filters can be found at `out.high_quality.txt`. This is a tabular separated file with 14 columns that contain the following information:
 
 
 |Column| Description|
