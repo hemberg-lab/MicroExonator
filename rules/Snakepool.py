@@ -259,7 +259,7 @@ for compare_name, c in cluster_compare.items():
         c1_pools = partition(c1_names, np_A)
         c2_pools = partition(c2_names, np_B)
 
-        p = 0
+        
 
         target_pool_psi_A = []
         target_pool_psi_B = []
@@ -268,7 +268,7 @@ for compare_name, c in cluster_compare.items():
 
         #for pc1, pc2 in zip(c1_pools, c2_pools):
 
-
+        p = 0
 
         for pc1 in c1_pools:
 
@@ -284,7 +284,8 @@ for compare_name, c in cluster_compare.items():
 
             target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
 
-
+        p = 0
+            
         for pc2 in c2_pools:
 
             p += 1
