@@ -222,6 +222,27 @@ for compare_name, c in cluster_compare.items():
 
     ## Unpooled analysis
 
+rule delta_unpool:
+    input:
+        expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
+    output:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
+    params:
+        bin = config["whippet_bin_folder"],
+        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
+        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
+        o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
+    shell:
+        "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
+
+
+rule run_delta_unpool:  #to avoid overload shell comandline
+    input:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
+    output:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
+    shell:
+        "bash {input}"
 
 
 
@@ -316,25 +337,4 @@ rule delta_pool:
         
         
         
-rule delta_unpool:
-    input:
-        expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
-    output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
-    params:
-        bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
-        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
-        o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
-    shell:
-        "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
-
-
-rule run_delta_unpool:  #to avoid overload shell comandline
-    input:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
-    output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
-    shell:
-        "bash {input}"
 
