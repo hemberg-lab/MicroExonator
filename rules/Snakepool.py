@@ -224,81 +224,61 @@ for compare_name, c in cluster_compare.items():
 
 
 
-rule delta_unpool:
-    input:
-        expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
-    output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
-    params:
-        bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
-        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
-        o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
-    shell:
-        "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
-
-
-rule run_delta_unpool:  #to avoid overload shell comandline
-    input:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
-    output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
-    shell:
-        "bash {input}"
 
 #pseudo pooling        
 
 pool_dict_quant = dict()
 pool_dict_delta = dict()
 
-
-for r in range(repeats):
-
-
-    c1_pools = partition(c1_names, np_A)
-    c2_pools = partition(c2_names, np_B)
-
-    p = 0
-
-    target_pool_psi_A = []
-    target_pool_psi_B = []
-
-    delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
-
-    #for pc1, pc2 in zip(c1_pools, c2_pools):
+for compare_name, c in cluster_compare.items():
+    
+    for r in range(repeats):
 
 
+        c1_pools = partition(c1_names, np_A)
+        c2_pools = partition(c2_names, np_B)
 
-    for pc1 in c1_pools:
+        p = 0
 
-        p += 1
+        target_pool_psi_A = []
+        target_pool_psi_B = []
 
-        FASTQ_c1 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc1 ]
+        delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
-        PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
-
-        pool_ID = str(r + 1) + "-"  + str(p)
-        pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
-        #pool_dict_delta[(delta_name, "A")] = PSI_c1
-
-        target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
+        #for pc1, pc2 in zip(c1_pools, c2_pools):
 
 
-    for pc2 in c2_pools:
 
-        p += 1
+        for pc1 in c1_pools:
 
-        FASTQ_c2 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc2 ]
-        PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
+            p += 1
 
-        pool_ID = str(r + 1) + "-"  + str(p)
-        pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
-        #pool_dict_delta[(delta_name, "B")] = PSI_c2
+            FASTQ_c1 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc1 ]
 
-        target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
+            PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
 
-    pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
-    pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
+            pool_ID = str(r + 1) + "-"  + str(p)
+            pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
+            #pool_dict_delta[(delta_name, "A")] = PSI_c1
+
+            target_pool_psi_A.append("Whippet/Quant/Single_Cell/" + compare_name + "_A_" + pool_ID + ".psi.gz")
+
+
+        for pc2 in c2_pools:
+
+            p += 1
+
+            FASTQ_c2 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc2 ]
+            PSI_c2 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc2 ]
+
+            pool_ID = str(r + 1) + "-"  + str(p)
+            pool_dict_quant[(compare_name, pool_ID, "B")] = FASTQ_c2
+            #pool_dict_delta[(delta_name, "B")] = PSI_c2
+
+            target_pool_psi_B.append("Whippet/Quant/Single_Cell/" + compare_name + "_B_" + pool_ID + ".psi.gz")
+
+        pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
+        pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
 
 rule quant_pool:
     input:
@@ -332,4 +312,29 @@ rule delta_pool:
         b = lambda w, input: ",".join( input.B ),
         o = "{delta_name}"
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"    
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"    \
+        
+        
+        
+rule delta_unpool:
+    input:
+        expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
+    output:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
+    params:
+        bin = config["whippet_bin_folder"],
+        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
+        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
+        o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
+    shell:
+        "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
+
+
+rule run_delta_unpool:  #to avoid overload shell comandline
+    input:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
+    output:
+        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".diff.gz"
+    shell:
+        "bash {input}"
+
