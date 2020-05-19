@@ -164,7 +164,7 @@ with open(config["cluster_metadata"]) as SC:
         cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
-
+delta_unpooled_dict = dict()
 
 for compare_name, c in cluster_compare.items():
 
@@ -179,6 +179,9 @@ for compare_name, c in cluster_compare.items():
     c2_names = []
     for c2 in g2:
         c2_names += cluster_files[c2]
+        
+    delta_unpooled_dict[(compare_name, "A")] = c1_names
+    delta_unpooled_dict[(compare_name, "B")] = c2_names
 
 
     np_A, np_B = cluster_compare_np[compare_name]
@@ -224,14 +227,15 @@ for compare_name, c in cluster_compare.items():
 
 rule delta_unpool:
     input:
-        expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
+        lambda w : expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")]) + expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")]) 
+        #expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
     output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + compare_name + ".run.sh"
+        "Whippet/Delta/Single_Cell/Unpooled/compare_name.run.sh"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names)),
-        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)),
-        o = "Whippet/Delta/Single_Cell/Unpooled/" + compare_name
+        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")])),
+        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")])),
+        o = "Whippet/Delta/Single_Cell/Unpooled/{compare_name}"
     shell:
         "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
 
