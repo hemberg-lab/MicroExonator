@@ -240,7 +240,7 @@ rule run_delta_unpool:  #to avoid overload shell comandline
     input:
         lambda w: "Whippet/Delta/Single_Cell/Unpooled/" + w.compare_name + ".run.sh"
     output:
-        "Whippet/Delta/Single_Cell/Unpooled/" + {compare_name} + ".diff.gz"
+        "Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz"
     shell:
         "bash {input}"
 
