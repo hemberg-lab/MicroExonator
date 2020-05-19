@@ -318,6 +318,8 @@ rule quant_pool:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
         
+print(pool_dict_delta)
+        
 rule delta_pool:
     input:
         A = lambda w: pool_dict_delta[(delta_name, "A")],
