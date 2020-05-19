@@ -116,7 +116,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         
         if str2bool(config.get("Only_snakepool", False)):
             
-            target_pool_delta.append( delta_name + ".diff")
+            target_pool_delta.append( delta_name + ".diff.gz")
             
         else:    
        
