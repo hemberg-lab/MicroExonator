@@ -322,8 +322,8 @@ print(pool_dict_delta)
         
 rule delta_pool:
     input:
-        A = lambda w: pool_dict_delta[(delta_name, "A")],
-        B = lambda w: pool_dict_delta[(delta_name, "B")]
+        A = lambda w: pool_dict_delta[(w.delta_name, "A")],
+        B = lambda w: pool_dict_delta[(w.delta_name, "B")]
     output:
         "{delta_name}.diff.gz"
     params:
