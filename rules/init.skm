@@ -74,7 +74,7 @@ if os.path.isfile("./local_samples.tsv"):
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("cp " + row["path"] +  "FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq" + "\n")
                 
                 
                 else:
