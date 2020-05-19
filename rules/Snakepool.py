@@ -113,9 +113,14 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
         print(delta_name)
+        
+        if str2bool(config.get("Only_snakepool", False)):
+            
+            target_pool_delta.append( delta_name + ".diff")
+            
+        else:    
        
-
-        target_pool_delta.append( delta_name + ".diff.microexons")
+            target_pool_delta.append( delta_name + ".diff.microexons")
 
 
 if str2bool(config.get("Only_snakepool", False)):
