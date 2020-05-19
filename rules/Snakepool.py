@@ -128,7 +128,7 @@ if str2bool(config.get("Only_snakepool", False)):
  rule snakepool:   # This rule execute all the nesesary rules to produce the target files
    input:
     target_pool_delta ,#target files
-    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
+    expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
     
 else:
       
