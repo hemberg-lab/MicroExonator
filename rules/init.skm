@@ -69,10 +69,20 @@ if os.path.isfile("./local_samples.tsv"):
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-                download_file =  open(file_name, "w")
+                if row["path"].split(".")[-1] == "fastq":
 
-                download_file.write("#!/bin/bash" + "\n")
-                download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file =  open(file_name, "w")
+
+                    download_file.write("#!/bin/bash" + "\n")
+                    download_file.write("cp " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                
+                
+                else:
+                
+                    download_file =  open(file_name, "w")
+
+                    download_file.write("#!/bin/bash" + "\n")
+                    download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
 
 
 
