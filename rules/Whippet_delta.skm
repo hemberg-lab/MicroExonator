@@ -46,3 +46,22 @@ rule whippet_delta_ME:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} "
 
 
+rule delta_ME_from_whippet:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/{comparison_name}.diff.gz",
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/{comparison_name}.diff.microexons"
+    shell:
+        "python src/whippet_delta_to_ME.py {input} > {output}"
+
+rule delta_ME_from_MicroExonator:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/{comparison_name}.ME.diff.gz",
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/{comparison_name}.diff.ME.microexons"
+    shell:
+        "python src/whippet_delta_to_ME.py {input} > {output}"
