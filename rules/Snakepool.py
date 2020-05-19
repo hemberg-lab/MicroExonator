@@ -211,7 +211,7 @@ for compare_name, c in cluster_compare.items():
 
 
 
-    rule delta_unpool:
+    rule delta_unpool2:
         input:
             expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
         output:
