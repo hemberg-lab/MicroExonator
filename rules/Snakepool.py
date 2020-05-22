@@ -229,7 +229,7 @@ rule delta_unpool:
         lambda w : expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")]) + expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")]) 
         #expand("Whippet/Quant/{sample}.psi.gz", sample=c1_names) + expand("Whippet/Quant/{sample}.psi.gz", sample=c2_names)
     output:
-        "Whippet/Delta/Single_Cell/Unpooled/compare_name.run.sh"
+        "Whippet/Delta/Single_Cell/Unpooled/{compare_name}.run.sh"
     params:
         bin = config["whippet_bin_folder"],
         a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(compare_name, "A")])),
