@@ -5,7 +5,7 @@
 
 random.seed(123) 
 
-repeats = 10
+#repeats = 10  #now the repeats are specified on the tsv
 
 ###############
 
@@ -22,7 +22,7 @@ def partition (list_in, n):  # Function to do random pooling
 
 cluster_compare = dict()
 cluster_compare_np = dict()
-
+compare_repeats = dict()
 ## Structure of dictionaries
 
 #cluster_compare = { "Neuronal-vs-Non_Neuronal" :( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ),
@@ -54,6 +54,7 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
 
         cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
         cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
+        cluster_compare[row["Compare_ID"]] = cluster_compare[int(row["Repeat"])]
 
 
 
@@ -107,8 +108,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 
     compare_names.append(compare_name)
 
-    for r in range(repeats):
-
+    for r in range(compare_repeats[compare_name]):
 
         delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
@@ -257,7 +257,7 @@ pool_dict_delta = dict()
 
 for compare_name, c in cluster_compare.items():
     
-    for r in range(repeats):
+    for r in range(compare_repeats[compare_name]):
 
 
         c1_pools = partition(c1_names, np_A)
