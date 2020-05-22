@@ -127,7 +127,7 @@ if str2bool(config.get("Only_snakepool", False)):
  rule snakepool:   # This rule execute all the nesesary rules to produce the target files
    input:
     target_pool_delta #,#target files
-    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
+    expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
     
 else:
       
@@ -241,7 +241,7 @@ rule delta_unpool:
 
 rule run_delta_unpool:  #to avoid overload shell comandline
     input:
-        lambda w: "Whippet/Delta/Single_Cell/Unpooled/" + w.compare_name + ".run.sh"
+        "Whippet/Delta/Single_Cell/Unpooled/{compare_name}.run.sh"
     output:
         "Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz"
     shell:
@@ -336,7 +336,7 @@ rule delta_pool:
         b = lambda w, input: ",".join( input.B ),
         o = "{delta_name}"
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"    \
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
         
         
         
