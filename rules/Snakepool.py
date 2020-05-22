@@ -98,7 +98,7 @@ target_pool_delta = []
     # for c2 in g2:
     #     c2_names += cluster_files[c2]
 
-print(cluster_compare)    
+#print(cluster_compare)    
     
 compare_names = []
 
@@ -111,7 +111,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 
         delta_name = "Whippet/Delta/Single_Cell/" + compare_name +  "_rep_" +  str(r+1)
 
-        print(delta_name)
+        #print(delta_name)
         
         if str2bool(config.get("Only_snakepool", False)):
             
@@ -322,8 +322,7 @@ rule quant_pool:
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
-        
-print(pool_dict_delta)
+
         
 rule delta_pool:
     input:
