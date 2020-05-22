@@ -54,7 +54,7 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
 
         cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
         cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
-        cluster_compare[row["Compare_ID"]] = cluster_compare[int(row["Repeat"])]
+        cluster_compare[row["Compare_ID"]] = int(row["Repeat"])
 
 
 
