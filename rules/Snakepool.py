@@ -312,21 +312,21 @@ rule merge_bam:
     input:
         lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files[w.compare_name])
     output:
-        temp("Whippet/BAM/Merge/" + compare_name + ".bam.merge")
+        temp("Whippet/BAM/Merge/{compare_name}.bam.merge")
     shell:
         "samtools merge  {output} {input}"
 
 rule sort_index_bam:
     input:
-        "Whippet/BAM/Merge/" + compare_name + ".bam.merge"
+        "Whippet/BAM/Merge/{compare_name}.bam.merge"
     output:
-        "Whippet/BAM/Merge/" + compare_name + ".sort.bam.merge"
+        "Whippet/BAM/Merge/{compare_name}.sort.bam"
     shell:
         'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
         
 rule cluster_bams:
     input:
-        expand("Whippet/BAM/Merge/{compare_name}.sort.bam.merge", compare_name=cluster_files.keys())  
+        expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
                
                
                
