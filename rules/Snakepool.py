@@ -306,10 +306,11 @@ rule delta_pool:
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
 
- 
+
+        
 rule merge_bam:
     input:
-        lambda w: expand('Whippet/BAM/w.sample.bam', sample=c1_names)
+        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files[w.compare_name])
     output:
         temp("Whippet/BAM/Merge/" + compare_name + ".bam")
     shell:
