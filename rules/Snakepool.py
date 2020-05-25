@@ -325,7 +325,7 @@ rule sort_index_bam:
         
 rule cluster_bams:
     input:
-        expand(""Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
+        expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
                
                
                
