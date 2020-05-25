@@ -186,42 +186,6 @@ for compare_name, c in cluster_compare.items():
     np_A, np_B = cluster_compare_np[compare_name]
 
 
-    #### these rules gereate a single indexed bam per condition which can be used for visualization
-
-
-#     rule :
-#         input:
-#             expand('Whippet/BAM/{sample}.bam', sample=c1_names)
-#         output:
-#             temp("Whippet/BAM/Merge/" + compare_name + ".A.bam")
-#         shell:
-#             "samtools merge  {output} {input}"
-
-#     rule :
-#         input:
-#             "Whippet/BAM/Merge/" + compare_name + ".A.bam"
-#         output:
-#             "Whippet/BAM/Merge/" + compare_name + ".A.sort.bam"
-#         shell:
-#             'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
-
-
-#     rule :
-#         input:
-#             expand('Whippet/BAM/{sample}.bam', sample=c2_names)
-#         output:
-#             temp("Whippet/BAM/Merge/" + compare_name + ".B.bam")
-#         shell:
-#             "samtools merge  {output} {input}"
-
-#     rule :
-#         input:
-#             "Whippet/BAM/Merge/" + compare_name + ".B.bam"
-#         output:
-#             "Whippet/BAM/Merge/" + compare_name + ".B.sort.bam"
-#         shell:
-#             'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
-
     ## Unpooled analysis
 
 rule delta_unpool:
@@ -337,7 +301,31 @@ rule delta_pool:
         o = "{delta_name}"
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+ 
+
         
+     #### these rules gereate a single indexed bam per condition which can be used for visualization
+
+ 
+
+rule merge_bam:
+    input:
+        lambda w: expand('Whippet/BAM/w.sample.bam', sample=c1_names)
+    output:
+        temp("Whippet/BAM/Merge/" + compare_name + ".bam")
+    shell:
+        "samtools merge  {output} {input}"
+
+rule sort_index_bam:
+    input:
+        "Whippet/BAM/Merge/" + compare_name + ".bam"
+    output:
+        "Whippet/BAM/Merge/" + compare_name + ".sort.bam"
+    shell:
+        'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
+ 
         
-        
+rule cluster_bams:
+    input:
+        expand(""Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())               
 
