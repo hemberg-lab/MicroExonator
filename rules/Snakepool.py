@@ -307,7 +307,6 @@ rule delta_pool:
      #### these rules gereate a single indexed bam per condition which can be used for visualization
 
  
-
 rule merge_bam:
     input:
         lambda w: expand('Whippet/BAM/w.sample.bam', sample=c1_names)
@@ -323,9 +322,11 @@ rule sort_index_bam:
         "Whippet/BAM/Merge/" + compare_name + ".sort.bam"
     shell:
         'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
- 
         
 rule cluster_bams:
     input:
-        expand(""Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())               
+        expand(""Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
+               
+               
+               
 
