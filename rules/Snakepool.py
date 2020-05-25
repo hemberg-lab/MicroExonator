@@ -320,13 +320,13 @@ rule sort_index_bam:
     input:
         "Whippet/BAM/Merge/" + compare_name + ".bam.merge"
     output:
-        "Whippet/BAM/Merge/" + compare_name + ".sort.bam"
+        "Whippet/BAM/Merge/" + compare_name + ".sort.bam.merge"
     shell:
         'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
         
 rule cluster_bams:
     input:
-        expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
+        expand("Whippet/BAM/Merge/{compare_name}.sort.bam.merge", compare_name=cluster_files.keys())  
                
                
                
