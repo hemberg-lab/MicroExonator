@@ -1,3 +1,5 @@
+# from https://github.com/guigolab/ggsashimi/blob/master/sashimi-plot.py
+
 #!/usr/bin/env python
 
 # Import modules
