@@ -355,7 +355,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             gene_nodes[(row["Gene"], int(row["Node"]) ) ] = row["Coord"]
             node_strand[row["Coord"]] = row["Strand"]
             
-    for sig_node_file in glob.glob('Whippet/Quant/Single_Cell/Sig_nodes/*'):
+    for sig_node_file in glob.glob('Whippet/Delta/Single_Cell/Sig_nodes/*'):
         
         compare_name = sig_node_file.split("/")[-1].split(".")[0]
         
@@ -375,7 +375,7 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     rule get_sig_nodes:
         input:
-            'Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.sig'
+            'Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.txt'
         output:
             temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
