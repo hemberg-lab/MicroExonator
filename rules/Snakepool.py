@@ -335,6 +335,10 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     
     gene_nodes = dict()
+    node_strand = dict()
+    
+    compare_sig_nodes = dict()
+    sig_node_info = dict()
     
     compare_name_sig_nodes = default
     
@@ -350,7 +354,24 @@ if str2bool(config.get("cluster_sashimi", False)):
         
         for row in random_psi_file:
             
-            row["Gene"],  row["Node"] row["Coord"]
+            gene_nodes[(row["Gene"], int(row["Node"]) ) ] = row["Coord"]
+            node_strand[row["Coord"]] = row["Strand"]
+            
+    for sig_node_file in glob.glob('Whippet/Quant/Single_Cell/Sig_nodes/*'):
+        
+        compare_name = sig_node_file.split("/")[-1].split(".")[0]
+        
+        with open(sig_node_file) as file:
+            
+            for row in file:
+                
+                compare_sig_nodes[compare_name] = ( row["Gene"], row["Node"], row["Coord"], row["Strand"], row["Type"])
+                
+
+        
+        
+            
+
             
             
     
