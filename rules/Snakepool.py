@@ -363,7 +363,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             
             for row in reader:
                 compare_sig_nodes[compare_name] = "_".join([row["Gene"], row["Node"], row["Strand"]])
-                sashimis.add("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]]) + ".pdf")
+                sashimis.add("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]]))
                 
 
     rule get_bam_tsv:
@@ -379,7 +379,8 @@ if str2bool(config.get("cluster_sashimi", False)):
         input:
             'Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.txt'
         output:
-            temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
+            expand("{sashimi}.txt", sashimi=sashimis)
+            #temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
             "python src/write_sig_node_files.py {input}"
     
@@ -428,7 +429,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             
     rule get_sashimis:
         input:
-            sashimis
+            expand("{sashimi}.pdf", sashimi=sashimis)
             
 #chr:start-end
     
