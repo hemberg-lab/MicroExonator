@@ -338,11 +338,9 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     compare_sig_nodes = dict()
     #sig_node_info = dict()
+    sashimis = set([])
     
     
-    with open(config["run_metadata"]) as run:   #Populating the dictionaries
-
-        run_metadata = csv.DictReader(run, delimiter="\t")
     
     psi_file = random.choice(glob.glob('Whippet/Quant/Single_Cell/*.psi.gz'))
     
@@ -362,6 +360,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         with open(sig_node_file) as file:
             for row in file:
                 compare_sig_nodes[compare_name] = "_".join([row["Gene"], row["Node"], row["Strand"]])
+                sashimis.add("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]]) + ".pdf")
                 
 
     rule get_bam_tsv:
@@ -425,8 +424,8 @@ if str2bool(config.get("cluster_sashimi", False)):
             "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g {input.gtf} -o {params.out}"
             
     rule get_sashimis:
-        input : expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", compare_name=compare_names , gene=, node=, type=}
-
+        input:
+            sashimis
             
 #chr:start-end
     
