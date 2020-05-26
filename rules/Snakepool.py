@@ -423,7 +423,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             region = lambda w: coord_to_region(w.gene, w.node, w.strand),
             out = "Whippet/ggsashimi/{compare_name}/{gene_node_strand}"
         output:
-            "Whippet/ggsashimi/{compare_name}/{gene_node_strand}.pdf"
+            "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf"
             #pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
         shell:
             "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g {input.gtf} -o {params.out}"
