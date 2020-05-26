@@ -377,10 +377,10 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     rule get_sig_nodes:
         input:
-            'Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.txt'
+            Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.txt'
         output:
-            expand("{sashimi}.txt", sashimi=sashimis)
-            #temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
+            #expand("{sashimi}.txt", sashimi=sashimis)
+            temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
             "python src/write_sig_node_files.py {input}"
     
