@@ -375,9 +375,9 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     rule get_sig_nodes:
         input:
-            'Whippet/Quant/Single_Cell/Sig_nodes/{compare_name}.txt'
+            'Whippet/Quant/Single_Cell/Sig_nodes/{compare_name}.sig'
         output:
-            temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name])
+            temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
             "python src/write_sig_node_files.py {input}"
     
