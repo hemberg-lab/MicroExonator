@@ -123,14 +123,21 @@ else:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
 
 
-rule SamToBamIndex:
+rule SamToBam:
     input:
         sam = "Whippet/BAM/{sample}.sam"
     output:
-        bam = "Whippet/BAM/{sample}.bam",
+        bam = temp("Whippet/BAM/{sample}.bam")
+    shell:
+        "samtools sort  -o {output.bam} -O BAM {input}"
+        
+ rule BamIndex:
+    input:
+        bam = "Whippet/BAM/{sample}.bam"
+    output:
         index = "Whippet/BAM/{sample}.bam.bai"
     shell:
-        "samtools sort  -o {output.bam} -O BAM {input} && samtools index {output.bam}"
+        "samtools index {input.bam}"   
 
 
 #rule unzip_quant:
