@@ -363,25 +363,44 @@ if str2bool(config.get("cluster_sashimi", False)):
             for row in file:
                 compare_sig_nodes[compare_name] = (row["Gene"], row["Node"], row["Coord"], row["Strand"], row["Type"])
                 
-                
 
-    
-    rule get_bam_tvs:
+    rule get_bam_tsv:
         input:
-            A_name = lambda w : pool_dict_delta[(w.compare_name, "A")] ,
-            A_path = lambda w : expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_compare[(w.compare_name, "A")])
-            B_name =
-            B_path =
+            config["run_metadata"]
         output:
-            "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs"
+            expand("Whippet/ggsashimi/{compare_name}/{compare_name}.tvs" , compare_name=compare_names)
         shell:
-            "echo {input.A_name} {input.A_path} >> {output} &&  echo {input.A_name} {input.A_path} >> {output}  && sed 's/\ /\t/g' {output} -i"
+            "python src/write_bam_tsv.py {input}"
+    
+    
+    def coord_to_region(gene, node):
+        
+        node_up = 1
+        node_down = node
+        
+        if node > 1:
+            node_up = node-1
+        if (gene, node+1) in gene_nodes:
+            node_down = node+1
+        
+        node_up_coord = gene_nodes(gene, node_up)
+        node_down_coord = gene_nodes(gene, node_down)
+        
+        chrom = node_up_coord.split(":")[0]
+        start = 
+        
+        chrom = coord.split(":")[0]
+        start = 
+        
+    
     
     rule ggsashmi:
         input:
-            tsv = 
+            tsv = "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs"
         params:
-            coord = {}
+            gene = lambda w: compare_sig_nodes[w.compare_name][0]
+            node = lambda w: compare_sig_nodes[w.compare_name][1]
+            coord = lambda w: compare_sig_nodes[w.compare_name][2]
         output:
             pdf = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf"
         shell:
