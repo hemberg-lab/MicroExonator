@@ -346,7 +346,7 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     with gzip.open(psi_file, "wb") as f:
         
-        random_psi_file = csv.DictReader(run, delimiter="\t")
+        random_psi_file = csv.DictReader(f, delimiter="\t")
         
         for row in random_psi_file:
             
