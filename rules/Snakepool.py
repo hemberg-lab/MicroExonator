@@ -416,7 +416,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             node = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.txt",
             tsv = "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs"
         params:
-            region = lambda w: coord_to_region(w.gene, w.node, w.strand))
+            region = lambda w: coord_to_region(w.gene, w.node, w.strand),
             out = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}"
         output:
             pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
