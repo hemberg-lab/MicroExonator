@@ -373,7 +373,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             "python src/write_bam_tsv.py {input}"
     
     
-    def coord_to_region(gene, node):
+    def coord_to_region(gene, node, strand):
         
         node_up = 1
         node_down = node
@@ -387,12 +387,15 @@ if str2bool(config.get("cluster_sashimi", False)):
         node_down_coord = gene_nodes(gene, node_down)
         
         chrom = node_up_coord.split(":")[0]
-        start = 
+        start = node_up_coord.split(":")[0].split("-")[0]
+        end = node_down_coord.split(":")[0].split("-")[1]
         
-        chrom = coord.split(":")[0]
-        start = 
-        
-    
+        if strand=="-":
+            end = node_up_coord.split(":")[0].split("-")[0]
+            start = node_down_coord.split(":")[0].split("-")[1]
+            
+        return(chrom + ":" + start + "-" + end)
+
     
     rule ggsashmi:
         input:
@@ -400,11 +403,12 @@ if str2bool(config.get("cluster_sashimi", False)):
         params:
             gene = lambda w: compare_sig_nodes[w.compare_name][0]
             node = lambda w: compare_sig_nodes[w.compare_name][1]
-            coord = lambda w: compare_sig_nodes[w.compare_name][2]
+            region = lambda w: coord_to_region(compare_sig_nodes[w.compare_name][0], compare_sig_nodes[w.compare_name][1], compare_sig_nodes[w.compare_name][3])
+            out = 
         output:
-            pdf = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf"
+            pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
         shell:
-            "python src/sashimi-plot.py -b {input.tsv} -c {input.coordinate}"
+            "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g config["Gene_anontation_GTF"] -o  "
             
     rule get_sashimis:
         input : expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf", compare_name=compare_names , gene=, node=, type=}
