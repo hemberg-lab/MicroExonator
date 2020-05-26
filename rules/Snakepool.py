@@ -12,6 +12,7 @@ random.seed(123)
 import glob, os
 import random
 import csv
+import gzip
 from collections import defaultdict
 
 
@@ -333,20 +334,45 @@ rule cluster_bams:
 if str2bool(config.get("cluster_sashimi", False)):
     
     
+    gene_nodes = dict()
+    
+    compare_name_sig_nodes = default
+    
+    with open(config["run_metadata"]) as run:   #Populating the dictionaries
+
+        run_metadata = csv.DictReader(run, delimiter="\t")
+    
+    psi_file = random.choice(glob.glob('Whippet/Quant/Single_Cell/*.psi.gz'))
+    
+    with gzip.open(psi_file, "wb") as f:
+        
+        random_psi_file = csv.DictReader(run, delimiter="\t")
+        
+        for row in random_psi_file:
+            
+            row["Gene"],  row["Node"] row["Coord"]
+            
+            
+    
+    
+    
     rule get_bam_tvs:
         input:
         output:
         shell:
     
-    rule get_sashmi:
+    rule ggsashmi:
         input:
             tsv = 
         params:
             coord = {}
         output:
-            pdf = "{gene}_{node}.pdf"
+            pdf = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf"
         shell:
-            "python src/sashimi-plot.py -b {input.tsv} -c {input.coordinate}"    
+            "python src/sashimi-plot.py -b {input.tsv} -c {input.coordinate}"
+            
+    rule get_sashimis:
+        input : expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf", compare_name=compare_names , gene=, node=, type=}
 
             
 #chr:start-end
