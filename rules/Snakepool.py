@@ -361,7 +361,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         
         with open(sig_node_file) as file:
             for row in file:
-                compare_sig_nodes[compare_name] = (row["Gene"], row["Node"], row["Coord"], row["Strand"], row["Type"])
+                compare_sig_nodes[compare_name] = "_".join([row["Gene"], row["Node"], row["Strand"]])
                 
 
     rule get_bam_tsv:
@@ -371,6 +371,15 @@ if str2bool(config.get("cluster_sashimi", False)):
             expand("Whippet/ggsashimi/{compare_name}/{compare_name}.tvs" , compare_name=compare_names)
         shell:
             "python src/write_bam_tsv.py {input}"
+    
+    
+    rule get_sig_nodes:
+        input:
+            'Whippet/Quant/Single_Cell/Sig_nodes/{compare_name}.txt'
+        output:
+            temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name])
+        shell:
+            "python src/write_sig_node_files.py {input}"
     
     
     def coord_to_region(gene, node, strand):
@@ -399,19 +408,18 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     rule ggsashmi:
         input:
+            node = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.txt",
             tsv = "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs"
         params:
-            gene = lambda w: compare_sig_nodes[w.compare_name][0]
-            node = lambda w: compare_sig_nodes[w.compare_name][1]
-            region = lambda w: coord_to_region(compare_sig_nodes[w.compare_name][0], compare_sig_nodes[w.compare_name][1], compare_sig_nodes[w.compare_name][3])
-            out = 
+            region = lambda w: coord_to_region(w.gene, w.node, w.strand))
+            out = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}"
         output:
-            pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
+            pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
         shell:
-            "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g config["Gene_anontation_GTF"] -o  "
+            "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g config["Gene_anontation_GTF"] -o {params.out} "
             
     rule get_sashimis:
-        input : expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{type}.pdf", compare_name=compare_names , gene=, node=, type=}
+        input : expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", compare_name=compare_names , gene=, node=, type=}
 
             
 #chr:start-end
