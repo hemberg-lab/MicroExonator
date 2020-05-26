@@ -392,6 +392,11 @@ if str2bool(config.get("cluster_sashimi", False)):
         if (gene, node+1) in gene_nodes:
             node_down = node+1
         
+        if node_up > 1:
+            node_up = node_up-1
+        if (gene, node_down+1) in gene_nodes:
+            node_down = node_down+1   
+                 
         node_up_coord = gene_nodes(gene, node_up)
         node_down_coord = gene_nodes(gene, node_down)
         
