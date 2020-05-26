@@ -344,14 +344,12 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     psi_file = random.choice(glob.glob('Whippet/Quant/Single_Cell/*.psi.gz'))
     
-    print(psi_file)
     
-    with gzip.open(psi_file, "rt") as f:
+    with gzip.open(psi_file, mode="rt") as f:
         
         reader = csv.DictReader(f, delimiter="\t")
         
         for row in reader:
-            print(row["Gene"], int(row["Node"]) )
             gene_nodes[(row["Gene"], int(row["Node"]) ) ] = row["Coord"]
             node_strand[row["Coord"]] = row["Strand"]
             
@@ -387,8 +385,6 @@ if str2bool(config.get("cluster_sashimi", False)):
             #temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
             "python src/write_sig_node_files.py {input}"
-    
-    print(gene_nodes)
     
     def coord_to_region(gene, node, strand):
         
