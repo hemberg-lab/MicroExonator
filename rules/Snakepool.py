@@ -337,10 +337,7 @@ if str2bool(config.get("cluster_sashimi", False)):
     node_strand = dict()
     
     compare_sig_nodes = dict()
-    #sig_node_info = dict()
     sashimis = set([])
-    
-    
     
     psi_file = random.choice(glob.glob('Whippet/Quant/Single_Cell/*.psi.gz'))
     
@@ -376,15 +373,12 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     
     rule get_sig_nodes:
-        #input:
-        #    expand('Whippet/Delta/Single_Cell/Sig_nodes/{compare_name}.txt')
+        params:
+            path = "Whippet/Delta/Single_Cell/Sig_nodes/"
         output:
             expand("{sashimi}.txt", sashimi=sashimis)
-            #lambda w, input:  input.split("/")[-1].split[
-            #"Whippet/ggsashimi/{compare_name}"
-            #temp(lambda w: expand("Whippet/ggsashimi/{compare_name}/{gene_node_strand}.txt",  gene_node_strand=compare_sig_nodes[w.compare_name]))
         shell:
-            "python src/write_sig_node_files.py {input}"
+            "python src/write_sig_node_files.py {params}"
     
     def coord_to_region(gene, node, strand):
         
@@ -426,7 +420,6 @@ if str2bool(config.get("cluster_sashimi", False)):
             out = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}"
         output:
             "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf"
-            #pdf = expand("Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf", gene = lambda w: compare_sig_nodes[w.compare_name][0], node = lambda w: compare_sig_nodes[w.compare_name][1]) 
         shell:
             "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g {input.gtf} -o {params.out}"
             
