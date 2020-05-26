@@ -389,6 +389,7 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     def coord_to_region(gene, node, strand):
         
+        node = int(node)
         node_up = 1
         node_down = node
         
