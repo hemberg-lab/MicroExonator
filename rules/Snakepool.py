@@ -386,6 +386,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         shell:
             "python src/write_sig_node_files.py {input}"
     
+    print(gene_nodes)
     
     def coord_to_region(gene, node, strand):
         
