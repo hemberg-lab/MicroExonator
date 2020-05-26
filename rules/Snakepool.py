@@ -406,12 +406,12 @@ if str2bool(config.get("cluster_sashimi", False)):
         node_down_coord = gene_nodes[(gene, node_down)]
         
         chrom = node_up_coord.split(":")[0]
-        start = node_up_coord.split(":")[0].split("-")[0]
-        end = node_down_coord.split(":")[0].split("-")[1]
+        start = node_up_coord.split(":")[1].split("-")[0]
+        end = node_down_coord.split(":")[1].split("-")[1]
         
         if strand=="-":
-            end = node_up_coord.split(":")[0].split("-")[0]
-            start = node_down_coord.split(":")[0].split("-")[1]
+            end = node_up_coord.split(":")[1].split("-")[0]
+            start = node_down_coord.split(":")[1].split("-")[1]
             
         return(chrom + ":" + start + "-" + end)
 
