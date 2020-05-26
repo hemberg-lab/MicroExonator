@@ -346,9 +346,9 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     with gzip.open(psi_file, "rt") as f:
         
-        random_psi_file = csv.DictReader(f, delimiter="\t")
+        reader = csv.DictReader(f, delimiter="\t")
         
-        for row in random_psi_file:
+        for row in reader:
             
             gene_nodes[(row["Gene"], int(row["Node"]) ) ] = row["Coord"]
             node_strand[row["Coord"]] = row["Strand"]
@@ -358,7 +358,10 @@ if str2bool(config.get("cluster_sashimi", False)):
         compare_name = sig_node_file.split("/")[-1].split(".")[0]
         
         with open(sig_node_file) as file:
-            for row in file:
+            
+            reader = csv.DictReader(file, delimiter="\t")
+            
+            for row in reader:
                 compare_sig_nodes[compare_name] = "_".join([row["Gene"], row["Node"], row["Strand"]])
                 sashimis.add("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]]) + ".pdf")
                 
