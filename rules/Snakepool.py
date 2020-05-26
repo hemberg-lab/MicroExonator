@@ -333,14 +333,12 @@ rule cluster_bams:
           
 if str2bool(config.get("cluster_sashimi", False)):
     
-    
     gene_nodes = dict()
     node_strand = dict()
     
     compare_sig_nodes = dict()
-    sig_node_info = dict()
+    #sig_node_info = dict()
     
-    compare_name_sig_nodes = default
     
     with open(config["run_metadata"]) as run:   #Populating the dictionaries
 
@@ -362,25 +360,22 @@ if str2bool(config.get("cluster_sashimi", False)):
         compare_name = sig_node_file.split("/")[-1].split(".")[0]
         
         with open(sig_node_file) as file:
-            
             for row in file:
+                compare_sig_nodes[compare_name] = (row["Gene"], row["Node"], row["Coord"], row["Strand"], row["Type"])
                 
-                compare_sig_nodes[compare_name] = ( row["Gene"], row["Node"], row["Coord"], row["Strand"], row["Type"])
                 
 
-        
-        
-            
-
-            
-            
-    
-    
     
     rule get_bam_tvs:
         input:
+            A_name = lambda w : pool_dict_delta[(w.compare_name, "A")] ,
+            A_path = lambda w : expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_compare[(w.compare_name, "A")])
+            B_name =
+            B_path =
         output:
+            "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs"
         shell:
+            "echo {input.A_name} {input.A_path} >> {output} &&  echo {input.A_name} {input.A_path} >> {output}  && sed 's/\ /\t/g' {output} -i"
     
     rule ggsashmi:
         input:
