@@ -328,6 +328,26 @@ rule cluster_bams:
     input:
         expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
                
-               
-               
+# # # # #               
+          
+if str2bool(config.get("cluster_sashimi", False)):
+    
+    
+    rule get_bam_tvs:
+        input:
+        output:
+        shell:
+    
+    rule get_sashmi:
+        input:
+            tsv = 
+        params:
+            coord = {}
+        output:
+            pdf = "{gene}_{node}.pdf"
+        shell:
+            "python src/sashimi-plot.py -b {input.tsv} -c {input.coordinate}"    
 
+            
+#chr:start-end
+    
