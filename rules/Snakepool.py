@@ -403,8 +403,8 @@ if str2bool(config.get("cluster_sashimi", False)):
         if (gene, node_down+1) in gene_nodes:
             node_down = node_down+1   
                  
-        node_up_coord = gene_nodes(gene, node_up)
-        node_down_coord = gene_nodes(gene, node_down)
+        node_up_coord = gene_nodes[(gene, node_up)]
+        node_down_coord = gene_nodes[(gene, node_down)]
         
         chrom = node_up_coord.split(":")[0]
         start = node_up_coord.split(":")[0].split("-")[0]
