@@ -344,7 +344,7 @@ if str2bool(config.get("cluster_sashimi", False)):
     
     psi_file = random.choice(glob.glob('Whippet/Quant/Single_Cell/*.psi.gz'))
     
-    with gzip.open(psi_file, "wb") as f:
+    with gzip.open(psi_file, "rt") as f:
         
         random_psi_file = csv.DictReader(f, delimiter="\t")
         
