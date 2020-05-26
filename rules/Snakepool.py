@@ -349,7 +349,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         reader = csv.DictReader(f, delimiter="\t")
         
         for row in reader:
-            
+            print((row["Gene"], int(row["Node"]) )
             gene_nodes[(row["Gene"], int(row["Node"]) ) ] = row["Coord"]
             node_strand[row["Coord"]] = row["Strand"]
             
