@@ -2,7 +2,7 @@ from snakemake.utils import min_version
 import glob, os, csv
 
 
-for path in glob.glob(snakemake.params[0]):
+for path in glob.glob(snakemake.params[0] + "/*.*"):
   
   compare_name = path.split("/")[-1].split(".")[0]
   
