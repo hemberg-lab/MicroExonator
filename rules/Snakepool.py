@@ -369,7 +369,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         output:
             expand("Whippet/ggsashimi/{compare_name}/{compare_name}.tvs" , compare_name=compare_names)
         script:
-            "src/write_bam_tsv.py"
+            "../src/write_bam_tsv.py"
     
     
     rule get_sig_nodes:
@@ -378,7 +378,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         output:
             expand("{sashimi}.txt", sashimi=sashimis)
         script:
-            "src/write_sig_node_files.py"
+            "../src/write_sig_node_files.py"
     
     def coord_to_region(gene, node, strand):
         
