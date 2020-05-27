@@ -368,8 +368,8 @@ if str2bool(config.get("cluster_sashimi", False)):
             config["run_metadata"]
         output:
             expand("Whippet/ggsashimi/{compare_name}/{compare_name}.tvs" , compare_name=compare_names)
-        shell:
-            "python src/write_bam_tsv.py {input}"
+        script:
+            "src/write_bam_tsv.py"
     
     
     rule get_sig_nodes:
@@ -377,8 +377,8 @@ if str2bool(config.get("cluster_sashimi", False)):
             path = "Whippet/Delta/Single_Cell/Sig_nodes/"
         output:
             expand("{sashimi}.txt", sashimi=sashimis)
-        shell:
-            "python src/write_sig_node_files.py {params}"
+        script:
+            "src/write_sig_node_files.py"
     
     def coord_to_region(gene, node, strand):
         
