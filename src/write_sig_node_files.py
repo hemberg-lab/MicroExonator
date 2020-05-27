@@ -14,7 +14,7 @@ for path in glob.glob(snakemake.params[0] + "/*.*"):
       
       with open("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"], ".txt"] ), "w") as output:
         
-        output.write(row)
+        output.write(" ".join([row["Gene"], row["Node"], row["Strand"]] ))
       
         
   
