@@ -376,7 +376,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         params:
             path = "Whippet/Delta/Single_Cell/Sig_nodes/"
         output:
-            expand("{sashimi}.txt", sashimi=sashimis)
+            temp(expand("{sashimi}.txt", sashimi=sashimis))
         script:
             "../src/write_sig_node_files.py"
     
