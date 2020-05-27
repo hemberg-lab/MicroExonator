@@ -15,8 +15,8 @@ with open(snakemake.input[0]) as run:   #Populating the dictionaries
             
             for c in row["A.cluster_names"].split(","):
                 
-                out.write(c + "\t" + "Whippet/BAM/Merge/" + c + "sort.bam" + "\n")
+                out.write(c + "\t" + "Whippet/BAM/Merge/" + c + ".sort.bam" + "\n")
 
             for c in row["B.cluster_names"].split(","):
 
-                out.write(c + "\t" + "Whippet/BAM/Merge/" + c + "sort.bam" + "\n")
+                out.write(c + "\t" + "Whippet/BAM/Merge/" + c + ".sort.bam" + "\n")
