@@ -91,7 +91,7 @@ if str2bool(config["Get_Bamfiles"])==True:
           params:
               bin = config["whippet_bin_folder"],
               output = "Whippet/Quant/{sample}",
-              flags = --sam
+              flags = "--sam"
           output:
               "Whippet/Quant/{sample}.gene.tpm.gz",
               "Whippet/Quant/{sample}.isoform.tpm.gz",
