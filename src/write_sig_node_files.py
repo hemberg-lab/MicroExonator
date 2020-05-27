@@ -12,7 +12,7 @@ for path in glob.glob(snakemake.params[0] + "/*.*"):
     
     for row in reader:
       
-      with open("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]] + ".txt" ), "w") as output:
+      with open("Whippet/ggsashimi/" + compare_name + "/" + "_".join([row["Gene"], row["Node"], row["Strand"]] ) + ".txt", "w") as output:
         
         output.write(" ".join([row["Gene"], row["Node"], row["Strand"]] ))
       
