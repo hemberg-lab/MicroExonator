@@ -2,7 +2,7 @@ from snakemake.utils import min_version
 import csv
 
 
-with snakemake.input[0] as run:   #Populating the dictionaries
+with open(snakemake.input[0]) as run:   #Populating the dictionaries
 
     run_metadata = csv.DictReader(run, delimiter="\t")
 
