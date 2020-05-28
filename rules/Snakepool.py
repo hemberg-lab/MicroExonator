@@ -24,6 +24,8 @@ def partition (list_in, n):  # Function to do random pooling
 cluster_compare = dict()
 cluster_compare_np = dict()
 compare_repeats = dict()
+
+compare_all_clusters = defaultdict(list) # dict to connect BAM creation and sasshimi
 ## Structure of dictionaries
 
 #cluster_compare = { "Neuronal-vs-Non_Neuronal" :( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ),
@@ -48,10 +50,12 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
         for c in row["A.cluster_names"].split(","):
 
             A_cluster_names.append(c)
+            compare_all_clusters[row["Compare_ID"]].append(c)
 
         for c in row["B.cluster_names"].split(","):
 
             B_cluster_names.append(c)
+            compare_all_clusters[row["Compare_ID"]].append(c)
 
         cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
         cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
@@ -311,23 +315,23 @@ rule delta_pool:
         
 rule merge_bam:
     input:
-        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files[w.compare_name])
+        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files[w.cluster])
     output:
-        temp("Whippet/BAM/Merge/{compare_name}.bam.merge")
+        temp("Whippet/BAM/Merge/{cluster}.bam.merge")
     shell:
         "samtools merge  {output} {input}"
 
 rule sort_index_bam:
     input:
-        "Whippet/BAM/Merge/{compare_name}.bam.merge"
+        "Whippet/BAM/Merge/{cluster}.bam.merge"
     output:
-        "Whippet/BAM/Merge/{compare_name}.sort.bam"
+        "Whippet/BAM/Merge/{cluster}.sort.bam"
     shell:
         'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
         
 rule cluster_bams:
     input:
-        expand("Whippet/BAM/Merge/{compare_name}.sort.bam", compare_name=cluster_files.keys())  
+        expand("Whippet/BAM/Merge/{cluster}.sort.bam", cluster=cluster_files.keys())  
                
 # # # # #               
           
@@ -438,6 +442,7 @@ if str2bool(config.get("cluster_sashimi", False)):
             node = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.txt",
             tsv = "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs",
             gtf = config["Gene_anontation_GTF"]
+            bams = lambda w: expand("Whippet/BAM/Merge/{cluster}.sort.bam",  cluster=compare_all_clusters[w.compare_name])
         params:
             region = lambda w: coord_to_region(w.gene, w.node, w.strand),
             out = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}"
