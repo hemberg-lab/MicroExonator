@@ -395,9 +395,32 @@ if str2bool(config.get("cluster_sashimi", False)):
             node_up = node_up-1
         if (gene, node_down+1) in gene_nodes:
             node_down = node_down+1   
-                 
-        node_up_coord = gene_nodes[(gene, node_up)]
-        node_down_coord = gene_nodes[(gene, node_down)]
+        
+        if (gene, node_up) in gene_nodes:
+            node_up_coord = gene_nodes[(gene, node_up)]
+        else:
+            while ((gene, node_up) in gene_nodes)==False:
+                node_up+= -1
+                if (gene, node_up) in gene_nodes:
+                    node_up_coord = gene_nodes[(gene, node_up)]
+                    break
+                if node_up < 1:
+                    node_up = node
+                    node_up_coord = gene_nodes[(gene, node_up)]
+                    break
+
+        if (gene, node_down) in gene_nodes:
+            node_down_coord = gene_nodes[(gene, node_down)]
+        else:
+            while ((gene, node_down) in gene_nodes)==False:
+                node_down+= 1
+                if (gene, node_down) in gene_nodes:
+                    node_down_coord = gene_nodes[(gene, node_down)]
+                    break
+                if node_up > 1000:
+                    node_up = node
+                    node_down_coord = gene_nodes[(gene, node_down)]
+                    break
         
         chrom = node_up_coord.split(":")[0]
         start = node_up_coord.split(":")[1].split("-")[0]
