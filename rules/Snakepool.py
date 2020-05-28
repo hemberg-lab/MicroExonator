@@ -441,7 +441,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         input:
             node = "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.txt",
             tsv = "Whippet/ggsashimi/{compare_name}/{compare_name}.tvs",
-            gtf = config["Gene_anontation_GTF"]
+            gtf = config["Gene_anontation_GTF"],
             bams = lambda w: expand("Whippet/BAM/Merge/{cluster}.sort.bam",  cluster=compare_all_clusters[w.compare_name])
         params:
             region = lambda w: coord_to_region(w.gene, w.node, w.strand),
