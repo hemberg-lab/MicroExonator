@@ -226,7 +226,8 @@ pool_dict_delta = dict()
 for compare_name, c in cluster_compare.items():
     
     for r in range(compare_repeats[compare_name]):
-
+        
+        c1_names, c2_names = c
 
         c1_pools = partition(c1_names, np_A)
         c2_pools = partition(c2_names, np_B)
