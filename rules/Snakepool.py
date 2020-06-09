@@ -227,12 +227,19 @@ for compare_name, c in cluster_compare.items():
     
     for r in range(compare_repeats[compare_name]):
         
-        c1_names, c2_names = c
+        g1, g2 = c
+
+        c1_names = []
+        for c1 in g1:
+
+            c1_names += cluster_files[c1]
+
+        c2_names = []
+        for c2 in g2:
+            c2_names += cluster_files[c2]
 
         c1_pools = partition(c1_names, np_A)
         c2_pools = partition(c2_names, np_B)
-
-        
 
         target_pool_psi_A = []
         target_pool_psi_B = []
