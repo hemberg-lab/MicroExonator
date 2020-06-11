@@ -81,7 +81,7 @@ out_filtered_ME_cov = params$out_filtered_ME_cov
 De-novo discovery of micro-exons by uExonator relies on the detection of inserted sequenses over exon-exon junctions, which then are re-mapped inside the cognate introns. Inserted sequences smaller than 6 nucleotides are very likely to be mapped by chance, therefore detected micro-exons smaller than 6 nt are prone to be artefacts by sequencing error or genomic variations. The following plot shows the spurious micro-exon/intron match probability distribution for micro-exon in between 1-15 nt.
 
 ```{r, echo=FALSE}
-min_number_files_detected = 3
+#min_number_files_detected = 3
 
 ME_centric_raw <- read.delim(ME_table, header=FALSE, stringsAsFactors=FALSE)
 colnames(ME_centric_raw) <- c('ME', 'transcript', 'sum_total_coverage', 'total_SJs', 'total_coverages', 'len_micro_exon_seq_found', 'micro_exon_seq_found', 'total_number_of_micro_exons_matches', 'U2_scores', 'mean_conservations_vertebrates', 'P_MEs', 'total_ME')
