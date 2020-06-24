@@ -311,9 +311,10 @@ rule delta_pool:
         bin = config["whippet_bin_folder"],
         a = lambda w, input: ",".join( input.A ),
         b = lambda w, input: ",".join( input.B ),
-        o = "{delta_name}"
+        o = "{delta_name}",
+        r = config["min_number_of_read_single_cell"] 
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r}"
  
 
         
