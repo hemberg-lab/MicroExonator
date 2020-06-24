@@ -312,9 +312,10 @@ rule delta_pool:
         a = lambda w, input: ",".join( input.A ),
         b = lambda w, input: ",".join( input.B ),
         o = "{delta_name}",
-        r = config["min_number_of_read_single_cell"] 
+        r = config["min_number_of_reads_single_cell"],
+        s = config["min_number_of_samples_single_cell"] 
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r}"
+        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
  
 
         
