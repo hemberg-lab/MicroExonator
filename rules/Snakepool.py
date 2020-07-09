@@ -103,7 +103,7 @@ target_pool_delta = []
     # for c2 in g2:
     #     c2_names += cluster_files[c2]
 
-print(cluster_compare)    
+#print(cluster_compare)    
     
 compare_names = []
 
@@ -321,7 +321,7 @@ rule delta_pool:
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
 
-#print(cluster_files_metadata)
+print(cluster_files_metadata)
         
 rule merge_bam:
     input:
