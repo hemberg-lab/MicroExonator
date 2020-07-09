@@ -103,7 +103,7 @@ target_pool_delta = []
     # for c2 in g2:
     #     c2_names += cluster_files[c2]
 
-#print(cluster_compare)    
+print(cluster_compare)    
     
 compare_names = []
 
