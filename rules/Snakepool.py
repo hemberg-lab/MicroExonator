@@ -320,10 +320,9 @@ rule delta_pool:
 
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
-print(cluster_files_metadata)
+#print(cluster_files_metadata)
 for c, files in cluster_files_metadata.items():
-    if len(files)==0:
-        print(c)
+    print(c, len(files))
         
 rule merge_bam:
     input:
