@@ -321,7 +321,7 @@ rule delta_pool:
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
 
-print(cluster_files_metadata)
+#print(cluster_files_metadata)
         
 rule merge_bam:
     input:
