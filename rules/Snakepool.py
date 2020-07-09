@@ -320,8 +320,8 @@ rule delta_pool:
 
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
-
-for c, files in cluster_files_metadata.items[]:
+print(cluster_files_metadata)
+for c, files in cluster_files_metadata.items():
     if len(files)==0:
         print(c)
         
