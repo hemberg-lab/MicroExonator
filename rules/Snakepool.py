@@ -121,7 +121,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         if str2bool(config.get("Only_snakepool", False)):
             
             target_pool_delta.append( delta_name + ".diff.gz")
-            
+           
         else:    
        
             target_pool_delta.append( delta_name + ".diff.microexons")
@@ -154,7 +154,7 @@ def partition (list_in, n):
 
 
 
-cluster_files = defaultdict(list)
+cluster_files_metadata = defaultdict(list)
 
 
 #with open("/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Single_Cell_clustering.txt") as Single_Cell:
@@ -165,7 +165,7 @@ with open(config["cluster_metadata"]) as SC:
     for row in Single_Cell_clustering:
 
 
-        cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
+        cluster_files_metadata[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
 delta_unpooled_dict = dict()
@@ -321,11 +321,11 @@ rule delta_pool:
         
      #### these rules gereate a single indexed bam per condition which can be used for visualization
 
-print(cluster_files)
+print(cluster_files_metadata)
         
 rule merge_bam:
     input:
-        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files[w.cluster])
+        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files_metadata[w.cluster])
     output:
         temp("Whippet/BAM/Merge/{cluster}.bam.merge")
     shell:
