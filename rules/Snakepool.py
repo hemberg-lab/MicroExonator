@@ -343,7 +343,7 @@ for c, files in cluster_files_metadata.items():
         
 rule  get_sam_by_cluster:
     input:
-        fastq = lambda w: expand('FASTQ/{sample}.fastq.gz', sample=cluster_files_metadata[w.cluster])
+        fastq = lambda w: expand('FASTQ/{sample}.fastq.gz', sample=cluster_files_metadata[w.cluster]),
         index = "Whippet/Index/whippet.jls"
     params:
       bin = config["whippet_bin_folder"],
