@@ -319,30 +319,58 @@ rule delta_pool:
  
 
         
-     #### these rules gereate a single indexed bam per condition which can be used for visualization
+#### these rules gereate a single indexed bam per condition which can be used for visualization
 #print(cluster_files_metadata)
 for c, files in cluster_files_metadata.items():
     print(c, len(files))
         
-rule merge_bam:
-    input:
-        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files_metadata[w.cluster])
-    output:
-        temp("Whippet/BAM/Merge/{cluster}.bam.merge")
-    shell:
-        "samtools merge  {output} {input}"
+#rule merge_bam:
+#    input:
+#        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files_metadata[w.cluster])
+#    output:
+#        temp("Whippet/BAM/Merge/{cluster}.bam.merge")
+#    shell:
+#        "samtools merge  {output} {input}"
 
-rule sort_index_bam:
+#rule sort_index_bam:
+#    input:
+#        "Whippet/BAM/Merge/{cluster}.bam.merge"
+#    output:
+#        "Whippet/BAM/Merge/{cluster}.sort.bam"
+#    shell:
+#        'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
+
+        
+rule  get_sam_by_cluster:
     input:
-        "Whippet/BAM/Merge/{cluster}.bam.merge"
+        fastq = lambda w: expand('FASTQ/{sample}.fastq.gz', sample=cluster_files_metadata[w.cluster])
+        index = "Whippet/Index/whippet.jls"
+    params:
+      bin = config["whippet_bin_folder"],
+      output = "Whippet/Quant/{sample}",
+      flags = "--sam"
+    output:
+      "Whippet/Quant/Merge/{cluster}.gene.tpm.gz",
+      "Whippet/Quant/Merge/{cluster}.isoform.tpm.gz",
+      "Whippet/Quant/Merge/{cluster}.jnc.gz",
+      "Whippet/Quant/Merge/{cluster}.map.gz",
+      "Whippet/Quant/Merge/{cluster}.psi.gz",
+      sam = temp("Whippet/BAM/Merge/{cluster}.sam.merge")
+    priority: 100
+    shell:
+      "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"        
+
+rule sam_to_sorted_bam_index:
+    input:
+        "Whippet/BAM/Merge/{cluster}.sam.merge"
     output:
         "Whippet/BAM/Merge/{cluster}.sort.bam"
     shell:
-        'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
-        
+        'samtools view -Sb  {input}  | samtools sort - -o {output} && samtools index {output}'            
+
 rule cluster_bams:
     input:
-        expand("Whippet/BAM/Merge/{cluster}.sort.bam", cluster=cluster_files.keys())  
+        expand("Whippet/BAM/Merge/{cluster}.sort.bam", cluster=cluster_files_metadata.keys())  
                
 # # # # #               
           
