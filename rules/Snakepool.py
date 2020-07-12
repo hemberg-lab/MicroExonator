@@ -358,7 +358,7 @@ rule  get_sam_by_cluster:
       sam = temp("Whippet/BAM/Merge/{cluster}.sam.merge")
     priority: 100
     shell:
-      "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"        
+      "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"     
 
 rule sam_to_sorted_bam_index:
     input:
