@@ -282,6 +282,8 @@ for compare_name, c in cluster_compare.items():
         pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
 
+print(pool_dict_quant)        
+        
 rule quant_pool:
     input:
         fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
