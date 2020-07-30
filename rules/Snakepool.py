@@ -131,19 +131,26 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
             target_pool_delta.append( delta_name + ".diff.microexons")
 
 
-if str2bool(config.get("Only_snakepool", False)):
-    
  rule snakepool:   # This rule execute all the nesesary rules to produce the target files
    input:
-    target_pool_delta #,#target files
-    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
+    target_pool_delta 
+    target_sig_nodes        
+        
+        
+        
+#if str2bool(config.get("Only_snakepool", False)):
     
-else:
+# rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+#   input:
+#    target_pool_delta #,#target files
+#    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
+    
+#else:
       
-    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-       input:
-        target_pool_delta #,#target files
-        #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.microexons", compare_name=compare_names)
+#    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+#       input:
+#        target_pool_delta #,#target files
+#        #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.microexons", compare_name=compare_names)
 
 
 ##### Single cell ####
