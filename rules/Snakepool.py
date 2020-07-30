@@ -131,10 +131,10 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
             target_pool_delta.append( delta_name + ".diff.microexons")
 
 
- rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-   input:
-    target_pool_delta 
-    target_sig_nodes        
+rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+    input:
+        target_pool_delta 
+        target_sig_nodes        
         
         
         
