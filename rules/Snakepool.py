@@ -133,7 +133,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 
 rule snakepool:   # This rule execute all the nesesary rules to produce the target files
     input:
-        target_pool_delta 
+        target_pool_delta,
         target_sig_nodes        
         
         
