@@ -11,3 +11,4 @@ dependencies:
   - r-stringi
   - pandoc
   - r-rmarkdown
+  - r-distributions3
