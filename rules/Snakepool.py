@@ -338,12 +338,12 @@ rule CDF_betaDist:
         target_pool_delta
     params:
         wd = config["working_directory"],
-        cdf_t = config["cdf_t"], #0.8
-        min_rep = config["min_rep"], #25
-        min_p_mean = config["min_p_mean"], #0.9
-        path_run_metatda= config["run_metadata"], # "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Tasic_run.txt"
-        path_delta = "Whippet/Delta/Single_Cell/", #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/"
-        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/", #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"        
+        cdf_t = config["cdf_t"], 
+        min_rep = config["min_rep"], 
+        min_p_mean = config["min_p_mean"], 
+        path_run_metatda= config["run_metadata"], 
+        path_delta = "Whippet/Delta/Single_Cell/", 
+        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/",    
     output:
         target_sig_nodes
     log:
