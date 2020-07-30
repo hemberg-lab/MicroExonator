@@ -80,6 +80,8 @@ with open(config["cluster_metadata"]) as Single_Cell:
 target_pool_psi = []
 target_pool_delta = []
 
+target_sig_nodes = []
+
 
 #cluster_compare = { "Neuronal-vs-Non_Neuronal" :( ["GABA-ergic Neuron",  "Glutamatergic Neuron"], ["Endothelial Cell", "Astrocyte", "Microglia", "Oligodendrocyte", "Oligodendrocyte Precursor Cell" ] ),
 #                    "GABA-ergic_Neuron_vs_Glutamatergic_Neuron" :( ["GABA-ergic Neuron"], ['Glutamatergic Neuron'] )     }
@@ -111,6 +113,8 @@ compare_names = []
 for compare_name in cluster_compare.keys():  #Getting the target files - key = compare_name ; value = c
 
     compare_names.append(compare_name)
+    sig_node = "Whippet/Delta/Single_Cell/Sig_nodes/" + compare_name +  ".txt"
+    target_sig_nodes.append(sig_node)
 
     for r in range(compare_repeats[compare_name]):
 
@@ -318,29 +322,29 @@ rule delta_pool:
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
  
+"Whippet/Delta/Single_Cell/"
+"Whippet/Delta/Single_Cell/Sig_nodes/"
+
+
 rule CDF_betaDist:
     input:
         target_pool_delta
     params:
         wd = config["working_directory"],
-        cdf_t = config["working_directory"], #0.8
-        min_rep = config["working_directory"], #25
-        min_p_mean = config["working_directory"], #0.9
-        path_run_metatda= config["working_directory"], # "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Tasic_run.txt"
-        path_delta = config["working_directory"], #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/"
-        path_out = config["working_directory"], #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"        
+        cdf_t = config["cdf_t"], #0.8
+        min_rep = config["min_rep"], #25
+        min_p_mean = config["min_p_mean"], #0.9
+        path_run_metatda= config["run_metadata"], # "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Tasic_run.txt"
+        path_delta = "Whippet/Delta/Single_Cell/", #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/"
+        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/", #"/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"        
     output:
-        "Report/out_filtered_ME.txt",
-        "Report/out_low_scored_ME.txt",
-        "Report/out_shorter_than_3_ME.txt",
-        "Report/report.html",
-        "Report/out_filtered_ME.cov.txt"
+        target_sig_nodes
     log:
         "logs/Output.log"
     conda:
         "../envs/R.yaml"
     shell:
-        '''R -e  'rmarkdown::render("src/final_filters2.Rmd",params = list(ME_table="{params.wd}{input[0]}", ME_coverage="{params.wd}{input[1]}", ME_matches_file="{params.wd}{input[2]}", out_filtered_ME="{params.wd}{output[0]}", out_low_scored_ME="{params.wd}{output[1]}", out_shorter_than_3_ME="{params.wd}{output[2]}", min_number_files_detected={params.min_number_files_detected}, out_filtered_ME_cov="{params.wd}{output[4]}" ), output_file="{params.wd}{output[3]}")' 2> {log} '''
+        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.cdf_t}", min_rep="{params.min_rep}", path_run_metatda="{params.wd}{params.path_run_metatda]}", path_delta="{params.wd}{params.path_delta]}", path_out="{params.wd}{params.path_out]}" )' 2> {log} '''
 
 
         
