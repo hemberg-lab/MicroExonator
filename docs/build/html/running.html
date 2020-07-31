@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Introduction" href="introduction.html" />
+    <link rel="next" title="Output" href="output.html" />
     <link rel="prev" title="Configuration" href="configuration.html" /> 
 </head>
 
@@ -94,10 +94,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Running</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">Output</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="licence.html">MicroExonator Licence</a></li>
@@ -207,7 +207,7 @@
 screen -d session_name
 </pre></div>
 </div>
-<p>** Alternative splicing analyses **</p>
+<p><strong>Alternative splicing analyses</strong></p>
 <p>Microexonator can couple the annotation and quantification of microexon with other downstream tools to asses alternative splicing changing. We have incorporated [whippet](<a class="reference external" href="https://github.com/timbitz/Whippet.jl">https://github.com/timbitz/Whippet.jl</a>) into a downstream snakemake workflow that can directly use the microexon annotation and quantification files to assess differential inclusion of microexons between multiple conditions. For this porpuse we recomend to install a custumised conda enviroment that has snkamemake and julia 0.6.1 installed. This can be don by using the following command from inside a MicroExonator folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span>conda env create -f Whippet/julia_0.6.1.yaml<span class="sb">`</span>
 </pre></div>
@@ -252,7 +252,7 @@ whippet_delta:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="output.html" class="btn btn-neutral float-right" title="Output" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

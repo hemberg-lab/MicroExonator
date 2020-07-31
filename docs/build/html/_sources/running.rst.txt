@@ -63,7 +63,7 @@ To reattached and detach screens just use:
    screen -d session_name
 
 
-** Alternative splicing analyses **
+**Alternative splicing analyses**
 
 Microexonator can couple the annotation and quantification of microexon with other downstream tools to asses alternative splicing changing. We have incorporated [whippet](https://github.com/timbitz/Whippet.jl) into a downstream snakemake workflow that can directly use the microexon annotation and quantification files to assess differential inclusion of microexons between multiple conditions. For this porpuse we recomend to install a custumised conda enviroment that has snkamemake and julia 0.6.1 installed. This can be don by using the following command from inside a MicroExonator folder:
 

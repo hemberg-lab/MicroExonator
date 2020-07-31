@@ -34,9 +34,9 @@ Welcome to MicroExonator's documentation!
 
     Running instructions
 
-**Tutorial**
+**Output**
 
-    We have developed a tutorial that explains how to implement each function and uses brief examples for each function to different biological problems.
+    Output
 
 
 **Licence**
@@ -78,6 +78,14 @@ Welcome to MicroExonator's documentation!
 
     running
 
+
+.. toctree::
+    :name: MicroExonator-output
+    :maxdepth: 1
+    :hidden:
+
+    output
+
 .. toctree::
     :name: MicroExonator-introduction
     :maxdepth: 1
@@ -91,12 +99,6 @@ Welcome to MicroExonator's documentation!
     :maxdepth: 1
     :hidden:
 
-.. toctree::
-    :name: MicroExonator-tutorial
-    :maxdepth: 1
-    :hidden:
-
-    tutorial
 
 .. toctree::
     :name: MicroExonator-Licence
