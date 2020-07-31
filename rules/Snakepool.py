@@ -329,8 +329,7 @@ rule delta_pool:
     shell:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
  
-"Whippet/Delta/Single_Cell/"
-"Whippet/Delta/Single_Cell/Sig_nodes/"
+
 
 
 rule CDF_betaDist:
@@ -347,12 +346,11 @@ rule CDF_betaDist:
     output:
         target_sig_nodes
     log:
-        "logs/Output.log"
+        "logs/Snakepool_BetaDist.log"
     conda:
         "../envs/R.yaml"
-    shell:
-        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.ct}", min_rep="{params.mr}", min.p.mean="{params.mm}", path_run_metatda="{params.wd}{params.pm}", path_delta="{params.wd}{params.path_delta}"))' 2> {log} '''
-
+    script:
+        "../src/Snakepool_BetaDist.R"
 
 #### these rules gereate a single indexed bam per condition which can be used for visualization
 #print(cluster_files_metadata)
