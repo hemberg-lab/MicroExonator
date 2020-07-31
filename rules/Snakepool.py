@@ -341,9 +341,9 @@ rule CDF_betaDist:
         cdf_t = config["cdf_t"], 
         min_rep = config["min_rep"], 
         min_p_mean = config["min_p_mean"], 
-        path_run_metatda= config["run_metadata"], 
+        pm = config["run_metadata"], 
         path_delta = "Whippet/Delta/Single_Cell/", 
-        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/",    
+        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
     output:
         target_sig_nodes
     log:
@@ -351,7 +351,7 @@ rule CDF_betaDist:
     conda:
         "../envs/R.yaml"
     shell:
-        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.cdf_t}", min_rep="{params.min_rep}", path_run_metatda="{params.wd}{params.path_run_metatda]}", path_delta="{params.wd}{params.path_delta]}", path_out="{params.wd}{params.path_out]}" )' 2> {log} '''
+        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.cdf_t}", min_rep="{params.min_rep}", path_run_metatda="{params.wd}{params.pm]}", path_delta="{params.wd}{params.path_delta]}", path_out="{params.wd}{params.path_out]}" )' 2> {log} '''
 
 
         
