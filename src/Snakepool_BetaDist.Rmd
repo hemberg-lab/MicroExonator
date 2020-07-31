@@ -120,7 +120,7 @@ for (i in 1:nrow(run_metadata)) {
 
 
 ```{r}
-
+print(path_run_metatda)
 
 snakepool_BetaDist(cdf_t, min.p.mean, min_rep,  
                    path_run_metatda,
