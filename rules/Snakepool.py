@@ -351,7 +351,7 @@ rule CDF_betaDist:
     conda:
         "../envs/R.yaml"
     shell:
-        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.ct}", min_rep="{params.mr}", min_p_mean="{params.mm}", path_run_metatda="{params.wd}{params.pm]}", path_delta="{params.wd}{params.path_delta]}", path_out="{params.wd}{params.path_out]}" ))' 2> {log} '''
+        '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.ct}", min_rep="{params.mr}", min_p_mean="{params.mm}", path_run_metatda="{params.wd}{params.pm}", path_delta="{params.wd}{params.path_delta}"), path_out="{params.wd}{params.path_out}" )' 2> {log} '''
 
 
 #### these rules gereate a single indexed bam per condition which can be used for visualization
