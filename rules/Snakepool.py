@@ -363,7 +363,7 @@ rule CDF_betaDist:
 rule diff_ME_single_cell:
     input:
         "Whippet/Index/whippet.jls.exons.tab.gz",
-        "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt"
+        "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt",
         "Report/out.high_quality.txt"
     output:
         "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt"
