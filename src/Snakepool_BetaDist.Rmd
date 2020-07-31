@@ -10,6 +10,9 @@ params:
   path_out : "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"
 ---
 
+```{r}
+print(path_run_metatda)
+```
 
 ```{r}
 library(data.table)
