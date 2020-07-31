@@ -104,6 +104,8 @@ for (i in 1:nrow(run_metadata)) {
   
   fwrite(out, file= paste0(out_dir, run_metadata[i, Compare_ID], ".txt") , append = FALSE, quote = "auto", sep = "\t",  row.names = FALSE, col.names = TRUE)
 
+  }
+  
 }
 
 snakepool_BetaDist(cdf_t, min.p.mean, min_rep,  
