@@ -133,8 +133,9 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
 
 rule snakepool:   # This rule execute all the nesesary rules to produce the target files
     input:
-        target_pool_delta,
-        target_sig_nodes        
+        #target_pool_delta,
+        #target_sig_nodes  
+        expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt",  comparison_name=compare_names)
         
         
         
@@ -357,6 +358,17 @@ rule CDF_betaDist:
         "../envs/R.yaml"
     script:
         "../src/Snakepool_BetaDist.R"
+        
+        
+rule diff_ME_single_cell:
+    input:
+        "Whippet/Index/whippet.jls.exons.tab.gz",
+        "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt"
+        "Report/out.high_quality.txt"
+    output:
+        "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt"
+    shell:
+        "python src/get_diff_ME_single_cell.py {input} > {output}"
 
 #### these rules gereate a single indexed bam per condition which can be used for visualization
 #print(cluster_files_metadata)
