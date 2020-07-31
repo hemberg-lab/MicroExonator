@@ -121,12 +121,6 @@ for (i in 1:nrow(run_metadata)) {
 
 ```{r}
 
-cdf_t = 0.8
-min_rep = 25
-min.p.mean = 0.9
-path_run_metatda= "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Tasic_run.txt"
-path_delta = "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/"
-path_out = "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"
 
 snakepool_BetaDist(cdf_t, min.p.mean, min_rep,  
                    path_run_metatda,
@@ -134,13 +128,4 @@ snakepool_BetaDist(cdf_t, min.p.mean, min_rep,
                    path_out)
 ```
 
-
-
-```{r}
-GABA_gluta.tasic <- fread("/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/GABA-ergic_Neuron_vs_Glutamatergic_Neuron.txt")
-
-View(GABA_gluta.tasic[Type=="CE", ])
-
-
-```
 
