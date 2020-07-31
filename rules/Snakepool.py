@@ -347,9 +347,10 @@ rule CDF_betaDist:
         ct = config["cdf_t"], 
         mr = config["min_rep"], 
         mm = config["min_p_mean"], 
-        pm = config["run_metadata"], 
+        pm = config["run_metadata"],
+        min_delta = config["min_delta"]
         path_delta = "Whippet/Delta/Single_Cell/", 
-        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
+        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"
     output:
         target_sig_nodes
     log:
