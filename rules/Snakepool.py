@@ -353,8 +353,7 @@ rule CDF_betaDist:
     shell:
         '''R -e  'rmarkdown::render("src/Snakepool_BetaDist.Rmd", params = list(cdf_t="{params.ct}", min_rep="{params.mr}", min_p_mean="{params.mm}", path_run_metatda="{params.wd}{params.pm]}", path_delta="{params.wd}{params.path_delta]}", path_out="{params.wd}{params.path_out]}" ))' 2> {log} '''
 
-  '''R -e  'rmarkdown::render("src/final_filters2.Rmd",params = list(ME_table="{params.wd}{input[0]}", ME_coverage="{params.wd}{input[1]}", ME_matches_file="{params.wd}{input[2]}", out_filtered_ME="{params.wd}{output[0]}", out_low_scored_ME="{params.wd}{output[1]}", out_shorter_than_3_ME="{params.wd}{output[2]}", min_number_files_detected={params.min_number_files_detected}, out_filtered_ME_cov="{params.wd}{output[4]}" ), output_file="{params.wd}{output[3]}"))' 2> {log} '''
-        
+
 #### these rules gereate a single indexed bam per condition which can be used for visualization
 #print(cluster_files_metadata)
 for c, files in cluster_files_metadata.items():
