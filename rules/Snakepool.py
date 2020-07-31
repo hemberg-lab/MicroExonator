@@ -8,14 +8,7 @@ sed = config.get("snakepool_seed", 123)
 random.seed(int(sed)) 
 
 
-if str2bool(config.get("Only_snakepool", False)):
-    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-        input:
-            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt",  comparison_name=compare_names)
-else:
-    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-        input:
-            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt",  comparison_name=compare_names)
+
 
 
 ###############
@@ -403,6 +396,16 @@ for c, files in cluster_files_metadata.items():
 #        "Whippet/BAM/Merge/{cluster}.sort.bam"
 #    shell:
 #        'samtools view -b  {input}  | samtools sort - -o {output} && samtools index {output}'
+
+
+if str2bool(config.get("Only_snakepool", False)):
+    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+        input:
+            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt",  comparison_name=compare_names)
+else:
+    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+        input:
+            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt",  comparison_name=compare_names)
 
         
 rule  get_sam_by_cluster:
