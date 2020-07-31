@@ -1,26 +1,20 @@
----
-title: "Snakepool BetaDist"
-output: html_notebook
-params:
-  cdf_t : 0.8
-  min_rep : 25
-  min.p.mean : 0.9
-  path_run_metatda : "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Tasic_run.txt"
-  path_delta : "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/"
-  path_out : "/Users/gp7/Google_Drive/Results/ME/Single_cell/BetaDist/Sig_nodes/test/"
----
+log <- file(snakemake@log[[1]], open="wt")
 
-```{r}
-print(path_run_metatda)
-```
+cdf_t = snakemake@params[["ct"]]
+min_rep = snakemake@params[["mr"]]
+min.p.mean = snakemake@params[["mm"]]
+path_run_metatda = snakemake@params[["pm"]]
+path_delta = snakemake@params[["path_delta"]]
+path_out = snakemake@params[["path_out"]]
 
-```{r}
+
+
 library(data.table)
 library(distributions3)
-```
 
 
-```{r}
+
+
 
 get_rep_table <- function( file_path, rep){
 
@@ -47,12 +41,10 @@ get_rep_table <- function( file_path, rep){
   comparison
 
 }
-```
 
 
 
 
-```{r}
 
 
 cdf.beta <- function(mu, var, p) {
@@ -61,12 +53,12 @@ cdf.beta <- function(mu, var, p) {
   
   return(cdf( Beta(alpha, beta), p))
 }
-```
 
 
 
 
-```{r}
+
+
 
 get_diff_nodes <- function (path, comp_name, reps, beta_t, min.p.mean, min_number_reps){
   
@@ -92,10 +84,7 @@ get_diff_nodes <- function (path, comp_name, reps, beta_t, min.p.mean, min_numbe
 
 
 }
-```
 
-
-```{r}
 
 snakepool_BetaDist <-function(beta_t, min.p.mean, min_number_reps, path_metadata, path_delta, out_dir){
   
@@ -114,21 +103,14 @@ for (i in 1:nrow(run_metadata)) {
   out <- get_diff_nodes(path_delta, run_metadata[i, Compare_ID], run_metadata[i, Repeat], beta_t, min.p.mean, min_number_reps )
   
   fwrite(out, file= paste0(out_dir, run_metadata[i, Compare_ID], ".txt") , append = FALSE, quote = "auto", sep = "\t",  row.names = FALSE, col.names = TRUE)
-}
-
-
-}
-```
 
 
 
-```{r}
-print(path_run_metatda)
 
 snakepool_BetaDist(cdf_t, min.p.mean, min_rep,  
                    path_run_metatda,
                    path_delta,
                    path_out)
-```
+
 
 
