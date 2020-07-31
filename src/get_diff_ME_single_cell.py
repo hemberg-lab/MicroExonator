@@ -10,10 +10,11 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     MEs = set([])
     ME_info = dict()
     
-    header = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A.mean", "Psi_B.mean", "DeltaPsi.mean", "DeltaPsi.sd", "Probability.mean", "Probability.sd", "Probability.var", "N.detected.reps", "cdf.beta", "is.diff", "microexon_ID"]
+    header_out = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A.mean", "Psi_B.mean", "DeltaPsi.mean", "DeltaPsi.sd", "Probability.mean", "Probability.sd", "Probability.var", "N.detected.reps", "cdf.beta", "is.diff", "microexon_ID"]
 
+    header = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A.mean", "Psi_B.mean", "DeltaPsi.mean", "DeltaPsi.sd", "Probability.mean", "Probability.sd", "Probability.var", "Number", "cdf.beta", "diff"]
 
-    print("\t".join(["exon_ID"] + header))
+    print("\t".join(header_out))
 
 
     with open(high_qual_ME) as F:
