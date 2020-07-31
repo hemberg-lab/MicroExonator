@@ -3,9 +3,20 @@
 #wildcard_constraints:
 #    sample="^[A-Za-z0-9_-]*$"
 
-random.seed(123) 
+sed = config.get("snakepool_seed", 123)
 
-#repeats = 10  #now the repeats are specified on the tsv
+random.seed(int(sed)) 
+
+
+if str2bool(config.get("Only_snakepool", False)):
+    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+        input:
+            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt",  comparison_name=compare_names)
+else:
+    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
+        input:
+            expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt",  comparison_name=compare_names)
+
 
 ###############
 
@@ -129,29 +140,6 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         else:    
        
             target_pool_delta.append( delta_name + ".diff.microexons")
-
-
-rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-    input:
-        #target_pool_delta,
-        #target_sig_nodes  
-        expand("Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt",  comparison_name=compare_names)
-        
-        
-        
-#if str2bool(config.get("Only_snakepool", False)):
-    
-# rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-#   input:
-#    target_pool_delta #,#target files
-#    #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.gz", compare_name=compare_names)   
-    
-#else:
-      
-#    rule snakepool:   # This rule execute all the nesesary rules to produce the target files
-#       input:
-#        target_pool_delta #,#target files
-#        #expand("Whippet/Delta/Single_Cell/Unpooled/{compare_name}.diff.microexons", compare_name=compare_names)
 
 
 ##### Single cell ####
@@ -339,30 +327,51 @@ rule unizip_delta:
     shell:
         "gzip -d {input}"
 
-rule CDF_betaDist:
-    input:
-        target_pool_delta
-    params:
-        wd = config["working_directory"],
-        ct = config["cdf_t"], 
-        mr = config["min_rep"], 
-        mm = config["min_p_mean"], 
-        pm = config["run_metadata"],
-        min_delta = config["min_delta"],
-        path_delta = "Whippet/Delta/Single_Cell/", 
-        path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
-    output:
-        if str2bool(config.get("Only_snakepool", False)):
-            target_sig_nodes
-        else:
-            temp(target_sig_nodes)
-    log:
-        "logs/Snakepool_BetaDist.log"
-    conda:
-        "../envs/R.yaml"
-    script:
-        "../src/Snakepool_BetaDist.R"
         
+if str2bool(config.get("Only_snakepool", False)):
+        
+    rule CDF_betaDist:
+        input:
+            target_pool_delta
+        params:
+            wd = config["working_directory"],
+            ct = config["cdf_t"], 
+            mr = config["min_rep"], 
+            mm = config["min_p_mean"], 
+            pm = config["run_metadata"],
+            min_delta = config["min_delta"],
+            path_delta = "Whippet/Delta/Single_Cell/", 
+            path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
+        output:
+            target_sig_nodes
+        log:
+            "logs/Snakepool_BetaDist.log"
+        conda:
+            "../envs/R.yaml"
+        script:
+            "../src/Snakepool_BetaDist.R"
+else:
+    
+    rule CDF_betaDist:
+        input:
+            target_pool_delta
+        params:
+            wd = config["working_directory"],
+            ct = config["cdf_t"], 
+            mr = config["min_rep"], 
+            mm = config["min_p_mean"], 
+            pm = config["run_metadata"],
+            min_delta = config["min_delta"],
+            path_delta = "Whippet/Delta/Single_Cell/", 
+            path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
+        output:
+            temp(target_sig_nodes)
+        log:
+            "logs/Snakepool_BetaDist.log"
+        conda:
+            "../envs/R.yaml"
+        script:
+            "../src/Snakepool_BetaDist.R"        
         
 rule diff_ME_single_cell:
     input:
