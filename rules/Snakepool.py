@@ -71,6 +71,8 @@ cluster_files = defaultdict(list)
 
 #cluster_files = {"GABA" : ["fileA", ... ] }
 
+single_cell_files = set([])
+
 with open(config["cluster_metadata"]) as Single_Cell:
 
     Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
@@ -78,8 +80,13 @@ with open(config["cluster_metadata"]) as Single_Cell:
     for row in Single_Cell_clustering:
 
         cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
+        single_cell_files.add(row[config["file_basename"]])
 
 
+rule quant_unpool_single_cell:
+    input:
+        expand("Whippet/Quant/{sample}.psi.gz", sample=single_cell_files )
+        
 
 target_pool_psi = []
 target_pool_delta = []
