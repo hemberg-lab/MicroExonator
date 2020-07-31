@@ -3,13 +3,15 @@ from collections import defaultdict
 import gzip
 
 
+
 def main(jls_exons_tab, delta, high_qual_ME ):
 
     node_exons = dict()
     MEs = set([])
     ME_info = dict()
     
-    header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
+    header = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A.mean", "Psi_B.mean", "DeltaPsi.mean", "DeltaPsi.sd", "Probability.mean", "Probability.sd", "Probability.var", "N.detected.reps", "cdf.beta", "is.diff", "microexon_ID"]
+
 
     print("\t".join(["exon_ID"] + header))
 
@@ -34,7 +36,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                 node_exons[(row["Gene"], node)] = [row["Potential_Exon"], row["Is_Annotated"]]
 
 
-    with gzip.open(delta, mode="rt") as F: 
+    with open(delta) as F: 
 
         reader = csv.DictReader(F, delimiter="\t")
 
@@ -111,10 +113,11 @@ def main(jls_exons_tab, delta, high_qual_ME ):
            
 
                 if exon_ID in MEs:
-                #if exon_ID!="":
+                   print("\t".join( [row[x] for x in header] + [exon_ID] ))
           
-                   print("\t".join([exon_ID] + [row[x] for x in header] ))
-          
-
+                else:
+                   print("\t".join( [row[x] for x in header] + [NA] ))
+            
+            
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3])
