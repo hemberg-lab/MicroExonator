@@ -116,7 +116,7 @@ def main(jls_exons_tab, delta, high_qual_ME ):
                    print("\t".join( [row[x] for x in header] + [exon_ID] ))
           
                 else:
-                   print("\t".join( [row[x] for x in header] + [NA] ))
+                   print("\t".join( [row[x] for x in header] + ["NA"] ))
             
             
 if __name__ == '__main__':
