@@ -124,7 +124,7 @@ for compare_name in cluster_compare.keys():  #Getting the target files - key = c
         
         if str2bool(config.get("Only_snakepool", False)):
             
-            target_pool_delta.append( delta_name + ".diff.gz")
+            target_pool_delta.append( delta_name + ".diff")
            
         else:    
        
@@ -330,7 +330,13 @@ rule delta_pool:
         "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
  
 
-
+rule unizip_delta:
+    input:
+        "Whippet/Delta/Single_Cell/{delta}.diff.gz"
+    output:    
+        "Whippet/Delta/Single_Cell/{delta}.diff"
+    shell:
+        "gzip -d {input}"
 
 rule CDF_betaDist:
     input:
