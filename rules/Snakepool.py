@@ -325,7 +325,7 @@ if str2bool(config.get("Only_snakepool", False)):
         
     rule CDF_betaDist:
         input:
-            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(compare_repeats[compare_name]))
+            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(1,int(compare_repeats[compare_name])+1))
         params:
             wd = config["working_directory"],
             ct = config["cdf_t"], 
@@ -347,7 +347,7 @@ else:
     
     rule CDF_betaDist:
         input:
-            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(compare_repeats[compare_name]))
+            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(1,int(compare_repeats[compare_name])+1))
         params:
             wd = config["working_directory"],
             ct = config["cdf_t"], 
