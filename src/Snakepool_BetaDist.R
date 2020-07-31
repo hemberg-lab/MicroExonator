@@ -6,6 +6,7 @@ min.p.mean = snakemake@params[["mm"]]
 path_run_metatda = snakemake@params[["pm"]]
 path_delta = snakemake@params[["path_delta"]]
 path_out = snakemake@params[["path_out"]]
+min_delta = snakemake@params[["min_delta"]]
 
 
 
@@ -79,7 +80,7 @@ get_diff_nodes <- function (path, comp_name, reps, beta_t, min.p.mean, min_numbe
     comp.stats[ ,  cdf.beta:=cdf.beta( Probability.mean, Probability.var  , beta_t) ]
     
     
-    comp.stats[ , diff:=(abs(DeltaPsi.mean)>=0.2 & cdf.beta  < 0.05 & Probability.mean>=min.p.mean & ! Type %in% c("TE", "TS") & Number > min_number_reps)  ]
+    comp.stats[ , diff:=(abs(DeltaPsi.mean)>=min_delta & cdf.beta  < 0.05 & Probability.mean>=min.p.mean & ! Type %in% c("TE", "TS") & Number > min_number_reps)  ]
     
 
 
