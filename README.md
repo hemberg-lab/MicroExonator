@@ -32,6 +32,7 @@ Before running MicroExonator you need to have certain files in the `MicroExonato
     ME_DB : /path/to/ME_DB.bed
     ME_len : 30
     Optimize_hard_drive : T
+    min_number_files_detected : 3
 
 Here:
 
@@ -42,7 +43,8 @@ Here:
 * `working_directory` is the path to the MicroExonator folder that you are working with
 * `ME_len` is microexon maximum lenght. The default value is 30.
 * `ME_DB` is a path to a known Microexon database such as VAST DB (is this optional or no?)
-* `Optimize_hard_drive` can be set as `T` or `F` (true of false). When it is set as `F`, fastq files will be downloaded or copied only once at `FASTQ/` directory. This can be inconvenient when you are analysing large amout of data (for instance when your input data is larger than 1TB), because the copy will not be deleted until MicroExonator finish completely. When `Optimize_hard_drive` is set as `T` instead, two independet local copies will be generated for the discovery and quantification moduled. As these are temporary copies, every copied fastq file will be deleted as soon as is mapped to the splice junction tags, which means the disk space usage will be set to the minimum while MicroExonator is runing. 
+* `Optimize_hard_drive` can be set as `T` or `F` (true of false). When it is set as `F`, fastq files will be downloaded or copied only once at `FASTQ/` directory. This can be inconvenient when you are analysing large amout of data (for instance when your input data is larger than 1TB), because the copy will not be deleted until MicroExonator finish completely. When `Optimize_hard_drive` is set as `T` instead, two independet local copies will be generated for the discovery and quantification moduled. As these are temporary copies, every copied fastq file will be deleted as soon as is mapped to the splice junction tags, which means the disk space usage will be set to the minimum while MicroExonator is runing.
+* `min_number_files_detected` correspond to the minumun number of in which a microexon needs to be found in order to concider it as high confidence. Setting this number to at least 2 is recommended single-end FASTQ files and 3 if paired end files are also present.
 
 To imput the RNA-seq data, you need to either create a `design.tsv` (for fastq.gz files that are stored locally) and/or `NCBI_accession_list.txt`(for SRA accession names) which are automatically downloaded. You can find examples of these files inside the Examples folder. 
 
