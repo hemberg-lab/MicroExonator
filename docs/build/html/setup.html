@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Setup &mdash; MicroExonator  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Discovery and Quantification" href="discovery_and_quantification.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> MicroExonator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rna-seq-samples">RNA-seq samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cluster-configuration">Cluster configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-file">Config file</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="discovery_and_quantification.html">Discovery and Quantification</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="differential_inclusion_analysis.html">Differential inclusion analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_cell_analysis.html">Single cell analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">MIT License (MIT)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MicroExonator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/setup.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="setup">
+<span id="input-files"></span><h1>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h1>
+<p>Before runnung MicroExonator there are several files that needs to be created inside <code class="docutils literal notranslate"><span class="pre">MicroExonator/</span></code> root folder:</p>
+<div class="section" id="rna-seq-samples">
+<h2>RNA-seq samples<a class="headerlink" href="#rna-seq-samples" title="Permalink to this headline">¶</a></h2>
+<p>Input RNA-seq data either a <code class="docutils literal notranslate"><span class="pre">local_samples.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">NCBI_accession_list.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">sample_url.tsv</span></code> needs to be defined.
+If you want to run MicroExonator over RNA-seq samples that are locally stored, they need to be defined inside <code class="docutils literal notranslate"><span class="pre">local_samples.tsv</span></code>.
+MicroExonator can also download and run samples from NCBI if the corresponding SRA accession names are defined inside of <code class="docutils literal notranslate"><span class="pre">NCBI_accession_list.txt</span></code>,
+in addition any <code class="docutils literal notranslate"><span class="pre">fastq.gz</span></code> that can be directly download from a URL can be included into the aalysis by defining them inside a <code class="docutils literal notranslate"><span class="pre">sample_url.tsv</span></code>.
+You can find examples of these files inside the <code class="docutils literal notranslate"><span class="pre">Examples/</span></code> folder.
+Is posible to combine different types of input sources, but at least one of these files needs to be defined inside <code class="docutils literal notranslate"><span class="pre">MicroExonator/</span></code> root folder.</p>
+</div>
+<div class="section" id="cluster-configuration">
+<h2>Cluster configuration<a class="headerlink" href="#cluster-configuration" title="Permalink to this headline">¶</a></h2>
+<p>If you are working on a high performace cluster, then it is very likely that you need to submit jobs to queueing systems such as lsf, qsub, SLURM, etc.
+To make MicroExonator work with these queueing systems, you need to create a <cite>cluster.json</cite> file.
+We currently provide in the Examples folder a <code class="docutils literal notranslate"><span class="pre">cluster.json</span></code> file to run MicroExonator with <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/en/SSETD4/product_welcome_platform_lsf.html">lsf</a>.
+To adapt MicroExonator to other quequing systems please see the <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html?highlight=cluster.json#cluster-configuration">SnakeMake documentation</a>.</p>
+</div>
+<div class="section" id="config-file">
+<h2>Config file<a class="headerlink" href="#config-file" title="Permalink to this headline">¶</a></h2>
+<p>Each MicroExonator’s module has certain compulsory and optional parameters that needs to be defined inside a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file.
+The necesary content of <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> is described on each moudle section and examples can be found at the <code class="docutils literal notranslate"><span class="pre">Examples/</span></code> folder.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="discovery_and_quantification.html" class="btn btn-neutral float-right" title="Discovery and Quantification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Guillermo E. Parada
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

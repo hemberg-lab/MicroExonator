@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Differential inclusion analysis &mdash; MicroExonator  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Single cell analysis" href="single_cell_analysis.html" />
+    <link rel="prev" title="Discovery and Quantification" href="discovery_and_quantification.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> MicroExonator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="discovery_and_quantification.html">Discovery and Quantification</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Differential inclusion analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install">Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configure">Configure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#whippet-delta-yaml-file">whippet_delta YAML file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-parameters">Optional parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_cell_analysis.html">Single cell analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">MIT License (MIT)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MicroExonator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Differential inclusion analysis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/differential_inclusion_analysis.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="differential-inclusion-analysis">
+<h1>Differential inclusion analysis<a class="headerlink" href="#differential-inclusion-analysis" title="Permalink to this headline">¶</a></h1>
+<p>On this secction we descrive the a downstream module that was developed to perform alternative splicing analysis between sample groups. To quantify and assess differential inclusion of novel and annotated microexons, on this moudle we have integrated <a class="reference external" href="https://github.com/timbitz/Whippet.jl">Whippet</a>, which enables a fast and accurate assesment of alterntive splicing events across user-defined sample groups.</p>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<p>To run this downstream module for the first time you need to create a environment that has <cite>snakemake</cite> and the version of <cite>julia</cite> that is compatible with <cite>Whipet v0.11</cite>. To creat this enviroment execute the following command inside <code class="docutils literal notranslate"><span class="pre">MicroExonator/</span></code> folder:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f Whippet/julia_0.6.1.yaml
+</pre></div>
+</div>
+<p>Then, activate the newly created enviroment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate julia_0.6.1
+</pre></div>
+</div>
+<p>Enter julia’s interactive mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>julia
+</pre></div>
+</div>
+<p>Install Whippet by excecuting the following command on the interactive session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Pkg.add<span class="o">(</span><span class="s2">&quot;Whippet&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To exit julia interactive session press <code class="docutils literal notranslate"><span class="pre">control</span> <span class="pre">+</span> <span class="pre">d</span></code>.</p>
+</div>
+</div>
+<div class="section" id="configure">
+<h2>Configure<a class="headerlink" href="#configure" title="Permalink to this headline">¶</a></h2>
+<p>Here there is an list of the additonal keys that need to be incorporated as a part of config.yaml:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>whippet_bin_folder : /path/to/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
+Gene_anontation_GTF : /path/to/gene.annotation.gtf
+whippet_delta : /path/to/whippet_delta.yaml
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">whippet_bin_folder</span></code> correspodn t the path of whippet binary folder (<code class="docutils literal notranslate"><span class="pre">Whippet/bin</span></code>) that is located inside <code class="docutils literal notranslate"><span class="pre">julia_0.6.1</span></code> virtual enviroment folder. The specific routh to <code class="docutils literal notranslate"><span class="pre">Whippet/bin</span></code> may variate, so it is important that you manually identify the correct path.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gene_anontation_GTF</span></code> corresponds the path of a gene annotation file as Gene Transfer Format (<a class="reference external" href="https://en.wikipedia.org/wiki/Gene_transfer_format#:~:text=The%20Gene%20transfer%20format%20(GTF,conventions%20specific%20to%20gene%20information.">GTF</a>). Working with the same annotation data base than the one used on the previous steps is recommended.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">whippet_delta</span></code> indicate the path of a <a class="reference external" href="https://en.wikipedia.org/wiki/YAML#:~:text=Open%20format%3F&amp;text=YAML%20(a%20recursive%20acronym%20for,is%20being%20stored%20or%20transmitted.">YAML</a> file you need to create to provide information about the desired comparisons between groups of samples.</p></li>
+</ul>
+<div class="section" id="whippet-delta-yaml-file">
+<h3>whippet_delta YAML file<a class="headerlink" href="#whippet-delta-yaml-file" title="Permalink to this headline">¶</a></h3>
+<p>This file can contain the information to schedule any number of comparison between sample groups of any size. Every comparison should have the following structure inside the YAML file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>comparison_ID:
+  A : sample1,sample2,sample3
+  B : sample4,sample5,sample6
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">sample1</span> <span class="pre">...</span> <span class="pre">sample6</span></code> correspond to base names given to each RNA-seq samples at the corresponding input files (See <a class="reference internal" href="setup.html"><span class="doc">Setup</span></a>) and <cite>comparison_ID</cite> to any given name for the sheduled comparison. As an example see the <a class="reference download internal" download="" href="_downloads/1f93ac092b843bd1458cd4d903a8652f/whippet_delta.yaml"><code class="xref download docutils literal notranslate"><span class="pre">YAML</span> <span class="pre">file</span></code></a> we used in our publication.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Inside this YAML file sample groups must be named <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>.</p>
+</div>
+</div>
+<div class="section" id="optional-parameters">
+<h3>Optional parameters<a class="headerlink" href="#optional-parameters" title="Permalink to this headline">¶</a></h3>
+<p>If you just want to skip Discovery and Quantification modules and just asses alternative splicing events annotated at the provided GTF file, then include the following like at the configuratio file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>downstream_only : T
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="output">
+<h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<p>Quantification files generated per each sample can be found at <code class="docutils literal notranslate"><span class="pre">Whipet/Quant</span></code>. Differentially included microexon analyses that can be obtained with Whippet, are reported at <code class="docutils literal notranslate"><span class="pre">Whippet/Delta</span></code> folder. MicroExonator performs these analyses using both PSI values calculated internally by the pipeline and PSI values directly calculated with Whippet. These results are reported under the same format than the <code class="docutils literal notranslate"><span class="pre">diff.gz</span></code> descrived at the <a class="reference external" href="https://github.com/timbitz/Whippet.jl#output-formats">Whippet’s GitHub page</a>. However, to provide easier interpretation, we filter the Whippet splicing nodes that correspond to microexon inclusion events, these are reported as <code class="docutils literal notranslate"><span class="pre">.microexons</span></code> files, where <code class="docutils literal notranslate"><span class="pre">.diff.ME.microexons</span></code> files correspond to the output when MicroExonator PSI values are taken as input and <code class="docutils literal notranslate"><span class="pre">.diff.microexons</span></code> when Whippet PSI  values are taken as input.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="single_cell_analysis.html" class="btn btn-neutral float-right" title="Single cell analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="discovery_and_quantification.html" class="btn btn-neutral float-left" title="Discovery and Quantification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Guillermo E. Parada
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
