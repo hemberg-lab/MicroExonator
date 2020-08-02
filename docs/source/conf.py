@@ -58,3 +58,5 @@ html_context = {
         '_static/theme_overrides.css',  # override wide tables in RTD theme
         ],
      }
+
+master_doc = 'index'
