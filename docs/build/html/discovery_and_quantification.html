@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Discovery and Quantification &mdash; MicroExonator  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Differential inclusion analysis" href="differential_inclusion_analysis.html" />
+    <link rel="prev" title="Setup" href="setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> MicroExonator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Discovery and Quantification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#minimal-configuration">Minimal configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-configuration">Optional configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#run">Run</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-large-datasets">Running large datasets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#limit-your-downloading-jobs">Limit your downloading jobs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optimize-your-hardrive-space">Optimize your hardrive space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#handle-number-of-files">Handle number of files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="differential_inclusion_analysis.html">Differential inclusion analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_cell_analysis.html">Single cell analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">MIT License (MIT)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MicroExonator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Discovery and Quantification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/discovery_and_quantification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="discovery-and-quantification">
+<h1>Discovery and Quantification<a class="headerlink" href="#discovery-and-quantification" title="Permalink to this headline">¶</a></h1>
+<p>The main core modules from MicroExonator correspond to the Discovery and Quantification modules.
+On a regular MicroExonator run, both modules are run however is also posible to run these modules independely.
+By default, all the downloaded files are temporarely stored in <code class="docutils literal notranslate"><span class="pre">MicroExonator/FASTQ</span></code> folder, which means that several GBs of disk space may be required.</p>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>Before running Discovery and Quantification modules is necesary to set all the required parameters inside the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file.</p>
+<div class="section" id="minimal-configuration">
+<h3>Minimal configuration<a class="headerlink" href="#minimal-configuration" title="Permalink to this headline">¶</a></h3>
+<p>In this seccetion we describe the minimal set of parameters that needs to be defined before running MicroExonator.
+Since these modules correspond to the core of the pipeline, these parameters are compusory, even if they are not used by the rest of the modules.
+An example of a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file that contain all these parameters would look like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Genome_fasta : /path/to/Genome.fa
+Gene_anontation_bed12 : /path/to/ensembl.bed12
+GT_AG_U2_5 : /path/to/GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /path/to/GT_AG_U2_3.good.matrix
+conservation_bigwig : /path/to/conservation.bw
+working_directory : /path/to/MicroExonator/
+ME_len : <span class="m">30</span>
+Optimize_hard_drive : T
+min_number_files_detected : <span class="m">3</span>
+</pre></div>
+</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Genome_fasta</span></code> is a <a class="reference external" href="http://www.metagenomics.wiki/tools/fastq/multi-fasta-format">multifasta</a> file containg the cromosomes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gene_anontation_bed12</span></code> is a BED file containing the transcript annotation. A collection of these files can be found at <a class="reference external" href="http://genome.ucsc.edu/cgi-bin/hgTables">UCSC Table Browser</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GT_AG_U2_5</span></code> and <code class="docutils literal notranslate"><span class="pre">GT_AG_U2_5</span></code> are splice site PWMs that can come from <a class="reference external" href="http://katahdin.cshl.edu//splice/splice_matrix_poster.cgi?database=spliceNew">SpliceRack</a>. Examples of these inmput files can be found at  <code class="docutils literal notranslate"><span class="pre">/PWM</span></code> Folder. In th case there are not any splice site PWMs available for your specie of interest, you cam assing them <cite>NA</cite> as a value and MicroExonator will generate the PWM internally based on annotated splice sites.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conservation_bigwig</span></code> is a bigwig file containing genome-wide conservation scores generated by Pylop or PhastCons, which can be downloaded from <a class="reference external" href="http://hgdownload.cse.ucsc.edu/downloads.html">UCSC genome browser</a> for some species. If you do not have a <cite>conservation_bigwig</cite> file, you need to create an bigwig which has the value 0 for every position in your genome assembly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">working_directory</span></code> is the path to the MicroExonator folder that you are working with</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ME_len</span></code> is microexon maximum lenght. The default value is 30.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Optimize_hard_drive</span></code> can be set as <code class="docutils literal notranslate"><span class="pre">T</span></code> or <code class="docutils literal notranslate"><span class="pre">F</span></code> (true of false). When it is set as <code class="docutils literal notranslate"><span class="pre">F</span></code>, fastq files will be downloaded or copied only once at <code class="docutils literal notranslate"><span class="pre">FASTQ/</span></code> directory. This can be inconvenient when you are analysing large amout of data (for instance when your input data is larger than 1TB), because the copy will not be deleted until MicroExonator finish completely. When <code class="docutils literal notranslate"><span class="pre">Optimize_hard_drive</span></code> is set as <code class="docutils literal notranslate"><span class="pre">T</span></code> instead, two independet local copies will be generated for the discovery and quantification moduled. rapAs these are temporary copies, every copied fastq file will be deleted as soon as is mapped to the splice junction tags, which means the disk space usage will be set to the minimum while MicroExonator is runing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_number_files_detected</span></code> correspond to the minumun number of in which a microexon needs to be found in order to concider it as high confidence. Setting this number to at least 2 is recommended single-end FASTQ files and 3 if paired end files are also present.</p></li>
+</ul>
+</div>
+<div class="section" id="optional-configuration">
+<h3>Optional configuration<a class="headerlink" href="#optional-configuration" title="Permalink to this headline">¶</a></h3>
+<p>The following paameters can be additionally included to optimize Discovery and Quantification modules to your custom preferences.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ME_DB</span></code> is a path to a known Microexon database such as VAST DB. The input format must be in bed12.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_reads_PSI</span></code> is the minimun number of reads that needs supoort the existence of a novel microexon to consider it as high confidence. The default value is 3, but 5 or more is recommended if enough RNA-seq samples are provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">paired_samples</span></code> is a path to a tab-delimited file with two columns that indicate the correspndace between paired end samples names. This will enable MicroExonator to report a single quantification output per paired-end sample.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="run">
+<h2>Run<a class="headerlink" href="#run" title="Permalink to this headline">¶</a></h2>
+<p>If you are working remotely, we highly recommend creating a screen before running MicroExonator:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>screen -S session_name  <span class="c1">#choose a meaning full name to you</span>
+</pre></div>
+</div>
+<p>To activate snakemake enviroment</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate snakemake_env
+</pre></div>
+</div>
+<p>In case you already have an older version of conda use instead:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate snakemake_env
+</pre></div>
+</div>
+<p>Then run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="o">{</span>cluster system params<span class="o">}</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In order to run the command above you need to replace {cluster system params} and {number of parallel jobs} with the appropiate values.</p>
+<p>You should use <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> only if you are working in a computer cluster that uses a queuing systems. We provide an example of <code class="docutils literal notranslate"><span class="pre">cluster.json</span></code> to work with lsf, in this case <code class="docutils literal notranslate"><span class="pre">cluster</span> <span class="pre">system</span> <span class="pre">params</span></code> should be replaced with the specific parameters of lsf. The <code class="docutils literal notranslate"><span class="pre">number</span> <span class="pre">of</span> <span class="pre">parallel</span></code> jobs can be a positive integer, the appropriate value depends on the capacity of your machine but for most users a value between 5 and 50 is appropriate. As an example the following command would be able to run MicroExonator using lsf and allowing for 500 parallel jobs.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="s2">&quot;bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}&quot;</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span> -np
+</pre></div>
+</div>
+</div>
+<p>Before running it is recommended to check if SnakeMake can corretly generate all the steps given your input. To do this you can carry out a dry-run using the <code class="docutils literal notranslate"><span class="pre">-np</span></code> parameter:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="o">{</span>cluster system params<span class="o">}</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span> -np
+</pre></div>
+</div>
+<p>The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are working remotelly, the connection is likely to die before MicroExonator finish. However, as long as you are working within an screen, you can re attach the screen and see MicroExonator progress. To list your active screens you can do:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>screen -ls
+</pre></div>
+</div>
+<p>To reattach and detach screens just use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>screen -r session_name  <span class="c1"># only detached screen can be reattached</span>
+screen -d session_name
+</pre></div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you have any errors while you are running MicroExonator is useful to read the logs that are reported by the queuing system. Some errors may occur because when not enough memory has been allocated for a given step. Resources for each step can be this can be configured inside <code class="docutils literal notranslate"><span class="pre">cluster.json</span></code> (check example file at <code class="docutils literal notranslate"><span class="pre">MicroExonator/Examples/Cluster_config/lsf/</span></code>)</p>
+</div>
+<div class="section" id="running-large-datasets">
+<h3>Running large datasets<a class="headerlink" href="#running-large-datasets" title="Permalink to this headline">¶</a></h3>
+<p>Since MicroExonator wad developed as an snakemake workfolow, its possible to scale the analysis to big datasets. however there are a copule of recommendations you should keep in mind when you are running a large quantituity of samples.</p>
+<div class="section" id="limit-your-downloading-jobs">
+<h4>Limit your downloading jobs<a class="headerlink" href="#limit-your-downloading-jobs" title="Permalink to this headline">¶</a></h4>
+<p>If you are fetching multiple fastq files from NCBI, is posible that some of the download processes will fail. To avoid overloading the connection with NCBI you can limmit the amout of dowloading jobs by assinging a maximun value to a resource called <code class="docutils literal notranslate"><span class="pre">get_data</span></code>. For example if you want to limmit the downloading process to only run one job at the time, the running command would be:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="o">{</span>cluster system params<span class="o">}</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span> --resources <span class="nv">get_data</span><span class="o">=</span><span class="m">50</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="optimize-your-hardrive-space">
+<h4>Optimize your hardrive space<a class="headerlink" href="#optimize-your-hardrive-space" title="Permalink to this headline">¶</a></h4>
+<p>If you want to process a large dataset, is likely that you will not have enough disk space to temporarely store all the FASTQ files at the same time. In this case we recommend to run the Discovery and Quantification module independely and set <code class="docutils literal notranslate"><span class="pre">Optimize_hard_drive</span></code> as <code class="docutils literal notranslate"><span class="pre">T</span></code> on the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file. In order to do this you use <code class="docutils literal notranslate"><span class="pre">discovery</span></code> as a target and snakemake will only excecute the Discovery module:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="o">{</span>cluster system params<span class="o">}</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span> discovery
+</pre></div>
+</div>
+<p>By doing this, as <code class="docutils literal notranslate"><span class="pre">Optimize_hard_drive</span></code> is set as <code class="docutils literal notranslate"><span class="pre">T</span></code>, downloaded FASTQ files will be deleted as soon as they processed on this module. Once the pipeline finish the discovery module successfuly, you can resume the analysis by running MicroExonator with <code class="docutils literal notranslate"><span class="pre">quant</span></code> as a target:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster <span class="o">{</span>cluster system params<span class="o">}</span> --use-conda -k  -j <span class="o">{</span>number of parallel jobs<span class="o">}</span> quant
+</pre></div>
+</div>
+<p>Note that in this case, previously deleted FASTQ files will be downloaded again (or copied if you are using samples that are stored locally). The advantage of doing this is to reduce the amout of space required to to run the analysis as FASTQ files deleted as soon as they are processed these two modules.</p>
+</div>
+<div class="section" id="handle-number-of-files">
+<h4>Handle number of files<a class="headerlink" href="#handle-number-of-files" title="Permalink to this headline">¶</a></h4>
+<p>HPC systems often have a disk qouta limit, but they may also have quota for the maximun number of files that can be generated by each user. In the case you want delete uncesserary files after a MicroExonator run is completed, you can delete the <code class="docutils literal notranslate"><span class="pre">.snakemake/</span></code> and <code class="docutils literal notranslate"><span class="pre">logs/</span></code> folder.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -rf .snakemake logs
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the pipeline gets interrupted or you encounter any error, you can re-intiate MicroExonator by submiting a running command again. This will not run again processes that finished successfuly, but it will only submit the jobs that are required to generate the files that are missing to complete the run. If at any point you want to start from scratch using the same path, you can delete <code class="docutils literal notranslate"><span class="pre">/download</span></code> folder to ensure every sample is processed again.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="output">
+<h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<p>The main results of MicroExonator discovery and quantification modules can be found at the Results folder. All the detected microexons that passed though the quantitative filters can be found at <code class="docutils literal notranslate"><span class="pre">out.high_quality.txt</span></code>. This is a tabular separated file with 14 columns that contain the folowing information:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text"><strong>out.high_quality.txt</strong></span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ME</p></td>
+<td><p>Microexon Coordinates</p></td>
+</tr>
+<tr class="row-odd"><td><p>Transcript</p></td>
+<td><p>Transcript where the microexon was detected</p></td>
+</tr>
+<tr class="row-even"><td><p>Total_coverage</p></td>
+<td><p>Total coverage across all microexon splice junctions</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total_SJs</p></td>
+<td><p>Splice junctions where the micrexon was detected in</p></td>
+</tr>
+<tr class="row-even"><td><p>ME_coverages</p></td>
+<td><p>Coma-separated coverage values for each microexon splice junction</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_length</p></td>
+<td><p>Microexon length</p></td>
+</tr>
+<tr class="row-even"><td><p>ME_seq</p></td>
+<td><p>Microexon sequence</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_matches</p></td>
+<td><p>Microexon number of matches inside the intron</p></td>
+</tr>
+<tr class="row-even"><td><p>U2_score</p></td>
+<td><p>U2 splicing score</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mean_conservation</p></td>
+<td><p>Mean conservation values (if phylop score was provided)</p></td>
+</tr>
+<tr class="row-even"><td><p>P_MEs</p></td>
+<td><p>Microexon confidence score</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total_ME</p></td>
+<td><p>ME coordinates, U2 score and conservation for all microexon matches</p></td>
+</tr>
+<tr class="row-even"><td><p>ME_P_value</p></td>
+<td><p>Value used for the final microexon filters</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_type</p></td>
+<td><p>Microexon type (IN, RESCUED or OUT)</p></td>
+</tr>
+</tbody>
+</table>
+<p>MicroExonator also reports microexons that do not meet the confidence filtering criteria. Detected microexons that are equal or shorter than 3 nt are reported at  <code class="docutils literal notranslate"><span class="pre">out_shorter_than_3_ME.txt</span></code>. Microexons that are longer than 3 nt, but did not have sufficiently low ME_P_value are reported at <code class="docutils literal notranslate"><span class="pre">out_low_scored_ME.txt</span></code>. Finally, microexons that had ME_P_values below the threshold, but they can also correspond to alternative splicing acceptors or donors (as the microexon sequence matches either at the begining or the end of an intron) are reported at <code class="docutils literal notranslate"><span class="pre">out.ambiguous.txt</span></code>.</p>
+<p>On the other hand, microexon quantification is provided as <code class="docutils literal notranslate"><span class="pre">out_filtered_ME.PSI.txt</span></code> file. This file contains the following information:</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text"><strong>out_filtered_ME.PSI.txt</strong></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>File</p></td>
+<td><p>Sample name</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_coords</p></td>
+<td><p>Microexon Coordinates</p></td>
+</tr>
+<tr class="row-even"><td><p>SJ_coords</p></td>
+<td><p>Splice junctions where the micrexon was detected in</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_coverages</p></td>
+<td><p>Coma-separtated values corresponding to microexon converage on each splice junction</p></td>
+</tr>
+<tr class="row-even"><td><p>SJ_coverages</p></td>
+<td><p>Coma-separtated values corresponding to converage on each splice junction (exon skiping)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME_coverages</p></td>
+<td><p>Computed PSI values for a given microexon on a given sample</p></td>
+</tr>
+<tr class="row-even"><td><p>PSI</p></td>
+<td><p>Lower bound of the PSI confidence interval</p></td>
+</tr>
+<tr class="row-odd"><td><p>CI_Lo</p></td>
+<td><p>Lower bound of the PSI confidence interval</p></td>
+</tr>
+<tr class="row-even"><td><p>CI_Hi</p></td>
+<td><p>Upper bound of the PSI confidence interval</p></td>
+</tr>
+<tr class="row-odd"><td><p>Alt5</p></td>
+<td><p>Alternative donor coordinate</p></td>
+</tr>
+<tr class="row-even"><td><p>Alt3</p></td>
+<td><p>Alternative aceptor coordinate</p></td>
+</tr>
+<tr class="row-odd"><td><p>Alt5_coverages</p></td>
+<td><p>Alternative donor coverage</p></td>
+</tr>
+<tr class="row-even"><td><p>Alt3_coverages</p></td>
+<td><p>Alternative donor coverage</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="differential_inclusion_analysis.html" class="btn btn-neutral float-right" title="Differential inclusion analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="setup.html" class="btn btn-neutral float-left" title="Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Guillermo E. Parada
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

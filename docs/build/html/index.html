@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Overview &mdash; MicroExonator  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> MicroExonator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="discovery_and_quantification.html">Discovery and Quantification</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="differential_inclusion_analysis.html">Differential inclusion analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_cell_analysis.html">Single cell analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">MIT License (MIT)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">MicroExonator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>MicroExonator is a fully-integrated computational pipeline that allows for systematic de novo discovery and quantification
+of microexons using raw RNA-seq data for any organism with a gene annotation. Compared to other available methods MicroExonator
+is more sensitive for discovering smaller microexons and it provides higher specificity for all lengths. Moreover, MicroExonator
+provides integrated downstream comparative analysis between cell types or tissues using
+<a class="reference external" href="https://github.com/timbitz/Whippet.jl">Whippet</a>. (<a class="reference external" href="https://doi.org/10.1016/j.molcel.2018.08.018">Sterne-Weiler et al. 2018</a>).
+As a proof of principle MicroExonator  identified X novel microexons in Y RNA-seq samples from mouse early development to provide a systematic characterization
+based on time and tissue specificity.</p>
+<dl class="simple">
+<dt>MicroExonator pipeline is divided in several modules:</dt><dd><ul class="simple">
+<li><p>Discover</p></li>
+<li><p>Quantification</p></li>
+<li><p>Differential Inclusion</p></li>
+<li><p>Single cell analysis</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Support</strong></p>
+<blockquote>
+<div><p>For questions, ideas, feature requests and potential bug reports submit an issue on our GitHub page or write us at <a class="reference external" href="mailto:gp7&#37;&#52;&#48;sanger&#46;ac&#46;uk">gp7<span>&#64;</span>sanger<span>&#46;</span>ac<span>&#46;</span>uk</a>.</p>
+</div></blockquote>
+<div class="toctree-wrapper compound" id="microexonator-install">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-setup">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-discovery-and-quantification">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-differential-inclusion-analysis">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-single-cell-analysis">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-licence">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-support">
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Guillermo E. Parada
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
