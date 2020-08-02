@@ -1,5 +1,5 @@
 .. _Licence:
   
 =====================
-MicroExonator Licence
+Licence
 =====================

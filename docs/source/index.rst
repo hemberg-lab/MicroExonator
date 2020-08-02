@@ -49,11 +49,11 @@ Welcome to MicroExonator's documentation!
     Contact information for questions, ideas, feature requests and potential bug reports.
 
 .. toctree::
-    :name: MicroExonator-Quick-Summary
-    :maxdepth: 1
+    :name: MicroExonator-Overview
+    :maxdepth: 2
     :hidden:
 
-    quick_summary
+    overview
 
 .. toctree::
     :name: MicroExonator-install
@@ -64,41 +64,26 @@ Welcome to MicroExonator's documentation!
 
 
 .. toctree::
-    :name: MicroExonator-configuration
+    :name: MicroExonator-setup
     :maxdepth: 1
     :hidden:
 
-    configuration
+    setup
 
 
 .. toctree::
-    :name: MicroExonator-running
-    :maxdepth: 1
+    :name: MicroExonator-discovery-and-quantification
+    :maxdepth: 3
     :hidden:
 
-    running
-
+    discovery_and_quantification
 
 .. toctree::
-    :name: MicroExonator-output
-    :maxdepth: 1
+    :name: MicroExonator-differential_inclusion_analysis
+    :maxdepth: 3
     :hidden:
 
-    output
-
-.. toctree::
-    :name: MicroExonator-introduction
-    :maxdepth: 1
-    :hidden:
-
-    introduction
-
-
-.. toctree::
-    :name: MicroExonator-instructions
-    :maxdepth: 1
-    :hidden:
-
+    differential_inclusion_analysis
 
 .. toctree::
     :name: MicroExonator-Licence
