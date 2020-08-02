@@ -22,7 +22,7 @@ Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.i
     
 # Documentation 
 
-Extended documentation can be found at https://microexonator.readthedocs.io/en/latest/index.html.
+Extended documentation can be found at https://microexonator.readthedocs.io.
 
 
 # Contact
