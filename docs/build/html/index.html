@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to MicroExonator’s documentation! &mdash; MicroExonator  documentation</title>
+  <title>Overview &mdash; MicroExonator  documentation</title>
   
 
   
@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Overview" href="overview.html" /> 
+    <link rel="next" title="Installation" href="install.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,9 +83,6 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 </ul>
 <ul>
@@ -98,7 +95,10 @@
 <li class="toctree-l1"><a class="reference internal" href="differential_inclusion_analysis.html">Differential inclusion analysis</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="single_cell_analysis.html">Single cell analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">MIT License (MIT)</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
@@ -148,7 +148,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Welcome to MicroExonator’s documentation!</li>
+      <li>Overview</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,47 +167,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-microexonator-s-documentation">
-<h1>Welcome to MicroExonator’s documentation!<a class="headerlink" href="#welcome-to-microexonator-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p class="centered">
-<strong>MicroExonator is a set of algorithms that enable the systematic investigation of</strong></p><p><strong>Quick Summary</strong></p>
-<blockquote>
-<div><p>Brief summary of the problems and settings MicroExonator can be applied to.</p>
-</div></blockquote>
-<p><strong>Installation</strong></p>
-<blockquote>
-<div><p>Instructions for the installation of MicroExonator.</p>
-</div></blockquote>
-<p><strong>Introduction</strong></p>
-<blockquote>
-<div><p>Background information regarding microexons.</p>
-</div></blockquote>
-<p><strong>Instructions</strong></p>
-<blockquote>
-<div><p>Information on instructions to run MicroExonator.</p>
-</div></blockquote>
-<p><strong>Configurations</strong></p>
-<blockquote>
-<div><p>Configuration instructions</p>
-</div></blockquote>
-<p><strong>Running</strong></p>
-<blockquote>
-<div><p>Running instructions</p>
-</div></blockquote>
-<p><strong>Output</strong></p>
-<blockquote>
-<div><p>Output</p>
-</div></blockquote>
-<p><strong>Licence</strong></p>
-<blockquote>
-<div><p>MicroExonator is freely available under the APACHE LICENSE, VERSION 2.0 - The software can be freely used, modified or added to other pipelines and workflows.</p>
-</div></blockquote>
+  <div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>MicroExonator is a fully-integrated computational pipeline that allows for systematic de novo discovery and quantification
+of microexons using raw RNA-seq data for any organism with a gene annotation. Compared to other available methods MicroExonator
+is more sensitive for discovering smaller microexons and it provides higher specificity for all lengths. Moreover, MicroExonator
+provides integrated downstream comparative analysis between cell types or tissues using
+<a class="reference external" href="https://github.com/timbitz/Whippet.jl">Whippet</a>. (<a class="reference external" href="https://doi.org/10.1016/j.molcel.2018.08.018">Sterne-Weiler et al. 2018</a>).
+As a proof of principle MicroExonator  identified X novel microexons in Y RNA-seq samples from mouse early development to provide a systematic characterization
+based on time and tissue specificity.</p>
+<dl class="simple">
+<dt>MicroExonator pipeline is divided in several modules:</dt><dd><ul class="simple">
+<li><p>Discover</p></li>
+<li><p>Quantification</p></li>
+<li><p>Differential Inclusion</p></li>
+<li><p>Single cell analysis</p></li>
+</ul>
+</dd>
+</dl>
 <p><strong>Support</strong></p>
 <blockquote>
-<div><p>Contact information for questions, ideas, feature requests and potential bug reports.</p>
+<div><p>For questions, ideas, feature requests and potential bug reports submit an issue on our GitHub page or write us at <a class="reference external" href="mailto:gp7&#37;&#52;&#48;sanger&#46;ac&#46;uk">gp7<span>&#64;</span>sanger<span>&#46;</span>ac<span>&#46;</span>uk</a>.</p>
 </div></blockquote>
-<div class="toctree-wrapper compound" id="microexonator-overview">
-</div>
 <div class="toctree-wrapper compound" id="microexonator-install">
 </div>
 <div class="toctree-wrapper compound" id="microexonator-setup">
@@ -215,6 +196,8 @@
 <div class="toctree-wrapper compound" id="microexonator-discovery-and-quantification">
 </div>
 <div class="toctree-wrapper compound" id="microexonator-differential-inclusion-analysis">
+</div>
+<div class="toctree-wrapper compound" id="microexonator-single-cell-analysis">
 </div>
 <div class="toctree-wrapper compound" id="microexonator-licence">
 </div>
@@ -230,7 +213,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>

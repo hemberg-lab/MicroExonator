@@ -1,7 +1,0 @@
-.. introduction
-  
-============
-Introduction
-============
-
-

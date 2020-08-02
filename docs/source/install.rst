@@ -4,6 +4,8 @@
 Installation
 =====================
 
+To install MicroExonator follow these instructions:
+
 Clone repository
 =================
 Clone the github repository
