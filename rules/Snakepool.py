@@ -93,7 +93,7 @@ rule move_and_clean_psi:
     output:
         "Whippet/Quant/Single_Cell/matrix/{sample}.psi.gz"
     shell:
-        "rm {input[:-1]} && mv {input[-1]} {output}"
+        "rm {input[0]} {input[1]} {input[2]} {input[3]}  && mv {input[-1]} {output}"
         
 rule quant_unpool_single_cell:
     input:
