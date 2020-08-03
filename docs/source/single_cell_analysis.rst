@@ -184,12 +184,6 @@ Direct results from `whippet-delta` for every comparison across each computation
      - Microexon ID based on its genomic coodinates.
 
 
-Unpooled output
----------------
-
-In order
-
-
 Visualization
 =============
 
