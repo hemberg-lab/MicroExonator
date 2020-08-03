@@ -43,7 +43,7 @@ To run this secction the following parameters needs to be incorporated at ``conf
 
 .. warning::
 
-    If ``Single_Cell`` is set to ``T`` all the other parameters listed above will become compusory. Thus, you should only activate this module if you have the required parameters on ``config.yaml``.  
+    If ``Single_Cell`` is set to ``T`` all the other parameters listed above will become compulsory. Thus, you should only activate this module if you have the required parameters on ``config.yaml``.  
 
 
 run_metadata
