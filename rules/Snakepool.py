@@ -83,9 +83,21 @@ with open(config["cluster_metadata"]) as Single_Cell:
         single_cell_files.add(row[config["file_basename"]])
 
 
+rule move_and_clean_psi:
+    input:
+        "Whippet/Quant/{sample}.gene.tpm.gz",
+        "Whippet/Quant/{sample}.isoform.tpm.gz",
+        "Whippet/Quant/{sample}.jnc.gz",
+        "Whippet/Quant/{sample}.map.gz",
+        "Whippet/Quant/{sample}.psi.gz"        
+    output:
+        "Whippet/Quant/Single_Cell/Unpooled/{sample}.psi.gz"
+    shell:
+        "rm {input[0]} {input[1]} {input[2]} {input[3]}  && mv {input[4]} {output}"
+        
 rule quant_unpool_single_cell:
     input:
-        expand("Whippet/Quant/{sample}.psi.gz", sample=single_cell_files )
+        expand("Whippet/Quant/Single_Cell/Unpooled/{sample}.psi.gz", sample=single_cell_files )
         
 
 target_pool_psi = []
