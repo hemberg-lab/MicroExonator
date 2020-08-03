@@ -433,7 +433,7 @@ rule  get_sam_by_cluster:
       index = "Whippet/Index/whippet.jls"
     params:
       bin = config["whippet_bin_folder"],
-      output = "Whippet/Quant/Merge/{cluster}"
+      output = "Whippet/Quant/Merge/{cluster}",
       script = "Whippet/Quant/Merge/{cluster}.sh" 
     output:
       "Whippet/Quant/Merge/{cluster}.gene.tpm.gz",
