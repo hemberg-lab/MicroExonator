@@ -91,13 +91,13 @@ rule move_and_clean_psi:
         "Whippet/Quant/{sample}.map.gz",
         "Whippet/Quant/{sample}.psi.gz"        
     output:
-        "Whippet/Quant/Single_Cell/matrix/{sample}.psi.gz"
+        "Whippet/Quant/Single_Cell/Unpooled/{sample}.psi.gz"
     shell:
         "rm {input[0]} {input[1]} {input[2]} {input[3]}  && mv {input[4]} {output}"
         
 rule quant_unpool_single_cell:
     input:
-        expand("Whippet/Quant/Single_Cell/matrix/{sample}.psi.gz", sample=single_cell_files )
+        expand("Whippet/Quant/Single_Cell/Unpooled/{sample}.psi.gz", sample=single_cell_files )
         
 
 target_pool_psi = []
