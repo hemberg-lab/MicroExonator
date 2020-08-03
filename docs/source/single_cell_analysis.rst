@@ -111,6 +111,21 @@ After setting up all the files described above, this single cell analysis module
 
     It is allways a good idea to use ``-np`` to execute an snakemake ``dry-run`` before submiting a large set of jobs.
 
+Unpooled quantification
+------------------------
+
+In order to generate PSI quantification files at the single cell level (as oposed to pseudo-bulks), you can run MicroExonator with quant_unpool_single_cell as a target for snakemake. By doing this `.psi.gz` files will be generated at `Whippet/Quant/Single_Cell/Unpooled/` folder:
+
+.. code-block:: bash
+
+    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant_unpool_single_cell
+    
+This can enable users do run custom downstream analysis over alternative splicing quantification files generated for every cell by separated. 
+
+.. warning::
+
+    Only FASTQ files from cells annotated on ``cluster_metadata`` will be processed.
+
 
 Output
 ======
@@ -167,6 +182,12 @@ Direct results from `whippet-delta` for every comparison across each computation
 
    * - microexon_ID
      - Microexon ID based on its genomic coodinates.
+
+
+Unpooled output
+---------------
+
+In order
 
 
 Visualization
