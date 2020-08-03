@@ -114,7 +114,7 @@ After setting up all the files described above, this single cell analysis module
 Unpooled quantification (optional)
 ----------------------------------
 
-In order to generate PSI quantification files at the single cell level (as oposed to pseudo-bulks), you can run MicroExonator with quant_unpool_single_cell as a target for snakemake. By doing this `.psi.gz` files will be generated at ``Whippet/Quant/Single_Cell/Unpooled/`` folder:
+In order to generate PSI quantification files at the single cell level (as opposed to pseudo-bulks), you can run MicroExonator with ``quant_unpool_single_cell`` as a target for snakemake. By doing this `.psi.gz` files will be generated at ``Whippet/Quant/Single_Cell/Unpooled/`` folder:
 
 .. code-block:: bash
 
