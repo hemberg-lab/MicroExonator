@@ -53,13 +53,13 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
 
         for c in row["A.cluster_names"].split(","):
 
-            A_cluster_names.append(c)
-            compare_all_clusters[row["Compare_ID"]].append(c)
+            A_cluster_names.append(c.replace(" ", "_"))
+            compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
 
         for c in row["B.cluster_names"].split(","):
 
-            B_cluster_names.append(c)
-            compare_all_clusters[row["Compare_ID"]].append(c)
+            B_cluster_names.append(c.replace(" ", "_"))
+            compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
 
         cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
         cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
@@ -79,7 +79,7 @@ with open(config["cluster_metadata"]) as Single_Cell:
 
     for row in Single_Cell_clustering:
 
-        cluster_files[row[config["cluster_name"]]].append(row[config["file_basename"]])
+        cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
         single_cell_files.add(row[config["file_basename"]])
 
 
@@ -177,7 +177,7 @@ with open(config["cluster_metadata"]) as SC:
     for row in Single_Cell_clustering:
 
 
-        cluster_files_metadata[row[config["cluster_name"]]].append(row[config["file_basename"]])
+        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
 
 
 delta_unpooled_dict = dict()
@@ -444,7 +444,7 @@ rule  get_sam_by_cluster:
       sam = temp("Whippet/BAM/Merge/{cluster}.sam.merge")
     priority: 100
     shell:
-      "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output} --sam > {output.sam} > {params.script} && bash {params.script} && rm {params.script}"     
+      "echo 'julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output} --sam > {output.sam}' > {params.script} && bash {params.script} && rm {params.script}"     
 
 rule sam_to_sorted_bam_index:
     input:
