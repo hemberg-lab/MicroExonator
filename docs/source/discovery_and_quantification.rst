@@ -52,12 +52,17 @@ Here:
 
 * ``min_number_files_detected`` correspond to the minumun number of in which a microexon needs to be found in order to concider it as high confidence. Setting this number to at least 2 is recommended single-end FASTQ files and 3 if paired end files are also present.
 
+.. note::
+
+  If the corresponding files for ``GT_AG_U2_5``, ``GT_AG_U2_5`` or ``conservation_bigwig`` are not available for the specie you are currently working on, you can set any of these parameters as ``NA``.
+
+
 Optional configuration
 ----------------------
 
-The following paameters can be additionally included to optimize Discovery and Quantification modules to your custom preferences.
+The following parameters can be specified to further optimize the Discovery and Quantification. The can also be omited, in case there are not relevant or available.
 
-* ``ME_DB`` is a path to a known Microexon database such as Vast DB. The input format must be in bed12.
+* ``ME_DB`` is a path to a known Microexon annotation file, such as the one that can be obtained from Vast DB. The input format must be in bed12 (additional formats will be supported in future versions)
 
 * ``min_reads_PSI`` is the minimun number of reads that needs supoort the existence of a novel microexon to consider it as high confidence. The default value is 3, but 5 or more is recommended if enough RNA-seq samples are provided.
 
