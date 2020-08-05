@@ -21,7 +21,12 @@ Install Miniconda 3
    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
    chmod +x Miniconda3-latest-Linux-x86_64.sh
    ./Miniconda3-latest-Linux-x86_64.sh
-  
+
+Start using conda by opening a new terminal or just running:
+
+.. code-block:: bash
+
+   bash
 
 
 Set up a master virtual environment
