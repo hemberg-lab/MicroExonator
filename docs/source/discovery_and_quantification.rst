@@ -110,7 +110,7 @@ Then run
 
     .. code-block:: bash
 
-        snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j {number of parallel jobs} -np
+        snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 500 -np
 
     
 
