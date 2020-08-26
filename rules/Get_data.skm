@@ -54,15 +54,26 @@ rule GetPWM:
     shell:
         "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
-
-rule gzip_fastq:
-    input:
-        "FASTQ/{sample}.fastq"
-    output:
-        temp("FASTQ/{sample}.fastq.gz")
-    priority: 100
-    shell:
-        "gzip {input}"
+if str2bool(config.get("Only_whippet", False)):
+    rule gzip_fastq:
+        input:
+            "FASTQ/{sample}.fastq"
+        output:
+            temp("FASTQ/{sample}.fastq.gz")
+        priority: 100
+        shell:
+            "gzip -c {input} > {output}"
+          
+else:
+    rule gzip_fastq:
+        input:
+            "FASTQ/{sample}.fastq"
+        output:
+            temp("FASTQ/{sample}.fastq.gz")
+        priority: 100
+        shell:
+            "gzip {input}"            
+         
 
 
 # rule sra_to_fastq:
