@@ -69,6 +69,7 @@ out_shorter_than_3_ME=params$out_shorter_than_3_ME
 
 
 out_filtered_ME_cov = params$out_filtered_ME_cov
+min_number_files_detected = params$min_number_files_detected
 
 ```
 
