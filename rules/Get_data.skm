@@ -54,7 +54,7 @@ rule GetPWM:
     shell:
         "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
-if str2bool(config.get("Only_whippet", False)):
+if str2bool(config.get("Only_whippet", False))==False:
     rule gzip_fastq:
         input:
             "FASTQ/{sample}.fastq"
