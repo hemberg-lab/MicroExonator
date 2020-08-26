@@ -85,7 +85,7 @@ If you just want to skip Discovery and Quantification modules and just asses alt
 
     downstream_only : T
 
-RUN
+Run
 ===
 
 In order to run this module you need to run the standar MicroExonator command, but providing ``differential_inclusion`` as a target. If you have not run previous ``discovery`` and ``quantification`` modules, MicroExonator will include them into the job plan (unless ``downstream_only`` is set as ``T``)   
