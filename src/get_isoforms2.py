@@ -67,7 +67,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             ME_end = [chrom, end, strand]
 
 
-            for SJ in row["total_SJs"].split(","):
+            for SJ in row["Total_SJs"].split(","):
 
                 try:
 
