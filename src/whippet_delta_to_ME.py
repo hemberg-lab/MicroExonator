@@ -9,7 +9,16 @@ def main(jls_exons_tab, delta, high_qual_ME ):
     MEs = set([])
     ME_info = dict()
     
-    header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
+    #header  = ["Gene", "Node", "Coord", "Strand", "Type", "Psi_A", "Psi_B", "DeltaPsi", "Probability" ,"Complexity", "Entropy"]
+
+    header = []
+
+    with gzip.open(delta, mode="rt") as F:
+
+        reader = csv.reader(F, delimiter="\t")
+
+        header = next(reader)
+
 
     print("\t".join(["exon_ID"] + header))
 
