@@ -317,7 +317,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
 			if len(row)==1:
 				
@@ -336,7 +336,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
 
 
 	introns_str =  "\n".join(list(introns))
