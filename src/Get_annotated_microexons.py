@@ -322,7 +322,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			if len(row)==1:
 				
 				ME = row[0]
-				chrom, strand, eestart, eend = ME.split(",")
+				chrom, strand, eestart, eend = ME.split("_")
 				
 				start = int(estart)
 				end = int(eend)
