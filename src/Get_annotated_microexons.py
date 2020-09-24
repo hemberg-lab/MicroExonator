@@ -300,7 +300,43 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 							#introns.add(ME_intron)
 
 							non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+			
+			
+			if len(row)==6:
+				
+				chrom, estart, eend, ID, score, strand = row
+				start = int(estart)
+				end = int(eend)
 
+				if chrom in Genome:
+					
+					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+
+					if strand=="-":
+						dn = dn.reverse_complement()				
+
+					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+									
+			if len(row)==1:
+				
+				ME = row[0]
+				chrom, strand, eestart, eend = ME.split(",")
+				
+				start = int(estart)
+				end = int(eend)
+
+				if chrom in Genome:
+					
+					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+
+					if strand=="-":
+						dn = dn.reverse_complement()				
+
+					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
 
 
 	introns_str =  "\n".join(list(introns))
