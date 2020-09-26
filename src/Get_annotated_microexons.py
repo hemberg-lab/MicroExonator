@@ -323,7 +323,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
-				strand, eestart, eend = ME.split("_")[2:]
+				strand, eestart, eend = ME.split("_")[-3:]
 				
 				estart = int(estart)
 				eend = int(eend)
