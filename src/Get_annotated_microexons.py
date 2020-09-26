@@ -324,8 +324,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				ME = row[0]
 				chrom, strand, eestart, eend = ME.split("_")
 				
-				start = int(estart)
-				end = int(eend)
+				estart = int(estart)
+				eend = int(eend)
 
 				if chrom in Genome:
 					
