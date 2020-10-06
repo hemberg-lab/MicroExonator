@@ -277,61 +277,67 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 
 		for i in micro_exons:
+			
+			
+			try:
 
 
 
-			ME_strand, ME_start, ME_end = i[-3:]
-			ME_chr = "_".join(i[:-3])
+				ME_strand, ME_start, ME_end = i[-3:]
+				ME_chr = "_".join(i[:-3])
 
-			ME_start = int(ME_start)
-			ME_end = int(ME_end)
+				ME_start = int(ME_start)
+				ME_end = int(ME_end)
 
 
-			if phylop=="NA":
-				
-				mean_conservation = 0
-				
-			else:
-				try:
-					
-					mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
-				
-				except RuntimeError:
-					
+				if phylop=="NA":
+
 					mean_conservation = 0
 
-			TOTAL_mean_conservation.append(mean_conservation)
+				else:
+					try:
+
+						mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
+
+					except RuntimeError:
+
+						mean_conservation = 0
+
+				TOTAL_mean_conservation.append(mean_conservation)
 
 
-			ME5 = str(Genome[ME_chr][ME_start-14:ME_start+3]).upper()
-			ME3 = str(Genome[ME_chr][ME_end-3:ME_end+10]).upper()
+				ME5 = str(Genome[ME_chr][ME_start-14:ME_start+3]).upper()
+				ME3 = str(Genome[ME_chr][ME_end-3:ME_end+10]).upper()
 
 
-			if ME_strand == "-":
+				if ME_strand == "-":
 
-				ME5 = str(Genome[ME_chr][ME_end-3:ME_end+14].reverse_complement()).upper()
-				ME3 = str(Genome[ME_chr][ME_start-10:ME_start+3].reverse_complement()).upper()
-
-
+					ME5 = str(Genome[ME_chr][ME_end-3:ME_end+14].reverse_complement()).upper()
+					ME3 = str(Genome[ME_chr][ME_start-10:ME_start+3].reverse_complement()).upper()
 
 
-			U2_score = 0
 
-			i = 0
 
-			for N in ME5:
-				U2_score += U2_GTAG_3[N][i]
-				i += 1
+				U2_score = 0
 
-			i = 0
+				i = 0
 
-			for N in ME3:
-				U2_score += U2_GTAG_5[N][i]
-				i += 1
+				for N in ME5:
+					U2_score += U2_GTAG_3[N][i]
+					i += 1
 
-			U2_score = percent(U2_score, TOTAL_U2_max_score)
+				i = 0
 
-			U2_scores.append(U2_score)
+				for N in ME3:
+					U2_score += U2_GTAG_5[N][i]
+					i += 1
+
+				U2_score = percent(U2_score, TOTAL_U2_max_score)
+
+				U2_scores.append(U2_score)
+				
+			except ValueError:
+				pass
 
 
 		tag_alingment = "|".join([tag, cigar])
