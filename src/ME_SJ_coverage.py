@@ -100,76 +100,81 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 
 
 	for row in csv.reader(open(ME_round2_filter1), delimiter = '\t'):
+		
+		try:
 
-		read, flag, tag, start, cigar, seq, qual = row
+			read, flag, tag, start, cigar, seq, qual = row
 
-		intron_tag, transcript_ID, anchors = tag.split("|")
+			intron_tag, transcript_ID, anchors = tag.split("|")
 
-		DB_derived_tag = False
-
-
-		if "_" in transcript_ID:     #Tags directely extracted from DB have this structure
-			transcript_ID = transcript_ID.split("_")[0]
-
-			DB_derived_tag = True
+			DB_derived_tag = False
 
 
+			if "_" in transcript_ID:     #Tags directely extracted from DB have this structure
+				transcript_ID = transcript_ID.split("_")[0]
 
-
-		ME_seq = ""
-
-		if len(anchors.split("_"))==2:  # Reads mapping to normal EJC
-			anchor_up, anchor_down = anchors.split("_")
-
-		if len(anchors.split("_"))==3: # Reads mapping to Exon-microexon-Exon
-			anchor_up, ME_seq, anchor_down = anchors.split("_")
-
-
-
-		anchor_up = int(anchor_up)
-		anchor_ME = len(ME_seq)
-		anchor_down = int(anchor_down)
-		start = int(start)
-		matches = int(cigar.split("M")[0])
-
-
-		# if DB_derived_tag:
-		#
-		# 	print intron_tag, ME_seq, anchor_ME, True
-		#
-		# else:
-		#
-		# 	print intron_tag, ME_seq, anchor_ME, False
+				DB_derived_tag = True
 
 
 
 
-		if anchor_ME ==0:   #EJC TAG
+			ME_seq = ""
 
-			ME_SJ[intron_tag]+=1
+			if len(anchors.split("_"))==2:  # Reads mapping to normal EJC
+				anchor_up, anchor_down = anchors.split("_")
 
-		else: #E-ME-E TAG
+			if len(anchors.split("_"))==3: # Reads mapping to Exon-microexon-Exon
+				anchor_up, ME_seq, anchor_down = anchors.split("_")
 
 
-			ME_SJ_ID = intron_tag+"_"+ME_seq
+
+			anchor_up = int(anchor_up)
+			anchor_ME = len(ME_seq)
+			anchor_down = int(anchor_down)
+			start = int(start)
+			matches = int(cigar.split("M")[0])
 
 
-			ME_SJ[ME_SJ_ID]+=1
-
-			# if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
+			# if DB_derived_tag:
 			#
-			# 	ME_up_down_uniq[ME_SJ_ID].add(seq)
+			# 	print intron_tag, ME_seq, anchor_ME, True
+			#
+			# else:
+			#
+			# 	print intron_tag, ME_seq, anchor_ME, False
 
-			if (start <= anchor_up - 8) and (start + matches  >= anchor_up + 8):
 
-				ME_up_count[ME_SJ_ID] += 1
-				ME_up_down_uniq[ME_SJ_ID].add(seq)
 
-			elif (start  <= anchor_up + anchor_ME - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
 
-				ME_down_count[ME_SJ_ID] += 1
-				ME_up_down_uniq[ME_SJ_ID].add(seq)
+			if anchor_ME ==0:   #EJC TAG
 
+				ME_SJ[intron_tag]+=1
+
+			else: #E-ME-E TAG
+
+
+				ME_SJ_ID = intron_tag+"_"+ME_seq
+
+
+				ME_SJ[ME_SJ_ID]+=1
+
+				# if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
+				#
+				# 	ME_up_down_uniq[ME_SJ_ID].add(seq)
+
+				if (start <= anchor_up - 8) and (start + matches  >= anchor_up + 8):
+
+					ME_up_count[ME_SJ_ID] += 1
+					ME_up_down_uniq[ME_SJ_ID].add(seq)
+
+				elif (start  <= anchor_up + anchor_ME - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
+
+					ME_down_count[ME_SJ_ID] += 1
+					ME_up_down_uniq[ME_SJ_ID].add(seq)
+					
+		
+		except ValueError:
+			pass
 
 
 
