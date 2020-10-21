@@ -7,7 +7,7 @@ dependencies:
   - bcftools=1.7
   - bedtools=2.27.1
   - hisat2=2.1.0
-  - htslib=1.7=0
+  - htslib=1.7
   - pybedtools=0.7.10
   - pysam=0.14.1
   - samtools=1.9
