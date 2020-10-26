@@ -18,7 +18,7 @@ with open("test.txt", "w") as out:
 
         with open(file) as cov_file:
 
-            reader = csv.reader(file, delimiter="\t")
+            reader = csv.reader(cov_file, delimiter="\t")
            
 
             for row in reader:
