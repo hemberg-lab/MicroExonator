@@ -6,11 +6,11 @@ import sys
 
 
 
-#with open(snakemake.output[0]) as out
-with open("test.txt", "w") as out:
+with open(snakemake.output[0]) as out
+#with open("test.txt", "w") as out:
 
-    #min_read_per_sample = int(snakemake.params[0])
-    min_read_per_sample = 5
+    min_read_per_sample = int(snakemake.params[0])
+    #min_read_per_sample = 5
     ME_n_samples = defaultdict(int)
     all_ME = set([])
 
@@ -38,8 +38,3 @@ with open("test.txt", "w") as out:
         n = ME_n_samples[ME]
         
         out.write("\t".join([ME, str(n)]) + "\n")
-                    
-                    
-#if __name__ == '__main__':
-#	main(sys.argv[1:])
-                
