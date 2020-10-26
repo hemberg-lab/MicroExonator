@@ -94,13 +94,19 @@ rule write_ME_matches:
     shell:
         "python3 src/Get_ME_matches.py {input} > {output}"
 
-toy_set =  list(DATA)[:100]
+
+def get_min_reads():
+    if 'min_reads_PSI' in config:
+        return(int(config['min_reads_PSI']))
+    else:
+        return(5)
+
 
 rule coverage_filter:
     input:
-        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=toy_set ) #remove :100 later
+       "Round2/TOTAL.filter1.ME_SJ_coverage"
     params:
-        min_reads_sample = 5
+        min_reads_sample = get_min_reads
     output:
         "Round2/TOTAL.sample_cov_filter.txt"
     script:
