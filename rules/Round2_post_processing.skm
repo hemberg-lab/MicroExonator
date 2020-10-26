@@ -106,7 +106,7 @@ rule coverage_filter:
     input:
        "Round2/TOTAL.filter1.ME_SJ_coverage"
     params:
-        min_reads_sample = get_min_reads
+        min_reads_sample = get_min_reads()
     output:
         "Round2/TOTAL.sample_cov_filter.txt"
     script:
