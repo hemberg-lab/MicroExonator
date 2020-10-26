@@ -93,9 +93,8 @@ rule write_ME_matches:
         "../envs/core_py3.yaml"
     shell:
         "python3 src/Get_ME_matches.py {input} > {output}"
-    
-print(DATA)
-toy_set =  DATA[:100]
+
+toy_set =  list(DATA)[:100]
 
 rule coverage_filter:
     input:
