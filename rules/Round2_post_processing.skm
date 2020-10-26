@@ -95,6 +95,16 @@ rule write_ME_matches:
         "python3 src/Get_ME_matches.py {input} > {output}"
     
 
+
+rule coverage_filter:
+    input:
+        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA[:100] ) #remove :100 later
+    output:
+        "Round2/TOTAL.sample_cov_filter.txt"
+    script:
+        "../src/coverage_sample_filter.py"
+
+
 rule Output:
     input:
         "Round2/TOTAL.ME_centric.txt",
