@@ -9,7 +9,8 @@ import sys
 #with open(snakemake.output[0]) as out
 with open("test.txt", "w") as out:
 
-    min_read_per_sample = int(snakemake.params[0])
+    #min_read_per_sample = int(snakemake.params[0])
+    min_read_per_sample = 5
     ME_n_samples = defaultdict(int)
 
     #for file in snakemake.input:
