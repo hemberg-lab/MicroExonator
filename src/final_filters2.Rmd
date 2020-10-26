@@ -169,7 +169,7 @@ ME_count_round2 <- data.table(ME_count_round2)
 After round2 micro-exons gained more reads
 
 
-```{r, echo= FALSE, warning=FALSE}
+```{r, echo= FALSE, warning=FALSE, eval=FALSE}
 
 
 ME_count_round1_TOTAL_cov <- ME_centric_raw[, c("ME", "sum_total_coverage")]
