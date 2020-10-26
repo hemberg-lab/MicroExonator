@@ -26,7 +26,7 @@ with open("test.txt") as out:
                 if int(sum_ME_SJ_coverage_up_down_uniq)>=min_read_per_sample:
                     ME_n_samples[ME] += 1
                     
-    out.write("\t".join(["ME", "N_samples" ] + "\n")
+    #out.write("\t".join(["ME", "N_samples" ] + "\n")
     
     for k in ME_n_samples.items():
               
