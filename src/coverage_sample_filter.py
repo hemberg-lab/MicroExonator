@@ -28,7 +28,9 @@ with open("test.txt") as out:
                     
     out.write("\t".join(["ME", "N_samples" ] + "\n")
     
-    for ME, n in ME_n_samples.items():
+    for k in ME_n_samples.items():
+              
+        ME, n = k      
         
         out.write("\t".join([ME, str(n)] + "\n")
                     
