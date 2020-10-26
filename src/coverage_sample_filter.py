@@ -6,7 +6,7 @@ import sys
 
 
 
-with open(snakemake.output[0]) as out
+with open(snakemake.output[0]) as out:
 #with open("test.txt", "w") as out:
 
     min_read_per_sample = int(snakemake.params[0])
