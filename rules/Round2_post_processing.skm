@@ -95,10 +95,11 @@ rule write_ME_matches:
         "python3 src/Get_ME_matches.py {input} > {output}"
     
 
+toy_set =  DATA[:100]
 
 rule coverage_filter:
     input:
-        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA ) #remove :100 later
+        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=toy_set ) #remove :100 later
     params:
         min_reads_sample = 5
     output:
