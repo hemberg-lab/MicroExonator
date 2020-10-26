@@ -1,15 +1,19 @@
 from snakemake.utils import min_version
 import csv
 from collections import defaultdict
+import sys
 
 
 
-with open(snakemake.output[0]) as out
+
+#with open(snakemake.output[0]) as out
+with open("test.txt") as out:
 
     min_read_per_sample = int(snakemake.params[0])
     ME_n_samples = defaultdict(int)
 
-    for file in snakemake.input:
+    #for file in snakemake.input:
+    for file in sys.argv[1:]:
 
         with open(file) as cov_file:
 
@@ -29,5 +33,6 @@ with open(snakemake.output[0]) as out
         out.write("\t".join([ME, str(n)] + "\n")
                     
                     
-
+#if __name__ == '__main__':
+#	main(sys.argv[1:])
                 
