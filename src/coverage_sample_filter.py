@@ -7,7 +7,7 @@ import sys
 
 
 #with open(snakemake.output[0]) as out
-with open("test.txt") as out:
+with open("test.txt", "w") as out:
 
     min_read_per_sample = int(snakemake.params[0])
     ME_n_samples = defaultdict(int)
@@ -28,9 +28,7 @@ with open("test.txt") as out:
                     
     out.write("\t".join(["ME", "N_samples" ]) + "\n")
     
-    for k in ME_n_samples.items():
-              
-        ME, n = k      
+    for ME, n  in ME_n_samples.items():
         
         out.write("\t".join([ME, str(n)]) + "\n")
                     
