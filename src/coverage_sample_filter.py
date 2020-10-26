@@ -14,8 +14,8 @@ with open(snakemake.output[0]) as out
     ME_n_samples = defaultdict(int)
     all_ME = set([])
 
-    #for file in snakemake.input:
-    for file in sys.argv[1:]:
+    for file in snakemake.input:
+    #for file in sys.argv[1:]:
 
         with open(file) as cov_file:
 
