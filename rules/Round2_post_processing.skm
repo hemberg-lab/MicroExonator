@@ -98,7 +98,7 @@ rule write_ME_matches:
 
 rule coverage_filter:
     input:
-        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA[:100] ) #remove :100 later
+        expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA ) #remove :100 later
     params:
         min_reads_sample = 5
     output:
