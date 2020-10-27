@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - r-base =3.4.1
+  - r-base =3.6.3
   - r-ggplot2
   - r-mixtools
   - r-data.table
