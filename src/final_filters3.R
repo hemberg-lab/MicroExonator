@@ -4,8 +4,8 @@ sink(log, type="message")
 
 
 library(ggplot2)
-library(reshape2)
-library(stringr)
+#library(reshape2)
+#library(stringr)
 library(mixtools)
 #library(simecol)
 library(data.table)
