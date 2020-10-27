@@ -12,9 +12,6 @@ library(data.table)
 
 
 
-
-
-
 plot_mix_comps <- function(x, mu, sigma, lam) {
   lam * dnorm(x, mu, sigma)
 }
@@ -123,5 +120,3 @@ write.table(ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files
 
 write.table(ME_count_round2[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] ,],
             out_filtered_ME_cov, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
-
-
