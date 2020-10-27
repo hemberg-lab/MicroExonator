@@ -125,7 +125,7 @@ rule Output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
         out_low_scored_ME = "Report/out_low_scored_ME.txt",
         out_shorter_than_3_ME = "Report/out_shorter_than_3_ME.txt",
-        out_shorter_than_3_ME = "Report/report.html",
+        #"Report/report.html",
         #out_filtered_ME_cov = "Report/out_filtered_ME.cov.txt"
     log:
         "logs/Output.log"
