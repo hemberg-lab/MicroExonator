@@ -105,7 +105,7 @@ ME_final[,ME_type:=factor(ME_type, levels=c("OUT", "RESCUED", "IN"))]
 out_filtered_ME <- snakemake@out[["min_number_files_detected"]]
 out_low_scored_ME <- snakemake@out[["out_low_scored_ME"]]
 out_shorter_than_3_ME <- snakemake@out[["out_shorter_than_3_ME"]]
-out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
+#out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
 
 
 
