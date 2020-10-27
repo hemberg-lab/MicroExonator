@@ -116,8 +116,10 @@ rule coverage_filter:
 rule Output:
     input:
         "Round2/TOTAL.ME_centric.txt",
-        "Round2/TOTAL.filter1.ME_SJ_coverage",
+        "Round2/TOTAL.sample_cov_filter.txt",
+        #"Round2/TOTAL.filter1.ME_SJ_coverage",
         "Round2/TOTAL.ME_centric.ME_matches.txt"
+        
         
     params:
         wd = config["working_directory"],
