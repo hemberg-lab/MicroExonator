@@ -101,17 +101,19 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
         reader = csv.DictReader(ME_out_cov, delimiter="\t")
 
         for row in reader:
+            try:
+                chrom = "_".join(row["ME"].split("_")[:-3]) 
+                strand, estart, eend = row["ME"].split("_")[-3:]
+                exon = (chrom, strand, estart, eend)
 
-            chrom = "_".join(row["ME"].split("_")[:-3]) 
-            strand, estart, eend = row["ME"].split("_")[-3:]
-            exon = (chrom, strand, estart, eend)
-
-            sum_ME_SJ_coverage_up = int(row["sum_ME_SJ_coverage_up"])
-            sum_ME_SJ_coverage_down = int(row["sum_ME_SJ_coverage_down"])
-
-
-            total_ME_up[row["ME"]] += sum_ME_SJ_coverage_up
-            total_ME_down[row["ME"]] += sum_ME_SJ_coverage_down
+                sum_ME_SJ_coverage_up = int(row["sum_ME_SJ_coverage_up"])
+                sum_ME_SJ_coverage_down = int(row["sum_ME_SJ_coverage_down"])
+                
+                total_ME_up[row["ME"]] += sum_ME_SJ_coverage_up
+                total_ME_down[row["ME"]] += sum_ME_SJ_coverage_down
+							
+            except KeyError:
+                pass
 
         ambiguous = open("Report/out.ambiguous.txt", "w")
 	
