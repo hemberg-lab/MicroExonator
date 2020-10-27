@@ -115,7 +115,7 @@ write.table(ME_final[ME_P_value <= P_ME_fit],
 write.table(ME_final[ME_P_value > P_ME_fit],
             out_low_scored_ME , col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
 
-write.table(ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] & len_micro_exon_seq_found<3, ],
+write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
             out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
 
 #write.table(ME_count_round2[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] ,],
