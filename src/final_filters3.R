@@ -43,7 +43,7 @@ min_number_files_detected <- snakemake@params[["min_number_files_detected"]]
 
 ME_centric_raw <- fread(snakemake@input[["ME_table"]] )
 colnames(ME_centric_raw) <- c('ME', 'transcript', 'sum_total_coverage', 'total_SJs', 'total_coverages', 'len_micro_exon_seq_found', 'micro_exon_seq_found', 'total_number_of_micro_exons_matches', 'U2_scores', 'mean_conservations_vertebrates', 'P_MEs', 'total_ME')
-ME_number_files_detected <- fread(snakemake@input[["ME_count_round2"]])
+ME_number_files_detected <- fread(snakemake@input[["ME_coverage"]])
 ME_matches <- fread(snakemake@input[["ME_matches_file"]])
 
 
