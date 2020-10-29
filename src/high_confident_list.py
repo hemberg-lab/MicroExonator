@@ -98,23 +98,20 @@ def main(gene_model_bed12, out_filtered_ME_cov, out_filtered_ME, out_low_scored_
         ## Summing exon coverage
 
 
-        reader = csv.DictReader(ME_out_cov, delimiter="\t")
+        reader = csv.reader(ME_out_cov, delimiter="\t")
 
         for row in reader:
-            try:
-                chrom = "_".join(row["ME"].split("_")[:-3]) 
-                strand, estart, eend = row["ME"].split("_")[-3:]
-                exon = (chrom, strand, estart, eend)
+            FILE_NAME, ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3,  cov_alternatives_3, total_cov_alternatives_3 = row
+            chrom = "_".join(ME.split("_")[:-3]) 
+            strand, estart, eend = ME.split("_")[-3:]
+            exon = (chrom, strand, estart, eend)
 
-                sum_ME_SJ_coverage_up = int(row["sum_ME_SJ_coverage_up"])
-                sum_ME_SJ_coverage_down = int(row["sum_ME_SJ_coverage_down"])
-                
-                total_ME_up[row["ME"]] += sum_ME_SJ_coverage_up
-                total_ME_down[row["ME"]] += sum_ME_SJ_coverage_down
-							
-            except KeyError:
-                pass
-	
+            sum_ME_SJ_coverage_up = int(sum_ME_SJ_coverage_up)
+            sum_ME_SJ_coverage_down = int(sum_ME_SJ_coverage_down)
+
+            total_ME_up[ME] += sum_ME_SJ_coverage_up
+            total_ME_down[ME] += sum_ME_SJ_coverage_down
+
         ambiguous = open("Report/out.ambiguous.txt", "w")
 	
         ambiguous.write( "\t".join(["ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type"]) + "\n")
