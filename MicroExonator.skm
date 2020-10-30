@@ -33,6 +33,7 @@ rule discovery:
 
 if 'cluster_metadata' in config:
 
+    cluster_files = defaultdict(list)
     cluster_files_metadata = defaultdict(list)
     single_cell_files = set([])
 
