@@ -214,7 +214,7 @@ if 'cluster_metadata' in config:
             cluster_dir = "Whippet/Quant/{cluster}",
             feature = "Gene"
         output:
-            merged = "Whippet/Quant/Merge/{cluster}.gene.tpm.tsv"
+            merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
         script:
             "../scripts/merge_quant.py"
         
@@ -229,12 +229,12 @@ if 'cluster_metadata' in config:
             cluster_dir = "Whippet/Quant/{cluster}",
             feature = "Isoform"
         output:
-            merged = "Whippet/Quant/Merge/{cluster}.isoform.tpm.tsv"
+            merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
         script:
             "../scripts/merge_quant.py"
 
 
-    rule merge_whippet:
+    rule collapse_whippet:
         input: 
-            gene = expand("Whippet/Quant/Merge/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())),
-            isoform = expand("Whippet/Quant/Merge/{cluster}.isoform.tpm.tsv", cluster=list(cluster_files.keys()))
+            gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())),
+            isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=list(cluster_files.keys()))
