@@ -104,6 +104,7 @@ else:
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.skm"
 
+print(cluster_files.keys())
 
 if "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
