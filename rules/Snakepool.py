@@ -164,21 +164,22 @@ def partition (list_in, n):
     random.shuffle(list_in)
     return [list_in[i::n] for i in range(n)]
 
+##### Moved to MicroExonator main script ###
 
-
-cluster_files_metadata = defaultdict(list)
+#cluster_files_metadata = defaultdict(list)
 
 
 #with open("/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Single_Cell_clustering.txt") as Single_Cell:
-with open(config["cluster_metadata"]) as SC:
+#with open(config["cluster_metadata"]) as SC:
 
-    Single_Cell_clustering = csv.DictReader(SC, delimiter="\t")
+#    Single_Cell_clustering = csv.DictReader(SC, delimiter="\t")
 
-    for row in Single_Cell_clustering:
+#    for row in Single_Cell_clustering:
 
 
-        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+#        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
 
+##########
 
 delta_unpooled_dict = dict()
 
