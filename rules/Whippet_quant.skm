@@ -197,8 +197,11 @@ if str2bool(config.get("Only_snakepool", False))==False:
           shell:
               "python src/whippet_delta_to_ME.py {input} > {output}"
 
-print(cluster_files.keys())
-print(expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())))
+
+
+def get_files_by_cluster(cluster, ext):
+    path="Whippet/Quant/"
+    return([path + x + ext for x in cluster_files[cluster]])
 
 rule collapse_whippet:
   input: 
@@ -213,10 +216,10 @@ if 'cluster_metadata' in config:
 
     rule merge_quant_by_cluster_gene:
         input:
-            files = lambda w : cluster_files(w.cluster, ".gene.tpm.gz"),
-            jnc =  lambda w : cluster_files(w.cluster, ".jnc.gz"),
-            map =  lambda w : cluster_files(w.cluster, ".map.gz"),
-            psi =  lambda w : cluster_files(w.cluster, ".psi.gz")
+            files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
+            jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
+            map =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+            psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
         params:
             cluster_dir = "Whippet/Quant/{cluster}",
             feature = "Gene"
@@ -228,10 +231,10 @@ if 'cluster_metadata' in config:
         
     rule merge_quant_by_cluster_isoform:
         input:
-            files = lambda w : cluster_files(w.cluster, ".isoform.tpm.gz"),
-            jnc =  lambda w : cluster_files(w.cluster, ".jnc.gz"),
-            map =  lambda w : cluster_files(w.cluster, ".map.gz"),
-            psi =  lambda w : cluster_files(w.cluster, ".psi.gz")
+            files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz"),
+            jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
+            map =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+            psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
         params:
             cluster_dir = "Whippet/Quant/{cluster}",
             feature = "Isoform"
