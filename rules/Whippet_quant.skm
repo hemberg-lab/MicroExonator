@@ -200,6 +200,12 @@ if str2bool(config.get("Only_snakepool", False))==False:
 print(cluster_files.keys())
 print(expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())))
 
+rule collapse_whippet:
+  input: 
+      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())),
+      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=list(cluster_files.keys()))
+
+
 if 'cluster_metadata' in config:
     
     cluster_files = defaultdict(list)
@@ -235,7 +241,4 @@ if 'cluster_metadata' in config:
             "../scripts/merge_quant.py"
 
 
-    rule collapse_whippet:
-        input: 
-            gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())),
-            isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=list(cluster_files.keys()))
+
