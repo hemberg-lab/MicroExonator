@@ -7,34 +7,6 @@ sed = config.get("snakepool_seed", 123)
 
 random.seed(int(sed)) 
 
-######
-    
-    
-def get_files_by_cluster(cluster, ext):
-    path="Whippet/Quant/"
-    return([path + x + ext for x in cluster_files[cluster]])
-
-rule collapse_whippet:
-  input: 
-      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
-      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
-    
-cluster_files = defaultdict(list)
-single_cell_files = set([])      
-
-rule merge_quant_by_cluster_gene:
-    input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
-    params:
-        cluster_dir = "Whippet/Quant/{cluster}",
-        feature = "Gene"
-    output:
-        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
-    script:
-        "../src/merge_quant.py"
 
 
 rule merge_quant_by_cluster_isoform:
@@ -632,6 +604,34 @@ if str2bool(config.get("cluster_sashimi", False)):
 #chr:start-end
     
 
+######
+    
+    
+def get_files_by_cluster(cluster, ext):
+    path="Whippet/Quant/"
+    return([path + x + ext for x in cluster_files[cluster]])
+
+rule collapse_whippet:
+  input: 
+      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+    
+cluster_files = defaultdict(list)
+single_cell_files = set([])      
+
+rule merge_quant_by_cluster_gene:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Gene"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
 
 
 
