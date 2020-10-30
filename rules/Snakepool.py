@@ -66,21 +66,27 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
         compare_repeats[row["Compare_ID"]] = int(row["Repeat"])
 
 
-cluster_files = defaultdict(list)
+##### Moved to MicroExonator main ####        
+        
+#cluster_files = defaultdict(list)
 
 
 #cluster_files = {"GABA" : ["fileA", ... ] }
 
-single_cell_files = set([])
+#single_cell_files = set([])
 
-with open(config["cluster_metadata"]) as Single_Cell:
+#with open(config["cluster_metadata"]) as Single_Cell:
 
-    Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
+#    Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
 
-    for row in Single_Cell_clustering:
+#    for row in Single_Cell_clustering:
 
-        cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
-        single_cell_files.add(row[config["file_basename"]])
+#        cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+#        single_cell_files.add(row[config["file_basename"]])
+
+        
+######        
+
 
 
 rule move_and_clean_psi:
