@@ -2,6 +2,7 @@
 
 import yaml
 from collections import defaultdict
+import csv
 
 configfile : "config.yaml"
 DATA = set([])
