@@ -29,6 +29,8 @@ def main(mode, out_file, file_list  ):
 
                     row["Sample"] = sample
                     writer.writerow(row)
-                
+
+print(snakemake.input)                    
+                    
 if __name__ == '__main__':
     main(snakemake.params["feature"], snakemake.output["merged"],  snakemake.input["files"])
