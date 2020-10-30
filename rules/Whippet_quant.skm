@@ -113,11 +113,11 @@ else:
               output = "Whippet/Quant/{sample}",
               flags = config["whippet_flags"]
           output:
-              "Whippet/Quant/{sample}.gene.tpm.gz",
-              "Whippet/Quant/{sample}.isoform.tpm.gz",
-              "Whippet/Quant/{sample}.jnc.gz",
-              "Whippet/Quant/{sample}.map.gz",
-              "Whippet/Quant/{sample}.psi.gz"
+              temp("Whippet/Quant/{sample}.gene.tpm.gz"),
+              temp("Whippet/Quant/{sample}.isoform.tpm.gz"),
+              temp("Whippet/Quant/{sample}.jnc.gz"),
+              temp("Whippet/Quant/{sample}.map.gz"),
+              temp("Whippet/Quant/{sample}.psi.gz")
           priority: 100
           shell:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
