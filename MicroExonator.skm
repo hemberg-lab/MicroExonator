@@ -48,7 +48,7 @@ if 'cluster_metadata' in config:
             cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
             single_cell_files.add(row[config["file_basename"]])
 
-print(cluster_files.keys())
+
 
 #### MicroExonator ####
 
@@ -103,11 +103,13 @@ print(cluster_files.keys())
 
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.skm"
+print(cluster_files.keys())
 
 if "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
       whippet_delta = yaml.safe_load(stream)
    include : "rules/Whippet_delta.skm"
+print(cluster_files.keys())
 
 #### Single Cell ###
 
@@ -150,4 +152,4 @@ rule rerun_incomplete_round2:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
         
         
-print(cluster_files.keys())
+
