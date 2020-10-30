@@ -203,12 +203,6 @@ def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
-rule collapse_whippet:
-  input: 
-      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
-      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
-
-
 if 'cluster_metadata' in config:
     
     cluster_files = defaultdict(list)
@@ -242,6 +236,15 @@ if 'cluster_metadata' in config:
             merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
         script:
             "../src/merge_quant.py"
+
+
+rule collapse_whippet:
+  input: 
+      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+
+
+
 
 
 rule fake_last:
