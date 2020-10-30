@@ -609,7 +609,7 @@ rule merge_quant_by_cluster_gene:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
         jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        map =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
         psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
@@ -624,7 +624,7 @@ rule merge_quant_by_cluster_isoform:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz"),
         jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        map =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
         psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
