@@ -123,6 +123,47 @@ else:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
 
 
+if 'cluster_metadata' in config:
+    
+    cluster_files = defaultdict(list)
+    single_cell_files = set([])      
+
+    rule merge_quant_by_cluster_gene:
+        input:
+            files = lambda w : cluster_files(w.cluster, ".gene.tpm.gz"),
+            jnc =  lambda w : cluster_files(w.cluster, ".jnc.gz"),
+            map =  lambda w : cluster_files(w.cluster, ".map.gz"),
+            psi =  lambda w : cluster_files(w.cluster, ".psi.gz")
+        params:
+            cluster_dir = "Whippet/Quant/{cluster}",
+            feature = "Gene"
+        output:
+            merged = "Whippet/Quant/Merge/{cluster}.gene.tpm.tsv"
+        script:
+            "../scripts/merge_quant.py"
+        
+        
+rule merge_quant_by_cluster_isoform:
+    input:
+        files = lambda w : cluster_files(w.cluster, ".isoform.tpm.gz"),
+        jnc =  lambda w : cluster_files(w.cluster, ".jnc.gz"),
+        map =  lambda w : cluster_files(w.cluster, ".map.gz"),
+        psi =  lambda w : cluster_files(w.cluster, ".psi.gz")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Isoform"
+    output:
+        merged = "Whippet/Quant/Merge/{cluster}.isoform.tpm.tsv"
+    script:
+        "../scripts/merge_quant.py"
+        
+        
+rule all_quant:
+    #input: expand("Whippet/Quant/{sample}.psi.gz", sample=sample_files.keys())
+    input: 
+        expand("Whippet/Quant/Merge/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+        expand("Whippet/Quant/Merge/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+
 rule SamToBam:
     input:
         sam = "Whippet/BAM/{sample}.sam"
