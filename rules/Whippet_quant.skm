@@ -244,4 +244,7 @@ if 'cluster_metadata' in config:
             "../src/merge_quant.py"
 
 
+rule fake_last:
+    input:
+        "fake"
 
