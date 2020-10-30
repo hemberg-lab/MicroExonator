@@ -592,7 +592,8 @@ if str2bool(config.get("cluster_sashimi", False)):
     
 
 ######
-    
+
+print(cluster_files.keys())
     
 def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
@@ -640,3 +641,5 @@ rule merge_quant_by_cluster_PSI:
         merged = "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
     script:
         "../src/merge_quant.py"
+        
+
