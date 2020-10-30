@@ -1,7 +1,7 @@
 import sys
 import csv
 import gzip
-
+from snakemake.utils import min_version
 
 csv.field_size_limit(100000000)
 csv.field_size_limit()
@@ -28,4 +28,4 @@ def main(mode, out_file, file_list  ):
                     writer.writerow(row)
                 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.argv[3:])
+    main(snakemake.params["feature"], snakemake.output["merged"],  snakemake.input["files"])
