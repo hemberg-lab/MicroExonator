@@ -235,7 +235,6 @@ if 'cluster_metadata' in config:
 
 
     rule all_quant:
-        #input: expand("Whippet/Quant/{sample}.psi.gz", sample=sample_files.keys())
         input: 
             expand("Whippet/Quant/Merge/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
             expand("Whippet/Quant/Merge/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
