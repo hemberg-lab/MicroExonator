@@ -48,6 +48,7 @@ if 'cluster_metadata' in config:
             cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
             single_cell_files.add(row[config["file_basename"]])
 
+print(cluster_files.keys())
 
 #### MicroExonator ####
 
@@ -116,10 +117,7 @@ if str2bool(config["Single_Cell"]):
 
 #### Benchmark ####
 
-#include : "rules/Benchmark.skm"
-
-
-
+#include : "rules/Benchmark.skm
 
 
 #### Re-run incomplete round1 ####
