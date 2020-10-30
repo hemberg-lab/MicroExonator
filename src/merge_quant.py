@@ -13,8 +13,11 @@ def main(mode, out_file, file_list  ):
         for file in file_list:
 
             with gzip.open(file, mode="rt") as f:
-
-                header = ["Sample", mode, "TpM", "Read_Counts"]
+                
+                if mode=="Isoform" or mode=="Gene":
+                    header = ["Sample", mode, "TpM", "Read_Counts"]
+                elif mode=="PSI":
+                    header = ['Sample', 'Gene', 'Node', 'Coord', 'Strand', 'Type', 'Psi', 'CI_Width', 'CI_Lo,Hi', 'Total_Reads', 'Complexity', 'Entropy', 'Inc_Paths', 'Exc_Paths', 'Edges']
 
                 writer = csv.DictWriter(out, fieldnames=header, extrasaction='ignore', delimiter="\t")
                 writer.writeheader()
