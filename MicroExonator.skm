@@ -1,6 +1,7 @@
 #version 0.9.0
 
 import yaml
+from collections import defaultdict
 
 configfile : "config.yaml"
 DATA = set([])
