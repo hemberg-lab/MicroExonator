@@ -202,8 +202,8 @@ print(expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(clus
 
 rule collapse_whippet:
   input: 
-      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=list(cluster_files.keys())),
-      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=list(cluster_files.keys()))
+      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
 
 
 if 'cluster_metadata' in config:
