@@ -151,7 +151,7 @@ ggplot( ) +
 ## Micro-exon coverage analysis
 
 
-```{r, echo= FALSE, warning=FALSE}
+```{r, echo= FALSE, warning=FALSE, eval=FALSE}
 
 
 
@@ -169,7 +169,7 @@ ME_count_round2 <- data.table(ME_count_round2)
 After round2 micro-exons gained more reads
 
 
-```{r, echo= FALSE, warning=FALSE}
+```{r, echo= FALSE, warning=FALSE, eval=FALSE}
 
 
 ME_count_round1_TOTAL_cov <- ME_centric_raw[, c("ME", "sum_total_coverage")]
@@ -193,24 +193,27 @@ ggplot(data=ME_count_round1_round2_TOTAL_cov, aes(x=log2(Round1.counts), y=log2(
 Only the micro-exons that are at least detected with 5 different sequences across 3 data sets remain in the analysis. (Costumise by parameters)
 
 
-```{r, echo= FALSE, warning=FALSE}
+```{r}
 
-ME_number_files_detected <- ME_count_round2[sum_ME_SJ_coverage_up_down_uniq>=5, .N, by=ME]
+#ME_number_files_detected <- ME_count_round2[sum_ME_SJ_coverage_up_down_uniq>=5, .N, by=ME]
+#ME_number_files_detected <- fread(ME_count_round2)
+ME_number_files_detected <- read.delim(ME_coverage, header=TRUE, stringsAsFactors = FALSE)
 
-ggplot(data=ME_number_files_detected, aes(x=N, colour=N>=min_number_files_detected)) +
-  geom_histogram(binwidth=1) +
-  xlab("Number of files which detect the micro-exon") +
-  ylab("Micro-exon count") +
-  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+#ggplot(data=ME_number_files_detected, aes(x=N_samples, colour=N_samples>=min_number_files_detected)) +
+#  geom_histogram(binwidth=1) +
+#  xlab("Number of files which detect the micro-exon") +
+#  ylab("Microexon count") +
+#  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
 
-ggplot(data=ME_number_files_detected[N >=min_number_files_detected, ], aes(x=N)) +
-  geom_histogram(binwidth=1) +
-  xlab("Number of files which detect the micro-exon") +
-  ylab("Micro-exon count") +
-  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
+#ggplot(data=ME_number_files_detected[N_samples >=min_number_files_detected, ], aes(x=N_samples)) +
+#  geom_histogram(binwidth=1) +
+#  xlab("Number of files which detect the micro-exon") +
+#  ylab("Microexon count") +
+#  theme(panel.background = element_rect(fill = 'white', colour = 'black'))
 
 
-ME_centric_raw_filter_uniq <- ME_centric_raw[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME], ]
+
+ME_centric_raw_filter_uniq <- ME_centric_raw[ME %in% ME_number_files_detected[N_samples >=min_number_files_detected, ME], ]
 uniq_seq_filter <-  ME_centric_raw_filter_uniq[, ME]
 ```
 

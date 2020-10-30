@@ -1,14 +1,9 @@
 channels:
-  - conda-forge
   - bioconda
-  - biobuilds
+  - conda-forge
+  - defaults
 dependencies:
+  - r-base =3.6.3
   - r-ggplot2
-  - r-reshape2
-  - r-stringr
   - r-mixtools
   - r-data.table
-  - r-stringi
-  - pandoc
-  - r-rmarkdown
-  - r-distributions3

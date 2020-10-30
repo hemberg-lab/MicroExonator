@@ -11,6 +11,7 @@ random.seed(int(sed))
 
 
 
+
 ###############
 
 import glob, os
@@ -66,21 +67,27 @@ with open(config["run_metadata"]) as run:   #Populating the dictionaries
         compare_repeats[row["Compare_ID"]] = int(row["Repeat"])
 
 
-cluster_files = defaultdict(list)
+##### Moved to MicroExonator main ####        
+        
+#cluster_files = defaultdict(list)
 
 
 #cluster_files = {"GABA" : ["fileA", ... ] }
 
-single_cell_files = set([])
+#single_cell_files = set([])
 
-with open(config["cluster_metadata"]) as Single_Cell:
+#with open(config["cluster_metadata"]) as Single_Cell:
 
-    Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
+#    Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
 
-    for row in Single_Cell_clustering:
+#    for row in Single_Cell_clustering:
 
-        cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
-        single_cell_files.add(row[config["file_basename"]])
+#        cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+#        single_cell_files.add(row[config["file_basename"]])
+
+        
+######        
+
 
 
 rule move_and_clean_psi:
@@ -164,21 +171,22 @@ def partition (list_in, n):
     random.shuffle(list_in)
     return [list_in[i::n] for i in range(n)]
 
+##### Moved to MicroExonator main script ###
 
-
-cluster_files_metadata = defaultdict(list)
+#cluster_files_metadata = defaultdict(list)
 
 
 #with open("/lustre/scratch117/cellgen/team218/gp7/Micro-exons/Software/Micro-Exonator_Final/Whippet/Single_Cell_clustering.txt") as Single_Cell:
-with open(config["cluster_metadata"]) as SC:
+#with open(config["cluster_metadata"]) as SC:
 
-    Single_Cell_clustering = csv.DictReader(SC, delimiter="\t")
+#    Single_Cell_clustering = csv.DictReader(SC, delimiter="\t")
 
-    for row in Single_Cell_clustering:
+#    for row in Single_Cell_clustering:
 
 
-        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+#        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
 
+##########
 
 delta_unpooled_dict = dict()
 
@@ -582,3 +590,47 @@ if str2bool(config.get("cluster_sashimi", False)):
             
 #chr:start-end
     
+
+######
+    
+    
+def get_files_by_cluster(cluster, ext):
+    path="Whippet/Quant/"
+    return([path + x + ext for x in cluster_files[cluster]])
+
+rule collapse_whippet:
+  input: 
+      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+
+
+rule merge_quant_by_cluster_gene:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Gene"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
+
+
+rule merge_quant_by_cluster_isoform:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Isoform"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
+
+

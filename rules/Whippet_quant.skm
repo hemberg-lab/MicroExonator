@@ -123,6 +123,8 @@ else:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
 
 
+
+
 rule SamToBam:
     input:
         sam = "Whippet/BAM/{sample}.sam"
