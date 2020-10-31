@@ -108,7 +108,7 @@ if "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
       whippet_delta = yaml.safe_load(stream)
    include : "rules/Whippet_delta.skm"
-print(cluster_files.keys())
+
 
 #### Single Cell ###
 
@@ -122,7 +122,7 @@ if str2bool(config["Single_Cell"]):
 
 #include : "rules/Benchmark.skm
 
-print(cluster_files.keys())
+
 
 #### Re-run incomplete round1 ####
 
