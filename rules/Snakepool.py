@@ -186,6 +186,7 @@ def partition (list_in, n):
 
 #        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
 
+print(cluster_files.keys())
 ##########
 
 delta_unpooled_dict = dict()
@@ -468,6 +469,8 @@ rule cluster_bams:
                
 # # # # #               
           
+print(cluster_files.keys())    
+    
 if str2bool(config.get("cluster_sashimi", False)):
     
     gene_nodes = dict()
@@ -598,7 +601,7 @@ def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
-print(cluster_files.keys())
+
 
 rule collapse_whippet:
     input: 
@@ -606,7 +609,6 @@ rule collapse_whippet:
         isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys()),
         psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv", cluster=cluster_files.keys())
 
-print(cluster_files.keys())
         
         
         
