@@ -186,7 +186,6 @@ def partition (list_in, n):
 
 #        cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
 
-print(cluster_files.keys())
 ##########
 
 delta_unpooled_dict = dict()
@@ -215,7 +214,6 @@ for compare_name, c in cluster_compare.items():
     ## Unpooled analysis
 
 
-print(cluster_files.keys()) 
 
 rule delta_unpool:
     input:
@@ -244,7 +242,6 @@ rule run_delta_unpool:  #to avoid overload shell comandline
 
 #pseudo pooling        
 
-print(cluster_files.keys())
 
 pool_dict_quant = dict()
 pool_dict_delta = dict()
@@ -257,12 +254,18 @@ for compare_name, c in cluster_compare.items():
 
         c1_names = []
         for c1 in g1:
-
-            c1_names += cluster_files[c1]
+            
+            if c1 in cluster_files:
+                c1_names += cluster_files[c1]
+            else:
+                print("Error: " + c1 + "is not in cluster metadata")
 
         c2_names = []
         for c2 in g2:
-            c2_names += cluster_files[c2]
+            if c2 in cluster_files:
+                c2_names += cluster_files[c2]
+            else:
+                print("Error: " + c2 + "is not in cluster metadata")
 
         c1_pools = partition(c1_names, np_A)
         c2_pools = partition(c2_names, np_B)
@@ -309,7 +312,7 @@ for compare_name, c in cluster_compare.items():
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
         
 
-print(cluster_files.keys())        
+   
 rule quant_pool:
     input:
         fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
@@ -355,7 +358,7 @@ rule unizip_delta:
         "gzip -d {input}"
 
 
-print(cluster_files.keys())
+
         
 if str2bool(config.get("Only_snakepool", False)):
         
@@ -402,8 +405,7 @@ else:
         script:
             "../src/Snakepool_BetaDist.R"        
 
-
-print(cluster_files.keys())            
+        
         
 rule diff_ME_single_cell:
     input:
@@ -480,7 +482,6 @@ rule cluster_bams:
                
 # # # # #               
           
-print(cluster_files.keys())    
     
 if str2bool(config.get("cluster_sashimi", False)):
     
