@@ -214,6 +214,9 @@ for compare_name, c in cluster_compare.items():
 
     ## Unpooled analysis
 
+
+print(cluster_files.keys()) 
+
 rule delta_unpool:
     input:
         lambda w : expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")]) + expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")]) 
@@ -240,6 +243,8 @@ rule run_delta_unpool:  #to avoid overload shell comandline
 
 
 #pseudo pooling        
+
+print(cluster_files.keys())
 
 pool_dict_quant = dict()
 pool_dict_delta = dict()
@@ -303,7 +308,8 @@ for compare_name, c in cluster_compare.items():
         pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
         
-        
+
+print(cluster_files.keys())        
 rule quant_pool:
     input:
         fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
@@ -348,6 +354,8 @@ rule unizip_delta:
     shell:
         "gzip -d {input}"
 
+
+print(cluster_files.keys())
         
 if str2bool(config.get("Only_snakepool", False)):
         
@@ -393,6 +401,9 @@ else:
             "../envs/R.yaml"
         script:
             "../src/Snakepool_BetaDist.R"        
+
+
+print(cluster_files.keys())            
         
 rule diff_ME_single_cell:
     input:
