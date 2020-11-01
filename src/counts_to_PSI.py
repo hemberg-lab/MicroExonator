@@ -93,17 +93,21 @@ def main(total_cov, min_sum_PSI, paired):
     
     paired_info = dict()
         
-    #reader = csv.DictReader(file, delimiter="\t")
+    #reader = csv.DictReader(file, delimiter="\t")  #This code used to work for input this header, and now is being re-adapted
     reader = csv.reader(file, delimiter="\t")
     
-    for row in reader:
+    for line in reader:
       
-      FILE_NAME, ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3, cov_alternatives_3, total_cov_alternatives_3 = row
-      
-      #sum_ME_coverage = row["sum_ME_coverage"]
-      #sum_SJ_coverage = row["sum_SJ_coverage"]
-      #total_cov_alternatives_3 = row["total_cov_alternatives_3"]
-      #total_cov_alternatives_5 = row["total_cov_alternatives_5"]
+      #FILE_NAME, ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3, cov_alternatives_3, total_cov_alternatives_3 = row
+      header = ['FILE_NAME', 'ME', 'total_SJs', 'ME_SJ_coverages', 'sum_ME_coverage', 'sum_ME_SJ_coverage_up_down_uniq', 'sum_ME_SJ_coverage_up', 'sum_ME_SJ_coverage_down', 'SJ_coverages', 'sum_SJ_coverage', 'is_alternative_5', 'is_alternative_3', 'alternatives_5', 'cov_alternatives_5', 'total_cov_alternatives_5', 'alternatives_3', 'cov_alternatives_3', 'total_cov_alternatives_3'] 
+      row = dict()
+      for col, col_name in zip(line, header):
+          row[col_name] = col
+        
+      sum_ME_coverage = row["sum_ME_coverage"]
+      sum_SJ_coverage = row["sum_SJ_coverage"]
+      total_cov_alternatives_3 = row["total_cov_alternatives_3"]
+      total_cov_alternatives_5 = row["total_cov_alternatives_5"]
       
       SUM_PSI = float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+float(total_cov_alternatives_5)
       if SUM_PSI>=min_sum_PSI:
