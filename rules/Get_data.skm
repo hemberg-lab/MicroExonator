@@ -22,7 +22,7 @@ else:
         output:
             "data/transcriptome.bed12"
         shell:
-            python2 src/GTFtoBED12.py 
+            "python2 src/GTFtoBED12.py {input} > {output}"
   
     config["Gene_anontation_bed12"] = "data/transcriptome.bed12"
             
