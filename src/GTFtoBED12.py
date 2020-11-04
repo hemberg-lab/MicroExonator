@@ -92,7 +92,7 @@ def converter (GTF):
 		level = dict_id_info[key][11]
 
 
-		BED = [chr, start, end, name.strip('"'), gene_name.strip('"'), strand, transcript_name.strip('"'), transcript_type.strip('"'), level, blocknum, ",".join(map(str, blocksizes)) + "," , ",".join(map(str, tstarts)) + ",", group, gene_id.strip('"'), gene_status.strip('"'), transcript_status.strip('"'), gene_type.strip('"')]
+		BED = [chr, start, end, name.strip('"'), gene_name.strip('"'), strand, transcript_name.strip('"'), transcript_type.strip('"'), level, blocknum, ",".join(map(str, blocksizes)) + "," , ",".join(map(str, tstarts)) + ",", group, gene_id.strip('"'), gene_status.strip('"'), transcript_status.strip('"'), gene_type.strip('"')][:12]
 		
 		print "\t".join(map(str, BED))
 
