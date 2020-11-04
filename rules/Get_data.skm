@@ -11,7 +11,22 @@ rule download_fastq:
     priority: -10
     shell:
         "bash {input}"
+        
 
+if "Gene_anontation_bed12" in config:
+    pass
+else:
+    rule generate_bed12:
+        input:
+            config["Gene_anontation_GTF"]
+        output:
+            "data/transcriptome.bed12"
+        shell:
+            python2 src/GTFtoBED12.py 
+  
+    config["Gene_anontation_bed12"] = "data/transcriptome.bed12"
+            
+        
 rule generate_fasta_from_bed12:
     input:
         config["Genome_fasta"],
