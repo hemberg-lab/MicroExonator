@@ -87,34 +87,34 @@ def main(sam_pre_processed):
 				if micro_exons_coords!="":
 					print "\t".join(row) + "\t" + micro_exons_coords
                     
-                    if flag==16:
-                        seq = str(Seq(island).reverse_complement())
-                        qual = qual[::-1]
-					
+					if flag==16:
+						seq = str(Seq(island).reverse_complement())
+						qual = qual[::-1]
+
 					if len(seq)==len(qual):
 
-                        fastq_out.write("@" + read + "\n")
-                        fastq_out.write(seq + "\n")
-                        fastq_out.write("+" + "\n")
-                        fastq_out.write(qual + "\n")
-                        
+						fastq_out.write("@" + read + "\n")
+						fastq_out.write(seq + "\n")
+						fastq_out.write("+" + "\n")
+						fastq_out.write(qual + "\n")
+
 					elif len(seq)>len(qual):  ## preventing errors with hisat
-                        
-                        qual2 = qual + qual[ -(len(seq) - len(qual)) : ]
-                            
-                        fastq_out.write("@" + read + "\n")
-                        fastq_out.write(seq + "\n")
-                        fastq_out.write("+" + "\n")
-                        fastq_out.write(qual2 + "\n")
-                        
-                   elif len(seq)<len(qual):
-                    
-                        qual2 = qual[:len(seq)]
-                        
-                        fastq_out.write("@" + read + "\n")
-                        fastq_out.write(seq + "\n")
-                        fastq_out.write("+" + "\n")
-                        fastq_out.write(qual2 + "\n")
+
+						qual2 = qual + qual[ -(len(seq) - len(qual)) : ]
+
+						fastq_out.write("@" + read + "\n")
+						fastq_out.write(seq + "\n")
+						fastq_out.write("+" + "\n")
+						fastq_out.write(qual2 + "\n")
+
+					elif len(seq)<len(qual):
+
+						qual2 = qual[:len(seq)]
+
+						fastq_out.write("@" + read + "\n")
+						fastq_out.write(seq + "\n")
+						fastq_out.write("+" + "\n")
+						fastq_out.write(qual2 + "\n")
                         
 					# ME_fastq = SeqRecord( seq, id = read, description = "" )
 					# ME_fastq.letter_annotations["phred_quality"] = qual
