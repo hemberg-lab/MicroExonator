@@ -19,17 +19,18 @@ for cluster, files in cluster_files.items():
         cluster_files_pb[(cluster, sb)] = pool
         sb += 1
 
-def get_files_by_cluster_pb(cluster, ext):
+def get_files_by_cluster_pb(cluster, pool_ID):
+    ext = ".fastq.gz"
     path="FASTQ/"
-    return([path + x + ext for x in cluster_files_pb[cluster]])
+    return([path + x + ext for x in cluster_files_pb[(cluster, int(pool_ID))]])
 
 rule quant_pool_pb:
     input:
-        fastq = lambda w: get_files_by_cluster_pb[(w.cluster, w.pool_ID)],
-        index = "Whippet/Index/whippet.jls"
+        fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
+	index = "Whippet/Index/whippet.jls"
     output:
         "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz",
-        "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz",
+	"Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz",
         "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz",
         "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz",
         "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz"
@@ -40,8 +41,9 @@ rule quant_pool_pb:
     shell:
         "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
+#print(expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))))
         
 rule get_pseudo_pools:
     input:
-        "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz"
+        expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
         
