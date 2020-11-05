@@ -18,7 +18,7 @@ def str2bool(v):
 rule quant:
     input:
         "Report/out.high_quality.txt",
-        #"Report/out_filtered_ME.PSI.txt",        
+        "Report/out_filtered_ME.PSI.txt",        
         #"Report/stats/Microexons.not_consensus",
         #"Report/stats/Microexons.annotation.stats"        
         
@@ -79,22 +79,20 @@ rule bamfiles:
         expand("Whippet/BAM/{samples}.bam.bai", samples=DATA)
 
 
-if ("downstream_only" in config)==False:
-
-    include : "rules/Round1.skm"
-    include : "rules/Round1_post_processing.skm"
-    include : "rules/Round2.skm"
-    include : "rules/Round2_post_processing.skm"
-
-elif str2bool(config["downstream_only"])==False:
-
-    include : "rules/Round1.skm"
-    include : "rules/Round1_post_processing.skm"
-    include : "rules/Round2.skm"
-    include : "rules/Round2_post_processing.skm"
-
-else:
+if str2bool(config.get("downstream_only", False)):
     pass
+elif str2bool(config.get("skip_discovery_and_quant", False)):
+    include : "rules/Round2_post_processing.skm"
+elif str2bool(config.get("skip_discovery", False)):
+    include : "rules/Round2.skm"
+    include : "rules/Round2_post_processing.skm"
+else:
+    include : "rules/Round1.skm"
+    include : "rules/Round1_post_processing.skm"
+    include : "rules/Round2.skm"
+    include : "rules/Round2_post_processing.skm"
+
+
 
 ##### Downstream Analysis ####
 
