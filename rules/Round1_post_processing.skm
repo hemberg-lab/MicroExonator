@@ -24,18 +24,32 @@ rule hisat2_Genome_index:
     shell:
         "hisat2-build {input} data/Genome"
 
+if str2bool(config.get("skip_genome_alignment", False)):
 
-rule hisat2_to_Genome:
-    input:
-        "Round1/{sample}.sam.row_ME.fastq",
-        "data/Genome.1.ht2"
-    output:
-        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
-    threads: 1
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "hisat2 -x data/Genome -U {input[0]} > {output}"
+	rule hisat2_to_Genome:
+	    input:
+	        "Round1/{sample}.sam.row_ME.fastq",
+	        "data/Genome.1.ht2"
+	    output:
+	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
+	    threads: 1
+	    conda:
+	        "../envs/core.yaml"
+	    shell:
+	        "touch {output}"
+else:
+
+	rule hisat2_to_Genome:
+	    input:
+	        "Round1/{sample}.sam.row_ME.fastq",
+	        "data/Genome.1.ht2"
+	    output:
+	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
+	    threads: 1
+	    conda:
+	        "../envs/core.yaml"
+	    shell:
+	        "hisat2 -x data/Genome -U {input[0]} > {output}"
 
 
 rule Round1_filter:
