@@ -29,19 +29,35 @@ rule bowtie_Genome_index:
         "../envs/core.yaml"
     shell:
         "bowtie-build {input} {input}"
+        
+if str2bool(config.get("skip_genome_alignment", False)):
 
-rule bowtie_to_genome:
-    input:
-        "Round2/{sample}.sam.pre_processed.fastq",
-        "data/Genome",
-        "data/Genome" + ".1.ebwt"
-    output:
-        temp("Round2/{sample}.sam.pre_processed.hg19.sam")
-    priority: 100
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
+    rule bowtie_to_genome:
+        input:
+            "Round2/{sample}.sam.pre_processed.fastq",
+            "data/Genome",
+            "data/Genome" + ".1.ebwt"
+        output:
+            temp("Round2/{sample}.sam.pre_processed.hg19.sam")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "touch {output}"
+else:
+
+    rule bowtie_to_genome:
+        input:
+            "Round2/{sample}.sam.pre_processed.fastq",
+            "data/Genome",
+            "data/Genome" + ".1.ebwt"
+        output:
+            temp("Round2/{sample}.sam.pre_processed.hg19.sam")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
 
 
 rule Round2_filter:
