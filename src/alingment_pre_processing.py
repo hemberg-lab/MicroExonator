@@ -8,6 +8,7 @@ from random import randint, sample
 from operator import itemgetter
 import re
 
+csv.field_size_limit(100000000)
 
 tags = {}
 
@@ -243,6 +244,9 @@ def main(sam, stranded):
 			strand = "-"
 
 		if number_of_host_introns == 1:
+
+			if DR_corrected_micro_exon_seq_found=="":
+				DR_corrected_micro_exon_seq_found=micro_exon_seq_found
 
 			print "\t".join(map(str, [read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found]))
 
