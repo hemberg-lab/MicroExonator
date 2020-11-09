@@ -1,14 +1,15 @@
 
 rule ME_reads:
     input:
-        "Round2/{sample}.sam.pre_processed"
+        "Round2/{sample}.sam.pre_processed",
+	"FASTQ/{sample}.fastq.gz"
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/round2_ME_reads_fastq.py {input} > {output}"
+        "python2 src/round2_ME_reads_fastq2.py {input} > {output}"
         
 rule Get_Genome:
     input:

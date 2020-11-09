@@ -78,7 +78,7 @@ rule Micro_Exon_table:
     conda:
         "../envs/core.yaml"
     shell:
-        "cat Round1/*.sam.row_ME.filter1 > Round1/TOTAL/TOTAL.sam.row_ME.filter1 &&"
+        "cat Round1/*.sam.row_ME.filter1 | awk 'NF==16' > Round1/TOTAL/TOTAL.sam.row_ME.filter1  &&"
         "python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
 
 
