@@ -22,7 +22,7 @@ rule unzip:
 
 rule get_fastq:
     input:
-        expand("FASTQ/{sample}.fastq", sample=DATA)	        
+        expand("FASTQ/{sample}.fastq.gz", sample=DATA)	        
 
 if "Gene_anontation_bed12" in config:
     pass
