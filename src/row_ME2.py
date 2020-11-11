@@ -133,16 +133,16 @@ def main(sam_pre_processed, row_fastq):
 				pass 
 
 			
-    with gzip.open(row_fastq) as f:
+	with gzip.open(row_fastq) as f:
 
-        for read in SeqIO.parse(f, "fastq"):
+		for read in SeqIO.parse(f, "fastq"):
 
-            if read.id in ME_reads:
+			if read.id in ME_reads:
                 
-                f_out = SeqRecord( read.seq, read.id, description = "" )
-                f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
+				f_out = SeqRecord( read.seq, read.id, description = "" )
+				f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
 
-                fastq_out.write(f_out.format("fastq"))
+				fastq_out.write(f_out.format("fastq"))
 			
 			
 if __name__ == '__main__':
