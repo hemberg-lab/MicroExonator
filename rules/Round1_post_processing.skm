@@ -4,7 +4,7 @@ rule row_Micro_Exon_reads:
     input:
         config["Genome_fasta"],
         "Round1/{sample}.sam.pre_processed",
-	"FASTQ/sample.fastq.gz"
+	"FASTQ/{sample}.fastq.gz"
     output:
         temp("Round1/{sample}.sam.row_ME"),
         temp("Round1/{sample}.sam.row_ME.fastq")
