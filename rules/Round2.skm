@@ -71,9 +71,9 @@ rule download_fastq2:
 
 def hard_drive_behavior(fastq):
     if config["Optimize_hard_drive"]=="T":
-        return(  "FASTQ/round2/" + fastq + ".fastq")
+        return(  "FASTQ/round2/" + fastq + ".fastq.gz")
     elif config["Optimize_hard_drive"]=="F":
-        return("FASTQ/" + fastq + ".fastq")
+        return("FASTQ/" + fastq + ".fastq.gz")
 
 rule Round2_bowtie_to_tags:
     input:
@@ -87,7 +87,7 @@ rule Round2_bowtie_to_tags:
     conda:
         "../envs/core.yaml"
     shell:
-        "bowtie {input[0]} -p {threads} -q {input[1]} -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /*/)' > {output}"
+        "bowtie {input[0]} -p {threads} -q (<zcat {input[1]}) -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /*/)' > {output}"
 
 
 rule Round2_alingment_pre_processing:
