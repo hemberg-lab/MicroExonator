@@ -9,6 +9,7 @@ from Bio.SeqRecord import SeqRecord
 from random import randint, sample
 from operator import itemgetter
 import re
+import gzip
 
 Genome = {}
 
