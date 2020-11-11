@@ -88,7 +88,7 @@ def converter (GTF):
 
 		#BED12 = [chr, str(start), str(end), name.strip('"'), gene_name.strip('"'), strand, transcript_name.strip('"'), transcript_type.strip('"'), str(level), str(blocknum), ",".join(map(str, blocksizes)) + "," , ",".join(map(str, tstarts)) + ",", group, gene_id.strip('"'), gene_status.strip('"'), transcript_status.strip('"'), gene_type.strip('"') ]
 
-		BED12 = [chr, str(start), str(end), name.strip('"'), "0", strand, str(start), str(end), "0", str(blocknum), ",".join(map(str, blocksizes)) ]
+		BED12 = [chr, str(start), str(end), name.strip('"'), "0", strand, str(start), str(end), "0", str(blocknum), ",".join(map(str, blocksizes)), ",".join(map(str, tstarts)) ]
 
 		print "\t".join(BED12)
 
