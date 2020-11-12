@@ -6,9 +6,8 @@ def main(gtf_file):
 	
 	with open(gtf_file) as gtf:
 
-        transcript_blocksizes = defaultdict(list)
-        transcript_qstarts = defaultdict(list)
-        transcript_coords = dict()
+        transcript_coords = dict()    
+        transcript_qstarts_blocksize = defaultdict(list)
 
         reader = csv.reader(gtf, delimiter="\t")
 
@@ -23,8 +22,9 @@ def main(gtf_file):
                 block_end = int(row[4])
                 block_size = block_end - block_start
                 strand = row[6]
-                
+
                 tags = row[8].strip(" ").split(";")
+
                 for t in tags:
                     pair =  t.strip(" ").split(" ")
                     if pair!=['']:
@@ -33,25 +33,33 @@ def main(gtf_file):
                             transcript = ID.strip('"')
 
                 if blocktype == 'transcript':
+
                     transcript_coords[transcript] = (chrom, block_start, block_end, strand)
 
                 if blocktype == 'exon':
+
                     exon_size = block_end - block_start
-                    transcript_blocksizes[transcript].append(exon_size)
-                    transcript_qstarts[transcript].append(block_start)
+
+
+                    transcript_qstarts_blocksize[transcript].append((block_start, exon_size))
 
 
         for trancript in transcript_coords:
 
+
             chrom, start, end, strand = transcript_coords[trancript]
+
             n_blocks = len(transcript_blocksizes[trancript])
 
-            if strand=="+":
-                qstarts = ",".join(map(str, [x - start for x in transcript_qstarts[trancript]] ))
-                blocksizes = ",".join(map(str, transcript_blocksizes[trancript]))
-            elif strand=="-":
-                qstarts = ",".join(map(str, [x - start for x in transcript_qstarts[trancript]][::-1] ))
-                blocksizes = ",".join(map(str, transcript_blocksizes[trancript][::-1]))
+
+            q_b_tuples = sorted(transcript_qstarts_blocksize[trancript] , key=lambda x: x[0])
+
+            qstarts_list = [x[0] for x in q_b_tuples ]
+            blocksizes_list = [x[1] for x in q_b_tuples ]
+
+            qstarts = ",".join(map(str, [x - start for x in qstarts_list] ))
+            blocksizes = ",".join(map(str, blocksizes_list))
+
 
             bed12 = [chrom, start, end, transcript, "0", strand, start, end, "0", n_blocks, blocksizes, qstarts]
 
