@@ -7,6 +7,8 @@ from Bio.Alphabet import generic_dna
 from Bio.SeqRecord import SeqRecord
 import gzip
 
+csv.field_size_limit(100000000)
+
 def main(alingment_pre_processed_round2, row_fastq):
 	
     ME_reads = set([])
