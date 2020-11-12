@@ -223,25 +223,27 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				SJ_start = start + q1 + b1
 				SJ_end = start + q3
 				ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
+				
+				if SJ_start <SJ_end:
 
 
 
-				dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
 
-				if strand=="-":
-					dn = dn.reverse_complement()
+					if strand=="-":
+						dn = dn.reverse_complement()
 
-				dn = str(dn).upper()
+					dn = str(dn).upper()
 
 
 
-				if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
-					#if chrom in ME_chroms:
+						#if chrom in ME_chroms:
 
-					introns.add(ME_intron)
+						introns.add(ME_intron)
 
-					non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
 
 
 
