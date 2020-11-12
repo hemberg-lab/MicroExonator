@@ -10,6 +10,7 @@ import gzip
 def main(alingment_pre_processed_round2, row_fastq):
 	
     ME_reads = set([])
+    fastq_out = open( alingment_pre_processed_round2 + ".fastq", 'w')
 
     for row in csv.reader(open(alingment_pre_processed_round2), delimiter = '\t'):
 
@@ -26,10 +27,10 @@ def main(alingment_pre_processed_round2, row_fastq):
 
             if read.id in ME_reads:
                 
-                fastq_out = SeqRecord( read.seq, read.id, description = "" )
-                fastq_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
+                f_out = SeqRecord( read.seq, read.id, description = "" )
+                f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
 
-                print fastq_out.format("fastq")
+                fastq_out.write(f_out.format("fastq"))
 
 #		try:
 #			read, flag, tag, start, cigar, seq, qual = row
