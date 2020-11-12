@@ -2,6 +2,8 @@ import sys
 import csv
 from collections import defaultdict
 
+csv.field_size_limit(100000000)
+
 def main(pre_processed, genome_sam):
 
 	read_SJ = defaultdict(set)
