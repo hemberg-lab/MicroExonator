@@ -1,16 +1,30 @@
+if str2bool(config.get("Keep_fastq_gz", False)):
+    rule download_fastq:
+        input:
+            "download/{sample}.download.sh"
+        output:
+            "FASTQ/{sample}.fastq.gz"
+        resources:
+            get_data = 1 
+        conda:
+            "../envs/core.yaml"
+        priority: -10
+        shell:
+            "bash {input}"
 
-rule download_fastq:
-    input:
-        "download/{sample}.download.sh"
-    output:
-        temp("FASTQ/{sample}.fastq.gz")
-    resources:
-        get_data = 1 
-    conda:
-        "../envs/core.yaml"
-    priority: -10
-    shell:
-        "bash {input}"
+else:
+    rule download_fastq:
+        input:
+            "download/{sample}.download.sh"
+        output:
+            temp("FASTQ/{sample}.fastq.gz")
+        resources:
+            get_data = 1 
+        conda:
+            "../envs/core.yaml"
+        priority: -10
+        shell:
+            "bash {input}"
 
 rule unzip:
    input:
