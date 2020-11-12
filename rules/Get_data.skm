@@ -3,7 +3,7 @@ rule download_fastq:
     input:
         "download/{sample}.download.sh"
     output:
-        "FASTQ/{sample}.fastq.gz"
+        temp("FASTQ/{sample}.fastq.gz")
     resources:
         get_data = 1 
     conda:
