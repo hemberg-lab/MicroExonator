@@ -160,30 +160,32 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 				intron = " ".join([chrom, str(istart), str(iend), "SJ", "0", strand])
+				
+				if istart < iend:
 
-				#if chrom in ME_chroms:
+					#if chrom in ME_chroms:
 
-				introns.add(intron)
-
-
-				# Indexing tag library
-
-
-				estart = start + q1
-				eend = start + q1 + b1
-
-				f_seq += str(Genome[chrom][estart:eend])
+					introns.add(intron)
 
 
-				if (chrom, eend) in SJ_start_seqs:
+					# Indexing tag library
 
-					if f_seq[-100:] > len(SJ_start_seqs[(chrom, eend )]):
+
+					estart = start + q1
+					eend = start + q1 + b1
+
+					f_seq += str(Genome[chrom][estart:eend])
+
+
+					if (chrom, eend) in SJ_start_seqs:
+
+						if f_seq[-100:] > len(SJ_start_seqs[(chrom, eend )]):
+
+							SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
+
+					else:
 
 						SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
-
-				else:
-
-					SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
 
 
 
