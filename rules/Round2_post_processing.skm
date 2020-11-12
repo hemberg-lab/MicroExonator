@@ -121,8 +121,7 @@ def get_min_reads():
 
 rule coverage_filter:
     input:
-       "Round2/TOTAL.filter1.ME_SJ_coverage",
-       "FASTQ/{sample}.fastq.gz"   #To just delete it at the very end
+       "Round2/TOTAL.filter1.ME_SJ_coverage"
     params:
         min_reads_sample = get_min_reads()
     output:
