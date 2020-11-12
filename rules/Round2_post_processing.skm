@@ -9,7 +9,7 @@ rule ME_reads:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/round2_ME_reads_fastq2.py {input} > {output}"
+        "python2 src/round2_ME_reads_fastq2.py {input}"
         
 rule Get_Genome:
     input:
