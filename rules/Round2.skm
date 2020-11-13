@@ -82,12 +82,12 @@ def hard_drive_behavior(fastq):
                     to_validate.add(row[0])
                     
             if fastq in to_validate:
-                return("FASTQ/round2/" + fastq + ".fastq.valid")
+                return("FASTQ/round2/" + fastq + ".fastq.gz.valid")
             else:
-                return(  "FASTQ/round2/" + fastq + ".fastq")
+                return(  "FASTQ/round2/" + fastq + ".fastq.gz")
                 
         else:
-            return(  "FASTQ/round2/" + fastq + ".fastq")
+            return(  "FASTQ/round2/" + fastq + ".fastq.gz")
     else:
 
         if "validate_fastq_list" in config:
@@ -100,27 +100,27 @@ def hard_drive_behavior(fastq):
                     to_validate.add(row[0])
                     
             if fastq in to_validate:
-                return("FASTQ/" + fastq + ".fastq.valid")
+                return("FASTQ/" + fastq + ".fastq.gz.valid")
             else:
-                return(  "FASTQ/" + fastq + ".fastq")
+                return(  "FASTQ/" + fastq + ".fastq.gz")
         else:
 
-            return("FASTQ/" + fastq + ".fastq")
+            return("FASTQ/" + fastq + ".fastq.gz")
 
 
 rule validate_fastq:
     input:
-        "FASTQ/{sample}.fastq"
+        "FASTQ/{sample}.fastq.gz"
     output:
-        "FASTQ/{sample}.fastq.valid"
+        "FASTQ/{sample}.fastq.gz.valid"
     shell:
         "python3 src/validate_fastq.py {input}"
     
 rule validate_fastq2:
     input:
-        "FASTQ/round2/{sample}.fastq"
+        "FASTQ/round2/{sample}.fastq.gz"
     output:
-        "FASTQ/round2/{sample}.fastq.valid"
+        "FASTQ/round2/{sample}.fastq.gz.valid"
     shell:
         "python3 src/validate_fastq.py {input}"
 
