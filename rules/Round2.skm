@@ -92,7 +92,7 @@ def hard_drive_behavior(fastq):
 
         if "validate_fastq_list" in config:
         
-            to_validate = set[()]
+            to_validate = set([])
             
             with open(config["validate_fastq_list"]) as fastq_list:
                 reader = csv.reader(fastq_list, delimiter="\t")
