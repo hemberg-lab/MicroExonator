@@ -141,7 +141,12 @@ rule BamIndex:
       shell:
         "samtools index {input.bam}"   
 
-
+rule get_BAMs:
+      input:
+            expand("Whippet/BAM/{sample}.bam", samples=DATA)
+            expand("Whippet/BAM/{sample}.bam.bai",  samples=DATA)
+            
+#expand("Whippet/BAM/{samples}.bam", samples=DATA)
 #rule unzip_quant:
 #    input:
 #        "Whippet/Quant/{sample}.psi.gz"
