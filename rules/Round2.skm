@@ -77,8 +77,7 @@ def hard_drive_behavior(fastq):
             to_validate = set[()]
             
             with open(config["validate_fastq_list"]) as fastq_list:
-                reader = csv.reader(fastq_list, delimiter="\t"):
-                
+                reader = csv.reader(fastq_list, delimiter="\t")
                 for row in reader:
                     to_validate.add(row[0])
                     
@@ -87,7 +86,6 @@ def hard_drive_behavior(fastq):
             else:
                 return(  "FASTQ/round2/" + fastq + ".fastq")
                 
-    
         else:
             return(  "FASTQ/round2/" + fastq + ".fastq")
     else:
@@ -97,8 +95,7 @@ def hard_drive_behavior(fastq):
             to_validate = set[()]
             
             with open(config["validate_fastq_list"]) as fastq_list:
-                reader = csv.reader(fastq_list, delimiter="\t"):
-                
+                reader = csv.reader(fastq_list, delimiter="\t")
                 for row in reader:
                     to_validate.add(row[0])
                     
