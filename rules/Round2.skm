@@ -112,7 +112,7 @@ rule validate_fastq:
     input:
         "FASTQ/{sample}.fastq"
     output:
-        FASTQ/{sample}.fastq.valid"
+        "FASTQ/{sample}.fastq.valid"
     shell:
         "python3 src/validate_fastq.py {input}"
     
@@ -120,7 +120,7 @@ rule validate_fastq2:
     input:
         "FASTQ/round2/{sample}.fastq"
     output:
-        FASTQ/round2/{sample}.fastq.valid"
+        "FASTQ/round2/{sample}.fastq.valid"
     shell:
         "python3 src/validate_fastq.py {input}"
 
