@@ -3,18 +3,17 @@ import csv
 from collections import defaultdict
 
 def main(gtf_file):
-	
-	with open(gtf_file) as gtf:
-
-        transcript_coords = dict()    
+    
+    with open(gtf_file) as gtf:
+        
+        transcript_coords = dict()
         transcript_qstarts_blocksize = defaultdict(list)
-
         reader = csv.reader(gtf, delimiter="\t")
-
+        
         for row in reader:
-
+            
             if row[0][0]!="#":
-
+                
                 chrom = row[0]
                 group = row[1]
                 blocktype = row[2]
