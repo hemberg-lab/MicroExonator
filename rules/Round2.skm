@@ -70,10 +70,59 @@ rule download_fastq2:
         "bash {input[0]} && mv {params} {output}"
 
 def hard_drive_behavior(fastq):
-    if config["Optimize_hard_drive"]=="T":
-        return(  "FASTQ/round2/" + fastq + ".fastq.gz")
-    elif config["Optimize_hard_drive"]=="F":
-        return("FASTQ/" + fastq + ".fastq.gz")
+    if config.get("Optimize_hard_drive", False)=="T":
+    
+        if "validate_fastq_list" in config:
+        
+            to_validate = set[()]
+            
+            with open(config["validate_fastq_list"]) as fastq_list:
+                reader = csv.reader(fastq_list, delimiter="\t")
+                for row in reader:
+                    to_validate.add(row[0])
+                    
+            if fastq in to_validate:
+                return("FASTQ/round2/" + fastq + ".fastq.gz.valid")
+            else:
+                return(  "FASTQ/round2/" + fastq + ".fastq.gz")
+                
+        else:
+            return(  "FASTQ/round2/" + fastq + ".fastq.gz")
+    else:
+
+        if "validate_fastq_list" in config:
+        
+            to_validate = set([])
+            
+            with open(config["validate_fastq_list"]) as fastq_list:
+                reader = csv.reader(fastq_list, delimiter="\t")
+                for row in reader:
+                    to_validate.add(row[0])
+                    
+            if fastq in to_validate:
+                return("FASTQ/" + fastq + ".fastq.gz.valid")
+            else:
+                return(  "FASTQ/" + fastq + ".fastq.gz")
+        else:
+
+            return("FASTQ/" + fastq + ".fastq.gz")
+
+
+rule validate_fastq:
+    input:
+        "FASTQ/{sample}.fastq.gz"
+    output:
+        "FASTQ/{sample}.fastq.gz.valid"
+    shell:
+        "python3 src/validate_fastq.py {input}"
+    
+rule validate_fastq2:
+    input:
+        "FASTQ/round2/{sample}.fastq.gz"
+    output:
+        "FASTQ/round2/{sample}.fastq.gz.valid"
+    shell:
+        "python3 src/validate_fastq.py {input}"
 
 rule Round2_bowtie_to_tags:
     input:
