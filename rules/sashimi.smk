@@ -1,3 +1,5 @@
+import csv
+
 def get_sasshimi_window(ME, w):
 
 	ME_strand, ME_start, ME_end = ME.split("_")[-3:]
@@ -7,9 +9,7 @@ def get_sasshimi_window(ME, w):
 	end = str(int(ME_start)+w)
 	return(chrom + ":" + start + "-" + end)
 
-
 if "sashimi_tsv" in config:
-#if True in config:
 
     target_ME = set([])
 	
