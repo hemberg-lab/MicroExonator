@@ -146,3 +146,7 @@ for file in DATA:
 rule rerun_incomplete_round2:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
+        
+
+include : "rules/sashimi.smk"
+
