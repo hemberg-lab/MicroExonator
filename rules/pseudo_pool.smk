@@ -26,7 +26,7 @@ for cluster, files in cluster_files.items():
         
     for pool in partition(files, n_sb):
         cluster_files_pb[(cluster, sb)] = pool
-	    sb_IDs.add(cluster + "_" + str(sb))
+        sb_IDs.add(cluster + "_" + str(sb))
         sb += 1
 
 rule get_pseudo_bulk_membership:
