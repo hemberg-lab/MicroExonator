@@ -61,7 +61,6 @@ rule merge_quant_by_cluster_gene_sp:
         mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
         psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
     params:
-        cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Gene"
     output:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv"
@@ -76,7 +75,6 @@ rule merge_quant_by_cluster_isoform_sp:
         mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
         psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
     params:
-        cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Isoform"
     output:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
