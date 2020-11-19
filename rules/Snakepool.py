@@ -592,10 +592,9 @@ if str2bool(config.get("cluster_sashimi", False)):
     
 
 ######
-    
-    
-def get_files_by_cluster(cluster, ext):
-    path="Whippet/Quant/"
+
+def get_files_by_cluster(cluster, ext, path):
+    #path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
 rule collapse_whippet:
@@ -606,10 +605,10 @@ rule collapse_whippet:
 
 rule merge_quant_by_cluster_gene:
     input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz", "Whippet/Quant/"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Gene"
@@ -621,10 +620,10 @@ rule merge_quant_by_cluster_gene:
 
 rule merge_quant_by_cluster_isoform:
     input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz", "Whippet/Quant/"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Isoform"
