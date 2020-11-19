@@ -17,6 +17,8 @@ cluster_files_pb = dict()
 for cluster, files in cluster_files.items():
     sb = 1
     n_sb = round(len(files)/n_cells)
+    print(cluster, len(files), n_sb)
+    
     for pool in partition(files, n_sb):
         cluster_files_pb[(cluster, sb)] = pool
         sb += 1
