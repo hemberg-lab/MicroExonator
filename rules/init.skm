@@ -69,12 +69,12 @@ if os.path.isfile("./local_samples.tsv"):
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-                if row["path"].split(".")[-1] == "fastq":
+                if row["path"].split(".")[-1] == "gz":
 
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
                 
                 
                 else:
@@ -82,7 +82,7 @@ if os.path.isfile("./local_samples.tsv"):
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file.write("cat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
 
@@ -105,7 +105,7 @@ if os.path.isfile("./sample_url.tsv"):
 
                 download_file.write("#!/bin/bash" + "\n")
                 download_file.write("wget -r " + row["url"] +  " -O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
-                download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                #download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
 

@@ -221,157 +221,159 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 	for row in csv.reader(open(row_ME), delimiter = '\t'):
 
+		try:
+			read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found, micro_exons_coords = row
+			intron_tag, transcript_ID, anchors = tag.split("|")
+			chr, istart, iend = re.findall(r"[\w']+", intron_tag)
+			up, down = anchors.split("_")
+			up = int(up)
+			down = int(down)
 
-		read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found, micro_exons_coords = row
-		intron_tag, transcript_ID, anchors = tag.split("|")
-		chr, istart, iend = re.findall(r"[\w']+", intron_tag)
-		up, down = anchors.split("_")
-		up = int(up)
-		down = int(down)
-
-		start = int(start)
-
-
-		t_score = 0
-
-		aux_str = ''
-		cigar_vars = []
-
-		for c in cigar:
-			c_type = ascii_classifier(c)
-
-			if c_type == 'number':
-				aux_str += c
-
-			elif c_type == 'letter':
-				cigar_vars.append((c, int(aux_str)))
-				aux_str = ''
+			start = int(start)
 
 
-		var_index = 0
+			t_score = 0
 
-		for var in cigar_vars:
-			var_type = var[0]
-			var_value = var[1]
-			var_index += 1
+			aux_str = ''
+			cigar_vars = []
 
-			if var_type == 'M':
-				t_score += var_value
+			for c in cigar:
+				c_type = ascii_classifier(c)
 
-			elif var_type == 'I':
-				t_score += var_value
+				if c_type == 'number':
+					aux_str += c
 
-			elif var_type == 'D':
-				t_score -= 1
-
-
-		micro_exons = []
-
-		for i in micro_exons_coords.split(","):
-			micro_exons.append((i.split("_")))
-
-		U2_scores = []
-		TOTAL_mean_conservation = []
+				elif c_type == 'letter':
+					cigar_vars.append((c, int(aux_str)))
+					aux_str = ''
 
 
+			var_index = 0
+
+			for var in cigar_vars:
+				var_type = var[0]
+				var_value = var[1]
+				var_index += 1
+
+				if var_type == 'M':
+					t_score += var_value
+
+				elif var_type == 'I':
+					t_score += var_value
+
+				elif var_type == 'D':
+					t_score -= 1
 
 
-		for i in micro_exons:
-			
-			
-			try:
+			micro_exons = []
+
+			for i in micro_exons_coords.split(","):
+				micro_exons.append((i.split("_")))
+
+			U2_scores = []
+			TOTAL_mean_conservation = []
 
 
 
-				ME_strand, ME_start, ME_end = i[-3:]
-				ME_chr = "_".join(i[:-3])
 
-				ME_start = int(ME_start)
-				ME_end = int(ME_end)
+			for i in micro_exons:
 
 
-				if phylop=="NA":
+				try:
 
-					mean_conservation = 0
 
-				else:
-					try:
 
-						mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
+					ME_strand, ME_start, ME_end = i[-3:]
+					ME_chr = "_".join(i[:-3])
 
-					except RuntimeError:
+					ME_start = int(ME_start)
+					ME_end = int(ME_end)
+
+
+					if phylop=="NA":
 
 						mean_conservation = 0
 
-				TOTAL_mean_conservation.append(mean_conservation)
+					else:
+						try:
+
+							mean_conservation= phylop_bw.stats(ME_chr, ME_start-2, ME_end+2, type="mean")[0]
+
+						except RuntimeError:
+
+							mean_conservation = 0
+
+					TOTAL_mean_conservation.append(mean_conservation)
 
 
-				ME5 = str(Genome[ME_chr][ME_start-14:ME_start+3]).upper()
-				ME3 = str(Genome[ME_chr][ME_end-3:ME_end+10]).upper()
+					ME5 = str(Genome[ME_chr][ME_start-14:ME_start+3]).upper()
+					ME3 = str(Genome[ME_chr][ME_end-3:ME_end+10]).upper()
 
 
-				if ME_strand == "-":
+					if ME_strand == "-":
 
-					ME5 = str(Genome[ME_chr][ME_end-3:ME_end+14].reverse_complement()).upper()
-					ME3 = str(Genome[ME_chr][ME_start-10:ME_start+3].reverse_complement()).upper()
-
-
+						ME5 = str(Genome[ME_chr][ME_end-3:ME_end+14].reverse_complement()).upper()
+						ME3 = str(Genome[ME_chr][ME_start-10:ME_start+3].reverse_complement()).upper()
 
 
-				U2_score = 0
-
-				i = 0
-
-				for N in ME5:
-					U2_score += U2_GTAG_3[N][i]
-					i += 1
-
-				i = 0
-
-				for N in ME3:
-					U2_score += U2_GTAG_5[N][i]
-					i += 1
-
-				U2_score = percent(U2_score, TOTAL_U2_max_score)
-
-				U2_scores.append(U2_score)
-				
-			except ValueError:
-				pass
 
 
-		tag_alingment = "|".join([tag, cigar])
-		genome_alingment = "None"
-		g_score = "None"
+					U2_score = 0
 
-		same_ME = False
+					i = 0
 
-		if start <= (up-8) and cigar.count("I") == 1 and cigar.count("D") == 0 and cigar.count("S") == 0 and (read in black_list)==False and len(DR_corrected_micro_exon_seq_found) <= ME_len:
+					for N in ME5:
+						U2_score += U2_GTAG_3[N][i]
+						i += 1
+
+					i = 0
+
+					for N in ME3:
+						U2_score += U2_GTAG_5[N][i]
+						i += 1
+
+					U2_score = percent(U2_score, TOTAL_U2_max_score)
+
+					U2_scores.append(U2_score)
+
+				except ValueError:
+					pass
 
 
-			if read in exons_reads_genome:
+			tag_alingment = "|".join([tag, cigar])
+			genome_alingment = "None"
+			g_score = "None"
 
-				g_chr, g_strand, g_start, g_cigar, g_score, g_Exon_starts, g_Exon_ends = max(exons_reads_genome[read],key=lambda item:item[4])
+			same_ME = False
 
-				genome_alingment = "|".join([g_chr, g_strand, str(g_start), g_cigar])
-
-				for s, e in zip(g_Exon_starts, g_Exon_ends):
-
-					if "_".join(map(str, [g_chr, g_strand, s, e])) in micro_exons_coords:
-
-						same_ME = True
+			if start <= (up-8) and cigar.count("I") == 1 and cigar.count("D") == 0 and cigar.count("S") == 0 and (read in black_list)==False and len(DR_corrected_micro_exon_seq_found) <= ME_len:
 
 
-				if same_ME:
+				if read in exons_reads_genome:
+
+					g_chr, g_strand, g_start, g_cigar, g_score, g_Exon_starts, g_Exon_ends = max(exons_reads_genome[read],key=lambda item:item[4])
+
+					genome_alingment = "|".join([g_chr, g_strand, str(g_start), g_cigar])
+
+					for s, e in zip(g_Exon_starts, g_Exon_ends):
+
+						if "_".join(map(str, [g_chr, g_strand, s, e])) in micro_exons_coords:
+
+							same_ME = True
+
+
+					if same_ME:
+						print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
+
+
+					elif t_score > g_score:
+						print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
+
+				else:
 					print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
 
-
-				elif t_score > g_score:
-					print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
-
-			else:
-				print read, seq, qual, tag_alingment, t_score, genome_alingment, g_score, same_ME, len(DR_corrected_micro_exon_seq_found), DR_corrected_micro_exon_seq_found, len(micro_exons), max(U2_scores), max(TOTAL_mean_conservation), micro_exons_coords, ",".join(map(str, U2_scores)), ",".join(map(str, TOTAL_mean_conservation))
-
+		except ValueError:
+			pass
 
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
