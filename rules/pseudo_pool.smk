@@ -9,12 +9,14 @@ def partition (list_in, n):  # Function to do random pooling
     random.shuffle(list_in)
     return [list_in[i::n] for i in range(n)]
 
-n_sb = 5
+#n_sb = 5
+n_cells = 15 
 
 cluster_files_pb = dict()
 
 for cluster, files in cluster_files.items():
     sb = 1
+    n_sb = round(len(files)/n_cells)
     for pool in partition(files, n_sb):
         cluster_files_pb[(cluster, sb)] = pool
         sb += 1
