@@ -606,7 +606,7 @@ rule collapse_whippet:
 rule merge_quant_by_cluster_gene:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz""),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
         mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
         psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
     params:
