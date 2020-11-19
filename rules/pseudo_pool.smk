@@ -13,6 +13,7 @@ def partition (list_in, n):  # Function to do random pooling
 n_cells = 15 
 
 cluster_files_pb = dict()
+sb_IDs = set()
 
 for cluster, files in cluster_files.items():
     sb = 1
@@ -21,6 +22,7 @@ for cluster, files in cluster_files.items():
     
     for pool in partition(files, n_sb):
         cluster_files_pb[(cluster, sb)] = pool
+	sb_IDs.add(cluster + "_" + str(sb))
         sb += 1
 
 	
@@ -50,7 +52,7 @@ rule quant_pool_pb:
         
 rule get_pseudo_pools:
     input:
-        expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()])
+        expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=sb_IDs)
 
 	
 	
@@ -63,10 +65,10 @@ rule collapse_pseudo_pools:
 
 rule merge_quant_gene_sp:
     input:
-        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.gene.tpm.gz",  pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()]),
-        jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.jnc.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()]),
-        mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.map.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()]),
-        psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()])
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.gene.tpm.gz",  pseudo_pool=sb_IDs),
+        jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.jnc.gz", pseudo_pool=sb_IDs),
+        mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.map.gz", pseudo_pool=sb_IDs),
+        psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=sb_IDs)
     params:
         feature = "Gene"
     output:
@@ -77,7 +79,7 @@ rule merge_quant_gene_sp:
 
 rule merge_quant_isoform_sp:
     input:
-        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.isoform.tpm.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()])
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.isoform.tpm.gz", pseudo_pool=sb_IDs)
     params:
         feature = "Isoform"
     output:
@@ -87,7 +89,7 @@ rule merge_quant_isoform_sp:
 	
 rule merge_quant_PSI_sp:
     input:
-        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=["_".join(x) for x in cluster_files_pb.keys()])
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=sb_IDs)
     params:
         feature = "PSI"
     output:
