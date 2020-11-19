@@ -51,10 +51,11 @@ rule get_pseudo_pools:
 rule collapse_pseudo_pools:
   input: 
       gene = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv",
-      isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
+      isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv",
+      psi =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv"
 
 
-rule merge_quant_by_cluster_gene_sp:
+rule merge_quant_gene_sp:
     input:
         files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
         jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
@@ -68,7 +69,7 @@ rule merge_quant_by_cluster_gene_sp:
         "../src/merge_quant.py"
 
 
-rule merge_quant_by_cluster_isoform_sp:
+rule merge_quant_isoform_sp:
     input:
         files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
         jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
@@ -80,4 +81,23 @@ rule merge_quant_by_cluster_isoform_sp:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
     script:
         "../src/merge_quant.py"
-        
+
+rule merge_quant_isoform_sp:
+    input:
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
+    params:
+        feature = "Isoform"
+    output:
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
+	
+rule merge_quant_PSI_sp:
+    input:
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
+    params:
+        feature = "PSI"
+    output:
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv"
+    script:
+        "../src/merge_quant.py"
