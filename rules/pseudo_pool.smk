@@ -54,13 +54,12 @@ rule collapse_pseudo_pools:
       isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
 
 
-
 rule merge_quant_by_cluster_gene_sp:
     input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/")
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Gene"
@@ -72,10 +71,10 @@ rule merge_quant_by_cluster_gene_sp:
 
 rule merge_quant_by_cluster_isoform_sp:
     input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/")
+        files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        jnc =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))),
+        psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Isoform"
