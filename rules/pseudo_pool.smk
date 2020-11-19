@@ -50,8 +50,8 @@ rule get_pseudo_pools:
 	
 rule collapse_pseudo_pools:
   input: 
-      gene = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
-      isoform = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+      gene = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv",
+      isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
 
 
 
@@ -65,7 +65,7 @@ rule merge_quant_by_cluster_gene_sp:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Gene"
     output:
-        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.gene.tpm.tsv"
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv"
     script:
         "../src/merge_quant.py"
 
@@ -80,7 +80,7 @@ rule merge_quant_by_cluster_isoform_sp:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Isoform"
     output:
-        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.isoform.tpm.tsv"
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
     script:
         "../src/merge_quant.py"
         
