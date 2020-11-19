@@ -33,7 +33,7 @@ rule quant_pool_pb:
 	temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz"),
         temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz"),
         temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz"),
-        temp(Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
+        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
     params:
         bin = config["whippet_bin_folder"],
         output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
