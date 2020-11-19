@@ -46,4 +46,43 @@ rule quant_pool_pb:
 rule get_pseudo_pools:
     input:
         expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  )))
+	
+	
+rule collapse_pseudo_pools:
+  input: 
+      gene = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+      isoform = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+
+def get_files_by_cluster(cluster, ext, path):
+    #path="Whippet/Quant/"
+    return([path + x + ext for x in cluster_files[cluster]])
+
+rule merge_quant_by_cluster_gene:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz", "Whippet/Quant/"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Gene"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
+
+
+rule merge_quant_by_cluster_isoform:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz", "Whippet/Quant/"),
+        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/"),
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz", "Whippet/Quant/"),
+        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz", "Whippet/Quant/")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "Isoform"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
+    script:
+        "../src/merge_quant.py"
         
