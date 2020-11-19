@@ -93,10 +93,6 @@ else:
     include : "rules/Round2.skm"
     include : "rules/Round2_post_processing.skm"
 
-else:
-    pass
-
-
 
 
 ##### Downstream Analysis ####
