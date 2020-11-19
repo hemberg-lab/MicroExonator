@@ -49,6 +49,7 @@ if 'cluster_metadata' in config:
             single_cell_files.add(row[config["file_basename"]])
 
 
+
 #### MicroExonator ####
 
 if ("deletion_penalty" in config)==False:
@@ -92,6 +93,10 @@ else:
     include : "rules/Round2.skm"
     include : "rules/Round2_post_processing.skm"
 
+else:
+    pass
+
+
 
 
 ##### Downstream Analysis ####
@@ -104,6 +109,7 @@ if "whippet_delta" in config:
       whippet_delta = yaml.safe_load(stream)
    include : "rules/Whippet_delta.skm"
 
+
 #### Single Cell ###
 
 if not "Single_Cell" in config:
@@ -115,9 +121,7 @@ if str2bool(config["Single_Cell"]):
 
 #### Benchmark ####
 
-#include : "rules/Benchmark.skm"
-
-
+#include : "rules/Benchmark.skm
 
 
 
@@ -146,3 +150,6 @@ for file in DATA:
 rule rerun_incomplete_round2:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
+        
+        
+
