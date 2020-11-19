@@ -55,7 +55,7 @@ rule collapse_pseudo_pools:
 
 
 
-rule merge_quant_by_cluster_gene:
+rule merge_quant_by_cluster_gene_sp:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
         jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
@@ -70,7 +70,7 @@ rule merge_quant_by_cluster_gene:
         "../src/merge_quant.py"
 
 
-rule merge_quant_by_cluster_isoform:
+rule merge_quant_by_cluster_isoform_sp:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
         jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz", "Whippet/Quant/Single_Cell/Pseudo_bulks/"),
