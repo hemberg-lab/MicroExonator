@@ -608,7 +608,6 @@ if str2bool(config.get("cluster_sashimi", False)):
 
 ######
 
-    
 def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
