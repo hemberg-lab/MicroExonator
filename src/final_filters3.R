@@ -64,7 +64,15 @@ ME_matches_filter <- unique(ME_matches_filter, by = "ME_max_U2")
 
 ###### If the number of microexons is low, then the mixture model will fail
 
-skip_mixturemodel = FALSE
+
+skip_mixturemodel <- FALSE
+
+if (snakemake@params[["skip_mixture"]]=="True"){
+  
+  skip_mixturemodel <- TRUE
+  
+  }
+    
 
 if (skip_mixturemodel==FALSE){
   
