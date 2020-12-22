@@ -67,6 +67,7 @@ ME_matches_filter <- unique(ME_matches_filter, by = "ME_max_U2")
 skip_mixturemodel = FALSE
 
 if (skip_mixturemodel==FALSE){
+  
 fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05)
 #ggplot_mix_comps(fit_U2_score, "Mixture model Micro-exon >=3 after coverge filter")
 post.df <- as.data.frame(cbind(x = fit_U2_score$x, fit_U2_score$posterior))
@@ -127,7 +128,14 @@ write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3,
 }
 else {
   
-  
+write.table(ME_final,
+            out_filtered_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+write.table(ME_final,
+            out_low_scored_ME , col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
+            out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
   
 }
 
