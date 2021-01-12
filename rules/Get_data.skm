@@ -16,7 +16,7 @@ rule download_fastq:
         
 rule get_fastq:
     input:
-        expand("FASTQ/{sample}.fastq.gz", sample=DATA)	    
+        expand("FASTQ/{sample}_{rd}.fastq.gz", sample=DATA, rd=[1,2])	    
 
 rule generate_fasta_from_bed12:
     input:
