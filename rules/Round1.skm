@@ -12,7 +12,7 @@ rule bwa_index:
 rule Round1_bwa_mem_to_tags:
     input:
         "Round1/ME_TAGs.fa",
-        "FASTQ/{sample}.fastq",
+        "FASTQ/{sample}.fastq.gz",
         "Round1/ME_TAGs.fa.amb"
     output:
         temp("Round1/{sample}.sam")

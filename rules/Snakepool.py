@@ -213,6 +213,8 @@ for compare_name, c in cluster_compare.items():
 
     ## Unpooled analysis
 
+
+
 rule delta_unpool:
     input:
         lambda w : expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")]) + expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")]) 
@@ -240,6 +242,7 @@ rule run_delta_unpool:  #to avoid overload shell comandline
 
 #pseudo pooling        
 
+
 pool_dict_quant = dict()
 pool_dict_delta = dict()
 
@@ -251,12 +254,18 @@ for compare_name, c in cluster_compare.items():
 
         c1_names = []
         for c1 in g1:
-
-            c1_names += cluster_files[c1]
+            
+            if c1 in cluster_files:
+                c1_names += cluster_files[c1]
+            else:
+                print("Error: " + c1 + "is not in cluster metadata")
 
         c2_names = []
         for c2 in g2:
-            c2_names += cluster_files[c2]
+            if c2 in cluster_files:
+                c2_names += cluster_files[c2]
+            else:
+                print("Error: " + c2 + "is not in cluster metadata")
 
         c1_pools = partition(c1_names, np_A)
         c2_pools = partition(c2_names, np_B)
@@ -302,7 +311,8 @@ for compare_name, c in cluster_compare.items():
         pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
         
-        
+
+   
 rule quant_pool:
     input:
         fastq = lambda w: pool_dict_quant[(w.compare_name, w.pool_ID, w.cond)],
@@ -346,6 +356,8 @@ rule unizip_delta:
         "Whippet/Delta/Single_Cell/{delta}.diff"
     shell:
         "gzip -d {input}"
+
+
 
         
 if str2bool(config.get("Only_snakepool", False)):
@@ -392,6 +404,8 @@ else:
             "../envs/R.yaml"
         script:
             "../src/Snakepool_BetaDist.R"        
+
+        
         
 rule diff_ME_single_cell:
     input:
@@ -468,6 +482,7 @@ rule cluster_bams:
                
 # # # # #               
           
+    
 if str2bool(config.get("cluster_sashimi", False)):
     
     gene_nodes = dict()
@@ -589,27 +604,32 @@ if str2bool(config.get("cluster_sashimi", False)):
             expand("{sashimi}.pdf", sashimi=sashimis)
             
 #chr:start-end
-    
+
+#####
+
 
 ######
-    
-    
+
 def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
+
+
 rule collapse_whippet:
-  input: 
-      gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
-      isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys())
+    input: 
+        gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
+        isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys()),
+        psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv", cluster=cluster_files.keys())
 
-
+        
+        
+        
 rule merge_quant_by_cluster_gene:
     input:
         files = lambda w : get_files_by_cluster(w.cluster, ".gene.tpm.gz"),
         jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Gene"
@@ -621,10 +641,7 @@ rule merge_quant_by_cluster_gene:
 
 rule merge_quant_by_cluster_isoform:
     input:
-        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz"),
-        jnc =  lambda w : get_files_by_cluster(w.cluster, ".jnc.gz"),
-        mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz"),
-        psi =  lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+        files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
         feature = "Isoform"
@@ -633,4 +650,16 @@ rule merge_quant_by_cluster_isoform:
     script:
         "../src/merge_quant.py"
 
+
+rule merge_quant_by_cluster_PSI:
+    input:
+        files = lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
+    params:
+        cluster_dir = "Whippet/Quant/{cluster}",
+        feature = "PSI"
+    output:
+        merged = "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
+    script:
+        "../src/merge_quant.py"
+        
 

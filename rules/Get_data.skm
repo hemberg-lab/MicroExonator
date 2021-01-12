@@ -1,17 +1,57 @@
+if str2bool(config.get("Keep_fastq_gz", False)):
+    rule download_fastq:
+        input:
+            "download/{sample}.download.sh"
+        output:
+            "FASTQ/{sample}.fastq.gz"
+        resources:
+            get_data = 1 
+        conda:
+            "../envs/core.yaml"
+        priority: -10
+        shell:
+            "bash {input}"
 
-rule download_fastq:
+else:
+    rule download_fastq:
+        input:
+            "download/{sample}.download.sh"
+        output:
+            temp("FASTQ/{sample}.fastq.gz")
+        resources:
+            get_data = 1 
+        conda:
+            "../envs/core.yaml"
+        priority: -10
+        shell:
+            "bash {input}"
+
+rule unzip:
+   input:
+       "FASTQ/{sample}.fastq.gz"
+   output:
+       temp("FASTQ/{sample}.fastq")
+   shell:
+       "zcat {input} > {output}"
+
+rule get_fastq:
     input:
-        "download/{sample}.download.sh"
-    output:
-        temp("FASTQ/{sample}.fastq")
-    resources:
-        get_data = 1 
-    conda:
-        "../envs/core.yaml"
-    priority: -10
-    shell:
-        "bash {input}"
+        expand("FASTQ/{sample}.fastq.gz", sample=DATA)	        
 
+if "Gene_anontation_bed12" in config:
+    pass
+else:
+    rule generate_bed12:
+        input:
+            config["Gene_anontation_GTF"]
+        output:
+            "data/transcriptome.bed12"
+        shell:
+            "python2 src/GTFtoBED12.py {input} > {output}"
+  
+    config["Gene_anontation_bed12"] = "data/transcriptome.bed12"
+            
+        
 rule generate_fasta_from_bed12:
     input:
         config["Genome_fasta"],
@@ -54,25 +94,25 @@ rule GetPWM:
     shell:
         "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
-if str2bool(config.get("Only_whippet", False))==False:
-    rule gzip_fastq:
-        input:
-            "FASTQ/{sample}.fastq"
-        output:
-            temp("FASTQ/{sample}.fastq.gz")
-        priority: 100
-        shell:
-            "gzip -c {input} > {output}"
+#if str2bool(config.get("Only_whippet", False))==False:
+#    rule gzip_fastq:
+#        input:
+#            "FASTQ/{sample}.fastq"
+#        output:
+#            temp("FASTQ/{sample}.fastq.gz")
+#        priority: 100
+#        shell:
+#            "gzip -c {input} > {output}"
           
-else:
-    rule gzip_fastq:
-        input:
-            "FASTQ/{sample}.fastq"
-        output:
-            temp("FASTQ/{sample}.fastq.gz")
-        priority: 100
-        shell:
-            "gzip {input}"            
+#else:
+#    rule gzip_fastq:
+#        input:
+#            "FASTQ/{sample}.fastq"
+#        output:
+#            temp("FASTQ/{sample}.fastq.gz")
+#        priority: 100
+#        shell:
+#            "gzip {input}"            
          
 
 
