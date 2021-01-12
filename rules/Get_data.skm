@@ -12,6 +12,11 @@ rule download_fastq:
     priority: -10
     shell:
         "bash {input}"
+        
+        
+rule get_fastq:
+    input:
+        expand("FASTQ/{sample}.fastq.gz", sample=DATA)	    
 
 rule generate_fasta_from_bed12:
     input:
