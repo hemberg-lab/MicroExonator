@@ -133,8 +133,7 @@ write.table(ME_final[ME_P_value > P_ME_fit],
 write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
             out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
   
-}
-else {
+} else {
 
   
 ME_final[ , ME_type:="IN"]  
