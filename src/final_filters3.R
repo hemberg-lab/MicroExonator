@@ -137,7 +137,7 @@ write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3,
 else {
 
   
-ME_final[ , ME_type:="NONE"]  
+ME_final[ , ME_type:="IN"]  
   
 write.table(ME_final,
             out_filtered_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
