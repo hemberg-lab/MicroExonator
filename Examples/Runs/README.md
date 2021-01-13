@@ -11,4 +11,4 @@ Large cancer cell-lines project, where we used a local copy of the input fastq.g
 
 # Running under lsf
 
-`snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 1000000`
+`snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 1000000`
