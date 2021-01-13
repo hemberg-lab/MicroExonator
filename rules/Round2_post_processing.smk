@@ -130,10 +130,10 @@ rule coverage_filter:
         "../src/coverage_sample_filter.py"
 
 def get_min_conservation():
-	if "min_conservation" in config:
-		return(int(config["min_conservation"]))
-	else:
-		return(2) #default value for min_conservation is 2
+    if "min_conservation" in config:
+        return(int(config["min_conservation"]))
+    else:
+        return(2) #default value for min_conservation is 2
 	
 rule Output:
     input:
@@ -143,7 +143,7 @@ rule Output:
     params:
         wd = config["working_directory"],
         min_number_files_detected = config["min_number_files_detected"],
-		min_conservation = get_min_conservation()
+        min_conservation = get_min_conservation()
 		
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
