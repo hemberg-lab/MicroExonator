@@ -75,7 +75,10 @@ if (snakemake@params[["skip_mixture"]]=="True"){
     
 
 ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
-
+out_filtered_ME <- snakemake@output[["out_filtered_ME"]]
+out_low_scored_ME <- snakemake@output[["out_low_scored_ME"]]
+out_shorter_than_3_ME <- snakemake@output[["out_shorter_than_3_ME"]]
+#out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
 
 if (skip_mixturemodel==FALSE){
   
@@ -120,10 +123,7 @@ ME_final[ME_P_value > P_ME_fit & mean_conservations_vertebrates>=2, ME_type:="RE
 ME_final[,ME_type:=factor(ME_type, levels=c("OUT", "RESCUED", "IN"))]
 
 
-out_filtered_ME <- snakemake@output[["out_filtered_ME"]]
-out_low_scored_ME <- snakemake@output[["out_low_scored_ME"]]
-out_shorter_than_3_ME <- snakemake@output[["out_shorter_than_3_ME"]]
-#out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
+
 
 
 
