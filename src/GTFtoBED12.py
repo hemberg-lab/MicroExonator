@@ -48,7 +48,7 @@ def main(gtf_file):
 
             chrom, start, end, strand = transcript_coords[trancript]
 
-            n_blocks = len(transcript_blocksizes[trancript])
+            n_blocks = len(transcript_qstarts_blocksize[trancript])
 
 
             q_b_tuples = sorted(transcript_qstarts_blocksize[trancript] , key=lambda x: x[0])
