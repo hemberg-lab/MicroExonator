@@ -55,7 +55,7 @@
         "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
     },
 
-    "total_hisat2_to_Genome" :
+    "total_hisat2_to_genome" :
     {
         "nCPUs"    : 5
     },
