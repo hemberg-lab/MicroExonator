@@ -18,7 +18,7 @@
     },
 
 
-    "hisat2_Genome_index" :
+    "hisat2_genome_index" :
     {
         "nCPUs"     : 5
     },
