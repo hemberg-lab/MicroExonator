@@ -98,7 +98,7 @@ P_ME_fit <- error_sim_asim[ total_error==error_sim_asim[, min(total_error)], P_M
 
 ME_final[ME_P_value <= P_ME_fit, ME_type:="IN"]
 ME_final[ME_P_value > P_ME_fit, ME_type:="OUT"]
-ME_final[ME_P_value > P_ME_fit & mean_conservations_vertebrates>=2, ME_type:="RESCUED"]
+ME_final[ME_P_value > P_ME_fit & mean_conservations_vertebrates>=params[["min_conservation"]], ME_type:="RESCUED"]
 ME_final[,ME_type:=factor(ME_type, levels=c("OUT", "RESCUED", "IN"))]
 
 
