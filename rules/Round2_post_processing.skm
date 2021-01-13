@@ -20,7 +20,7 @@ rule Get_Genome:
     shell:
         "cp {input} {output}"
 
-rule bowtie_Genome_index:
+rule bowtie_genome_index:
     input:
         "data/Genome"
     output:
