@@ -24,7 +24,7 @@ except FileExistsError:
     pass
 
 
-#DATA = set([]) #Defined now at the beining of MicroExonator.skm
+#DATA = set([]) #Defined now at the beining of MicroExonator.smk
 
 if os.path.isfile('./NCBI_accession_list.txt'):
 
