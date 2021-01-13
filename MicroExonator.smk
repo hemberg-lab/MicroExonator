@@ -28,10 +28,7 @@ rule quant:
         #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
         #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
 
-rule discovery:
-    input:
-        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA )
-#        "Round2/ME_canonical_SJ_tags.de_novo.fa"
+
 
 
 if 'cluster_metadata' in config:
@@ -94,7 +91,10 @@ else:
     include : "rules/Round2.smk"
     include : "rules/Round2_post_processing.smk"
 
-
+rule discovery:
+    input:
+        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA )
+#        "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
 ##### Downstream Analysis ####
 
