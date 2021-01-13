@@ -3,7 +3,7 @@
 #wildcard_constraints:
 #    sample="^[A-Za-z0-9_-]*$"
 
-sed = config.get("snakepool_seed", 123)
+sed = config.get("seed", 123)
 
 random.seed(int(sed)) 
 
