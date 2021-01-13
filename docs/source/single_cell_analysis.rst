@@ -90,11 +90,11 @@ The following parameter are optionals to be defined inside ``config.yaml`` file:
 
 .. code-block:: bash
 
-    snakepool_seed : 123
+    seed : 123
     Only_snakepool : T
     Get_Bamfiles : T
 
-* ``snakepool_seed`` define a specific seed for pseudo number geration. This number influence the arrangement cells into the corresponding pseudo-bulks. Mataining the same seed ensures reproducibility of the results and prevent snakemake of overwrite completed results.
+* ``seed`` define a specific seed for pseudo number geration. This number influence the arrangement cells into the corresponding pseudo-bulks. Mataining the same seed ensures reproducibility of the results and prevent snakemake of overwrite completed results.
 * ``Only_snakepool`` is a bolean variable that if its defined as ``T`` it will force MicroExonator to skip Disovery and Quantification modules. This mode is useful for users who are only interested to find alterantive splicing events from splicing nodes that can be extracted from the annotation.
 * ``Get_Bamfiles`` correspond to a bolean variable that if its defined as ``T`` enable the generation of BAM files that can be used for visualization purposes.
 
