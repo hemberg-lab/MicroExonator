@@ -74,6 +74,9 @@ if (snakemake@params[["skip_mixture"]]=="True"){
   }
     
 
+ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
+
+
 if (skip_mixturemodel==FALSE){
   
 fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05)
@@ -81,7 +84,7 @@ fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon =
 post.df <- as.data.frame(cbind(x = fit_U2_score$x, fit_U2_score$posterior))
 
 
-ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
+#ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
 if(fit_U2_score$mu[1]<=fit_U2_score$mu[2]){
   ME_final$ME_P_value <-  1 - (1 - approx(post.df$x, post.df$comp.1, ME_final$U2_scores)$y * ME_final$P_MEs) / ME_final$total_number_of_micro_exons_matches
 } else {
