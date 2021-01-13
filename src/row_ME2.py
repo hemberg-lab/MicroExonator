@@ -9,6 +9,7 @@ from Bio.SeqRecord import SeqRecord
 from random import randint, sample
 from operator import itemgetter
 import re
+import gzip
 
 Genome = {}
 
@@ -26,11 +27,10 @@ def Genomictabulator(fasta):
 	f.close()
 
 
-def main(sam_pre_processed):
+def main(sam_pre_processed, row_fastq):
 
 	fastq_out = open( ".".join(sys.argv[2].split(".")[:-1]) + ".row_ME.fastq", 'w')
-
-
+	ME_reads = set([])
 
 	for row in csv.reader(open(sam_pre_processed), delimiter = '\t'):
 
@@ -86,12 +86,37 @@ def main(sam_pre_processed):
 
 				if micro_exons_coords!="":
 					print "\t".join(row) + "\t" + micro_exons_coords
+					ME_reads.add(read)
+                    
+# 					if flag==16:
+# 						seq = str(Seq(island).reverse_complement())
+# 						qual = qual[::-1]
 
-					fastq_out.write("@" + read + "\n")
-					fastq_out.write(seq + "\n")
-					fastq_out.write("+" + "\n")
-					fastq_out.write(qual + "\n")
+# 					if len(seq)==len(qual):
 
+# 						fastq_out.write("@" + read + "\n")
+# 						fastq_out.write(seq + "\n")
+# 						fastq_out.write("+" + "\n")
+# 						fastq_out.write(qual + "\n")
+
+# 					elif len(seq)>len(qual):  ## preventing errors with hisat
+
+# 						qual2 = qual + qual[ -(len(seq) - len(qual)) : ]
+
+# 						fastq_out.write("@" + read + "\n")
+# 						fastq_out.write(seq + "\n")
+# 						fastq_out.write("+" + "\n")
+# 						fastq_out.write(qual2 + "\n")
+
+# 					elif len(seq)<len(qual):
+
+# 						qual2 = qual[:len(seq)]
+
+# 						fastq_out.write("@" + read + "\n")
+# 						fastq_out.write(seq + "\n")
+# 						fastq_out.write("+" + "\n")
+# 						fastq_out.write(qual2 + "\n")
+                        
 					# ME_fastq = SeqRecord( seq, id = read, description = "" )
 					# ME_fastq.letter_annotations["phred_quality"] = qual
 
@@ -107,6 +132,19 @@ def main(sam_pre_processed):
 			except KeyError:
 				pass 
 
+			
+	with gzip.open(row_fastq) as f:
+
+		for read in SeqIO.parse(f, "fastq"):
+
+			if read.id in ME_reads:
+                
+				f_out = SeqRecord( read.seq, read.id, description = "" )
+				f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
+
+				fastq_out.write(f_out.format("fastq"))
+			
+			
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
-	main(sys.argv[2])
+	main(sys.argv[2], sys.argv[3])

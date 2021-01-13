@@ -93,10 +93,6 @@ else:
     include : "rules/Round2.skm"
     include : "rules/Round2_post_processing.skm"
 
-else:
-    pass
-
-
 
 
 ##### Downstream Analysis ####
@@ -117,7 +113,7 @@ if not "Single_Cell" in config:
 
 if str2bool(config["Single_Cell"]):
    include : "rules/Snakepool.py"
-   include : "rules/pseudo_pool.smk"   
+   include : "rules/pseudo_pool.smk"
 
 #### Benchmark ####
 
@@ -150,6 +146,6 @@ for file in DATA:
 rule rerun_incomplete_round2:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
-        
-        
-
+    
+    
+include : "rules/sashimi.smk"
