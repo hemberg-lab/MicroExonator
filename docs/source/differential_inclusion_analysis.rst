@@ -92,7 +92,7 @@ In order to run this module you need to run the standar MicroExonator command, b
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} differential_inclusion
 
 
 
