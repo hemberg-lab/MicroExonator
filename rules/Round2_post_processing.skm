@@ -137,7 +137,8 @@ rule Output:
         ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt"
     params:
         wd = config["working_directory"],
-        min_number_files_detected = config["min_number_files_detected"]
+        min_number_files_detected = config["min_number_files_detected"],
+        skip_mixture = str(str2bool(config.get("skip_mixture_model_filter", False)))
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
         out_low_scored_ME = "Report/out_low_scored_ME.txt",
