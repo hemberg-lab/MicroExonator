@@ -14,7 +14,7 @@ rule row_Micro_Exon_reads:
         "python2 src/row_ME2.py {input} > {output[0]}"
 
 
-rule hisat2_Genome_index:
+rule hisat2_genome_index:
     input:
         config["Genome_fasta"]
     output:
