@@ -129,7 +129,12 @@ rule coverage_filter:
     script:
         "../src/coverage_sample_filter.py"
 
-
+def get_min_conservation():
+	if "min_conservation" in config:
+		return(int(config["min_conservation"]))
+	else:
+		return(2) #default value for min_conservation is 2
+	
 rule Output:
     input:
         ME_table = "Round2/TOTAL.ME_centric.txt",
@@ -137,7 +142,9 @@ rule Output:
         ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt"
     params:
         wd = config["working_directory"],
-        min_number_files_detected = config["min_number_files_detected"]
+        min_number_files_detected = config["min_number_files_detected"],
+		min_conservation = get_min_conservation()
+		
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
         out_low_scored_ME = "Report/out_low_scored_ME.txt",
