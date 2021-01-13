@@ -229,7 +229,7 @@ rule ME_reads:
         "python2 src/round2_ME_reads_fastq.py {input} > {output}"
 
 
-rule bowtie_Genome_index:
+rule bowtie_genome_index:
     input:
         config["Genome_fasta"]
     output:
