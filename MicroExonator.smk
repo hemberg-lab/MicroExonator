@@ -30,6 +30,7 @@ rule quant:
 
 rule discovery:
     input:
+        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA )
         "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
 
