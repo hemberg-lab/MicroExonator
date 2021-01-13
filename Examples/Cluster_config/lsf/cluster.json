@@ -37,7 +37,7 @@
         "nCPUs"    : 5
     },
 
-    "bowtie_Genome_index" :
+    "bowtie_genome_index" :
     {
         "memory"    : 30000,
         "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
