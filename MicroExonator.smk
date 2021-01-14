@@ -28,9 +28,7 @@ rule quant:
         #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
         #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
 
-rule discovery:
-    input:
-        "Round2/ME_canonical_SJ_tags.de_novo.fa"
+
 
 
 if 'cluster_metadata' in config:
@@ -47,6 +45,7 @@ if 'cluster_metadata' in config:
 
             cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
             single_cell_files.add(row[config["file_basename"]])
+
 
 
 #### MicroExonator ####
@@ -69,8 +68,8 @@ if ("min_reads_PSI" in config)==False:
     config["min_reads_PSI"]="5"
 
 
-include : "rules/init.skm"
-include : "rules/Get_data.skm"
+include : "rules/init.smk"
+include : "rules/Get_data.smk"
 
 
 rule bamfiles:
@@ -82,27 +81,31 @@ rule bamfiles:
 if str2bool(config.get("downstream_only", False)):
     pass
 elif str2bool(config.get("skip_discovery_and_quant", False)):
-    include : "rules/Round2_post_processing.skm"
+    include : "rules/Round2_post_processing.smk"
 elif str2bool(config.get("skip_discovery", False)):
-    include : "rules/Round2.skm"
-    include : "rules/Round2_post_processing.skm"
+    include : "rules/Round2.smk"
+    include : "rules/Round2_post_processing.smk"
 else:
-    include : "rules/Round1.skm"
-    include : "rules/Round1_post_processing.skm"
-    include : "rules/Round2.skm"
-    include : "rules/Round2_post_processing.skm"
+    include : "rules/Round1.smk"
+    include : "rules/Round1_post_processing.smk"
+    include : "rules/Round2.smk"
+    include : "rules/Round2_post_processing.smk"
 
-
+rule discovery:
+    input:
+        expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA )
+#        "Round2/ME_canonical_SJ_tags.de_novo.fa"
 
 ##### Downstream Analysis ####
 
 if "whippet_bin_folder" in config:
-   include : "rules/Whippet_quant.skm"
+   include : "rules/Whippet_quant.smk"
 
 if "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
       whippet_delta = yaml.safe_load(stream)
-   include : "rules/Whippet_delta.skm"
+   include : "rules/Whippet_delta.smk"
+
 
 #### Single Cell ###
 
@@ -110,13 +113,12 @@ if not "Single_Cell" in config:
    config["Single_Cell"]="F"
 
 if str2bool(config["Single_Cell"]):
-   include : "rules/Snakepool.py"   
+   include : "rules/Snakepool.py"
+   include : "rules/pseudo_pool.smk"
 
 #### Benchmark ####
 
-#include : "rules/Benchmark.skm"
-
-
+#include : "rules/Benchmark.smk
 
 
 
@@ -145,3 +147,6 @@ for file in DATA:
 rule rerun_incomplete_round2:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
+    
+    
+include : "rules/sashimi.smk"

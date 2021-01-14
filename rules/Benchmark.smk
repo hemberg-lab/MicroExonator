@@ -20,7 +20,7 @@
 
 
 
-rule total_hisat2_to_Genome:
+rule total_hisat2_to_genome:
      input:
          "FASTQ/{sample}.fastq",
          "data/Genome.1.ht2"

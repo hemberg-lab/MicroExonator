@@ -31,7 +31,7 @@ rule get_GTF:
     params:
         chrM = False
     output:
-        ME_GTF = "Report/out.high_quality.gtf.txt"
+        ME_GTF = "Report/out.high_quality.gtf"
     conda:
         "../envs/core.yaml"
     shell:
@@ -57,7 +57,7 @@ else:
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
-              ME_GTF = "Report/out.high_quality.gtf.txt"
+              ME_GTF = "Report/out.high_quality.gtf"
           params:
               bin = config["whippet_bin_folder"]
           output:
@@ -113,11 +113,11 @@ else:
               output = "Whippet/Quant/{sample}",
               flags = config["whippet_flags"]
           output:
-              "Whippet/Quant/{sample}.gene.tpm.gz",
-              "Whippet/Quant/{sample}.isoform.tpm.gz",
-              "Whippet/Quant/{sample}.jnc.gz",
-              "Whippet/Quant/{sample}.map.gz",
-              "Whippet/Quant/{sample}.psi.gz"
+              temp("Whippet/Quant/{sample}.gene.tpm.gz"),
+              temp("Whippet/Quant/{sample}.isoform.tpm.gz"),
+              temp("Whippet/Quant/{sample}.jnc.gz"),
+              temp("Whippet/Quant/{sample}.map.gz"),
+              temp("Whippet/Quant/{sample}.psi.gz")
           priority: 100
           shell:
               "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
@@ -141,7 +141,8 @@ rule BamIndex:
       shell:
         "samtools index {input.bam}"   
 
-
+            
+#expand("Whippet/BAM/{samples}.bam", samples=DATA)
 #rule unzip_quant:
 #    input:
 #        "Whippet/Quant/{sample}.psi.gz"

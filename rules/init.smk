@@ -24,7 +24,7 @@ except FileExistsError:
     pass
 
 
-#DATA = set([]) #Defined now at the beining of MicroExonator.skm
+#DATA = set([]) #Defined now at the beining of MicroExonator.smk
 
 if os.path.isfile('./NCBI_accession_list.txt'):
 
@@ -39,7 +39,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
             DATA.add(RUN)
 
             file_name = "download/" + RUN + ".download.sh"
-            command = "fastq-dump.2.9.1 --split-files -O FASTQ "
+            command = "fastq-dump.2.9.1 --split-files -O FASTQ --gzip"
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
@@ -49,9 +49,11 @@ if os.path.isfile('./NCBI_accession_list.txt'):
                 download_file.write('srr="' + RUN + '"' + "\n" )
                 download_file.write(command + " " + RUN + "\n")
                 download_file.write( "numLines=$(fastq-dump.2.9.1 -X 1 -Z --split-spot $srr | wc -l)" + "\n")
-                download_file.write( "if [ $numLines -eq 8 ]; then cat FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq > FASTQ/$srr.fastq && rm FASTQ/${srr}_1.fastq FASTQ/${srr}_2.fastq; fi"  + "\n")
-                download_file.write( "if [ -f FASTQ/${srr}_1.fastq ]; then mv FASTQ/${srr}_1.fastq FASTQ/${srr}.fastq ; elif [ -f FASTQ/${srr}_2.fastq ]; then mv FASTQ/${srr}_2.fastq FASTQ/${srr}.fastq; fi"  + "\n")
+                download_file.write( "if [ $numLines -eq 8 ]; then cat FASTQ/${srr}_1.fastq.gz FASTQ/${srr}_2.fastq.gz > FASTQ/$srr.fastq.gz && rm FASTQ/${srr}_1.fastq.gz FASTQ/${srr}_2.fastq.gz; fi"  + "\n")
+                download_file.write( "if [ -f FASTQ/${srr}_1.fastq.gz ]; then mv FASTQ/${srr}_1.fastq.gz FASTQ/${srr}.fastq.gz ; elif [ -f FASTQ/${srr}_2.fastq.gz ]; then mv FASTQ/${srr}_2.fastq.gz FASTQ/${srr}.fastq.gz; fi"  + "\n")
 
+#                download_file.write("gzip FASTQ/${srr}.fastq" + "\n")
+                
 
 if os.path.isfile("./local_samples.tsv"):
 
@@ -69,12 +71,12 @@ if os.path.isfile("./local_samples.tsv"):
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-                if row["path"].split(".")[-1] == "fastq":
+                if row["path"].split(".")[-1] == "gz":
 
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
                 
                 
                 else:
@@ -82,7 +84,7 @@ if os.path.isfile("./local_samples.tsv"):
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("zcat " + row["path"] +  " > FASTQ/" + row["sample"]  + ".fastq" + "\n")
+                    download_file.write("cat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
 
@@ -105,7 +107,7 @@ if os.path.isfile("./sample_url.tsv"):
 
                 download_file.write("#!/bin/bash" + "\n")
                 download_file.write("wget -r " + row["url"] +  " -O FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
-                download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                #download_file.write("gzip -d FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
 
 

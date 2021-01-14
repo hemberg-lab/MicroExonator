@@ -8,13 +8,14 @@ from random import randint, sample
 from operator import itemgetter
 import re
 
+csv.field_size_limit(100000000)
 
 tags = {}
 
 
 def Tags_indexer(tags_fasta):
 	
-	print >> sys.stderr, "Cargando a fasta en la ram ...",
+	print >> sys.stderr, "Loading the genome into RAM memory ...",
 	
 	for record in SeqIO.parse(genecode_fasta, "tags_fasta"):
 		id = str(record.id).split("|")[0]
@@ -244,7 +245,17 @@ def main(sam, stranded):
 
 		if number_of_host_introns == 1:
 
-			print "\t".join(map(str, [read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found]))
+			if DR_corrected_micro_exon_seq_found=="":
+				DR_corrected_micro_exon_seq_found=micro_exon_seq_found
+
+			out = []
+
+			for i in [read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found]:
+				if i=="":
+					i="NA"
+				out.append(str(i))
+
+			print "\t".join(out)
 
 
 if __name__ == '__main__':

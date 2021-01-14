@@ -1,14 +1,15 @@
 
 rule ME_reads:
     input:
-        "Round2/{sample}.sam.pre_processed"
+        "Round2/{sample}.sam.pre_processed",
+	"FASTQ/{sample}.fastq.gz"
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/round2_ME_reads_fastq.py {input} > {output}"
+        "python2 src/round2_ME_reads_fastq2.py {input}"
         
 rule Get_Genome:
     input:
@@ -19,7 +20,7 @@ rule Get_Genome:
     shell:
         "cp {input} {output}"
 
-rule bowtie_Genome_index:
+rule bowtie_genome_index:
     input:
         "data/Genome"
     output:
@@ -29,19 +30,35 @@ rule bowtie_Genome_index:
         "../envs/core.yaml"
     shell:
         "bowtie-build {input} {input}"
+        
+if str2bool(config.get("skip_genome_alignment", False)):
 
-rule bowtie_to_genome:
-    input:
-        "Round2/{sample}.sam.pre_processed.fastq",
-        "data/Genome",
-        "data/Genome" + ".1.ebwt"
-    output:
-        temp("Round2/{sample}.sam.pre_processed.hg19.sam")
-    priority: 100
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
+    rule bowtie_to_genome:
+        input:
+            "Round2/{sample}.sam.pre_processed.fastq",
+            "data/Genome",
+            "data/Genome" + ".1.ebwt"
+        output:
+            temp("Round2/{sample}.sam.pre_processed.hg19.sam")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "touch {output}"
+else:
+
+    rule bowtie_to_genome:
+        input:
+            "Round2/{sample}.sam.pre_processed.fastq",
+            "data/Genome",
+            "data/Genome" + ".1.ebwt"
+        output:
+            temp("Round2/{sample}.sam.pre_processed.hg19.sam")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
 
 
 rule Round2_filter:
@@ -112,7 +129,12 @@ rule coverage_filter:
     script:
         "../src/coverage_sample_filter.py"
 
-
+def get_min_conservation():
+    if "min_conservation" in config:
+        return(int(config["min_conservation"]))
+    else:
+        return(2) #default value for min_conservation is 2
+	
 rule Output:
     input:
         ME_table = "Round2/TOTAL.ME_centric.txt",
@@ -120,7 +142,9 @@ rule Output:
         ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt"
     params:
         wd = config["working_directory"],
-        min_number_files_detected = config["min_number_files_detected"]
+        min_number_files_detected = config["min_number_files_detected"],
+        skip_mixture = str(str2bool(config.get("skip_mixture_model_filter", False)))
+        min_conservation = get_min_conservation()
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
         out_low_scored_ME = "Report/out_low_scored_ME.txt",

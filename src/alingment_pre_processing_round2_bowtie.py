@@ -8,6 +8,7 @@ from random import randint, sample
 from operator import itemgetter
 import re
 
+csv.field_size_limit(100000000)
 
 tags = {}
 

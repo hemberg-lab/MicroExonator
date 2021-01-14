@@ -2,18 +2,19 @@
 
 rule row_Micro_Exon_reads:
     input:
-        "" + config["Genome_fasta"],
-        "Round1/{sample}.sam.pre_processed"
+        config["Genome_fasta"],
+        "Round1/{sample}.sam.pre_processed",
+	"FASTQ/{sample}.fastq.gz"
     output:
         temp("Round1/{sample}.sam.row_ME"),
         temp("Round1/{sample}.sam.row_ME.fastq")
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/row_ME.py {input} > {output[0]}"
+        "python2 src/row_ME2.py {input} > {output[0]}"
 
 
-rule hisat2_Genome_index:
+rule hisat2_genome_index:
     input:
         config["Genome_fasta"]
     output:
@@ -24,18 +25,32 @@ rule hisat2_Genome_index:
     shell:
         "hisat2-build {input} data/Genome"
 
+if str2bool(config.get("skip_genome_alignment", False)):
 
-rule hisat2_to_Genome:
-    input:
-        "Round1/{sample}.sam.row_ME.fastq",
-        "data/Genome.1.ht2"
-    output:
-        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
-    threads: 1
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "hisat2 -x data/Genome -U {input[0]} > {output}"
+	rule hisat2_to_Genome:
+	    input:
+	        "Round1/{sample}.sam.row_ME.fastq",
+	        "data/Genome.1.ht2"
+	    output:
+	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
+	    threads: 1
+	    conda:
+	        "../envs/core.yaml"
+	    shell:
+	        "touch {output}"
+else:
+
+	rule hisat2_to_Genome:
+	    input:
+	        "Round1/{sample}.sam.row_ME.fastq",
+	        "data/Genome.1.ht2"
+	    output:
+	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
+	    threads: 1
+	    conda:
+	        "../envs/core.yaml"
+	    shell:
+	        "hisat2 -x data/Genome -U {input[0]} > {output}"
 
 
 rule Round1_filter:
@@ -64,7 +79,7 @@ rule Micro_Exon_table:
     conda:
         "../envs/core.yaml"
     shell:
-        "cat Round1/*.sam.row_ME.filter1 > Round1/TOTAL/TOTAL.sam.row_ME.filter1 &&"
+        "cat Round1/*.sam.row_ME.filter1 | awk 'NF==16' > Round1/TOTAL/TOTAL.sam.row_ME.filter1  &&"
         "python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
 
 
