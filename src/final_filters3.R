@@ -59,14 +59,35 @@ uniq_seq_filter <-  ME_number_files_detected[N_samples >=min_number_files_detect
 ME_matches_filter <- ME_matches[ME %in% uniq_seq_filter , ]
 ME_matches_filter <- ME_matches_filter[sample(dim(ME_matches_filter)[1])]
 ME_matches_filter <- unique(ME_matches_filter, by = "ME_max_U2")
+
+
+
+###### If the number of microexons is low, then the mixture model will fail
+
+
+skip_mixturemodel <- FALSE
+
+if (snakemake@params[["skip_mixture"]]=="True"){
+  
+  skip_mixturemodel <- TRUE
+  
+  }
+    
+
+ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
+out_filtered_ME <- snakemake@output[["out_filtered_ME"]]
+out_low_scored_ME <- snakemake@output[["out_low_scored_ME"]]
+out_shorter_than_3_ME <- snakemake@output[["out_shorter_than_3_ME"]]
+#out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
+
+if (skip_mixturemodel==FALSE){
+  
 fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05)
 #ggplot_mix_comps(fit_U2_score, "Mixture model Micro-exon >=3 after coverge filter")
 post.df <- as.data.frame(cbind(x = fit_U2_score$x, fit_U2_score$posterior))
 
 
-
-
-ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
+#ME_final <- ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found>=3, ]
 if(fit_U2_score$mu[1]<=fit_U2_score$mu[2]){
   ME_final$ME_P_value <-  1 - (1 - approx(post.df$x, post.df$comp.1, ME_final$U2_scores)$y * ME_final$P_MEs) / ME_final$total_number_of_micro_exons_matches
 } else {
@@ -102,10 +123,7 @@ ME_final[ME_P_value > P_ME_fit & mean_conservations_vertebrates>=params[["min_co
 ME_final[,ME_type:=factor(ME_type, levels=c("OUT", "RESCUED", "IN"))]
 
 
-out_filtered_ME <- snakemake@output[["out_filtered_ME"]]
-out_low_scored_ME <- snakemake@output[["out_low_scored_ME"]]
-out_shorter_than_3_ME <- snakemake@output[["out_shorter_than_3_ME"]]
-#out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
+
 
 
 
@@ -117,6 +135,24 @@ write.table(ME_final[ME_P_value > P_ME_fit],
 
 write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
             out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+  
+} else {
+
+  
+ME_final[ , ME_type:="IN"]
+ME_final[, ME_P_value:="NA"]
+  
+write.table(ME_final,
+            out_filtered_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+write.table(ME_final,
+            out_low_scored_ME , col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
+            out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+  
+}
+
 
 #write.table(ME_count_round2[ME %in% ME_number_files_detected[N >=min_number_files_detected, ME] ,],
 #            out_filtered_ME_cov, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")

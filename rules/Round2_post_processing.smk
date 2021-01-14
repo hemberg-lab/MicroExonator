@@ -143,8 +143,8 @@ rule Output:
     params:
         wd = config["working_directory"],
         min_number_files_detected = config["min_number_files_detected"],
+        skip_mixture = str(str2bool(config.get("skip_mixture_model_filter", False)))
         min_conservation = get_min_conservation()
-		
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",
         out_low_scored_ME = "Report/out_low_scored_ME.txt",
