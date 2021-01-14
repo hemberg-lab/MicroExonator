@@ -31,7 +31,7 @@ rule get_GTF:
     params:
         chrM = False
     output:
-        ME_GTF = "Report/out.high_quality.gtf.txt"
+        ME_GTF = "Report/out.high_quality.gtf"
     conda:
         "../envs/core.yaml"
     shell:
@@ -57,7 +57,7 @@ else:
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
-              ME_GTF = "Report/out.high_quality.gtf.txt"
+              ME_GTF = "Report/out.high_quality.gtf"
           params:
               bin = config["whippet_bin_folder"]
           output:

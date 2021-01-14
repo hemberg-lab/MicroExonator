@@ -15,7 +15,7 @@ tags = {}
 
 def Tags_indexer(tags_fasta):
 	
-	print >> sys.stderr, "Cargando a fasta en la ram ...",
+	print >> sys.stderr, "Loading the genome into RAM memory ...",
 	
 	for record in SeqIO.parse(genecode_fasta, "tags_fasta"):
 		id = str(record.id).split("|")[0]

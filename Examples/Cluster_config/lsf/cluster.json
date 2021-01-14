@@ -18,7 +18,7 @@
     },
 
 
-    "hisat2_Genome_index" :
+    "hisat2_genome_index" :
     {
         "nCPUs"     : 5
     },
@@ -37,7 +37,7 @@
         "nCPUs"    : 5
     },
 
-    "bowtie_Genome_index" :
+    "bowtie_genome_index" :
     {
         "memory"    : 30000,
         "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
@@ -55,7 +55,7 @@
         "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\""
     },
 
-    "total_hisat2_to_Genome" :
+    "total_hisat2_to_genome" :
     {
         "nCPUs"    : 5
     },

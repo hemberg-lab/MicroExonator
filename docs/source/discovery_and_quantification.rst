@@ -98,7 +98,7 @@ Then run
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs}
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs}
     
 
 
@@ -110,7 +110,7 @@ Then run
 
     .. code-block:: bash
 
-        snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 500 -np
+        snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 500 -np
 
     
 
@@ -118,7 +118,7 @@ Before running it is recommended to check if SnakeMake can corretly generate all
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} -np
 
 
 The dry-run will display all the steps and commands that will be excecuted. If the dry-run cannot be initiated, make sure that you are running MicroExonator from inside the folder you cloned from this repository. Also make sure you have the right configuration inside ``config.yaml``. 
@@ -156,7 +156,7 @@ If you are fetching multiple fastq files from NCBI, is posible that some of the 
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} --resources get_data=50
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} --resources get_data=50
 
 
 Optimize your hardrive space
@@ -166,13 +166,13 @@ If you want to process a large dataset, is likely that you will not have enough 
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} discovery
 
 By doing this, as ``Optimize_hard_drive`` is set as ``T``, downloaded FASTQ files will be deleted as soon as they processed on this module. Once the pipeline finish the discovery module successfuly, you can resume the analysis by running MicroExonator with ``quant`` as a target:
 
 .. code-block:: bash
 
-    snakemake -s MicroExonator.skm  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant
 
 Note that in this case, previously deleted FASTQ files will be downloaded again (or copied if you are using samples that are stored locally). The advantage of doing this is to reduce the amout of space required to to run the analysis as FASTQ files deleted as soon as they are processed these two modules.
 
