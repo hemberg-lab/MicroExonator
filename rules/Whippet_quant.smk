@@ -70,8 +70,8 @@ else:
 
 
 
-if "Get_Bamfiles" not in config: #To make it optional
-      config["Get_Bamfiles"]="F"
+#if "Get_Bamfiles" not in config: #To make it optional
+#      config["Get_Bamfiles"]="F"
       
 if "whippet_flags" not in config:  
       config["whippet_flags"]=""
