@@ -630,7 +630,7 @@ rule compress_isoform_tpm:
     shell:
         "gzip {input}"
         
-rule compress_gene_tpm:
+rule compress_psi:
     input:
         "Whippet/Quant/Collapsed/{cluster}.psi.tpm.tsv"
     output:
