@@ -632,9 +632,9 @@ rule compress_isoform_tpm:
         
 rule compress_psi:
     input:
-        "Whippet/Quant/Collapsed/{cluster}.psi.tpm.tsv"
+        "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
     output:
-        "Whippet/Quant/Collapsed/{cluster}.psi.tpm.tsv.gz"
+        "Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz"
     shell:
         "gzip {input}"
 
