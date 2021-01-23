@@ -642,7 +642,7 @@ rule collapse_whippet:
     input: 
         gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz", cluster=cluster_files.keys()),
         isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz", cluster=cluster_files.keys()),
-        psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz, cluster=cluster_files.keys())
+        psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz", cluster=cluster_files.keys())
 
         
         
