@@ -614,13 +614,35 @@ def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
-
+rule compress_gene_tpm:
+    input:
+        "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+    output:
+        "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz"
+    shell:
+        "gzip {input}"
+        
+rule compress_isoform_tpm:
+    input:
+        "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
+    output:
+        "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz"
+    shell:
+        "gzip {input}"
+        
+rule compress_gene_tpm:
+    input:
+        "Whippet/Quant/Collapsed/{cluster}.psi.tpm.tsv"
+    output:
+        "Whippet/Quant/Collapsed/{cluster}.psi.tpm.tsv.gz"
+    shell:
+        "gzip {input}"
 
 rule collapse_whippet:
     input: 
-        gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv", cluster=cluster_files.keys()),
-        isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv", cluster=cluster_files.keys()),
-        psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv", cluster=cluster_files.keys())
+        gene = expand("Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz", cluster=cluster_files.keys()),
+        isoform = expand("Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz", cluster=cluster_files.keys()),
+        psi = expand("Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz, cluster=cluster_files.keys())
 
         
         
