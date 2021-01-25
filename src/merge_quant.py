@@ -22,7 +22,7 @@ def main(mode, out_file, file_list  ):
                 writer = csv.DictWriter(out, fieldnames=header, extrasaction='ignore', delimiter="\t")
                 writer.writeheader()
 
-                sample = file.split("/")[-1].split(".")[0]
+                sample = "".join(file.split("/")[-1].split(".")[:-2])  #files needs to finish with *.fastq.gz
                 reader = csv.DictReader(f, delimiter="\t")
 
                 for row in reader:
