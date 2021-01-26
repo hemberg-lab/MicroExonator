@@ -614,29 +614,29 @@ def get_files_by_cluster(cluster, ext):
     path="Whippet/Quant/"
     return([path + x + ext for x in cluster_files[cluster]])
 
-rule compress_gene_tpm:
-    input:
-        "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
-    output:
-        "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz"
-    shell:
-        "gzip {input}"
+# rule compress_gene_tpm:
+#     input:
+#         "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+#     output:
+#         "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz"
+#     shell:
+#         "gzip {input}"
         
-rule compress_isoform_tpm:
-    input:
-        "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
-    output:
-        "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz"
-    shell:
-        "gzip {input}"
+# rule compress_isoform_tpm:
+#     input:
+#         "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
+#     output:
+#         "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz"
+#     shell:
+#         "gzip {input}"
         
-rule compress_psi:
-    input:
-        "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
-    output:
-        "Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz"
-    shell:
-        "gzip {input}"
+# rule compress_psi:
+#     input:
+#         "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
+#     output:
+#         "Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz"
+#     shell:
+#         "gzip {input}"
 
 rule collapse_whippet:
     input: 
@@ -654,9 +654,10 @@ rule merge_quant_by_cluster_gene:
         mapf =  lambda w : get_files_by_cluster(w.cluster, ".map.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
-        feature = "Gene"
+        feature = "Gene",
+        trim = ".gene.tpm.gz"
     output:
-        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv"
+        merged = "Whippet/Quant/Collapsed/{cluster}.gene.tpm.tsv.gz"
     script:
         "../src/merge_quant.py"
 
@@ -666,9 +667,10 @@ rule merge_quant_by_cluster_isoform:
         files = lambda w : get_files_by_cluster(w.cluster, ".isoform.tpm.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
-        feature = "Isoform"
+        feature = "Isoform",
+        trim = ".isoform.tpm.gz"
     output:
-        merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv"
+        merged = "Whippet/Quant/Collapsed/{cluster}.isoform.tpm.tsv.gz"
     script:
         "../src/merge_quant.py"
 
@@ -678,9 +680,10 @@ rule merge_quant_by_cluster_PSI:
         files = lambda w : get_files_by_cluster(w.cluster, ".psi.gz")
     params:
         cluster_dir = "Whippet/Quant/{cluster}",
-        feature = "PSI"
+        feature = "PSI",
+        trim = ".psi.gz"        
     output:
-        merged = "Whippet/Quant/Collapsed/{cluster}.psi.tsv"
+        merged = "Whippet/Quant/Collapsed/{cluster}.psi.tsv.gz"
     script:
         "../src/merge_quant.py"
         
