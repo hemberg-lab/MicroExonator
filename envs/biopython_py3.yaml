@@ -1,0 +1,9 @@
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - cgat
+dependencies:
+  - biopython
+  - python=3.*
