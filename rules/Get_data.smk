@@ -82,7 +82,7 @@ rule Splice_Junction_Library:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
+        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} {params.max_read_len} > {output}"
 
 
 rule GetPWM:
