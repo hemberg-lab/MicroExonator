@@ -96,7 +96,7 @@ rule GetPWM:
         "data/GT_AG_U2_5.pwm",
         "data/GT_AG_U2_3.pwm"
     conda:
-        "../envs/core_py3.yaml"
+        "../envs/biopython_py3.yaml"
     shell:
         "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
