@@ -2,7 +2,6 @@ import sys
 import csv
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from random import randint, sample
 from operator import itemgetter
 from collections import defaultdict
