@@ -98,6 +98,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 	
 	
     gene_chrom = dict()
+    gene_strand = dict()
     gene_starts = defaultdict(set)
     gene_ends = defaultdict(set)
     
