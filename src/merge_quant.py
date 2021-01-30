@@ -7,8 +7,9 @@ csv.field_size_limit(100000000)
 csv.field_size_limit()
 
 
+
 def main(mode, out_file, file_list  ):
-    with open(out_file, 'w') as out:
+    with gzip.open(out_file, 'wb') as out:
 
         for file in file_list:
 
@@ -21,8 +22,10 @@ def main(mode, out_file, file_list  ):
 
                 writer = csv.DictWriter(out, fieldnames=header, extrasaction='ignore', delimiter="\t")
                 writer.writeheader()
+                
+                sample = file.strip(snakemake.params["trim"])
 
-                sample = file.split("/")[-1].split(".")[0]
+                #sample = "".join(file.split("/")[-1].split(".")[:-2])  #files needs to finish with *.fastq.gz
                 reader = csv.DictReader(f, delimiter="\t")
 
                 for row in reader:

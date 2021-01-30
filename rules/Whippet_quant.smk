@@ -70,14 +70,14 @@ else:
 
 
 
-if "Get_Bamfiles" not in config: #To make it optional
-      config["Get_Bamfiles"]="F"
+#if "Get_Bamfiles" not in config: #To make it optional
+#      config["Get_Bamfiles"]="F"
       
 if "whippet_flags" not in config:  
       config["whippet_flags"]=""
       
 
-if str2bool(config["Get_Bamfiles"])==True:
+if str2bool(config.get("Get_Bamfiles", False)): #config["Get_Bamfiles"])==True:
 
       if "whippet_flags" in config:
             quant_flags = config["whippet_flags"]

@@ -2,7 +2,6 @@ import sys
 import csv
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from random import randint, sample
 from operator import itemgetter
 from collections import defaultdict
@@ -29,7 +28,7 @@ def Genomictabulator(fasta):
 
 def Transcriptometabulator(genecode_fasta):
 
-	print >> sys.stderr, "Cargando a fasta en la ram ...",
+	print >> sys.stderr, "Loading the genome into RAM memory ...",
 
 	for record in SeqIO.parse(genecode_fasta, "fasta"):
 		id = str(record.id).split("|")[0].split(" ")[0]
@@ -40,9 +39,9 @@ def Transcriptometabulator(genecode_fasta):
 	print >> sys.stderr, "OK"
 
 
-def main(bed12, ME_len):
+def main(bed12, ME_len, max_read_len):
 
-	n = 100
+	n = max_read_len
 
 	transcript_intron_info = defaultdict(list)
 
@@ -148,7 +147,7 @@ def main(bed12, ME_len):
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
 	Transcriptometabulator(sys.argv[2])
-	main (sys.argv[3], int(sys.argv[4]))
+	main (sys.argv[3], int(sys.argv[4]), int(sys.argv[5]))
 
 
 

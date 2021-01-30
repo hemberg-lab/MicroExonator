@@ -63,20 +63,26 @@ rule generate_fasta_from_bed12:
     shell:
         "python2 src/Get_fasta_from_bed12.py {input} > {output}"
 
-
+if not "ME_len" in config:
+    config["ME_len"] = 30
+    
+if not "max_read_len" in config:
+    config["max_read_len"] = 100
+    
 rule Splice_Junction_Library:
     input:
         config["Genome_fasta"],
         "data/transcripts.fa",
         config["Gene_anontation_bed12"]
     params:
-        ME_len = config["ME_len"]
+        ME_len = config["ME_len"],
+        max_read_len = config["max_read_len"]
     output:
         "Round1/ME_TAGs.fa"
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
+        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} {params.max_read_len} > {output}"
 
 
 rule GetPWM:
@@ -90,7 +96,7 @@ rule GetPWM:
         "data/GT_AG_U2_5.pwm",
         "data/GT_AG_U2_3.pwm"
     conda:
-        "../envs/core_py3.yaml"
+        "../envs/biopython_py3.yaml"
     shell:
         "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
 
