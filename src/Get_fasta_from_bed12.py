@@ -36,7 +36,7 @@ def main(bed12):
         blocksizes = map(int, row[10].strip(",").split(","))
         qstarts = map (int, row[11].strip(",").split(","))
         
-	transcript = ""
+	seq = ""
 	
         if chrom in Genome:
 
@@ -48,7 +48,7 @@ def main(bed12):
 
                 exon_seq = Genome[chrom][estart:eend]
 
-                transcript += exon_seq
+                seq += exon_seq
 		
 	
         if strand=="-":
