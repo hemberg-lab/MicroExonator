@@ -94,12 +94,12 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
     transcript_to_gene = dict()
     gene_coordinates = dict()
     transcript_coordinates  = dict()
-	StringTie_to_transcript = dict()
+
 	
 	
-	gene_chrom = dict()
-	gene_starts = defaultdict(set)
-	gene_ends = defaultdict(set)
+    gene_chrom = dict()
+    gene_starts = defaultdict(set)
+    gene_ends = defaultdict(set)
     
 
 
@@ -135,10 +135,10 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                 transcript_to_gene[transcript_id] = gene_id
 				
-				gene_chrom[gene_id]=chrom
-				gene_strand[gene_id]=strand
-				gene_starts[gene_id].add(int(start))
-				gene_ends[gene_id].add(int(end))
+                gene_chrom[gene_id]=chrom
+                gene_strand[gene_id]=strand
+                gene_starts[gene_id].add(int(start))
+                gene_ends[gene_id].add(int(end))
 
 #             if feature=="gene":
 
@@ -176,12 +176,12 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 gene_id = transcript_to_gene[transcript_id]
                 #g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
 				
-				g_chrom = gene_chrom[gene_id]
-				g_strand = gene_strand[gene_id]
-				g_start= str(min(gene_starts[gene_id]))
-				g_end = str(max(gene_ends[gene_id]))
+                g_chrom = gene_chrom[gene_id]
+                g_strand = gene_strand[gene_id]
+                g_start= str(min(gene_starts[gene_id]))
+                g_end = str(max(gene_ends[gene_id]))
 				
-				gene_coordinates[gene_id] = (g_chrom, g_start, g_end, g_strand)
+                gene_coordinates[gene_id] = (g_chrom, g_start, g_end, g_strand)
 				
                 t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
 
