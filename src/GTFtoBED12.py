@@ -46,12 +46,12 @@ def main(gtf_file):
         for transcript in transcript_coords:
 
 
-            chrom, start, end, strand = transcript_coords[trancript]
+            chrom, start, end, strand = transcript_coords[transcript]
 
-            n_blocks = len(transcript_qstarts_blocksize[trancript])
+            n_blocks = len(transcript_qstarts_blocksize[transcript])
 
 
-            q_b_tuples = sorted(transcript_qstarts_blocksize[trancript] , key=lambda x: x[0])
+            q_b_tuples = sorted(transcript_qstarts_blocksize[transcript] , key=lambda x: x[0])
 
             qstarts_list = [x[0] for x in q_b_tuples ]
             blocksizes_list = [x[1] for x in q_b_tuples ]
