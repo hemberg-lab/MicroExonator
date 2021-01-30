@@ -1,0 +1,6 @@
+
+channels:
+  - bioconda
+dependencies:
+  - biopython
+  - python=3

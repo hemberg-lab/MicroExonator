@@ -43,7 +43,7 @@ def main(gtf_file):
                     transcript_qstarts_blocksize[transcript].append((block_start, exon_size))
 
 
-        for trancript in transcript_coords:
+        for transcript in transcript_coords:
 
 
             chrom, start, end, strand = transcript_coords[trancript]
