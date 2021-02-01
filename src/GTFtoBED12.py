@@ -26,7 +26,7 @@ def main(gtf_file):
 
                 for t in tags:
                     pair =  t.strip(" ").split(" ")
-                    if pair!=['']:
+                    if len(pair)==2:
                         ID_type, ID  = pair
                         if ID_type == "transcript_id":
                             transcript = ID.strip('"')
