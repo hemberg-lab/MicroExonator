@@ -29,29 +29,50 @@ rule Get_ME_from_annotation:
         "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} "
 
 
-rule merge_tags:
-    input:
-        "Round2/ME_canonical_SJ_tags.de_novo.fa",
-        "data/ME_canonical_SJ_tags.DB.fa"
-    output:
-        "Round2/ME_canonical_SJ_tags.fa"
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "cat {input[0]} {input[1]} > {output}"
+if config.get("only_db", False):
+    rule merge_tags:
+        input:
+            "data/ME_canonical_SJ_tags.DB.fa"
+        output:
+            "Round2/ME_canonical_SJ_tags.fa"
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "cat {input[0]} {input[1]} > {output}"
+            
+    rule merge_ME_centric:
+        input:
+            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+            "data/DB.ME_centric"
+        output:
+            "Round2/TOTAL.ME_centric.txt"
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "cat {input[0]} {input[1]} > {output}"            
+            
+else:
+    rule merge_tags:
+        input:
+            "Round2/ME_canonical_SJ_tags.de_novo.fa",
+            "data/ME_canonical_SJ_tags.DB.fa"
+        output:
+            "Round2/ME_canonical_SJ_tags.fa"
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "cat {input[0]} {input[1]} > {output}"
 
-
-rule merge_ME_centric:
-    input:
-        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
-        "data/DB.ME_centric"
-    output:
-        "Round2/TOTAL.ME_centric.txt"
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "cat {input[0]} {input[1]} > {output}"
-
+    rule merge_ME_centric:
+        input:
+            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+            "data/DB.ME_centric"
+        output:
+            "Round2/TOTAL.ME_centric.txt"
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "cat {input[0]} {input[1]} > {output}"
 
 rule Round2_bowtie_tags_index:
     input:
