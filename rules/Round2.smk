@@ -45,7 +45,6 @@ if config.get("only_db", False):
             
     rule merge_ME_centric:
         input:
-            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
             "data/DB.ME_centric"
         output:
             "Round2/TOTAL.ME_centric.txt"
