@@ -17,7 +17,7 @@ if config.get("only_db", False):
     rule Get_ME_from_annotation:
         input:
             config["Genome_fasta"],
-            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+            "NA",
             config["Gene_anontation_bed12"],
             "data/GT_AG_U2_5.pwm",
             "data/GT_AG_U2_3.pwm",
@@ -59,7 +59,7 @@ else:
     rule Get_ME_from_annotation:
         input:
             config["Genome_fasta"],
-            "NA",
+            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
             config["Gene_anontation_bed12"],
             "data/GT_AG_U2_5.pwm",
             "data/GT_AG_U2_3.pwm",
