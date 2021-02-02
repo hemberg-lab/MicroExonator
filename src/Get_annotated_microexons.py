@@ -317,21 +317,24 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			if len(row)==1:
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
-				strand, eestart, eend = ME.split("_")[-3:]
+				strand, estart, eend = ME.split("_")[-3:]
 				
 				estart = int(estart)
 				eend = int(eend)
-
+                                ME_len = eend-estart
+                                #print(row, chrom, estart, eend)
 				if chrom in Genome:
 					
 					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
 
 					if strand=="-":
 						dn = dn.reverse_complement()				
+                                        
+                                        #print(elength, ME_len, dn, ME, found_ME)                                        
 
-					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
+					#if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
+                                        #if elength <= ME_len and ME not in found_ME:
+					non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
 
 
 	introns_str =  "\n".join(list(introns))
@@ -360,7 +363,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                         
 			if elength <= ME_len  and exon not in found_ME:
 
-				
+                                
+                                if ME=="chr6_+_36205401_36205420":
+                                    print("chr6_+_36205401_36205420")
+
 				if phylop=="NA":
 					
 					mean_conservation=0
