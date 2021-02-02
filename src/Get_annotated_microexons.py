@@ -361,7 +361,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
 
                         
-			if elength <= ME_len  and exon not in found_ME:
+			if elength <= ME_len  and ME not in found_ME:
 
                                 
                                 if ME=="chr6_+_36205401_36205420":
