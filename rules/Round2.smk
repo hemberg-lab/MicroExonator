@@ -1,3 +1,14 @@
+rule Micro_Exon_Tags:
+    input:
+        "Round1/ME_TAGs.fa",
+        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric"
+    output:
+        "Round2/ME_canonical_SJ_tags.de_novo.fa"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python2 src/Micro_exons_tags.py  {input} > {output}"
+
 rule Get_ME_from_annotation:
     input:
         config["Genome_fasta"],
