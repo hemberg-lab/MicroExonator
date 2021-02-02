@@ -21,14 +21,14 @@ def percent (c, total):
 
 def Genomictabulator(fasta):
 
-	#print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
+	print >> sys.stderr, "Loading genome into RAM memory ...",
 
 	f = open(fasta)
 
 	for chrfa in SeqIO.parse(f, "fasta"):
 		Genome[chrfa.id] = chrfa.seq
 
-	#print >> sys.stderr, "OK"
+	print >> sys.stderr, "OK"
 
 	f.close()
 
@@ -76,8 +76,6 @@ def PWM_to_dict(file):
 def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
 
 
-
-
 	n = 100
 
 	min_intron_lenght = 80
@@ -96,41 +94,34 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	for index in range(13):
 		U2_GTAG_5_max_score += max(U2_GTAG_5['A'][index], U2_GTAG_5['C'][index], U2_GTAG_5['T'][index], U2_GTAG_5['G'][index])
 
-	for index in range(17):
+        for index in range(17):
 		U2_GTAG_3_max_score += max(U2_GTAG_3['A'][index], U2_GTAG_3['C'][index], U2_GTAG_3['T'][index], U2_GTAG_3['G'][index])
 
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
 
-
-
 	found_ME = set([])
 	ME_chroms = set([])
+	
+	if ME_centric!="NA":
 
-	for row in csv.reader(open(ME_centric), delimiter = '\t'):
+		for row in csv.reader(open(ME_centric), delimiter = '\t'):
 
-		ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
+			ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
 
-		ME_strand, ME_start, ME_end = ME.split("_")[-3:]
-		ME_chrom =  "_".join(ME.split("_")[:-3])
-		
-		found_ME.add(ME)
-		ME_chroms.add(ME_chrom)
+			ME_strand, ME_start, ME_end = ME.split("_")[-3:]
+			ME_chrom =  "_".join(ME.split("_")[:-3])
 
-
+			found_ME.add(ME)
+			ME_chroms.add(ME_chrom)
 
 	introns = set([])
-
 	non_detected_ME = defaultdict(list) # a microexon can be derived from more than one transcript. The idea is to collapese the transcript
-
-
 
 	SJ_start_seqs = {}
 	SJ_end_seqs = {}
 
 
 	for row in csv.reader(open(bed12), delimiter = '\t'):
-
-
 
 
 		blocksizes = list(map(int, row[10].strip(",").split(",")))
@@ -324,24 +315,26 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
 			if len(row)==1:
-				
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
-				strand, eestart, eend = ME.split("_")[-3:]
+				strand, estart, eend = ME.split("_")[-3:]
 				
 				estart = int(estart)
 				eend = int(eend)
-
+                                ME_len = eend-estart
+                                #print(row, chrom, estart, eend)
 				if chrom in Genome:
 					
 					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
 
 					if strand=="-":
 						dn = dn.reverse_complement()				
+                                        
+                                        #print(elength, ME_len, dn, ME, found_ME)                                        
 
-					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
+					#if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
+                                        #if elength <= ME_len and ME not in found_ME:
+					non_detected_ME[(chrom, estart, eend, strand, ME_len)].append(ME)
 
 
 	introns_str =  "\n".join(list(introns))
@@ -354,10 +347,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_starts = set([])
 	TOTAL_SJ_ends = set([])
 
-
 	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric :
-
-
 
 		for i in non_detected_ME.items():
 
@@ -367,14 +357,19 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 			transcript = transcripts[0]
 
-
 			#ME = "_".join([chrom, str(estart), strand, str(eend)])
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
 
+                        #if  ME=="chr6_+_36205401_36205420":
+                        #    print("chr6_+_36205401_36205420", elength, ME)
 
-			if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-				
-				
+                        
+			if elength <= ME_len  and ME not in found_ME:
+
+                                
+                                #if ME=="chr6_+_36205401_36205420":
+                                #    print("chr6_+_36205401_36205420")
+
 				if phylop=="NA":
 					
 					mean_conservation=0
