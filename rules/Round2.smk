@@ -41,7 +41,7 @@ if config.get("only_db", False):
         conda:
             "../envs/core.yaml"
         shell:
-            "cat {input[0]} {input[1]} > {output}"
+            "cat {input} > {output}"
             
     rule merge_ME_centric:
         input:
@@ -51,7 +51,7 @@ if config.get("only_db", False):
         conda:
             "../envs/core.yaml"
         shell:
-            "cat {input[0]} {input[1]} > {output}"            
+            "cat {input} > {output}"            
             
 else:
     
