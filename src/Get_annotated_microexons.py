@@ -76,8 +76,6 @@ def PWM_to_dict(file):
 def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
 
 
-
-
 	n = 100
 
 	min_intron_lenght = 80
@@ -105,16 +103,18 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 	found_ME = set([])
 	ME_chroms = set([])
+	
+	if ME_centric!="NA":
 
-	for row in csv.reader(open(ME_centric), delimiter = '\t'):
+		for row in csv.reader(open(ME_centric), delimiter = '\t'):
 
-		ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
+			ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
 
-		ME_strand, ME_start, ME_end = ME.split("_")[-3:]
-		ME_chrom =  "_".join(ME.split("_")[:-3])
-		
-		found_ME.add(ME)
-		ME_chroms.add(ME_chrom)
+			ME_strand, ME_start, ME_end = ME.split("_")[-3:]
+			ME_chrom =  "_".join(ME.split("_")[:-3])
+
+			found_ME.add(ME)
+			ME_chroms.add(ME_chrom)
 
 
 
