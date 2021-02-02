@@ -21,14 +21,14 @@ def percent (c, total):
 
 def Genomictabulator(fasta):
 
-	#print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
+	print >> sys.stderr, "Loading genome into RAM memory ...",
 
 	f = open(fasta)
 
 	for chrfa in SeqIO.parse(f, "fasta"):
 		Genome[chrfa.id] = chrfa.seq
 
-	#print >> sys.stderr, "OK"
+	print >> sys.stderr, "OK"
 
 	f.close()
 
@@ -94,12 +94,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	for index in range(13):
 		U2_GTAG_5_max_score += max(U2_GTAG_5['A'][index], U2_GTAG_5['C'][index], U2_GTAG_5['T'][index], U2_GTAG_5['G'][index])
 
-	for index in range(17):
+        for index in range(17):
 		U2_GTAG_3_max_score += max(U2_GTAG_3['A'][index], U2_GTAG_3['C'][index], U2_GTAG_3['T'][index], U2_GTAG_3['G'][index])
 
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
-
-
 
 	found_ME = set([])
 	ME_chroms = set([])
@@ -116,21 +114,14 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			found_ME.add(ME)
 			ME_chroms.add(ME_chrom)
 
-
-
 	introns = set([])
-
 	non_detected_ME = defaultdict(list) # a microexon can be derived from more than one transcript. The idea is to collapese the transcript
-
-
 
 	SJ_start_seqs = {}
 	SJ_end_seqs = {}
 
 
 	for row in csv.reader(open(bed12), delimiter = '\t'):
-
-
 
 
 		blocksizes = list(map(int, row[10].strip(",").split(",")))
@@ -324,7 +315,6 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
 			if len(row)==1:
-				
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
 				strand, eestart, eend = ME.split("_")[-3:]
@@ -354,10 +344,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_starts = set([])
 	TOTAL_SJ_ends = set([])
 
-
 	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric :
-
-
 
 		for i in non_detected_ME.items():
 
@@ -367,13 +354,12 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 			transcript = transcripts[0]
 
-
 			#ME = "_".join([chrom, str(estart), strand, str(eend)])
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
 
+                        
+			if elength <= ME_len  and exon not in found_ME:
 
-			if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-				
 				
 				if phylop=="NA":
 					
