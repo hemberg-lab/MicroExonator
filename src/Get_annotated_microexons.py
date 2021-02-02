@@ -334,7 +334,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 					#if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
                                         #if elength <= ME_len and ME not in found_ME:
-					non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
+					non_detected_ME[(chrom, estart, eend, strand, ME_len)].append(ME)
 
 
 	introns_str =  "\n".join(list(introns))
@@ -360,12 +360,15 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 			#ME = "_".join([chrom, str(estart), strand, str(eend)])
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
 
+                        #if  ME=="chr6_+_36205401_36205420":
+                        #    print("chr6_+_36205401_36205420", elength, ME)
+
                         
 			if elength <= ME_len  and ME not in found_ME:
 
                                 
-                                if ME=="chr6_+_36205401_36205420":
-                                    print("chr6_+_36205401_36205420")
+                                #if ME=="chr6_+_36205401_36205420":
+                                #    print("chr6_+_36205401_36205420")
 
 				if phylop=="NA":
 					
