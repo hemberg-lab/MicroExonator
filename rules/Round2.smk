@@ -16,14 +16,14 @@ if config.get("only_db", False):
 
     rule Get_ME_from_annotation:
         input:
-            config["Genome_fasta"],
-            "NA",
-            config["Gene_anontation_bed12"],
-            "data/GT_AG_U2_5.pwm",
-            "data/GT_AG_U2_3.pwm",
-            config["ME_DB"]
+            genome = config["Genome_fasta"],
+            bed12 = config["Gene_anontation_bed12"],
+            GTAG_5 = "data/GT_AG_U2_5.pwm",
+            GTAG_3 = "data/GT_AG_U2_3.pwm",
+            ME_DB = config["ME_DB"]
         params:
             bw = config["conservation_bigwig"],
+            ME_centric = "NA",
             ME_len = config["ME_len"]
         output:
             "data/ME_canonical_SJ_tags.DB.fa",
@@ -31,7 +31,7 @@ if config.get("only_db", False):
         conda:
             "../envs/pybedtools.yaml"
         shell:
-            "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} "    
+            "python2 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "    
     
     rule merge_tags:
         input:
