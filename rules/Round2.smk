@@ -35,14 +35,14 @@ if config.get("only_db", False):
     
     rule merge_tags:
         input:
+            "Round2/ME_canonical_SJ_tags.de_novo.fa",
             "data/ME_canonical_SJ_tags.DB.fa"
         output:
-            "data/ME_canonical_SJ_tags.DB.fa",
             "Round2/ME_canonical_SJ_tags.fa"
         conda:
             "../envs/core.yaml"
         shell:
-            "cat {input} > {output}"
+            "cat {input[0]} {input[1]} > {output}"
             
     rule merge_ME_centric:
         input:
