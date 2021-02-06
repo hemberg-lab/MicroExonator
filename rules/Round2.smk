@@ -37,6 +37,7 @@ if config.get("only_db", False):
         input:
             "data/ME_canonical_SJ_tags.DB.fa"
         output:
+            "data/ME_canonical_SJ_tags.DB.fa",
             "Round2/ME_canonical_SJ_tags.fa"
         conda:
             "../envs/core.yaml"
