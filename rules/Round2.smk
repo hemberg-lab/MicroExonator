@@ -1,17 +1,16 @@
-rule Micro_Exon_Tags:
-    input:
-        "Round1/ME_TAGs.fa",
-        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric"
-    output:
-        "Round2/ME_canonical_SJ_tags.de_novo.fa"
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "python2 src/Micro_exons_tags.py  {input} > {output}"
-
-
-
-if config.get("only_db", False):
+if config.get("only_db", False):  #This allows to just quantify microexons from annotation and database sources
+    
+    rule Micro_Exon_Tags:
+        input:
+            "Round1/ME_TAGs.fa"
+        params:
+            "NA"
+        output:
+            "Round2/ME_canonical_SJ_tags.de_novo.fa"
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "python2 src/Micro_exons_tags.py  {input} {params} > {output}"
     
 
     rule Get_ME_from_annotation:
@@ -55,6 +54,17 @@ if config.get("only_db", False):
             "cat {input} > {output}"            
             
 else:
+    
+    rule Micro_Exon_Tags:
+    input:
+        "Round1/ME_TAGs.fa",
+        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric"
+    output:
+        "Round2/ME_canonical_SJ_tags.de_novo.fa"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python2 src/Micro_exons_tags.py  {input} > {output}"
     
     rule Get_ME_from_annotation:
         input:
