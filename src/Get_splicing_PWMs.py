@@ -2,7 +2,6 @@ import sys
 import csv
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from collections import defaultdict
 from shutil import copyfile
 

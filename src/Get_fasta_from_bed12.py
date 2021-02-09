@@ -36,6 +36,8 @@ def main(bed12):
         blocksizes = map(int, row[10].strip(",").split(","))
         qstarts = map (int, row[11].strip(",").split(","))
         
+	seq = ""
+	
         if chrom in Genome:
 
             for q, b in zip(qstarts, blocksizes):
@@ -46,16 +48,9 @@ def main(bed12):
 
                 exon_seq = Genome[chrom][estart:eend]
 
-                transcripts_seq[(transcript, strand)] += exon_seq
-#         else:
-#             print(chrom)
-
-
-    for key_value in transcripts_seq.items():
-
-        transcript_strand, seq = key_value
-        transcript, strand = transcript_strand
-
+                seq += exon_seq
+		
+	
         if strand=="-":
             seq = seq.reverse_complement()
 
@@ -63,7 +58,7 @@ def main(bed12):
 
         print(">" + transcript)
         print(seq)
-
+	
 
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])

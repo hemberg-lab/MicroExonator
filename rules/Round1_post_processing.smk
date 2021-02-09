@@ -82,14 +82,3 @@ rule Micro_Exon_table:
         "cat Round1/*.sam.row_ME.filter1 | awk 'NF==16' > Round1/TOTAL/TOTAL.sam.row_ME.filter1  &&"
         "python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
 
-
-rule Micro_Exon_Tags:
-    input:
-        "Round1/ME_TAGs.fa",
-        "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric"
-    output:
-        "Round2/ME_canonical_SJ_tags.de_novo.fa"
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "python2 src/Micro_exons_tags.py  {input} > {output}"

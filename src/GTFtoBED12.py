@@ -26,7 +26,7 @@ def main(gtf_file):
 
                 for t in tags:
                     pair =  t.strip(" ").split(" ")
-                    if pair!=['']:
+                    if len(pair)==2:
                         ID_type, ID  = pair
                         if ID_type == "transcript_id":
                             transcript = ID.strip('"')
@@ -43,15 +43,15 @@ def main(gtf_file):
                     transcript_qstarts_blocksize[transcript].append((block_start, exon_size))
 
 
-        for trancript in transcript_coords:
+        for transcript in transcript_coords:
 
 
-            chrom, start, end, strand = transcript_coords[trancript]
+            chrom, start, end, strand = transcript_coords[transcript]
 
-            n_blocks = len(transcript_qstarts_blocksize[trancript])
+            n_blocks = len(transcript_qstarts_blocksize[transcript])
 
 
-            q_b_tuples = sorted(transcript_qstarts_blocksize[trancript] , key=lambda x: x[0])
+            q_b_tuples = sorted(transcript_qstarts_blocksize[transcript] , key=lambda x: x[0])
 
             qstarts_list = [x[0] for x in q_b_tuples ]
             blocksizes_list = [x[1] for x in q_b_tuples ]
