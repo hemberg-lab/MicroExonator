@@ -89,7 +89,7 @@ rule merge_quant_gene_sp:
         mapf =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.map.gz", pseudo_pool=sb_IDs),
         psi =  expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.psi.gz", pseudo_pool=sb_IDs)
     params:
-        feature = "Gene"
+        feature = "Gene",
         trim = ".gene.tpm.tsv"   		
     output:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv"
