@@ -78,7 +78,13 @@ if os.path.isfile("./local_samples.tsv"):
                     download_file.write("#!/bin/bash" + "\n")
                     download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
                 
-                
+                if row["path"].split(".")[-1] == "bam":
+
+                    download_file =  open(file_name, "w")
+
+                    download_file.write("#!/bin/bash" + "\n")
+                    download_file.write("bedtools bamtofastq -i " + row["path"] +  "-fq FASTQ/" + row["sample"]  + ".fastq && gzip FASTQ/" + row["sample"] + ".fastq.gz" +  "\n")
+                    
                 else:
                 
                     download_file =  open(file_name, "w")
