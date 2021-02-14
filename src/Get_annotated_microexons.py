@@ -347,7 +347,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_starts = set([])
 	TOTAL_SJ_ends = set([])
 
-	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric :
+	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric,  open('data/DB.ME_centric.non_overlaping.txt', 'w') as  non_overlaping_out  :
 
 		for i in non_detected_ME.items():
 
@@ -440,7 +440,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				SJ_ends = []
 
 				if len(SJs_bed)==0:
-					write("\t".join(ME_info) + "\n")
+					non_overlaping_out.write("\t".join(ME_info) + "\n")
 					
 
 				if len(SJs_bed)!=0:
