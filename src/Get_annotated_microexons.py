@@ -440,7 +440,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				SJ_ends = []
 
 				if len(SJs_bed)==0:
-					non_overlaping_out.write("\t".join(ME_info) + "\n")
+					non_overlaping_out.write("\t".join(map(str, ME_info)) + "\n")
 					
 
 				if len(SJs_bed)!=0:
