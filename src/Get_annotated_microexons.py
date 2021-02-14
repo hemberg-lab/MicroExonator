@@ -359,6 +359,17 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 			#ME = "_".join([chrom, str(estart), strand, str(eend)])
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
+			
+			up_exon_dn = Genome[chrom][(estart-2):estart] 
+			down_exon_dn = Genome[chrom][eend:(eend+2)]
+
+			if strand=="-":
+				up_exon_dn = up_exon_dn.reverse_complement()
+				down_exon_dn = down_exon_dn.reverse_complement()
+
+			up_exon_dn = str(up_exon_dn).upper()
+			down_exon_dn = str(down_exon_dn).upper()
+			
 
                         #if  ME=="chr6_+_36205401_36205420":
                         #    print("chr6_+_36205401_36205420", elength, ME)
@@ -428,7 +439,9 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 				SJ_starts = []
 				SJ_ends = []
 
-
+				if len(SJs_bed)==0:
+					write("\t".join(ME_info) + "\n")
+					
 
 				if len(SJs_bed)!=0:
 
@@ -496,7 +509,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
-					total_number_of_micro_exons_matches = min_intron_seq.count("AG" + micro_exon_seq_found + "GT")
+					total_number_of_micro_exons_matches = min_intron_seq.count(up_exon_dn + micro_exon_seq_found + down_exon_dn)
 
 
 					P_ME = 	1 - ( 1 - (float(1)/float(4**len(micro_exon_seq_found)+4)))**( len(min_intron_seq) - (len(micro_exon_seq_found)+4))
