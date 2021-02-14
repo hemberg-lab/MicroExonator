@@ -335,6 +335,9 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 					#if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
                                         #if elength <= ME_len and ME not in found_ME:
 					non_detected_ME[(chrom, estart, eend, strand, ME_len)].append(ME)
+					
+				else:
+					print(ME + "Chromosome not in genome")
 
 
 	introns_str =  "\n".join(list(introns))
@@ -523,7 +526,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
-
+			else: 
+				non_overlaping_out.write("\t".join(map(str, ME_info)) + "\n")
 
 
 
