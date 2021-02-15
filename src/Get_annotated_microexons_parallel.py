@@ -554,7 +554,7 @@ def process_ME(i):
 			
 
 
-process_ME((["chr2", "168722732", "168722739", "+", 7], "chr2_+_168722732_168722739"))
+
 
 
 
@@ -567,7 +567,7 @@ if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
 	main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8])
 
-	
+process_ME((["chr2", "168722732", "168722739", "+", 7], "chr2_+_168722732_168722739"))	
 non_detected_ME_list = non_detected_ME.items()
 	
 	
