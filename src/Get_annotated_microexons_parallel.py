@@ -86,6 +86,10 @@ U2_GTAG_3_global = ""
 
 intron_bed_global = []
 TOTAL_U2_max_score_global = ""
+
+
+SJ_start_seqs = {}
+SJ_end_seqs = {}
 def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
 
 
@@ -140,8 +144,6 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	introns = set([])
 
 
-	SJ_start_seqs = {}
-	SJ_end_seqs = {}
 
 
 	for row in csv.reader(open(bed12), delimiter = '\t'):
