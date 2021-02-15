@@ -555,7 +555,7 @@ def process_ME(i):
 
 			
 			
-
+process_ME("chr2_+_168722732_168722739")
 
 
 
@@ -574,7 +574,7 @@ if __name__ == '__main__':
 	
 non_detected_ME_list = non_detected_ME.items()
 	
-process_ME("chr2_+_168722732_168722739")
+
 			
 try:
     pool = Pool(8) # on 8 processors
