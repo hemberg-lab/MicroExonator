@@ -442,13 +442,13 @@ def process_ME(i):
 	i = 0
 
 	for N in ME5:
-		U2_score += U2_GTAG_3_global[N][i]
+		U2_score += U2_GTAG_3[N][i]
 		i += 1
 
 	i = 0
 
 	for N in ME3:
-		U2_score += U2_GTAG_5_global[N][i]
+		U2_score += U2_GTAG_5[N][i]
 		i += 1
 
 	U2_score = percent(U2_score, TOTAL_U2_max_score_global)
