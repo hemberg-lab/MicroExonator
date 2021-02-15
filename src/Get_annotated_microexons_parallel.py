@@ -78,7 +78,14 @@ def PWM_to_dict(file):
 	return matrix
 
 non_detected_ME = defaultdict(list) # a microexon can be derived from more than one transcript. The idea is to collapese the transcript
+phylop_global = "NA"
 
+U2_GTAG_5_global = ""
+U2_GTAG_3_global = ""
+
+
+intron_bed_global = []
+TOTAL_U2_max_score_global = ""
 def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
 
 
@@ -88,6 +95,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 	if phylop!="NA":
+		phylop_global = phylop
 		phylop_bw = pyBigWig.open(phylop)
 
 
@@ -104,6 +112,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 		U2_GTAG_3_max_score += max(U2_GTAG_3['A'][index], U2_GTAG_3['C'][index], U2_GTAG_3['T'][index], U2_GTAG_3['G'][index])
 
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
+	
+	TOTAL_U2_max_score_global = TOTAL_U2_max_score
+	U2_GTAG_5_global = U2_GTAG_5
+	U2_GTAG_3_global = U2_GTAG_3
 
 	found_ME = set([])
 	ME_chroms = set([])
@@ -351,14 +363,12 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 	intron_bed = BedTool(introns_str , from_string=True)
 	intron_bed = intron_bed.sort()
-
-
-	TOTAL_SJ_starts = set([])
-	TOTAL_SJ_ends = set([])
 	
-	
+	intron_bed_global = intron_bed
 
 
+TOTAL_SJ_starts = set([])
+TOTAL_SJ_ends = set([])
 non_overlaping_out_list = []
 out_tags_list = []
 out_ME_centric_list = []
@@ -397,14 +407,14 @@ def process_ME(i):
 		#if ME=="chr6_+_36205401_36205420":
 		#    print("chr6_+_36205401_36205420")
 
-	if phylop=="NA":
+	if phylop_global=="NA":
 
 		mean_conservation=0
 
 	else:
 
 		try:
-			mean_conservation= phylop_bw.stats(chrom, estart-2, eend+2, type="mean")[0]
+			mean_conservation= phylop_bw_global.stats(chrom, estart-2, eend+2, type="mean")[0]
 		except RuntimeError:
 			mean_conservation=0
 
@@ -432,16 +442,16 @@ def process_ME(i):
 	i = 0
 
 	for N in ME5:
-		U2_score += U2_GTAG_3[N][i]
+		U2_score += U2_GTAG_3_global[N][i]
 		i += 1
 
 	i = 0
 
 	for N in ME3:
-		U2_score += U2_GTAG_5[N][i]
+		U2_score += U2_GTAG_5_global[N][i]
 		i += 1
 
-	U2_score = percent(U2_score, TOTAL_U2_max_score)
+	U2_score = percent(U2_score, TOTAL_U2_max_score_global)
 
 
 
