@@ -114,8 +114,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
 	
 	TOTAL_U2_max_score_global = TOTAL_U2_max_score
-	U2_GTAG_5_global = U2_GTAG_5
-	U2_GTAG_3_global = U2_GTAG_3
+	return U2_GTAG_5
+	return U2_GTAG_3
 
 	found_ME = set([])
 	ME_chroms = set([])
