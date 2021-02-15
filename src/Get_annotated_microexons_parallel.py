@@ -101,6 +101,11 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 	U2_GTAG_5 = PWM_to_dict(U2_GTAG_5_file)
 	U2_GTAG_3 = PWM_to_dict(U2_GTAG_3_file)
+	
+	global U2_GTAG_5_global
+	U2_GTAG_5_global = U2_GTAG_5
+	global U2_GTAG_3_global
+	U2_GTAG_3_global = U2_GTAG_3
 
 	U2_GTAG_5_max_score = 0
 	U2_GTAG_3_max_score = 0
@@ -113,6 +118,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
 	
+	global TOTAL_U2_max_score_global
 	TOTAL_U2_max_score_global = TOTAL_U2_max_score
 
 
@@ -441,13 +447,13 @@ def process_ME(i):
 	i = 0
 
 	for N in ME5:
-		U2_score += U2_GTAG_3[N][i]
+		U2_score += U2_GTAG_3_global[N][i]
 		i += 1
 
 	i = 0
 
 	for N in ME3:
-		U2_score += U2_GTAG_5[N][i]
+		U2_score += U2_GTAG_5_global[N][i]
 		i += 1
 
 	U2_score = percent(U2_score, TOTAL_U2_max_score_global)
