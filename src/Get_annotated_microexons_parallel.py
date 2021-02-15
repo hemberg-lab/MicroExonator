@@ -564,6 +564,8 @@ def process_ME(i):
 
 #ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
 
+pool.map(
+
 
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
@@ -571,6 +573,8 @@ if __name__ == '__main__':
 
 	
 non_detected_ME_list = non_detected_ME.items()
+	
+process_ME("chr2_+_168722732_168722739")
 			
 try:
     pool = Pool(8) # on 8 processors
