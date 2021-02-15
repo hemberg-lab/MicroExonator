@@ -380,6 +380,8 @@ TOTAL_SJ_ends = set([])
 non_overlaping_out_list = []
 out_tags_list = []
 out_ME_centric_list = []
+
+counter = 1
 	
 def process_ME(i):
 	
@@ -557,6 +559,9 @@ def process_ME(i):
 
 		global out_ME_centric_list
 		out_ME_centric_list.append(info)
+		
+		print(counter)
+		counter +=1
 
 #	<process>
 			
