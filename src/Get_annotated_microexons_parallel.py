@@ -369,6 +369,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	intron_bed = BedTool(introns_str , from_string=True)
 	intron_bed = intron_bed.sort()
 	
+	global intron_bed_global
 	intron_bed_global = intron_bed
 
 
@@ -462,7 +463,7 @@ def process_ME(i):
 
 	ME_bed = BedTool(" ".join([chrom, str(estart), str(eend - 1), "ME", "0", strand]) , from_string=True)
 
-	SJs_bed = intron_bed.intersect(ME_bed, wa=True, s=True, F=1, nonamecheck=True)
+	SJs_bed = intron_bed_global.intersect(ME_bed, wa=True, s=True, F=1, nonamecheck=True)
 
 
 	SJs = set([])
