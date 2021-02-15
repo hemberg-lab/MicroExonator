@@ -8,6 +8,7 @@ from pybedtools import BedTool
 import pyBigWig
 from collections import defaultdict
 import threading
+from multiprocessing import Pool
 
 
 
