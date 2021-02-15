@@ -475,6 +475,7 @@ def process_ME(i):
 
 	if len(SJs_bed)==0:
 		#non_overlaping_out.write("\t".join(map(str, ME_info)) + "\n")
+		global non_overlaping_out_list
 		non_overlaping_out_list.append(ME_info)
 
 
@@ -524,6 +525,7 @@ def process_ME(i):
 
 			#out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
 			#out_tags.write(ME_TAG + "\n")
+			global out_tags_list
 			out_tags_list.append([ SJ, transcript ,  tag_pos, ME_TAG])
 
 			# print ">" + "|".join([ ME_TAG_ID, transcript,  tag_pos ])
@@ -553,6 +555,7 @@ def process_ME(i):
 
 		#out_ME_centric.write("\t".join(map(str, info)) + "\n")
 
+		global out_ME_centric_list
 		out_ME_centric_list.append(info)
 
 #	<process>
