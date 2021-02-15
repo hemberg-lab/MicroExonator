@@ -536,7 +536,7 @@ def process_ME(i):
 
 		out_ME_centric_list.append(info)
 
-	<process>
+#	<process>
 			
 			#out_ME_centric.write("\t".join(map(str, info)) + "\n")
 			
