@@ -579,7 +579,7 @@ with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_
 		out_ME_centric.write("\t".join(map(str, info)) + "\n")
 		
 	for row in out_tags_list:
-		 SJ, transcript , tag_pos, ME_TAG = row	
+		SJ, transcript , tag_pos, ME_TAG = row	
 		out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
 		out_tags.write(ME_TAG + "\n")
 #python2 ~/my_src/Micro-Exonator/Get_annotated_microexons.py ../../../../../Genome/mm10/mm10.fa Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric ../../../../../Genome/mm10/Tracks/Gene_annotation/gencode.vM11.annotation.bed12 ../../../../../Genome/mm10/Tracks/SpliceRack/mm10_GT_AG_U2_5.good.matrix ../../../../../Genome/mm10/Tracks/SpliceRack/mm10_GT_AG_U2_3.good.matrix ../../../../../Genome/mm10/Tracks/Phylop/mm10.60way.phyloP60way.bw 30
