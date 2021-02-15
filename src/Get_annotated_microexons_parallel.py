@@ -560,7 +560,9 @@ def process_ME(i):
 		global out_ME_centric_list
 		out_ME_centric_list.append(info)
 		
+		global counter
 		print(counter)
+		global counter
 		counter +=1
 
 #	<process>
