@@ -73,7 +73,7 @@ def PWM_to_dict(file):
 	return matrix
 
 
-def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False, mode="ALL", out1, out2, out3 ):
+def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3 ):
 
 
 	n = 100
