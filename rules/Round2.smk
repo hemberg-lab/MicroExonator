@@ -36,9 +36,9 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
                 ME_len = config["ME_len"],
                 mode = "db_ref"
             output:
-                "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
-                "data/splits/res/ref.DB.ME_centric",
-                "data/splits/res/ref.non_overlap"
+                "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
+                "data/splits/ref.DB.ME_centric",
+                "data/splits/ref.non_overlap"
             conda:
                 "../envs/pybedtools.yaml"
             shell:
@@ -57,9 +57,9 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
                 ME_len = config["ME_len"],
                 mode = "db_split"
             output:
-                "data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}",
-                "data/splits/res/DB.ME_centric.{split}",
-                "data/splits/res/non_overlap.{split}"
+                "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
+                "data/splits/DB.ME_centric.{split}",
+                "data/splits/non_overlap.{split}"
             conda:
                 "../envs/pybedtools.yaml"
             shell:
@@ -67,10 +67,10 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
                 
         rule ME_DB_splits_output:
             input:
-                ref_SJ_tags = "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
-                ref_ME_centric = "data/splits/res/ref.DB.ME_centric",
-                splits_SJ_tags = dynamic("data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}"),
-                splits_ME_centric = dynamic("data/splits/res/DB.ME_centric.{split}")
+                ref_SJ_tags = "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
+                ref_ME_centric = "data/splits/ref.DB.ME_centric",
+                splits_SJ_tags = dynamic("data/splits/ME_canonical_SJ_tags.DB.fa.{split}"),
+                splits_ME_centric = dynamic("data/splits/DB.ME_centric.{split}")
             output:
                 SJ_tags = "data/ME_canonical_SJ_tags.DB.fa",
                 ME_centric = "data/DB.ME_centric"
