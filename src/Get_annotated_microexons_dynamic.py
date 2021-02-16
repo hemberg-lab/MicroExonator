@@ -242,7 +242,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	##### Microexon database ######
 
 
-	if ME_DB!=False & if mode!="db_ref":
+	if ME_DB!=False and if mode!="db_ref":
 
 
 		for row in csv.reader(open(ME_DB), delimiter = '\t'):
