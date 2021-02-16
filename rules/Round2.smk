@@ -67,10 +67,10 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
                 
         ME_DB_splits_output:
             input:
-                ref_SJ_tags =
-                ref_ME_centric =
-                splits_SJ_tags =
-                splits_ME_centric = 
+                ref_SJ_tags = "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
+                ref_ME_centric = "data/splits/res/ref.DB.ME_centric",
+                splits_SJ_tags = dynamic("data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}")
+                splits_ME_centric = dynamic("data/splits/res/DB.ME_centric.{split}")
             output:
                 SJ_tags = "data/ME_canonical_SJ_tags.DB.fa",
                 ME_centric = "data/DB.ME_centric"
