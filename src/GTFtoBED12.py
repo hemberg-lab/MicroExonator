@@ -31,14 +31,14 @@ def main(gtf_file):
                         if ID_type == "transcript_id":
                             transcript = ID.strip('"')
 			
-		try:
+# 		try:
 
-			if blocktype == 'transcript':
+		if blocktype == 'transcript':
 
-			    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
+		    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
 			
-		except UnboundLocalError:
-			print(row)
+# 		except UnboundLocalError:
+# 			print(row)
 
                 if blocktype == 'exon':
 
