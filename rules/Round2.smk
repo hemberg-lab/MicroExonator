@@ -11,27 +11,93 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             "../envs/core.yaml"
         shell:
             "python2 src/Micro_exons_tags.py  {input} {params} > {output}"
-    
+            
+            
+    if config.get("split_DB", False):
+                    
+        rule split_ME_DB:
+            input:
+                config["ME_DB"]
+            output:
+                dynamic("data/splits/ME_DB.{split}")
+            shell:
+                "split -l 5000 {input} data/splits/ME_DB."
 
-    rule Get_ME_from_annotation:
-        input:
-            genome = config["Genome_fasta"],
-            bed12 = config["Gene_anontation_bed12"],
-            GTAG_5 = "data/GT_AG_U2_5.pwm",
-            GTAG_3 = "data/GT_AG_U2_3.pwm",
-            ME_DB = config["ME_DB"]
-        params:
-            bw = config["conservation_bigwig"],
-            ME_centric = "NA",
-            ME_len = config["ME_len"]
-        output:
-            "data/ME_canonical_SJ_tags.DB.fa",
-            "data/DB.ME_centric"
-        conda:
-            "../envs/pybedtools.yaml"
-        shell:
-            "python2 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "    
+        rule Get_ME_from_annotation_ref:
+            input:
+                genome = config["Genome_fasta"],
+                bed12 = config["Gene_anontation_bed12"],
+                GTAG_5 = "data/GT_AG_U2_5.pwm",
+                GTAG_3 = "data/GT_AG_U2_3.pwm",
+                ME_DB = config["ME_DB"]
+            params:
+                bw = config["conservation_bigwig"],
+                ME_centric = "NA",
+                ME_len = config["ME_len"]
+                mode = "db_ref"
+            output:
+                "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
+                "data/splits/res/ref.DB.ME_centric",
+                "data/splits/res/ref.non_overlap"
+            conda:
+                "../envs/pybedtools.yaml"
+            shell:
+                "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"                  
+                
+        rule Get_ME_from_annotation_split:
+            input:
+                genome = config["Genome_fasta"],
+                bed12 = config["Gene_anontation_bed12"],
+                GTAG_5 = "data/GT_AG_U2_5.pwm",
+                GTAG_3 = "data/GT_AG_U2_3.pwm",
+                ME_DB = "data/splits/ME_DB.{split}"
+            params:
+                bw = config["conservation_bigwig"],
+                ME_centric = "NA",
+                ME_len = config["ME_len"]
+                mode = "db_split"
+            output:
+                "data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}",
+                "data/splits/res/DB.ME_centric.{split}",
+                "data/splits/res/non_overlap.{split}"
+            conda:
+                "../envs/pybedtools.yaml"
+            shell:
+                "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                
+        ME_DB_splits_output:
+            input:
+                ref_SJ_tags =
+                ref_ME_centric =
+                splits_SJ_tags =
+                splits_ME_centric = 
+            output:
+                SJ_tags = "data/ME_canonical_SJ_tags.DB.fa",
+                ME_centric = "data/DB.ME_centric"
+            shell:
+                "cat {input.ref_SJ_tags} {input.splits_SJ_tags} > {output.SJ_tags} && cat {input.ref_ME_centric} {input.splits_ME_centric} > {output.ME_centric}" 
+            
+    else:
     
+        rule Get_ME_from_annotation:
+            input:
+                genome = config["Genome_fasta"],
+                bed12 = config["Gene_anontation_bed12"],
+                GTAG_5 = "data/GT_AG_U2_5.pwm",
+                GTAG_3 = "data/GT_AG_U2_3.pwm",
+                ME_DB = config["ME_DB"]
+            params:
+                bw = config["conservation_bigwig"],
+                ME_centric = "NA",
+                ME_len = config["ME_len"]
+            output:
+                "data/ME_canonical_SJ_tags.DB.fa",
+                "data/DB.ME_centric"
+            conda:
+                "../envs/pybedtools.yaml"
+            shell:
+                "python2 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "    
+
     rule merge_tags:
         input:
             "Round2/ME_canonical_SJ_tags.de_novo.fa",
@@ -42,7 +108,7 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             "../envs/core.yaml"
         shell:
             "cat {input[0]} {input[1]} > {output}"
-            
+
     rule merge_ME_centric:
         input:
             "data/DB.ME_centric"
