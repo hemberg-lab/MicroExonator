@@ -33,7 +33,7 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             params:
                 bw = config["conservation_bigwig"],
                 ME_centric = "NA",
-                ME_len = config["ME_len"]
+                ME_len = config["ME_len"],
                 mode = "db_ref"
             output:
                 "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
@@ -54,7 +54,7 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             params:
                 bw = config["conservation_bigwig"],
                 ME_centric = "NA",
-                ME_len = config["ME_len"]
+                ME_len = config["ME_len"],
                 mode = "db_split"
             output:
                 "data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}",
@@ -69,7 +69,7 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             input:
                 ref_SJ_tags = "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
                 ref_ME_centric = "data/splits/res/ref.DB.ME_centric",
-                splits_SJ_tags = dynamic("data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}")
+                splits_SJ_tags = dynamic("data/splits/res/ME_canonical_SJ_tags.DB.fa.{split}"),
                 splits_ME_centric = dynamic("data/splits/res/DB.ME_centric.{split}")
             output:
                 SJ_tags = "data/ME_canonical_SJ_tags.DB.fa",
