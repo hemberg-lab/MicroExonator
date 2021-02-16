@@ -65,7 +65,7 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             shell:
                 "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
                 
-        ME_DB_splits_output:
+        rule ME_DB_splits_output:
             input:
                 ref_SJ_tags = "data/splits/res/ref.ME_canonical_SJ_tags.DB.fa",
                 ref_ME_centric = "data/splits/res/ref.DB.ME_centric",
