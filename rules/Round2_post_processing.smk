@@ -180,7 +180,8 @@ rule high_confident_filters:
 
 
 def get_splits_by_sample(wildcards):
-    return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=wildcards.split)
+    return [ x + "." + str(wildcards.split) for x in expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage, sample=DATA)]
+    #return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=wildcards.split)
 
 if config.get("split_cov", False):
 
