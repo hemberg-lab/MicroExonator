@@ -219,7 +219,7 @@ if config.get("split_cov", False):
 		
         rule coverage_to_PSI_output:
             input:
-		        dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+                dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
             output:
                 "Report/out_filtered_ME.PSI.txt"
             shell:
