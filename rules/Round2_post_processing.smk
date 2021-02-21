@@ -179,7 +179,10 @@ rule high_confident_filters:
 
 def eql(wildcards):
 	return(wildcards)
-	
+
+def get_splits_by_sample(wildcards):
+    return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=eql(wildcards.split) )
+
 if config.get("split_cov", False):
 
 	rule split_ME_SJ_coverages:
@@ -194,7 +197,7 @@ if config.get("split_cov", False):
 
 	rule Total_sample_exon_count_splits:
 	    input:
-		    expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=eql(w.split) )
+		    get_splits_by_sample
 	    output:
 		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}")
 	    params:
