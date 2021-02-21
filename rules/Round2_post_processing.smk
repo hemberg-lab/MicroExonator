@@ -177,8 +177,8 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-def eql(x):
-	return(x)
+def eql(wildcards):
+	return(wildcards)
 	
 if config.get("split_cov", False):
 
