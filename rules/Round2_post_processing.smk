@@ -177,11 +177,10 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-def eql(wildcards):
-	return(wildcards)
+
 
 def get_splits_by_sample(wildcards):
-    return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=eql(wildcards.split) )
+    return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=wildcards.split)
 
 if config.get("split_cov", False):
 
