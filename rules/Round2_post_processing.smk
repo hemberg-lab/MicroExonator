@@ -217,13 +217,13 @@ if config.get("split_cov", False):
 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 		
 		
-        rule coverage_to_PSI_output:
-            input:
-                dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
-            output:
-                "Report/out_filtered_ME.PSI.txt"
-            shell:
-                "cat {input} > {output}" 
+    rule coverage_to_PSI_output:
+        input:
+            dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+        output:
+            "Report/out_filtered_ME.PSI.txt"
+        shell:
+            "cat {input} > {output}" 
 	
 else:
 	rule coverage_to_PSI:
