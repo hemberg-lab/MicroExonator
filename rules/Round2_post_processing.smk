@@ -184,13 +184,12 @@ if config.get("split_cov", False):
 	rule split_ME_SJ_coverages:
 	    input:
 		"Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-	    params:
-		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    output:
 		dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}")
+	    params:
+		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    shell:
 		"split -l 5000 {input} {params}"
-		
 
 	rule Total_sample_exon_count_splits:
 	    input:
