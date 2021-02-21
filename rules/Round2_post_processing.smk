@@ -185,7 +185,7 @@ if config.get("split_cov", False):
 	    input:
 		"Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
 	    output:
-		dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}")
+		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}"
 	    params:
 		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    shell:
