@@ -187,7 +187,7 @@ if config.get("split_cov", False):
 	    params:
 		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    output:
-		temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}"))
+		dynamic(temp("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}"))
 	    shell:
 		"split -l 5000 {input} {params}"
 		
