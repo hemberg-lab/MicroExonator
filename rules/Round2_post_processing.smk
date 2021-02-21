@@ -178,20 +178,71 @@ rule high_confident_filters:
         "python src/high_confident_list.py {input}  > {output}"
 
 
-rule coverage_to_PSI:
-    input:
-        "Round2/TOTAL.filter1.ME_SJ_coverage"
-    params:
-        config["min_reads_PSI"],
-        config["paired_samples"]    
-    output:
-        "Report/out_filtered_ME.PSI.txt"
-    conda:
-        "../envs/core_py3.yaml"
-    shell:
-        "python src/counts_to_PSI.py {input} {params} > {output}"
+	
+if config.get("split_cov", False):
+
+	rule split_ME_SJ_coverages:
+	    input:
+		"Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+	    params:
+		"Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
+	    output:
+		temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}"))
+	    shell:
+		"split -l 5000 {input} {params}"
+		
+
+	rule Total_sample_exon_count_splits:
+	    input:
+		expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA )
+	    output:
+		temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}")
+	    params:
+		"Round2/splits/merge/*.filter1.ME_SJ_coverage.{split}"
+	    conda:
+		"../envs/core.yaml"
+	    shell:
+	      "cat {params} > {output}"		
+
+	rule coverage_to_PSI_split:
+	    input:
+		"Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}"
+	    params:
+		config["min_reads_PSI"],
+		config["paired_samples"]    
+	    output:
+		temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+	    conda:
+		"../envs/core_py3.yaml"
+	    shell:
+		"python src/counts_to_PSI.py {input} {params} > {output}"
+		
+		
+        rule coverage_to_PSI_output:
+            input:
+		dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+            output:
+                "Report/out_filtered_ME.PSI.txt"
+            shell:
+                "cat {input} > {output}" 
+	
+else:
+	rule coverage_to_PSI:
+	    input:
+		"Round2/TOTAL.filter1.ME_SJ_coverage"
+	    params:
+		config["min_reads_PSI"],
+		config["paired_samples"]    
+	    output:
+		"Report/out_filtered_ME.PSI.txt"
+	    conda:
+		"../envs/core_py3.yaml"
+	    shell:
+		"python src/counts_to_PSI.py {input} {params} > {output}"
 
 
+		
+		
 rule annotation_stats:
     input:
         config["Gene_anontation_bed12"],
