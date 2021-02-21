@@ -193,7 +193,7 @@ if config.get("split_cov", False):
 
 	rule Total_sample_exon_count_splits:
 	    input:
-		    expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA )
+		    expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=w.split )
 	    output:
 		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}")
 	    params:
