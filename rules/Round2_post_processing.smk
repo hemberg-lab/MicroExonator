@@ -180,8 +180,8 @@ rule high_confident_filters:
 
 
 def get_splits_by_sample(wildcards):
-    return [ x + "." + str(wildcards.split) for x in expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA)]
-    #return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}", sample=DATA, split=wildcards.split)
+    #return [ x + "." + str(wildcards.split) for x in expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA)]
+    return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}", sample=DATA, split=wildcards.split)
 
 if config.get("split_cov", False):
 
@@ -189,7 +189,7 @@ if config.get("split_cov", False):
 	    input:
 		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
 	    output:
-		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split}"))
+		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}"))
 	    params:
 		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    shell:
@@ -199,9 +199,9 @@ if config.get("split_cov", False):
 	    input:
 		    get_splits_by_sample
 	    output:
-		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}")
+		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}")
 	    params:
-		    "Round2/splits/merge/*.filter1.ME_SJ_coverage.{split}"
+		    "Round2/splits/merge/*.filter1.ME_SJ_coverage.{split2}"
 	    conda:
 		    "../envs/core.yaml"
 	    shell:
@@ -209,12 +209,12 @@ if config.get("split_cov", False):
 
 	rule coverage_to_PSI_split:
 	    input:
-		    "Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split}"
+		    "Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
 	    params:
 		    config["min_reads_PSI"],
 		    config["paired_samples"]    
 	    output:
-		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
 	    conda:
 		    "../envs/core_py3.yaml"
 	    shell:
@@ -222,7 +222,7 @@ if config.get("split_cov", False):
 		
 	rule coverage_to_PSI_output:
 	    input:
-		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split}")
+		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
 	    output:
 		    "Report/out_filtered_ME.PSI.txt"
 	    shell:
