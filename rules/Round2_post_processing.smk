@@ -191,7 +191,7 @@ if config.get("split_cov", False):
 	    params:
 		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
 	    resources:
-		    get_data = 1 
+		    split = 50 
 	    priority: -10
 	    shell:
 		    "split -l 100000 {input} {params}"
