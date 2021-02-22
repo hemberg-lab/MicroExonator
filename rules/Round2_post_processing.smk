@@ -200,7 +200,7 @@ if config.get("split_cov", False):
 	    output:
 		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}")
 	    params:
-		    "Round2/splits/merge/*.filter1.ME_SJ_coverage.{split2}"
+		    "Round2/splits/*.filter1.ME_SJ_coverage.{split2}"
 	    conda:
 		    "../envs/core.yaml"
 	    priority: 10
