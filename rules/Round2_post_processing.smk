@@ -178,20 +178,19 @@ rule high_confident_filters:
         "python src/high_confident_list.py {input}  > {output}"
 
 
-
 def get_splits_by_sample(wildcards):
     #return [ x + "." + str(wildcards.split) for x in expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA)]
     return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}", sample=DATA, split2=wildcards.split2)
 
 if config.get("split_cov", False):
-
 	rule split_ME_SJ_coverages:
 	    input:
 		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
 	    output:
-		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}"))
+		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}")) 
 	    params:
 		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
+        priority: -10
 	    shell:
 		    "split -l 100000 {input} {params}"
 
@@ -204,6 +203,7 @@ if config.get("split_cov", False):
 		    "Round2/splits/merge/*.filter1.ME_SJ_coverage.{split2}"
 	    conda:
 		    "../envs/core.yaml"
+        priority: 10
 	    shell:
 	        "cat {params} > {output}"		
 
@@ -217,6 +217,7 @@ if config.get("split_cov", False):
 		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
 	    conda:
 		    "../envs/core_py3.yaml"
+        priority: 15
 	    shell:
 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 		
@@ -225,6 +226,7 @@ if config.get("split_cov", False):
 		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
 	    output:
 		    "Report/out_filtered_ME.PSI.txt"
+        priority: 20
 	    shell:
 		    "cat {input} > {output}" 
 	
