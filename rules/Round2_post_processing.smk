@@ -190,6 +190,8 @@ if config.get("split_cov", False):
 		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}")) 
 	    params:
 		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
+	    resources:
+		    get_data = 1 
 	    priority: -10
 	    shell:
 		    "split -l 100000 {input} {params}"
@@ -201,6 +203,8 @@ if config.get("split_cov", False):
 		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}")
 	    params:
 		    "Round2/splits/*.filter1.ME_SJ_coverage.{split2}"
+	    resources:
+		    split = 1 
 	    conda:
 		    "../envs/core.yaml"
 	    priority: 10
@@ -215,6 +219,8 @@ if config.get("split_cov", False):
 		    config["paired_samples"]    
 	    output:
 		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
+	    resources:
+		    split = 1 
 	    conda:
 		    "../envs/core_py3.yaml"
 	    priority: 15
@@ -226,11 +232,12 @@ if config.get("split_cov", False):
 		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
 	    output:
 		    "Report/out_filtered_ME.PSI.txt"
+	    resources:
+		    split = 1
 	    priority: 20
 	    shell:
 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"
 
-	
 else:
 	rule coverage_to_PSI:
 	    input:
