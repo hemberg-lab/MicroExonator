@@ -228,7 +228,8 @@ if config.get("split_cov", False):
 		    "Report/out_filtered_ME.PSI.txt"
 	    priority: 20
 	    shell:
-		    "cat {input} > {output}" 
+		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"
+
 	
 else:
 	rule coverage_to_PSI:
