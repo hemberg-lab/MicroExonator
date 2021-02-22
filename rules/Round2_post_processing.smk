@@ -194,7 +194,7 @@ if config.get("split_cov", False):
 		    split = 20 
 	    priority: -10
 	    shell:
-		    "split -l 100000 {input} {params}"
+		    "split -l 400000 {input} {params}"
 
 	rule Total_sample_exon_count_splits:
 	    input:
