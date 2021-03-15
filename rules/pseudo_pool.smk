@@ -61,10 +61,11 @@ rule quant_pool_pb:
         temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
     params:
         bin = config["whippet_bin_folder"],
-        output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
+        output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}",
+	flags = config["whippet_flags"]
     priority: 10
     shell:
-        "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+        "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output} {params.flags}"
         
 #print(expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))))
         
