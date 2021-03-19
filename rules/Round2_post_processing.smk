@@ -213,7 +213,7 @@ if config.get("split_cov", False):
 
 
 	rule split_TOTAL_ME_SJ_coverage:
-		input:
+	    input:
 		    "Round2/TOTAL.filter1.ME_SJ_coverage"
 	    output:
 		    temp(dynamic("Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}")) 
@@ -227,7 +227,7 @@ if config.get("split_cov", False):
 
 	rule coverage_to_PSI_split:
 	    input:
-			"Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}"
+		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}"
 		    #"Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
 	    params:
 		    config["min_reads_PSI"],
