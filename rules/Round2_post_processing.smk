@@ -183,37 +183,52 @@ def get_splits_by_sample(wildcards):
     return expand("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}", sample=DATA, split2=wildcards.split2)
 
 if config.get("split_cov", False):
-	rule split_ME_SJ_coverages:
-	    input:
-		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+#	rule split_ME_SJ_coverages:
+#	    input:
+#		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+#	    output:
+#		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}")) 
+#	    params:
+#		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
+#	    resources:
+#		    split = 400 
+#	    priority: -10
+#	    shell:
+#		    "split -l 50000 {input} {params}"
+
+#	rule Total_sample_exon_count_splits:
+#	    input:
+#		    get_splits_by_sample
+#	    output:
+#		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}")
+#	    params:
+#		    "Round2/splits/*.filter1.ME_SJ_coverage.{split2}"
+#	    resources:
+#		    split = 1 
+#	    conda:
+#		    "../envs/core.yaml"
+#	    priority: 10
+#	    shell:
+#	        "cat {params} > {output}"		
+
+
+	rule split_TOTAL_ME_SJ_coverage:
+		input:
+		    "Round2/TOTAL.filter1.ME_SJ_coverage"
 	    output:
-		    temp(dynamic("Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.{split2}")) 
+		    temp(dynamic("Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}")) 
 	    params:
-		    "Round2/splits/{sample}.sam.pre_processed.filter1.ME_SJ_coverage."
+		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage."
 	    resources:
 		    split = 400 
 	    priority: -10
 	    shell:
 		    "split -l 50000 {input} {params}"
 
-	rule Total_sample_exon_count_splits:
-	    input:
-		    get_splits_by_sample
-	    output:
-		    temp("Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}")
-	    params:
-		    "Round2/splits/*.filter1.ME_SJ_coverage.{split2}"
-	    resources:
-		    split = 1 
-	    conda:
-		    "../envs/core.yaml"
-	    priority: 10
-	    shell:
-	        "cat {params} > {output}"		
-
 	rule coverage_to_PSI_split:
 	    input:
-		    "Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
+			"Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}"
+		    #"Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
 	    params:
 		    config["min_reads_PSI"],
 		    config["paired_samples"]    
