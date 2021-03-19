@@ -212,46 +212,72 @@ if config.get("split_cov", False):
 #	        "cat {params} > {output}"		
 
 
-	rule split_TOTAL_ME_SJ_coverage:
-	    input:
-		    "Round2/TOTAL.filter1.ME_SJ_coverage"
-	    output:
-		    temp(dynamic("Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}")) 
-	    params:
-		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage."
-	    resources:
-		    split = 400 
-	    priority: -10
-	    shell:
-		    "split -l 500000 {input} {params}"
+# 	rule split_TOTAL_ME_SJ_coverage:
+# 	    input:
+# 		    "Round2/TOTAL.filter1.ME_SJ_coverage"
+# 	    output:
+# 		    temp(dynamic("Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}")) 
+# 	    params:
+# 		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage."
+# 	    resources:
+# 		    split = 400 
+# 	    priority: -10
+# 	    shell:
+# 		    "split -l 500000 {input} {params}"
 
-	rule coverage_to_PSI_split:
+# 	rule coverage_to_PSI_split:
+# 	    input:
+# 		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}"
+# 		    #"Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
+# 	    params:
+# 		    config["min_reads_PSI"],
+# 		    config["paired_samples"]    
+# 	    output:
+# 		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
+# 	    resources:
+# 		    split = 1 
+# 	    conda:
+# 		    "../envs/core_py3.yaml"
+# 	    priority: 15
+# 	    shell:
+# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
+		
+# 	rule coverage_to_PSI_output:
+# 	    input:
+# 		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
+# 	    output:
+# 		    "Report/out_filtered_ME.PSI.txt"
+# 	    resources:
+# 		    split = 1
+# 	    priority: 20
+# 	    shell:
+# 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"
+
+
+	rule coverage_to_PSI_sample:
 	    input:
-		    "Round2/splits/TOTAL.filter1.ME_SJ_coverage.{split2}"
-		    #"Round2/splits/merge/TOTAL.filter1.ME_SJ_coverage.{split2}"
+		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
 	    params:
 		    config["min_reads_PSI"],
 		    config["paired_samples"]    
 	    output:
-		    temp("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
-	    resources:
-		    split = 1 
+		    "Round2/splits/{sample}.out_filtered_ME.PSI.txt"
 	    conda:
 		    "../envs/core_py3.yaml"
-	    priority: 15
 	    shell:
 		    "python src/counts_to_PSI.py {input} {params} > {output}"
-		
+
+			
 	rule coverage_to_PSI_output:
 	    input:
-		    dynamic("Report/splits/PSI/out_filtered_ME.PSI.txt.{split2}")
+		    expand("Round2/splits/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
 	    output:
 		    "Report/out_filtered_ME.PSI.txt"
 	    resources:
 		    split = 1
 	    priority: 20
 	    shell:
-		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"
+		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"			
 
 else:
 	rule coverage_to_PSI:
