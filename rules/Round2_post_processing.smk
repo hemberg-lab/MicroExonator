@@ -223,7 +223,7 @@ if config.get("split_cov", False):
 		    split = 400 
 	    priority: -10
 	    shell:
-		    "split -l 50000 {input} {params}"
+		    "split -l 500000 {input} {params}"
 
 	rule coverage_to_PSI_split:
 	    input:
