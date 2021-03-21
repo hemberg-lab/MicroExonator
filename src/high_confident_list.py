@@ -32,7 +32,6 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
     high_confident_ME = []
 
     with open(gene_model_bed12) as bedfile, \
-        #open(out_filtered_ME_cov) as ME_out_cov, \
         open(out_filtered_ME) as ME_out1, \
         open(out_low_scored_ME) as ME_low1, \
         open(out_filtered_ME) as ME_out, \
