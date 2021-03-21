@@ -75,7 +75,7 @@ def calcBin(vx, vN, vCL = 95):
 
 def main(total_cov, min_sum_PSI, paired, out_PSI):
   
-  with  gzip.open(out_PSI, "at") as out:
+  with  gzip.open(out_PSI, "wt") as out:
     
     out.write( "\t".join(["File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", "Unique_ME_reads", "sum_ME_SJ_coverage_up", "sum_ME_SJ_coverage_down"])+ "\n")    
   
