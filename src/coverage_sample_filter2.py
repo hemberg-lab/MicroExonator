@@ -19,7 +19,7 @@ with open(snakemake.output[0], 'w', newline='') as csvfile:
 
         for row in rows:
             
-            ME = row["ME"]
+            ME = row["ME_coords"]
             
             if int(row["Unique_ME_reads"])>=min_read_per_sample:
                 detected_files += 1
