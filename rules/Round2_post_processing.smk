@@ -91,7 +91,21 @@ rule ME_SJ_coverage:
     shell:
         "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
-
+	
+rule coverage_to_PSI_report:
+    input:
+	    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+    params:
+	    config["min_reads_PSI"],
+	    config["paired_samples"]    
+    output:
+	    "Report/quant/{sample}.out_filtered_ME.PSI.txt"
+    conda:
+	    "../envs/core_py3.yaml"
+    shell:
+	    "python src/counts_to_PSI.py {input} {params} > {output}"
+	
+	
 rule Total_sample_exon_counts:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA )
@@ -112,6 +126,9 @@ rule write_ME_matches:
     shell:
         "python3 src/Get_ME_matches.py {input} > {output}"
 
+	
+	
+	
 
 def get_min_reads():
     if 'min_reads_PSI' in config:
@@ -122,13 +139,14 @@ def get_min_reads():
 
 rule coverage_filter:
     input:
-       "Round2/TOTAL.filter1.ME_SJ_coverage"
+       #"Round2/TOTAL.filter1.ME_SJ_coverage"
+       expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA )
     params:
         min_reads_sample = get_min_reads()
     output:
         "Round2/TOTAL.sample_cov_filter.txt"
     script:
-        "../src/coverage_sample_filter.py"
+        "../src/coverage_sample_filter2.py"
 
 def get_min_conservation():
     if "min_conservation" in config:
@@ -177,18 +195,7 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
-rule coverage_to_PSI_report:
-    input:
-	    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-    params:
-	    config["min_reads_PSI"],
-	    config["paired_samples"]    
-    output:
-	    "Report/quant/{sample}.out_filtered_ME.PSI.txt"
-    conda:
-	    "../envs/core_py3.yaml"
-    shell:
-	    "python src/counts_to_PSI.py {input} {params} > {output}"
+
 
 
 	
