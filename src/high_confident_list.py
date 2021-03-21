@@ -101,7 +101,7 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
         
         for file_path in PSI_files:
             
-            file = gzip.open(file_path,'rb')
+            file = gzip.open(file_path,'rt')
             reader = csv.DictReader(file, delimiter="\t")
 
             for row in reader:
