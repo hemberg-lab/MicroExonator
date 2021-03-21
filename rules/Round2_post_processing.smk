@@ -103,7 +103,7 @@ rule coverage_to_PSI_report:
     conda:
 	    "../envs/core_py3.yaml"
     shell:
-	    "python src/counts_to_PSI.py {input} {params} > {output}"
+	    "python src/counts_to_PSI.py {input} {params} {output}"
 	
 	
 rule Total_sample_exon_counts:
@@ -183,21 +183,21 @@ rule Output:
 
 rule high_confident_filters:
     input:
-        config["Genome_fasta"],
-        config["Gene_anontation_bed12"],
-        "Round2/TOTAL.filter1.ME_SJ_coverage",
-        "Report/out_filtered_ME.txt",
-        "Report/out_low_scored_ME.txt"
+        genome = config["Genome_fasta"],
+        transcriptome = config["Gene_anontation_bed12"],
+        #"Round2/TOTAL.filter1.ME_SJ_coverage",
+        out_filtered = "Report/out_filtered_ME.txt",
+        out_low_scored = "Report/out_low_scored_ME.txt"
+	PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA )
     output:
-        "Report/out.high_quality.txt"
+        high_qual = "Report/out.high_quality.txt"
     conda:
         "../envs/core_py3.yaml"
-    shell:
-        "python src/high_confident_list.py {input}  > {output}"
-
-
-
-
+    script:
+        "../src/high_confident_list.py"
+	
+#     shell:
+#         "python src/high_confident_list.py {input}  > {output}"	
 	
 # if config.get("split_cov", False):
 
