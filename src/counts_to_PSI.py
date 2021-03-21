@@ -1,5 +1,6 @@
 import sys
 import csv
+import gzip
 
 def binP(N, p, x1, x2):
     p = float(p)
@@ -72,7 +73,7 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
-def main(total_cov, min_sum_PSI, paired):
+def main(total_cov, min_sum_PSI, paired, out_PSI):
 	
   print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
@@ -89,7 +90,7 @@ def main(total_cov, min_sum_PSI, paired):
       paired_files.add(pair2)
       pair12[pair1] = pair2
 		
-  with open(total_cov) as file:# , open(cov_info, "w") as out:
+  with open(total_cov) as file , gzip.open(out_PSI, "wt") as out:
     
     paired_info = dict()
         
@@ -173,4 +174,4 @@ def main(total_cov, min_sum_PSI, paired):
 
   
 if __name__ == '__main__':
-	main(sys.argv[1], int(sys.argv[2]), paired=sys.argv[3] )
+	main(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4] )
