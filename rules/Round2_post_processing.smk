@@ -177,48 +177,62 @@ rule high_confident_filters:
     shell:
         "python src/high_confident_list.py {input}  > {output}"
 
+rule coverage_to_PSI_report:
+    input:
+	    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+    params:
+	    config["min_reads_PSI"],
+	    config["paired_samples"]    
+    output:
+	    "Report/quant/{sample}.out_filtered_ME.PSI.txt"
+    conda:
+	    "../envs/core_py3.yaml"
+    shell:
+	    "python src/counts_to_PSI.py {input} {params} > {output}"
 
-if config.get("split_cov", False):
+
+	
+# if config.get("split_cov", False):
 
 
-	rule coverage_to_PSI_sample:
-	    input:
-		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-	    params:
-		    config["min_reads_PSI"],
-		    config["paired_samples"]    
-	    output:
-		    "Round2/{sample}.out_filtered_ME.PSI.txt"
-	    conda:
-		    "../envs/core_py3.yaml"
-	    shell:
-		    "python src/counts_to_PSI.py {input} {params} > {output}"
+# 	rule coverage_to_PSI_sample:
+# 	    input:
+# 		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+# 	    params:
+# 		    config["min_reads_PSI"],
+# 		    config["paired_samples"]    
+# 	    output:
+# 		    "Round2/{sample}.out_filtered_ME.PSI.txt"
+# 	    conda:
+# 		    "../envs/core_py3.yaml"
+# 	    shell:
+# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 
 			
-	rule coverage_to_PSI_output:
-	    input:
-		    expand("Round2/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
-	    output:
-		    "Report/out_filtered_ME.PSI.txt"
-	    resources:
-		    split = 1
-	    priority: 20
-	    shell:
-		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"			
+# 	rule coverage_to_PSI_output:
+# 	    input:
+# 		    expand("Round2/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
+# 	    output:
+# 		    "Report/out_filtered_ME.PSI.txt"
+# 	    resources:
+# 		    split = 1
+# 	    priority: 20
+# 	    shell:
+# 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"			
 
-else:
-	rule coverage_to_PSI:
-	    input:
-		    "Round2/TOTAL.filter1.ME_SJ_coverage"
-	    params:
-		    config["min_reads_PSI"],
-		    config["paired_samples"]    
-	    output:
-		    "Report/out_filtered_ME.PSI.txt"
-	    conda:
-		    "../envs/core_py3.yaml"
-	    shell:
-		    "python src/counts_to_PSI.py {input} {params} > {output}"
+# else:
+# 	rule coverage_to_PSI:
+# 	    input:
+# 		    "Round2/TOTAL.filter1.ME_SJ_coverage"
+# 	    params:
+# 		    config["min_reads_PSI"],
+# 		    config["paired_samples"]    
+# 	    output:
+# 		    "Report/out_filtered_ME.PSI.txt"
+# 	    conda:
+# 		    "../envs/core_py3.yaml"
+# 	    shell:
+# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 
 rule annotation_stats:
     input:
