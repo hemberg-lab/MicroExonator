@@ -84,7 +84,7 @@ rule ME_SJ_coverage:
     params:
         ME_len = config["ME_len"]
     output:
-        protected("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     priority: 100
     conda:
         "../envs/core.yaml"
@@ -99,7 +99,7 @@ rule coverage_to_PSI_report:
 	    config["min_reads_PSI"],
 	    config["paired_samples"]    
     output:
-	    "Report/quant/{sample}.out_filtered_ME.PSI.gz"
+	    protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
     conda:
 	    "../envs/core_py3.yaml"
     shell:
