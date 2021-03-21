@@ -135,7 +135,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
 
       else:
 	
-        out.write( "\t".join(map(str,  row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"]) )+ "\n")	
+        out.write( "\t".join(map(str,  [row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"]]) )+ "\n")	
         #print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"], sep='\t')
   
     for p, p1info in paired_info.items():
