@@ -9,7 +9,7 @@ with open(snakemake.output[0], 'w', newline='') as csvfile:
     #writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="\t")
     #writer.writeheader()
     
-    files = [csv.DictReader(gzip.open(i,'rb'), delimiter="\t") for i in snakemake.input["PSI_files"] ]
+    files = [csv.DictReader(gzip.open(i,'rt'), delimiter="\t") for i in snakemake.input["PSI_files"] ]
     
     for rows in zip(*files):
 
