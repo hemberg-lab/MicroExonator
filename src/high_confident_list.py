@@ -113,7 +113,7 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
                 #sum_ME_SJ_coverage_up = int(sum_ME_SJ_coverage_up)
                 #sum_ME_SJ_coverage_down = int(sum_ME_SJ_coverage_down)
 
-                total_ME_up[row["ME_coords"]] += int(row["sum_ME_SJ_coverage_up")
+                total_ME_up[row["ME_coords"]] += int(row["sum_ME_SJ_coverage_up"])
                 total_ME_down[row["ME_coords"]] += int(row["sum_ME_SJ_coverage_down"])
 
         ambiguous = open("Report/out.ambiguous.txt", "w")
