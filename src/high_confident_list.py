@@ -4,6 +4,7 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
 from snakemake.utils import min_version
+import gzip
 
 Genome = {}
 
@@ -99,8 +100,9 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
 
         #reader = csv.reader(ME_out_cov, delimiter="\t")
         
-        for file in PSI_files:
+        for file_path in PSI_files:
             
+            file = gzip.open(file_path,'rb')
             reader = csv.DictReader(file, delimiter="\t")
 
             for row in reader:
