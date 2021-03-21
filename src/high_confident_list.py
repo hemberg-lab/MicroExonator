@@ -21,7 +21,7 @@ def Genomictabulator(fasta):
 
 
 
-def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
+def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files, high_qual):
 
     estart_exons = defaultdict(set)
     eend_exons = defaultdict(set)
@@ -35,7 +35,8 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
         open(out_filtered_ME) as ME_out1, \
         open(out_low_scored_ME) as ME_low1, \
         open(out_filtered_ME) as ME_out, \
-        open(out_low_scored_ME) as ME_low:
+        open(out_low_scored_ME) as ME_low, \
+	open(high_qual, "w") as out :
 
         reader = csv.reader(bedfile, delimiter="\t")
 
@@ -120,7 +121,7 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
 	
         ambiguous.write( "\t".join(["ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type"]) + "\n")
 
-        print("ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type", sep="\t")
+        out.write( "\t".join(["ME", "Transcript", "Total_coverage", "Total_SJs", "ME_coverages", "ME_length", "ME_seq", "ME_matches", "U2_score",  "Mean_conservation", "P_MEs", "Total_ME",   "ME_P_value", "ME_type"]) + "\n")
 
         reader = csv.DictReader(ME_out, delimiter="\t")
 
@@ -181,7 +182,10 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
                 elif row["micro_exon_seq_found"] in SJ_end_seqs:
                     ambiguous.write("\t".join([row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ]) + "\n" )
                 else:
-                    print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
+                    out.write("\t".join([row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ]) + "\n" )
+			
+			
+                    #print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
 
 
         reader = csv.DictReader(ME_low, delimiter="\t")
@@ -233,9 +237,12 @@ def main(gene_model_bed12, out_filtered_ME, out_low_scored_ME, PSI_files):
                 elif row["micro_exon_seq_found"] in SJ_end_seqs:
                     ambiguous.write("\t".join([row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ]) + "\n" )
                 else:
-                    print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
+                    out.write("\t".join([row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"] ]) + "\n" )
+                  
+                  
+                    #print(row["ME"], row["transcript"], row["sum_total_coverage"], row["total_SJs"], row["total_coverages"], row["len_micro_exon_seq_found"], row["micro_exon_seq_found"], row["total_number_of_micro_exons_matches"], row["U2_scores"], row["mean_conservations_vertebrates"], row["P_MEs"], row["total_ME"], row["ME_P_value"], row["ME_type"], sep="\t")
 
 
 if __name__ == '__main__':
     Genomictabulator(snakemake.input["genome"])
-    main(snakemake.input["transcriptome"], snakemake.input["out_filtered"], snakemake.input["out_low_scored"], snakemake.input["PSI_files"])
+    main(snakemake.input["transcriptome"], snakemake.input["out_filtered"], snakemake.input["out_low_scored"], snakemake.input["PSI_files"], snakemake.output["high_qual"])
