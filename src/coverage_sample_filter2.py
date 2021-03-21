@@ -1,6 +1,7 @@
 from snakemake.utils import min_version
 import csv
 from collections import defaultdict
+import gzip
 
 min_read_per_sample = int(snakemake.params[0])
 
