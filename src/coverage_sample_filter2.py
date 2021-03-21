@@ -6,8 +6,8 @@ import gzip
 min_read_per_sample = int(snakemake.params[0])
 
 with open(snakemake.output[0], 'w', newline='') as csvfile:
-    #writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="\t")
-    #writer.writeheader()
+
+    csvfile.write("\t".join(["ME", "N_samples" ]) + "\n")
     
     files = [csv.DictReader(gzip.open(i,'rt'), delimiter="\t") for i in snakemake.input["PSI_files"] ]
     
