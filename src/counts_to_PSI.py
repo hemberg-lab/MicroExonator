@@ -170,7 +170,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
             PSI = "NA"
             CI_Lo, CI_Hi = ["NA", "NA"]
 		
-	out.write( "\t".join(map(str,  [FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down] ) )+ "\n")	
+        out.write( "\t".join(map(str,  [FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down] ) )+ "\n")	
             
         #print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sep="\t")
 	
