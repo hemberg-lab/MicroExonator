@@ -18,7 +18,8 @@ def str2bool(v):
 rule quant:
     input:
         "Report/out.high_quality.txt",
-        "Report/out_filtered_ME.PSI.txt",        
+        expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
+        #"Report/out_filtered_ME.PSI.txt",        
         #"Report/stats/Microexons.not_consensus",
         #"Report/stats/Microexons.annotation.stats"        
         
