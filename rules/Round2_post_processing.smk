@@ -99,7 +99,7 @@ rule coverage_to_PSI_report:
 	    config["min_reads_PSI"],
 	    config["paired_samples"]    
     output:
-	    "Report/quant/{sample}.out_filtered_ME.PSI.txt"
+	    "Report/quant/{sample}.out_filtered_ME.PSI.gz"
     conda:
 	    "../envs/core_py3.yaml"
     shell:
@@ -140,7 +140,7 @@ def get_min_reads():
 rule coverage_filter:
     input:
        #"Round2/TOTAL.filter1.ME_SJ_coverage"
-       expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA )
+       PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.gz", sample=DATA )
     params:
         min_reads_sample = get_min_reads()
     output:
@@ -188,7 +188,7 @@ rule high_confident_filters:
         #"Round2/TOTAL.filter1.ME_SJ_coverage",
         out_filtered = "Report/out_filtered_ME.txt",
         out_low_scored = "Report/out_low_scored_ME.txt",
-	PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA )
+	PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.gz", sample=DATA )
     output:
         high_qual = "Report/out.high_quality.txt"
     conda:
