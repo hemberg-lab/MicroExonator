@@ -89,7 +89,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
       paired_files.add(pair2)
       pair12[pair1] = pair2
 		
-  with open(total_cov) as file , gzip.open(out_PSI, "wt") as out:
+  with open(total_cov) as file , gzip.open(out_PSI, "at") as out:
     
 
     out.write( "\t".join(["File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages"])+ "\n")
