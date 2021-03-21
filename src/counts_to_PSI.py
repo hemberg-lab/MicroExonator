@@ -75,7 +75,6 @@ def calcBin(vx, vN, vCL = 95):
 
 def main(total_cov, min_sum_PSI, paired, out_PSI):
 	
-  print("File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", sep="\t")
 
   paired_files = set([])
   pair12 = dict()
@@ -91,6 +90,9 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
       pair12[pair1] = pair2
 		
   with open(total_cov) as file , gzip.open(out_PSI, "wt") as out:
+    
+
+    out.write( "\t".join(["File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages"])+ "\n")
     
     paired_info = dict()
         
@@ -132,8 +134,9 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
         paired_info[(row["FILE_NAME"], row["ME"])] = info
 
       else:
-      
-        print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"], sep='\t')
+	
+        out.write( "\t".join(map(str,  row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"]) )+ "\n")	
+        #print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"], sep='\t')
   
     for p, p1info in paired_info.items():
 
@@ -166,8 +169,10 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
 
             PSI = "NA"
             CI_Lo, CI_Hi = ["NA", "NA"]
+		
+	out.write( "\t".join(map(str,  [FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down] ) )+ "\n")	
             
-        print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sep="\t")
+        #print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sep="\t")
 	
 	    #out_str = " ".join(map(str, [FILE_NAME, ME, Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down]))
 	    #out.write( out_str + "\n")
