@@ -7,3 +7,5 @@ dependencies:
   - r-ggplot2
   - r-mixtools
   - r-data.table
+  - r-distributions3
+  
