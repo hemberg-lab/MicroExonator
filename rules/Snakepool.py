@@ -322,7 +322,7 @@ rule quant_pool:
         "Whippet/Quant/Single_Cell/Pairwise/{compare_name}_{cond}_{pool_ID}.psi.gz"
     params:
         bin = config["whippet_bin_folder"],
-        output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}",
+        output = "Whippet/Quant/Single_Cell/Pairwise/{compare_name}_{cond}_{pool_ID}",
         flags = config["whippet_flags"]
     priority: 10
     shell:
