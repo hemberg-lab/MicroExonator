@@ -242,7 +242,6 @@ rule run_delta_unpool:  #to avoid overload shell comandline
 
 #pseudo pooling        
 
-
 pool_dict_quant = dict()
 pool_dict_delta = dict()
 
@@ -251,18 +250,17 @@ for compare_name, c in cluster_compare.items():
     for r in range(compare_repeats[compare_name]):
         
         g1, g2 = c
-
         c1_names = []
         for c1 in g1:
             
-            if c1 in cluster_files:
+            if len(cluster_files[c1])>0:
                 c1_names += cluster_files[c1]
             else:
                 print("Error: " + c1 + "is not in cluster metadata")
 
         c2_names = []
         for c2 in g2:
-            if c2 in cluster_files:
+            if len(cluster_files[c2])>0:
                 c2_names += cluster_files[c2]
             else:
                 print("Error: " + c2 + "is not in cluster metadata")
@@ -279,14 +277,15 @@ for compare_name, c in cluster_compare.items():
 
         p = 0
 
+
         for pc1 in c1_pools:
 
             p += 1
 
             FASTQ_c1 = [ "FASTQ/" + x + ".fastq.gz" for x in  pc1 ]
 
-            PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
 
+            PSI_c1 = [ "Whippet/Quant/" + x + ".psi.gz" for x in  pc1 ]
             pool_ID = str(r + 1) + "-"  + str(p)
             pool_dict_quant[(compare_name, pool_ID, "A")] = FASTQ_c1
             #pool_dict_delta[(delta_name, "A")] = PSI_c1
@@ -310,8 +309,6 @@ for compare_name, c in cluster_compare.items():
 
         pool_dict_delta[(delta_name, "A")] = target_pool_psi_A
         pool_dict_delta[(delta_name, "B")] = target_pool_psi_B
-        
-
    
 rule quant_pool:
     input:
