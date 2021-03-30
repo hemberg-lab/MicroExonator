@@ -7,6 +7,7 @@ path_run_metatda = snakemake@params[["pm"]]
 path_delta = snakemake@params[["path_delta"]]
 path_out = snakemake@params[["path_out"]]
 min_delta = snakemake@params[["min_delta"]]
+skip_TE_TS = snakemake@params[["skip_TE_TS"]]
 
 
 
@@ -80,9 +81,15 @@ get_diff_nodes <- function (path, comp_name, reps, beta_t, min.p.mean, min_numbe
     comp.stats[ ,  cdf.beta:=cdf.beta( Probability.mean, Probability.var  , beta_t) ]
     
     
+    if (skip_TE_TS=="T"){
+  
     comp.stats[ , diff:=(abs(DeltaPsi.mean)>=min_delta & cdf.beta  < 0.05 & Probability.mean>=min.p.mean & ! Type %in% c("TE", "TS") & Number > min_number_reps)  ]
     
-
+    } else {  
+      
+    comp.stats[ , diff:=(abs(DeltaPsi.mean)>=min_delta & cdf.beta  < 0.05 & Probability.mean>=min.p.mean & Number > min_number_reps)  ]
+    
+    }
 
 }
 
