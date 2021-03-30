@@ -371,7 +371,8 @@ if str2bool(config.get("Only_snakepool", False)):
             pm = config["run_metadata"],
             min_delta = config["min_delta"],
             path_delta = "Whippet/Delta/Single_Cell/", 
-            path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
+            path_out = "Whippet/Delta/Single_Cell/Sig_nodes/",
+            skip_TE_TS = config.get("skip_TE_TS", T)
         output:
             target_sig_nodes
         log:
