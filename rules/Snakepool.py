@@ -472,6 +472,8 @@ rule sam_to_sorted_bam_index:
         "Whippet/BAM/Merge/{cluster}.sam.merge"
     output:
         "Whippet/BAM/Merge/{cluster}.sort.bam"
+    conda:
+        "../envs/core.yaml"
     shell:
         'samtools view -Sb  {input}  | samtools sort - -o {output} && samtools index {output}'            
 
