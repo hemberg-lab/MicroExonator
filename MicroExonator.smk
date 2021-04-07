@@ -44,6 +44,7 @@ if 'cluster_metadata' in config:
         for row in Single_Cell_clustering:
 
             cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+            cluster_files_metadata[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
             single_cell_files.add(row[config["file_basename"]])
 
 
