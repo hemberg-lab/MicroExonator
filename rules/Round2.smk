@@ -280,3 +280,21 @@ rule Round2_alingment_pre_processing:
         "../envs/core.yaml"
     shell:
         "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
+        
+        
+rule Round2_alingment_pre_processing:
+    input:
+        "Round2/{sample}.sam"
+    output:
+        "Round2/{sample}.ME_spanning_reads.tsv"
+    priority: 100
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python2 src/get_ME_spaning_reads.py {input} F > {output}"
+        
+rule get_all_spanning_reads:
+    input:
+        expand("Round2/{sample}.ME_spanning_reads.tsv", sample=DATA)
+        
+       
