@@ -183,10 +183,10 @@ def main(sam, stranded):
 
 # 								# reads_tags_intron[read].add(intron_tag)
 
-						else:
+						#else:
 							#if ( (start <= anchor_up - 8) and (start + matches  >= anchor_up + 8) ) or ( (start  <= anchor_up + anchor_ME - 8) and (start + matches  >= anchor_up + anchor_ME + 8) ):
-							if ( (start <= anchor_up - 5) and (start + matches  >= anchor_up + anchor_ME + 5) ):
-								print info
+						if ( (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8) ):
+							print info
 
 
 
