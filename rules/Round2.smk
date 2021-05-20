@@ -282,7 +282,7 @@ rule Round2_alingment_pre_processing:
         "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
         
         
-rule Round2_alingment_pre_processing:
+rule Round2_ME_evidence:
     input:
         "Round2/{sample}.sam"
     output:
