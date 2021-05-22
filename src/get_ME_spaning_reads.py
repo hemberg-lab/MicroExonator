@@ -185,7 +185,7 @@ def main(sam, stranded):
 
 						#else:
 	
-						if if anchor_ME != 0:
+						if anchor_ME != 0:
 			
 
 								#if ( (start <= anchor_up - 8) and (start + matches  >= anchor_up + 8) ) or ( (start  <= anchor_up + anchor_ME - 8) and (start + matches  >= anchor_up + anchor_ME + 8) ):
