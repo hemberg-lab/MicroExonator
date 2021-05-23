@@ -249,7 +249,7 @@ rule correct_quant:
         spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
     output:
         corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
-        count_spanning_ME_reads = =  "Round2/ME_reads/{sample}.tsv"
+        count_spanning_ME_reads = "Round2/ME_reads/{sample}.tsv"
     script:
         "../src/correct_quant.py.py"
 		
