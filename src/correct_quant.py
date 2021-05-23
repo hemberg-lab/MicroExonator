@@ -75,5 +75,13 @@ with gzip.open(snakemake.input["quant"], "rt") as file, gzip.open(snakemake.outp
         out.write(outrow + "\n")
 
 
+with open(snakemake.output["count_spanning_ME_reads"], "wt") as out:
+    
+    header =  "\t".join(["ME", "Spanning_cov"])
+    out.write(header + "\n")  
 
+    for ME, cov in quant_ME_spanning_cov.items():
+        
+        outrow = "\t".join(map(str, [ME, cov], ))
+        out.write(outrow + "\n")
 
