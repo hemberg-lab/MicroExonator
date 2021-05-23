@@ -286,7 +286,7 @@ rule Round2_ME_evidence:
     input:
         "Round2/{sample}.sam"
     output:
-        "Round2/{sample}.ME_spanning_reads.tsv"
+        "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
     priority: 100
     conda:
         "../envs/core.yaml"
@@ -295,6 +295,6 @@ rule Round2_ME_evidence:
         
 rule get_all_spanning_reads:
     input:
-        expand("Round2/{sample}.ME_spanning_reads.tsv", sample=DATA)
+        expand("Round2/ME_reads/{sample}.ME_spanning_reads.tsv", sample=DATA)
         
        
