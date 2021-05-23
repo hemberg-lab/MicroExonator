@@ -242,7 +242,7 @@ rule high_confident_filters:
 # 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 
 
-correct_quant:
+rule correct_quant:
     input:
         quant = "Report/quant/{sample}.out_filtered_ME.PSI.gz",
         ME_centric = "Round2/TOTAL.ME_centric.txt",
@@ -254,7 +254,7 @@ correct_quant:
         "../src/correct_quant.py.py"
 		
 
-get_all_corrected_quant:
+rule get_all_corrected_quant:
     input:
         expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA)
 
