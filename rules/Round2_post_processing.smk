@@ -241,6 +241,23 @@ rule high_confident_filters:
 # 	    shell:
 # 		    "python src/counts_to_PSI.py {input} {params} > {output}"
 
+
+correct_quant:
+	input:
+		quant = "Report/quant/{sample}.out_filtered_ME.PSI.gz",
+		ME_centric = "Round2/TOTAL.ME_centric.txt",
+		spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
+	output:
+		corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
+		count_spanning_ME_reads = =  "Round2/ME_reads/{sample}.tsv"
+	script:
+		"../src/correct_quant.py.py"
+		
+
+get_all_corrected_quant:
+	input:
+		expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA)
+
 rule annotation_stats:
     input:
         config["Gene_anontation_bed12"],
