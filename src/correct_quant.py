@@ -65,10 +65,12 @@ with gzip.open(snakemake.input["quant"], "rt") as file, gzip.open(snakemake.outp
             excluding_covs += sum(map(float, row["Alt3_coverages"].split(",") ))
             TOTAL_Alt5_3 += sum(map(float, row["Alt3_coverages"].split(",") ))
             
-        half_counts = ME_coverages - full_counts - TOTAL_Alt5_3
+        half_counts = (ME_coverages - full_counts - TOTAL_Alt5_3)/2
         
         if half_counts <0:
             half_counts = 0
+            
+        ME_coverages_corrected = full_counts + half_counts
         
         outrow = "\t".join(map(str, [sample, ME, ME_coverages_corrected, excluding_covs], ))
         out.write(outrow + "\n")
