@@ -48,10 +48,7 @@ with gzip.open(snakemake.input["quant"], "rt") as file, gzip.open(snakemake.outp
     for row in reader:
         
         ME = row["ME_coords"]
-        
-            
         full_counts =  quant_ME_spanning_cov[ME]
-
 
         ME_coverages = sum(map(float, row["ME_coverages"].split(",") ))
         excluding_covs = sum(map(float, row["SJ_coverages"].split(",") ))
