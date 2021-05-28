@@ -162,7 +162,7 @@ rule correct_quant:
       corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
       count_spanning_ME_reads = "Round2/ME_reads/{sample}.tsv"
   script:
-      "../src/correct_quant.py"
+      "src/correct_quant.py"
 		
 
 rule get_all_corrected_quant:
