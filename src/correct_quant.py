@@ -43,6 +43,7 @@ with open(snakemake.input["spanning_ME_reads"]) as file:
 with gzip.open(snakemake.input["quant"], "rt") as file, gzip.open(snakemake.output["corrected_quant"], "wt") as out: 
     
     reader = csv.DictReader(file, delimiter="\t")
+    sample = snakemake.input["quant"].split("/")[-1].split(".")[0]
     
     for row in reader:
         
