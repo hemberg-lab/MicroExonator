@@ -146,7 +146,7 @@ with open(snakemake.params["pseudo_pool_membership"]) as out_pseudo_pool_members
     
     for cell, sp in pseudo_pool_dict.itemps():
         
-        "\t".join([cell, sp])
+        out = "\t".join([cell, sp])
         
         out_pseudo_pool_membership.write(out + "\n")
         
@@ -154,8 +154,12 @@ with open(snakemake.params["pseudo_pool_membership"]) as out_pseudo_pool_members
     
     for sample, group in sample_group.itemps():
         
+        out = "\t".join([sample, group])
+        
         sample_group.write(out + "\n")
         
     
     
-
+# input : 
+# params : run_metadata_sc, cell_type, cells
+# out : pseudo_pool_membership, sample_groups
