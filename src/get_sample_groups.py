@@ -142,7 +142,20 @@ for cluster in primary_clusters:
         sample_group[row["sample"]] = row["condition"]  
         
 
-      
-# input : 
-# params : run_metadata_sc, cell_type, cells, bulk_samples
-# output : pseudo_pool_membership, sample_groups
+with open(snakemake.params["pseudo_pool_membership"]) as out_pseudo_pool_membership, open(snakemake.params["sample_groups"]) as out_sample_groups:
+    
+    for cell, sp in pseudo_pool_dict.itemps():
+        
+        "\t".join([cell, sp])
+        
+        out_pseudo_pool_membership.write(out + "\n")
+        
+ 
+    
+    for sample, group in sample_group.itemps():
+        
+        sample_group.write(out + "\n")
+        
+    
+    
+
