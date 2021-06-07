@@ -24,14 +24,13 @@ def partition (list_in, n):  # Function to do random pooling
 
 primary_clusters = defaultdict(list)
 
-
         
-with open(snakemake.params["run_metadata_sc"]) as file:
+with open(config["cluster_metadata"]) as file:
   
     reader = csv.DictReader(file, delimiter="\t")
     
     for row in reader:
-        primary_clusters[snakemake.params["cell_type"]].append(snakemake.params["cells"])
+        primary_clusters[config["cluster_name"]].append(config["file_basename"])
 
 
 
@@ -55,37 +54,40 @@ for cluster in primary_clusters:
         c+=1
         pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
         
-        
         for cell in pool:
-            pseudo_pool_dict[cell] = pseudo_pool_ID
-            sample_group[cell] = pseudo_pool_ID  
-
- with open(snakemake.params["bulk_samples"]) as file:
+            pseudo_pool_dict[pseudo_pool_ID] = cell
+            sample_group[pseudo_pool_ID] = cell  
+           
+ with open(config["bulk_samples"]) as file:
     
     reader = csv.DicReader(file, delimiter="\t")
-    
     for row in reader:
-        
-        sample_group[row["sample"]] = row["condition"]  
+        sample_group[row["condition"]] = row["sample"]  
         
 
-with open(snakemake.params["pseudo_pool_membership"]) as out_pseudo_pool_membership, open(snakemake.params["sample_groups"]) as out_sample_groups:
+with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
     
-    for cell, sp in pseudo_pool_dict.itemps():
+    for sp, cell  in pseudo_pool_dict.items():
         
-        out = "\t".join([cell, sp])
-        
+        out = "\t".join([cell, sp])  
         out_pseudo_pool_membership.write(out + "\n")
         
- 
     
-    for sample, group in sample_group.itemps():
+    for  group, sample in sample_group.items():
         
         out = "\t".join([sample, group])
-        
         sample_group.write(out + "\n")
         
     
+    
+rule quant_pseudo_pools:
+    input:
+        cells = lambda w: pseudo_pool_dict[w.cluster],
+    output:
+        "Report/quant/corrected/pseudo_pools/{cluster}.corrected.sparce.psi",
+    priority: 10
+    script:
+        "../src/get_sparse_quants_sp.py"  
     
 # input : 
 # params : run_metadata_sc, cell_type, cells
