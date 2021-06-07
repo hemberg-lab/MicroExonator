@@ -25,15 +25,12 @@ def partition (list_in, n):  # Function to do random pooling
 primary_clusters = defaultdict(list)
 
 
-
-        
         
 with open(snakemake.params["run_metadata_sc"]) as file:
   
     reader = csv.DictReader(file, delimiter="\t")
     
     for row in reader:
-        
         primary_clusters[snakemake.params["cell_type"]].append(snakemake.params["cells"])
 
 
