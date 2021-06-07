@@ -119,17 +119,13 @@ pseudo_pool_dict =  dict()
 for cluster in primary_clusters:
     
     c = 0
-    
     cells = primary_clusters[cluster]
-    
     pseudo_pools = partition( cells , 3 )
-    
     pseudo_pool_ID = ""
     
     for pool in pseudo_pools:
         
         c+=1
-        
         pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
         
         
@@ -137,13 +133,16 @@ for cluster in primary_clusters:
             pseudo_pool_dict[cell] = pseudo_pool_ID
             sample_group[cell] = pseudo_pool_ID  
 
- with open(snakemake.params["run_metatda_bulk"]) as file:
+ with open(snakemake.params["bulk_samples"]) as file:
     
     reader = csv.DicReader(file, delimiter="\t")
     
     for row in reader:
-      
+        
+        sample_group[row["sample"]] = row["condition"]  
+        
+
       
 # input : 
-# params : run_metadata_sc, cell_type, cells
-# output : pseudo_pool_membership
+# params : run_metadata_sc, cell_type, cells, bulk_samples
+# output : pseudo_pool_membership, sample_groups
