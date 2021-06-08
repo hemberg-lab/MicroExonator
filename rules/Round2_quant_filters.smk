@@ -56,7 +56,6 @@ for cluster in primary_clusters:
         
         for cell in pool:
             pseudo_pool_dict[pseudo_pool_ID] = cell
-            sample_group[pseudo_pool_ID] = cell  
            
  with open(config["bulk_samples"]) as file:
     
@@ -78,16 +77,39 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
         out = "\t".join([sample, group])
         sample_group.write(out + "\n")
         
+
+def get_cell_sp(cluster):
+    return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster])
     
     
 rule get_sparse_quants_sp:
     input:
-        cells = lambda w: pseudo_pool_dict[w.cluster],
+        cells = get_cell_sp(w.cluster),
     output:
-        "Report/quant/corrected/pseudo_pools/{cluster}.corrected.sparce.psi",
+        corrected_sparse = "Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz"
     priority: 10
     script:
-        "../src/get_sparse_quants_sp.py"  
+        "../src/get_sparse_quants_sp.py" 
+          
+        
+rule get_sparse_quants:
+    input:
+        corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
+    output:
+        corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
+    priority: 10
+    script:
+        "../src/get_sparse_quants_sp.py"
+        
+        
+rule detection_filter:
+    input : 
+        bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = pseudo_pool_dict.keys())
+        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = sample_group.keys())
+    out:
+       detected_list = "Report/filter/detected_ME.txt"
+        
+  
     
 # input : 
 # params : run_metadata_sc, cell_type, cells
