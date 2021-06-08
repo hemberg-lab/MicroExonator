@@ -101,15 +101,21 @@ rule get_sparse_quants:
     script:
         "../src/get_sparse_quants_sp.py"
         
-        
-rule detection_filter:
-    input : 
-        bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = pseudo_pool_dict.keys())
-        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = sample_group.keys())
-    out:
-       detected_list = "Report/filter/detected_ME.txt"
-        
-  
+
+if "cluster_metadata" in config:
+    rule detection_filter:
+      input : 
+          bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = pseudo_pool_dict.keys())
+          single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = sample_group.keys())
+      out:
+         detected_list = "Report/filter/detected_ME.txt"
+           
+else:
+    rule detection_filter:
+      input : 
+          bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = pseudo_pool_dict.keys())
+      out:
+         detected_list = "Report/filter/detected_ME.txt"
     
 # input : 
 # params : run_metadata_sc, cell_type, cells
