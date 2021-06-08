@@ -80,7 +80,7 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
         
     
     
-rule quant_pseudo_pools:
+rule get_sparse_quants_sp:
     input:
         cells = lambda w: pseudo_pool_dict[w.cluster],
     output:
