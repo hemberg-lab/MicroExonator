@@ -84,7 +84,7 @@ def get_cell_sp(cluster):
     
 rule get_sparse_quants_sp:
     input:
-        cells = get_cell_sp(w.cluster),
+        cells = get_cell_sp(w.cluster)
     output:
         corrected_sparse = "Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz"
     priority: 10
@@ -92,7 +92,7 @@ rule get_sparse_quants_sp:
         "../src/get_sparse_quants_sp.py" 
           
         
-rule get_sparse_quants:
+rule get_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
     output:
@@ -100,25 +100,52 @@ rule get_sparse_quants:
     priority: 10
     script:
         "../src/get_sparse_quants_sp.py"
-        
-
-if "cluster_metadata" in config:
-    rule detection_filter:
-      input : 
-          bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
-          bulk_ME_reads = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys()),
-          single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),
-          single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
-      out:
-         detected_list = "Report/filter/detected_ME.txt"
            
-else:
-    rule detection_filter:
-      input : 
-          bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
-          bulk_ME_reads = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys())
-      out:
-         detected_list = "Report/filter/detected_ME.txt"
+           
+rule get_sparse_quants_pe:
+    input:
+        corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
+    output:
+        corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
+    priority: 10
+    script:
+        "../src/get_sparse_quants_sp.py"
+           
+         
+  rule detection_filter:
+    input : 
+        bulk_se = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_se.keys()),
+        bulk_pe = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_pe.keys()),
+        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se.keys()),
+        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe.keys()),
+        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),
+        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
+    out:
+       detected_list = "Report/filter/detected_ME.txt"
+    priority: 10
+    script:
+        "../src/get_sparse_quants_sp.py"  
+
+           
+           
+# if "cluster_metadata" in config:
+#     rule detection_filter:
+#       input : 
+#           bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
+#           bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys()),
+#           bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys()),
+#           single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),
+#           single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
+#       out:
+#          detected_list = "Report/filter/detected_ME.txt"
+           
+# else:
+#     rule detection_filter:
+#       input : 
+#           bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
+#           bulk_ME_reads = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys())
+#       out:
+#          detected_list = "Report/filter/detected_ME.txt"
     
 # input : 
 # params : run_metadata_sc, cell_type, cells
