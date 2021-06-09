@@ -80,8 +80,57 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
   
 
+pool_ME_coverages = defaultdict(int)
+pool_excluding_covs = defaultdict(int)
 
 
+
+for f in snakemake.input["quant"]:
+    
+    sample = f.split("/")[-1].split(".")[0]
+    
+    if sample in pseudo_pool_dict:
+
+        with gzip.open(f, "rt") as file:
+
+            reader = csv.reader(file, delimiter="\t")
+            
+            for row in reader:
+                
+                sample, ME, ME_coverages, excluding_covs = row       
+                pseudo_pool_ID = pseudo_pool_dict[sample]
+
+                ME = ME
+                
+                if float(ME_coverages) > 0:
+                    pool_ME_coverages[(pseudo_pool_ID, ME)] += float(ME_coverages)
+
+                if float(excluding_covs) > 0:    
+                    pool_excluding_covs[(pseudo_pool_ID, ME)] += float(excluding_covs)
         
+        
+with gzip.open(snakemake.output["corrected_sparse"], "wt") as out:
+    
+    header = "\t".join(["ME", "pseudo_pool", "cell_type",  "ME_coverages", "excluding_covs", "PSI", "CI_Lo", "CI_Hi"])
+    
+    out.write(header + "\n")
+    
+    for key in pseudo_pool_set:
+
+        if len(key)==2:
+            
+            pseudo_pool, ME = key
+
+            cell_type = pseudo_pool.split("-")[0].replace("_", " ")
+            ME_coverages = pool_ME_coverages[key]
+            excluding_covs = pool_excluding_covs[key]
+            CI_Lo, CI_Hi = calcBin(float(ME_coverages),  ME_coverages+excluding_covs)
+            PSI = ME_coverages/(ME_coverages+excluding_covs)
+
+            out_line = "\t".join(map(str, [ME, pseudo_pool, cell_type,  ME_coverages, excluding_covs, PSI, CI_Lo, CI_Hi]))
+            out.write(out_line + "\n")
+                    
+
+   
 # input : 
 # params : run_metadata_sc, cell_type, cells
