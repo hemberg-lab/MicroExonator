@@ -25,6 +25,7 @@ def partition (list_in, n):  # Function to do random pooling
 primary_clusters = defaultdict(list)
 
 pe_samples = set([])
+paired_dict = dict()
 
 if "paired_samples" in config:
     
@@ -34,7 +35,7 @@ if "paired_samples" in config:
         for row in reader:
             
             pe_samples.add(row[0])
-            pe_samples.add(row[1])
+            paired_dict[row[0]] = row[1]
 
 
 with open(config["cluster_metadata"]) as file:
@@ -123,10 +124,14 @@ rule get_sparse_quants_se:
     script:
         "../src/get_sparse_quants_se.py"
            
+
+def get_pair(rd1):
+    return(paired_dict[rd1])
            
 rule get_sparse_quants_pe:
     input:
-        corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
+        corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
+        corrected_quant_rd2 = get_pair(w.sample)
     output:
         corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
     priority: 10
@@ -168,50 +173,57 @@ rule salmon_index:
         "salmon index -t {input} -i {output} --threads {threads} "
            
            
-if str2bool(config["paired_end"])==False:        
+
         
-    rule salmon_quant_reads:
-        input:
-            r = lambda w : sample_files[w.sample],
-            #r = "FASTQ/{sample}.fastq.gz",
-            index = "salmon/transcriptome_index"
-        output:
-            quant = 'salmon/{sample}/quant.sf',
-            lib = 'salmon/{sample}/lib_format_counts.json'
-        log:
-            'logs/salmon/{sample}.log'
-        params:
-            # optional parameters
-            libtype ="SF",
-            out_dir = 'salmon/{sample}',
-            #zip_ext = bz2 # req'd for bz2 files ('bz2'); optional for gz files('gz')
-            extra=""
-        threads: 2
-        conda:
-            "../envs/salmon.yaml"
-        shell:
-            "salmon quant -i {input.index} -l {params.libtype} -r {input.r}  -p {threads}  -o {params.out_dir}"        
-#        wrapper:
-#            "0.49.0/bio/salmon/quant"
+rule salmon_quant_se:
+    input:
+        r = "FASTQ/{sample}.fastq.gz",
+        #r = "FASTQ/{sample}.fastq.gz",
+        index = "salmon/transcriptome_index"
+    output:
+        quant = 'salmon/{sample}/quant.sf',
+        lib = 'salmon/{sample}/lib_format_counts.json'
+    log:
+        'logs/salmon/{sample}.log'
+    params:
+        # optional parameters
+        libtype ="A",
+        out_dir = 'salmon/SE/{sample}',
+        #zip_ext = bz2 # req'd for bz2 files ('bz2'); optional for gz files('gz')
+        extra=""
+    threads: 2
+    conda:
+        "../envs/salmon.yaml"
+    shell:
+        "salmon quant -i {input.index} -l {params.libtype} -r {input.r}  -p {threads}  -o {params.out_dir}"        
 
 
-if str2bool(config["paired_end"])==True:        
-        
-    rule salmon_quant_reads:
-        input:
-            r1 = "FASTQ/{sample}_1.fastq.gz",
-            r2 = "FASTQ/{sample}_2.fastq.gz",
-            index = "salmon/transcriptome_index"
-        output:
-            quant = temp('salmon/{sample}/quant.sf'),
-            lib = 'salmon/{sample}/lib_format_counts.json'
-        log:
-            'logs/salmon/{sample}.log'
-        params:
-            # optional parameters
-            #libtype ="A",
-            #zip_ext = bz2 # req'd for bz2 files ('bz2'); optional for gz files('gz')
-            extra=""
-        threads: 2
-        wrapper:
-            "0.49.0/bio/salmon/quant"
+rule salmon_quant_reads_pe:
+    input:
+        r1 = "FASTQ/{sample}.fastq.gz",
+        r2 = "FASTQ/" + get_pair(w.sample) + ".fastq.gz", 
+        index = "salmon/transcriptome_index"
+    output:
+        quant = temp('salmon/{sample}/quant.sf'),
+        lib = 'salmon/{sample}/lib_format_counts.json'
+    log:
+        'logs/salmon/{sample}.log'
+    params:
+        # optional parameters
+        libtype ="A",
+        out_dir = 'salmon/PE/{sample}',
+        #zip_ext = bz2 # req'd for bz2 files ('bz2'); optional for gz files('gz')
+        extra=""
+    threads: 2
+    conda:
+        "../envs/salmon.yaml"
+    shell:
+        "salmon quant -i {input.index} -l {params.libtype}  -1 {input.rd1} -2 {input.rd2} -p {threads}  -o {params.out_dir}"
+
+
+ rule salmon_all_quant:
+       input:
+           expand( 'salmon/SE/{sample}/quant.sf', sample=sample_group_se.keys()) 
+           expand( 'salmon/PE/{sample}/quant.sf', sample=sample_group_pe.keys()) 
+
+           
