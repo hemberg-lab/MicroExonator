@@ -24,7 +24,19 @@ def partition (list_in, n):  # Function to do random pooling
 
 primary_clusters = defaultdict(list)
 
+pe_samples = set([])
+
+if "paired_samples" in config:
+    
+    with  open(config["paired_samples"]) as file:
         
+        reader = reader(file, delimiter="\t")
+        for row in reader:
+            
+            pe_samples.add(row[0])
+            pe_samples.add(row[1])
+
+
 with open(config["cluster_metadata"]) as file:
   
     reader = csv.DictReader(file, delimiter="\t")
@@ -39,7 +51,8 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
     
 
-sample_group = dict()
+sample_group_se = dict()
+sample_group_pe = dict()
 pseudo_pool_dict =  dict()
 
 for cluster in primary_clusters:
@@ -61,7 +74,11 @@ for cluster in primary_clusters:
     
     reader = csv.DicReader(file, delimiter="\t")
     for row in reader:
-        sample_group[row["condition"]] = row["sample"]  
+        
+        if row["sample"] in pe_samples:  
+            sample_group_se[row["condition"]] = row["sample"]
+        else:
+            sample_group_pe[row["condition"]] = row["sample"]  
         
 
 with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
@@ -72,12 +89,17 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
         out_pseudo_pool_membership.write(out + "\n")
         
     
-    for  group, sample in sample_group.items():
+    for  group, sample in sample_group_se.items():
         
         out = "\t".join([sample, group])
         sample_group.write(out + "\n")
         
-
+    for  group, sample in sample_group_pe.items():
+        
+        out = "\t".join([sample, group])
+        sample_group.write(out + "\n")
+        
+        
 def get_cell_sp(cluster):
     return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster])
     
@@ -126,27 +148,3 @@ rule get_sparse_quants_pe:
     script:
         "../src/get_sparse_quants_sp.py"  
 
-           
-           
-# if "cluster_metadata" in config:
-#     rule detection_filter:
-#       input : 
-#           bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
-#           bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys()),
-#           bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys()),
-#           single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),
-#           single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
-#       out:
-#          detected_list = "Report/filter/detected_ME.txt"
-           
-# else:
-#     rule detection_filter:
-#       input : 
-#           bulk = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group.keys()),
-#           bulk_ME_reads = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group.keys())
-#       out:
-#          detected_list = "Report/filter/detected_ME.txt"
-    
-# input : 
-# params : run_metadata_sc, cell_type, cells
-# out : pseudo_pool_membership, sample_groups
