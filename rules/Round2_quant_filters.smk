@@ -121,7 +121,7 @@ rule get_sparse_quants_se:
         corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
     priority: 10
     script:
-        "../src/get_sparse_quants_sp.py"
+        "../src/get_sparse_quants_se.py"
            
            
 rule get_sparse_quants_pe:
@@ -131,7 +131,7 @@ rule get_sparse_quants_pe:
         corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
     priority: 10
     script:
-        "../src/get_sparse_quants_sp.py"
+        "../src/get_sparse_quants_pe.py"
            
          
   rule detection_filter:
