@@ -9,56 +9,51 @@ import random
 
 
 paired_sum = defaultdict(int)
-with open( "/home/jovyan/Hannes/TOTAL.corrected.light.psi.hannes.2.tsv" , "wt") as out:
+with open( gzip.open(snakemake.output["corrected_sparse"], "wt"), "wt") as out, gzip.open(snakemake.input["corrected_quant_rd1"], "rt") as rd1, gzip.open(snakemake.input["corrected_quant_rd2"], "rt") as rd2:
 
     header =  "\t".join(["sample", "ME", "ME_coverages", "excluding_covs",  "PSI", "CI_Lo", "CI_Hi"])
 
-    out.write(header + "\n")    
+    out.write(header + "\n")  
+    
+    paired_sum = defautdict(int)
 
-    for f in filenames:
-        
-        sample = f.split("/")[-1].split(".")[0]
-        
-        
-        if sample not in single_cell and sample not in completed:
+    reader1 = csv.reader(rd1, delimiter="\t")
+    reader2 = csv.reader(rd2, delimiter="\t")
+
+    for row in reader1:
+
+        sample, ME, ME_coverages, excluding_covs = row
+        ME_coverages = float(ME_coverages)
+        excluding_covs = float(excluding_covs)
+        pair_index = paired_dic[sample]
+        paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
+        paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs  
             
-            print(sample)
+    for row in reader2:
+
+        sample, ME, ME_coverages, excluding_covs = row
+        ME_coverages = float(ME_coverages)
+        excluding_covs = float(excluding_covs)
+        pair_index = paired_dic[sample]
+        paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
+        paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs
         
-            if sample in paired_dic:
+        
+    for info, count in paired_sum.items():
 
-                with gzip.open(f, "rt") as file:
+        sample, ME, count_type = info
 
-                    reader = csv.reader(file, delimiter="\t")
+        if count_type=="ME_coverages":
 
-                    for row in reader:
+            ME_coverages = count
+            excluding_covs = paired_sum[(sample, ME, "excluding_covs")]
 
-                        sample, ME, ME_coverages, excluding_covs = row
-                        ME_coverages = float(ME_coverages)
-                        excluding_covs = float(excluding_covs)
+            if ME_coverages + excluding_covs >=5:
 
-                        pair_index = paired_dic[sample]
-
-                        paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
-                        paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs
-
-            else:
-                with gzip.open(f, "rt") as file:
-
-                    reader = csv.reader(file, delimiter="\t")
-
-                    for row in reader:
-
-                        sample, ME, ME_coverages, excluding_covs = row
-
-                        ME_coverages = float(ME_coverages)
-                        excluding_covs = float(excluding_covs)
-
-                        if ME_coverages + excluding_covs >=5:
-
-                            PSI = ME_coverages/(excluding_covs+ME_coverages)
-                            CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)
+                PSI = ME_coverages/(excluding_covs+ME_coverages)
+                CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)
 
 
-                            outrow = "\t".join(map(str, [sample, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
+                outrow = "\t".join(map(str, [sample, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
 
-                            out.write(outrow + "\n")
+                out.write(outrow + "\n")
