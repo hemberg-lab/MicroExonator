@@ -139,12 +139,12 @@ rule get_sparse_quants_pe:
          
 rule detection_filter:
     input : 
-        bulk_se = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_se.keys()),
-        bulk_pe = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_pe.keys()),
-        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
-        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se.keys()),
-        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe.keys()),
-        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
+        bulk_se = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = set(sample_group_se.values())),
+        bulk_pe = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = set(sample_group_pe.values())),
+        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = set(pseudo_pool_dict.values())),   
+        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_se.values())),
+        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_pe.values())),
+        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict.values()))
     output:
        detected_list = "Report/filter/robustly_detected_ME.txt"
     params:
