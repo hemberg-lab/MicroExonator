@@ -9,7 +9,7 @@ import csv
 import gzip
 from collections import defaultdict
 import random
-
+random.seed(123)
 
 #This script gets the sample groups (output 1) and compute quantitative filters to get a list of reliable detected microexons.
 
@@ -73,7 +73,7 @@ for cluster in primary_clusters:
            
 with open(config["bulk_samples"]) as file:
     
-    reader = csv.DicReader(file, delimiter="\t")
+    reader = csv.DictReader(file, delimiter="\t")
     for row in reader:
         
         if row["sample"] in pe_samples:  
@@ -93,12 +93,12 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
     for  group, sample in sample_group_se.items():
         
         out = "\t".join([sample, group])
-        sample_group.write(out + "\n")
+        out_sample_groups.write(out + "\n")
         
     for  group, sample in sample_group_pe.items():
         
         out = "\t".join([sample, group])
-        sample_group.write(out + "\n")
+        out_sample_groups.write(out + "\n")
         
         
 def get_cell_sp(cluster):
@@ -106,7 +106,7 @@ def get_cell_sp(cluster):
     
 rule get_sparse_quants_sp:
     input:
-        cells = get_cell_sp(w.cluster)
+        cells = lambda w : get_cell_sp(w.cluster)
     output:
         corrected_sparse = "Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz"
     priority: 10
@@ -201,7 +201,7 @@ rule salmon_quant_se:
 rule salmon_quant_reads_pe:
     input:
         r1 = "FASTQ/{sample}.fastq.gz",
-        r2 = "FASTQ/" + get_pair(w.sample) + ".fastq.gz", 
+        r2 = lambda w : "FASTQ/" + get_pair(w.sample) + ".fastq.gz", 
         index = "salmon/transcriptome_index"
     output:
         quant = temp('salmon/{sample}/quant.sf'),
