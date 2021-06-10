@@ -29,9 +29,9 @@ paired_dict = dict()
 
 if "paired_samples" in config:
     
-    with  open(config["paired_samples"]) as file:
+    with open(config["paired_samples"]) as file:
         
-        reader = reader(file, delimiter="\t")
+        reader = csv.reader(file, delimiter="\t")
         for row in reader:
             
             pe_samples.add(row[0])
@@ -128,8 +128,8 @@ def get_pair(rd1):
            
 rule get_sparse_quants_pe:
     input:
-        corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
-        corrected_quant_rd2 = get_pair(w.sample)
+        corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
+        corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.out_filtered_ME.PSI.gz", rd2=paired_dict[w.sample])
     output:
         corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
     priority: 10
@@ -137,7 +137,7 @@ rule get_sparse_quants_pe:
         "../src/get_sparse_quants_pe.py"
            
          
-  rule detection_filter:
+rule detection_filter:
     input : 
         bulk_se = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_se.keys()),
         bulk_pe = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = sample_group_pe.keys()),
@@ -145,7 +145,7 @@ rule get_sparse_quants_pe:
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se.keys()),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe.keys()),
         single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
-    out:
+    output:
        detected_list = "Report/filter/robustly_detected_ME.txt"
     params:
        min_PSI = config["min_PSI"]
@@ -221,9 +221,9 @@ rule salmon_quant_reads_pe:
         "salmon quant -i {input.index} -l {params.libtype}  -1 {input.rd1} -2 {input.rd2} -p {threads}  -o {params.out_dir}"
 
 
- rule salmon_all_quant:
-       input:
-           expand( 'salmon/SE/{sample}/quant.sf', sample=sample_group_se.keys()) 
-           expand( 'salmon/PE/{sample}/quant.sf', sample=sample_group_pe.keys()) 
+rule salmon_all_quant:
+    input:
+        expand( 'salmon/SE/{sample}/quant.sf', sample=sample_group_se.keys()), 
+        expand( 'salmon/PE/{sample}/quant.sf', sample=sample_group_pe.keys()) 
 
            
