@@ -148,10 +148,12 @@ rule get_sparse_quants_pe:
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe.keys()),
         single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = pseudo_pool_dict.keys())
     out:
-       detected_list = "Report/filter/detected_ME.txt"
+       detected_list = "Report/filter/robustly_detected_ME.txt"
+    params:
+       min_PSI = config["min_PSI"]
     priority: 10
     script:
-        "../src/get_sparse_quants_sp.py"  
+        "../src/final_filters.py"  
 
 
 ## GENE EXPRESSION
