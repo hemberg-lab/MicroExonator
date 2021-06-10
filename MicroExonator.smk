@@ -107,6 +107,7 @@ if "whippet_delta" in config:
       whippet_delta = yaml.safe_load(stream)
    include : "rules/Whippet_delta.smk"
 
+include : "rules/Round2_quant_filters.smk"
 
 #### Single Cell ###
 

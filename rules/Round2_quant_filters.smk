@@ -71,7 +71,7 @@ for cluster in primary_clusters:
         for cell in pool:
             pseudo_pool_dict[pseudo_pool_ID] = cell
            
- with open(config["bulk_samples"]) as file:
+with open(config["bulk_samples"]) as file:
     
     reader = csv.DicReader(file, delimiter="\t")
     for row in reader:
@@ -104,7 +104,6 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
 def get_cell_sp(cluster):
     return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster])
     
-    
 rule get_sparse_quants_sp:
     input:
         cells = get_cell_sp(w.cluster)
@@ -113,8 +112,7 @@ rule get_sparse_quants_sp:
     priority: 10
     script:
         "../src/get_sparse_quants_sp.py" 
-          
-        
+                
 rule get_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"

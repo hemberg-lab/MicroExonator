@@ -314,7 +314,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
-			if len(row)==1:
+			if len(row)==1 and "_" in row[0]:
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
 			        strand, estart, eend = ME.split("_")[-3:]
