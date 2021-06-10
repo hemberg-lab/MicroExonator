@@ -77,9 +77,9 @@ with open(config["bulk_samples"]) as file:
     for row in reader:
         
         if row["sample"] in pe_samples:  
-            sample_group_se[row["condition"]] = row["sample"]
+            sample_group_pe[row["condition"]] = row["sample"]
         else:
-            sample_group_pe[row["condition"]] = row["sample"]  
+            sample_group_se[row["condition"]] = row["sample"]  
         
 
 with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
