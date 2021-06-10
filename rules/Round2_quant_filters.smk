@@ -102,7 +102,7 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
         
         
 def get_cell_sp(cluster):
-    return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster])
+    return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster]))
     
 rule get_sparse_quants_sp:
     input:
