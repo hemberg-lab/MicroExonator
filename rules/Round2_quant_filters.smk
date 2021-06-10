@@ -43,7 +43,7 @@ with open(config["cluster_metadata"]) as file:
     reader = csv.DictReader(file, delimiter="\t")
     
     for row in reader:
-        primary_clusters[config["cluster_name"]].append(config["file_basename"])
+        primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
 
