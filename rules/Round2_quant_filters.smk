@@ -117,7 +117,7 @@ rule get_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
     output:
-        corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
+        corrected_sparse = "Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz"
     priority: 10
     script:
         "../src/get_sparse_quants_se.py"
@@ -131,7 +131,7 @@ rule get_sparse_quants_pe:
         corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
         corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.out_filtered_ME.PSI.gz", rd2=paired_dict[w.sample])
     output:
-        corrected_sparse = "Report/quant/sparse/blulk/{sample}.corrected.PSI.gz"
+        corrected_sparse = "Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz"
     priority: 10
     script:
         "../src/get_sparse_quants_pe.py"
@@ -139,8 +139,8 @@ rule get_sparse_quants_pe:
          
 rule detection_filter:
     input : 
-        bulk_se = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = set(sample_group_se.values())),
-        bulk_pe = expand("Report/quant/sparse/blulk/{sample}.corrected.PSI.gz", sample = set(sample_group_pe.values())),
+        bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = set(sample_group_se.values())),
+        bulk_pe = expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = set(sample_group_pe.values())),
         single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = set(pseudo_pool_dict.values())),   
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_se.values())),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_pe.values())),
