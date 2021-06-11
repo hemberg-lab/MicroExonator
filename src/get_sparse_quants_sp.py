@@ -85,7 +85,7 @@ pool_excluding_covs = defaultdict(int)
 
 
 
-for f in open(snakemake.input["cells"]):
+for f in gzip.open(snakemake.input["cells"], "t"):
     
     sample = f.split("/")[-1].split(".")[0]
     
