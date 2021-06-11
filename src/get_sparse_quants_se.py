@@ -9,7 +9,7 @@ import random
 
 
 paired_sum = defaultdict(int)
-with gzip.open( snakemake.input["corrected_quant"] , "rt") as f, gzip.open(snakemake.output["corrected_sparse"] , "wt"):
+with gzip.open( snakemake.input["corrected_quant"] , "rt") as f, gzip.open(snakemake.output["corrected_sparse"] , "wt") as out:
 
     header =  "\t".join(["sample", "ME", "ME_coverages", "excluding_covs",  "PSI", "CI_Lo", "CI_Hi"])
 
