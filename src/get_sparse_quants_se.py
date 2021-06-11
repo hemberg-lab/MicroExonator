@@ -14,22 +14,19 @@ with gzip.open( snakemake.input["corrected_quant"] , "rt") as f, gzip.open(snake
     header =  "\t".join(["sample", "ME", "ME_coverages", "excluding_covs",  "PSI", "CI_Lo", "CI_Hi"])
 
     out.write(header + "\n")    
+    reader = csv.reader(f, delimiter="\t")
 
-    with gzip.open(f, "rt") as file:
+    for row in reader:
 
-        reader = csv.reader(file, delimiter="\t")
+        sample, ME, ME_coverages, excluding_covs = row
 
-        for row in reader:
+        ME_coverages = float(ME_coverages)
+        excluding_covs = float(excluding_covs)
 
-            sample, ME, ME_coverages, excluding_covs = row
+        if ME_coverages + excluding_covs >=5:
 
-            ME_coverages = float(ME_coverages)
-            excluding_covs = float(excluding_covs)
+            PSI = ME_coverages/(excluding_covs+ME_coverages)
+            CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)
 
-            if ME_coverages + excluding_covs >=5:
-
-                PSI = ME_coverages/(excluding_covs+ME_coverages)
-                CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)
-
-                outrow = "\t".join(map(str, [sample, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
-                out.write(outrow + "\n")
+            outrow = "\t".join(map(str, [sample, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
+            out.write(outrow + "\n")
