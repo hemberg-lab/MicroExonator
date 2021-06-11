@@ -89,24 +89,22 @@ for f in open(snakemake.input["cells"]):
     
     sample = f.split("/")[-1].split(".")[0]
     
-    if sample in pseudo_pool_dict:
 
-        with gzip.open(f, "rt") as file:
 
-            reader = csv.reader(file, delimiter="\t")
-            
-            for row in reader:
-                
-                sample, ME, ME_coverages, excluding_covs = row       
-                pseudo_pool_ID = pseudo_pool_dict[sample]
+    with gzip.open(f, "rt") as file:
 
-                ME = ME
-                
-                if float(ME_coverages) > 0:
-                    pool_ME_coverages[(pseudo_pool_ID, ME)] += float(ME_coverages)
-                    
-                if float(excluding_covs) > 0:    
-                    pool_excluding_covs[(pseudo_pool_ID, ME)] += float(excluding_covs)
+        reader = csv.reader(file, delimiter="\t")
+
+        for row in reader:
+
+            sample, ME, ME_coverages, excluding_covs = row       
+            pseudo_pool_ID = snakemake.output["corrected_sparse"].split("/")[-1].split["."][0]
+
+            if float(ME_coverages) > 0:
+                pool_ME_coverages[(pseudo_pool_ID, ME)] += float(ME_coverages)
+
+            if float(excluding_covs) > 0:    
+                pool_excluding_covs[(pseudo_pool_ID, ME)] += float(excluding_covs)
                     
                     
 pseudo_pool_set = set(pool_ME_coverages.keys())                   
