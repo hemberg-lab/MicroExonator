@@ -85,12 +85,10 @@ pool_excluding_covs = defaultdict(int)
 
 
 
-for f in gzip.open(snakemake.input["cells"], "t"):
+for f in snakemake.input["cells"]:
     
     sample = f.split("/")[-1].split(".")[0]
     
-
-
     with gzip.open(f, "rt") as file:
 
         reader = csv.reader(file, delimiter="\t")
@@ -98,7 +96,7 @@ for f in gzip.open(snakemake.input["cells"], "t"):
         for row in reader:
 
             sample, ME, ME_coverages, excluding_covs = row       
-            pseudo_pool_ID = snakemake.output["corrected_sparse"].split("/")[-1].split["."][0]
+            pseudo_pool_ID = snakemake.output["corrected_sparse"].split("/")[-2].split(".")[0]
 
             if float(ME_coverages) > 0:
                 pool_ME_coverages[(pseudo_pool_ID, ME)] += float(ME_coverages)
@@ -109,7 +107,7 @@ for f in gzip.open(snakemake.input["cells"], "t"):
                     
 pseudo_pool_set = set(pool_ME_coverages.keys())                   
                     
-with gzip.open(snakemake.input["corrected_sparse"], "wt") as out:
+with gzip.open(snakemake.output["corrected_sparse"], "wt") as out:
   
     header = "\t".join(["ME", "pseudo_pool", "cell_type",  "ME_coverages", "excluding_covs", "PSI", "CI_Lo", "CI_Hi"])
     
