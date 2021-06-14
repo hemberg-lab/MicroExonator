@@ -97,7 +97,7 @@ rule coverage_to_PSI_report:
 	    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     params:
 	    config["min_reads_PSI"],
-	    config["paired_samples"]    
+	    "F"    
     output:
 	    protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
     conda:
