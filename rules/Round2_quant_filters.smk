@@ -127,10 +127,7 @@ rule get_sparse_quants_se:
     priority: 10
     script:
         "../src/get_sparse_quants_se.py"
-           
 
-
-          
           
 def get_pair(rd1):
     return(paired_dict[rd1])
@@ -154,6 +151,10 @@ rule detection_filter:
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_se.values())),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_pe.values())),
         single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict.values()))
+    params:
+        se_dict = sample_group_se,
+        pe_dict = sample_group_pe,
+        pseudo_dict = pseudo_pool_dict
     output:
        detected_list = "Report/filter/robustly_detected_ME.txt"
     params:
