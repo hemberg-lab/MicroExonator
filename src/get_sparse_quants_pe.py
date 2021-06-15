@@ -100,7 +100,17 @@ with gzip.open(snakemake.output["corrected_sparse"], "wt") as out, gzip.open(sna
     paired_sum = defaultdict(int)
 
     reader1 = csv.reader(rd1, delimiter="\t")
-    #reader2 = csv.reader(rd2, delimiter="\t")
+    reader2 = csv.reader(rd2, delimiter="\t")
+
+    for row in reader2:
+
+        sample, ME, ME_coverages, excluding_covs = row
+        ME_coverages = float(ME_coverages)
+        excluding_covs = float(excluding_covs)
+        pair_index = paired_dic[sample]
+        paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
+        paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs
+
 
     for row in reader1:
 
@@ -111,21 +121,10 @@ with gzip.open(snakemake.output["corrected_sparse"], "wt") as out, gzip.open(sna
         paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
         paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs  
     
-    reader2 = csv.reader(rd2, delimiter="\t")
-    for row in reader2:
-
-        sample, ME, ME_coverages, excluding_covs = row
-        ME_coverages = float(ME_coverages)
-        excluding_covs = float(excluding_covs)
-        pair_index = paired_dic[sample]
-        paired_sum[(pair_index, ME, "ME_coverages")] += ME_coverages
-        paired_sum[(pair_index, ME, "excluding_covs")] += excluding_covs
-        
-        
+    sample_out = snakemake.output["corrected_sparse"].split("/")[-1].split(".")[0]
     for info, count in paired_sum.items():
 
         sample, ME, count_type = info
-
         if count_type=="ME_coverages":
 
             ME_coverages = count
@@ -137,6 +136,5 @@ with gzip.open(snakemake.output["corrected_sparse"], "wt") as out, gzip.open(sna
                 CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)
 
 
-                outrow = "\t".join(map(str, [sample, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
-
+                outrow = "\t".join(map(str, [sample_out, ME, ME_coverages, excluding_covs,  PSI, CI_Lo, CI_Hi], ))
                 out.write(outrow + "\n")
