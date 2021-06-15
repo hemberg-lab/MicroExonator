@@ -52,9 +52,13 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
     
 
-sample_group_se = dict()
-sample_group_pe = dict()
+sample_group_se = defaultdict(set)
+sample_group_pe = defaultdict(set)
+sample_group_se_set = set()
+sample_group_pe_set = set()
+
 pseudo_pool_dict =  dict()
+
 
 for cluster in primary_clusters:
     
@@ -75,11 +79,13 @@ with open(config["bulk_samples"]) as file:
     
     reader = csv.DictReader(file, delimiter="\t")
     for row in reader:
-        
-        if row["sample"] in pe_samples:  
-            sample_group_pe[row["condition"]] = row["sample"]
+        if row["sample"] in pe_samples:
+            if row["sample"] in paired_dict:
+                sample_group_pe[row["condition"]].add(row["sample"])
+                sample_group_pe_set.add(row["sample"])
         else:
-            sample_group_se[row["condition"]] = row["sample"]  
+            sample_group_se[row["condition"]].add(row["sample"])
+            sample_group_se_set.add(row["sample"])
         
 
 with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
@@ -123,6 +129,9 @@ rule get_sparse_quants_se:
         "../src/get_sparse_quants_se.py"
            
 
+
+          
+          
 def get_pair(rd1):
     return(paired_dict[rd1])
            
@@ -139,8 +148,8 @@ rule get_sparse_quants_pe:
          
 rule detection_filter:
     input : 
-        bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = set(sample_group_se.values())),
-        bulk_pe = expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = set(sample_group_pe.values())),
+        bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
+        bulk_pe = expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe_set),
         single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_se.values())),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_pe.values())),
