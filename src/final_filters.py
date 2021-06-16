@@ -17,22 +17,31 @@ for input in snakemake.input["bulk_se"]:
     with gzip.open(input, "rt") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for row in reader:
-            sample_group = se_dict[row["sample"]]
-            sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            try:
+                sample_group = se_dict[row["sample"]]
+                sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            except KeyError:
+                pass
 
 for input in snakemake.input["bulk_pe"]:
     with gzip.open(input, "rt") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for row in reader:
-            sample_group = pe_dict[row["sample"]]
-            sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            try:
+                sample_group = pe_dict[row["sample"]]
+                sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            except KeyError:
+                pass
              
 for input in snakemake.input["single_cell"]:
     with gzip.open(input, "rt") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for row in reader:
-            sample_group = pe_dict[row["sample"]]
-            sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            try:
+                sample_group = pe_dict[row["sample"]]
+                sample_group_CI_Lo[(sample_group, row["ME"])].append(row["CI_Lo"])
+            except KeyError:
+                pass
             
 total_reads_files = snakemake.input["bulk_ME_reads_se"] + snakemake.input["bulk_ME_reads_pe"] + snakemake.input["single_cell_reads"]
 
@@ -63,14 +72,5 @@ with open(snakemake.output["robustly_detected_ME"], "wt") as out:
         if detected_samples/total_mesurements > 0.5:
 
             outrow = map(str, [ME, sample_group, total_mesurements, detected_samples])
-            out.write(outrow + "\n")
-        
-        
-    
-                                                
-
-                                                
-                                                
-
-        
+            out.write(outrow + "\n")   
         
