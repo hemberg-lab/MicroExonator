@@ -166,10 +166,21 @@ rule detection_filter:
 
 
 ## GENE EXPRESSION
+
+
+rule get_transcriptome:
+    input:
+        genome = config["Genome"],
+        gtf = config["GTF"]
+    output:
+        "Genome/transcriptome.fa"
+    conda: "../envs/core.yaml"
+    shell:
+        "gffread -w {output} -g {input}"
+
            
 rule salmon_index:
     input:
-        #"gffcompare/extended_ref_annotation.fa"
         "Genome/transcriptome.fa"
     output:
         directory("salmon/transcriptome_index")
@@ -183,9 +194,7 @@ rule salmon_index:
     shell:
         "salmon index -t {input} -i {output} --threads {threads} "
            
-           
-
-        
+ 
 rule salmon_quant_se:
     input:
         r = "FASTQ/{sample}.fastq.gz",
@@ -212,7 +221,7 @@ rule salmon_quant_se:
 rule salmon_quant_reads_pe:
     input:
         r1 = "FASTQ/{sample}.fastq.gz",
-        r2 = lambda w : "FASTQ/" + get_pair(w.sample) + ".fastq.gz", 
+        r2 = lambda w : expand( "FASTQ/{rd2}.fastq.gz", rd2=paired_dict[w.sample]), 
         index = "salmon/transcriptome_index"
     output:
         quant = temp('salmon/{sample}/quant.sf'),
