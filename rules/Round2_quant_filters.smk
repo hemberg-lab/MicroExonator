@@ -52,8 +52,8 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
     
 
-sample_group_se = defaultdict(set)
-sample_group_pe = defaultdict(set)
+sample_group_se = dict()
+sample_group_pe = dict()
 sample_group_se_set = set()
 sample_group_pe_set = set()
 
@@ -81,10 +81,10 @@ with open(config["bulk_samples"]) as file:
     for row in reader:
         if row["sample"] in pe_samples:
             if row["sample"] in paired_dict:
-                sample_group_pe[row["condition"]].add(row["sample"])
+                sample_group_pe[row["sample"]] = row["condition"]
                 sample_group_pe_set.add(row["sample"])
         else:
-            sample_group_se[row["condition"]].add(row["sample"])
+            sample_group_se[row["sample"]] = row["condition"]
             sample_group_se_set.add(row["sample"])
         
 
