@@ -171,7 +171,7 @@ rule detection_filter:
 rule get_transcriptome:
     input:
         genome = config["Genome"],
-        gtf = config["GTF"]
+        gtf = config["Gene_anontation_GTF"]
     output:
         "Genome/transcriptome.fa"
     conda: "../envs/core.yaml"
