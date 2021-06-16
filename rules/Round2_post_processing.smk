@@ -100,7 +100,7 @@ rule coverage_to_PSI_report:
 	    "F"
 	    #config["paired_samples"]    
     output:
-	    temp("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+	    protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
     conda:
 	    "../envs/core_py3.yaml"
     shell:
