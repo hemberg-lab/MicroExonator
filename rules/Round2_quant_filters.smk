@@ -29,13 +29,15 @@ paired_dict = dict()
 
 if "paired_samples" in config:
     
-    with open(config["paired_samples"]) as file:
-        
-        reader = csv.reader(file, delimiter="\t")
-        for row in reader:
-            
-            pe_samples.add(row[0])
-            paired_dict[row[0]] = row[1]
+    if config["paired_samples"]!="F":
+    
+        with open(config["paired_samples"]) as file:
+
+            reader = csv.reader(file, delimiter="\t")
+            for row in reader:
+
+                pe_samples.add(row[0])
+                paired_dict[row[0]] = row[1]
 
 
 with open(config["cluster_metadata"]) as file:
