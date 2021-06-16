@@ -243,7 +243,7 @@ rule salmon_quant_reads_pe:
 
 rule salmon_all_quant:
     input:
-        expand( 'salmon/SE/{sample}/quant.sf', sample=sample_group_se.keys()), 
-        expand( 'salmon/PE/{sample}/quant.sf', sample=sample_group_pe.keys()) 
+        expand( 'salmon/SE/{sample}/quant.sf', sample=sample_group_se_set), 
+        expand( 'salmon/PE/{sample}/quant.sf', sample=sample_group_pe_set) 
 
            
