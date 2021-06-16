@@ -94,17 +94,16 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
         
         out = "\t".join([cell, sp])  
         out_pseudo_pool_membership.write(out + "\n")
-        
     
-    for  group, sample in sample_group_se.items():
-        
-        out = "\t".join([sample, group])
-        out_sample_groups.write(out + "\n")
+    for  group, samples in sample_group_se.items():
+        for sample in samples:
+            out = "\t".join([sample, group])
+            out_sample_groups.write(out + "\n")
         
     for  group, sample in sample_group_pe.items():
-        
-        out = "\t".join([sample, group])
-        out_sample_groups.write(out + "\n")
+        for sample in samples:
+            out = "\t".join([sample, group])
+            out_sample_groups.write(out + "\n")
         
         
 def get_cell_sp(cluster):
@@ -148,8 +147,8 @@ rule detection_filter:
         bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
         bulk_pe = expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe_set),
         single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
-        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_se.values())),
-        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = set(sample_group_pe.values())),
+        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se_set),
+        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe_set),
         single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict.values()))
     params:
         se_dict = sample_group_se,
