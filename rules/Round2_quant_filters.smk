@@ -57,8 +57,8 @@ sample_group_pe = dict()
 sample_group_se_set = set()
 sample_group_pe_set = set()
 
-pseudo_pool_dict =  dict()
-
+pseudo_pool_dict =  defaultdict(list)
+pseudo_pool_dict_simple = dict()
 
 for cluster in primary_clusters:
     
@@ -73,7 +73,8 @@ for cluster in primary_clusters:
         pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
         
         for cell in pool:
-            pseudo_pool_dict[pseudo_pool_ID] = cell
+            pseudo_pool_dict[pseudo_pool_ID].append(cell)
+            pseudo_pool_dict_simple[cell] = pseudo_pool_ID
            
 with open(config["bulk_samples"]) as file:
     
@@ -154,7 +155,7 @@ rule detection_filter:
     params:
         se_dict = sample_group_se,
         pe_dict = sample_group_pe,
-        pseudo_dict = pseudo_pool_dict
+        pseudo_dict = pseudo_pool_dict_simple
     output:
        detected_list = "Report/filter/robustly_detected_ME.txt"
     params:
