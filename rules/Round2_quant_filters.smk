@@ -220,8 +220,8 @@ rule salmon_quant_se:
 
 rule salmon_quant_reads_pe:
     input:
-        r1 = "FASTQ/{sample}.fastq.gz",
-        r2 = lambda w : expand( "FASTQ/{rd2}.fastq.gz", rd2=paired_dict[w.sample]), 
+        rd1 = "FASTQ/{sample}.fastq.gz",
+        rd2 = lambda w : expand( "FASTQ/{rd2}.fastq.gz", rd2=paired_dict[w.sample]), 
         index = "salmon/transcriptome_index"
     output:
         quant = temp('salmon/PE/{sample}/quant.sf'),
