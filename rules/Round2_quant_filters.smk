@@ -151,7 +151,7 @@ rule detection_filter:
         single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se_set),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe_set),
-        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict.values()))
+        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict_simple.keys()))
     params:
         se_dict = sample_group_se,
         pe_dict = sample_group_pe,
