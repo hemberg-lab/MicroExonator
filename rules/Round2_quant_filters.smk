@@ -77,18 +77,21 @@ for cluster in primary_clusters:
         for cell in pool:
             pseudo_pool_dict[pseudo_pool_ID].append(cell)
             pseudo_pool_dict_simple[cell] = pseudo_pool_ID
+            
+            
+if "bulk_samples" in config:
            
-with open(config["bulk_samples"]) as file:
-    
-    reader = csv.DictReader(file, delimiter="\t")
-    for row in reader:
-        if row["sample"] in pe_samples:
-            if row["sample"] in paired_dict:
-                sample_group_pe[row["sample"]] = row["condition"]
-                sample_group_pe_set.add(row["sample"])
-        else:
-            sample_group_se[row["sample"]] = row["condition"]
-            sample_group_se_set.add(row["sample"])
+    with open(config["bulk_samples"]) as file:
+
+        reader = csv.DictReader(file, delimiter="\t")
+        for row in reader:
+            if row["sample"] in pe_samples:
+                if row["sample"] in paired_dict:
+                    sample_group_pe[row["sample"]] = row["condition"]
+                    sample_group_pe_set.add(row["sample"])
+            else:
+                sample_group_se[row["sample"]] = row["condition"]
+                sample_group_se_set.add(row["sample"])
         
 
 with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
