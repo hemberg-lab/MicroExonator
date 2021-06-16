@@ -94,18 +94,18 @@ rule ME_SJ_coverage:
 
 if str2bool(config.get("optimise_disk", False)):
     rule coverage_to_PSI_report:
-    input:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-    params:
-        config["min_reads_PSI"],
-        "F"
-        #config["paired_samples"]    
-    output:
-        protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
-    conda:
-        "../envs/core_py3.yaml"
-    shell:
-        "python src/counts_to_PSI.py {input} {params} {output}"
+        input:
+            "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+        params:
+            config["min_reads_PSI"],
+            "F"
+            #config["paired_samples"]    
+        output:
+            protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+        conda:
+            "../envs/core_py3.yaml"
+        shell:
+            "python src/counts_to_PSI.py {input} {params} {output}"
     
 else:    
     rule coverage_to_PSI_report:
