@@ -91,10 +91,11 @@ with open(config["bulk_samples"]) as file:
 
 with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
     
-    for sp, cell  in pseudo_pool_dict.items():
-        
-        out = "\t".join([cell, sp])  
-        out_pseudo_pool_membership.write(out + "\n")
+    for sp, cells  in pseudo_pool_dict.items():
+      
+        for cell in cells:
+            out = "\t".join([cell, sp])  
+            out_pseudo_pool_membership.write(out + "\n")
         
     
     for  group, sample in sample_group_se.items():
