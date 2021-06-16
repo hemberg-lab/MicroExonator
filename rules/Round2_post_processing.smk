@@ -91,20 +91,36 @@ rule ME_SJ_coverage:
     shell:
         "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
-	
-rule coverage_to_PSI_report:
+
+if str2bool(config.get("optimise_disk", False)):
+    rule coverage_to_PSI_report:
     input:
-	    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     params:
-	    config["min_reads_PSI"],
-	    "F"
-	    #config["paired_samples"]    
+        config["min_reads_PSI"],
+        "F"
+        #config["paired_samples"]    
     output:
-	    protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+        protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
     conda:
-	    "../envs/core_py3.yaml"
+        "../envs/core_py3.yaml"
     shell:
-	    "python src/counts_to_PSI.py {input} {params} {output}"
+        "python src/counts_to_PSI.py {input} {params} {output}"
+    
+else:    
+    rule coverage_to_PSI_report:
+        input:
+            "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+        params:
+            config["min_reads_PSI"],
+            "F"
+            #config["paired_samples"]    
+        output:
+            protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+        conda:
+            "../envs/core_py3.yaml"
+        shell:
+            "python src/counts_to_PSI.py {input} {params} {output}"
 	
 	
 rule Total_sample_exon_counts:
