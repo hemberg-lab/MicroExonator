@@ -39,15 +39,35 @@ total_reads_files = snakemake.input["bulk_ME_reads_se"] + snakemake.input["bulk_
 
 spanning_reads_ME = defaultdict(int)
 
+
 for input in total_reads_files:
     with open(input) as file:
         reader = csv.DictReader(file, delimiter="\t")
         
         for row in reader:
-            spanning_reads_ME[row["ME"]] += int(row["Spanning_cov"]]
-                                                
+            spanning_reads_ME[row["ME"]] += int(row["Spanning_cov"])
+            
 
-for key, value in sample_group_CI_Lo.items():
+
+with open(snakemake.output["robustly_detected_ME"], "wt") as out:
+
+    header =  "\t".join(["ME", "sample_group", "total_mesurements", "detected_samples"])
+    out.write(header + "\n")
+    
+    for key, CI_lo_list in sample_group_CI_Lo.items():
+        sample_group, ME = key
+
+        total_mesurements = len(CI_lo_list)
+        detected_samples = [x for x in CI_lo_list_len if x >= 0.1]
+
+        if detected_samples/total_mesurements > 0.5:
+
+            outrow = map(str, [ME, sample_group, total_mesurements, detected_samples])
+            out.write(outrow + "\n")
+        
+        
+    
+                                                
 
                                                 
                                                 
