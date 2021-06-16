@@ -170,7 +170,7 @@ rule detection_filter:
 
 rule get_transcriptome:
     input:
-        genome = config["Genome"],
+        genome = config["Genome_fasta"],
         gtf = config["Gene_anontation_GTF"]
     output:
         "Genome/transcriptome.fa"
