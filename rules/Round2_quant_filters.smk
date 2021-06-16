@@ -52,13 +52,13 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
     
 
-sample_group_se = defaultdict(set)
-sample_group_pe = defaultdict(set)
+sample_group_se = dict()
+sample_group_pe = dict()
 sample_group_se_set = set()
 sample_group_pe_set = set()
 
-pseudo_pool_dict =  dict()
-
+pseudo_pool_dict =  defaultdict(list)
+pseudo_pool_dict_simple = dict()
 
 for cluster in primary_clusters:
     
@@ -73,7 +73,8 @@ for cluster in primary_clusters:
         pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
         
         for cell in pool:
-            pseudo_pool_dict[pseudo_pool_ID] = cell
+            pseudo_pool_dict[pseudo_pool_ID].append(cell)
+            pseudo_pool_dict_simple[cell] = pseudo_pool_ID
            
 with open(config["bulk_samples"]) as file:
     
@@ -81,10 +82,10 @@ with open(config["bulk_samples"]) as file:
     for row in reader:
         if row["sample"] in pe_samples:
             if row["sample"] in paired_dict:
-                sample_group_pe[row["condition"]].add(row["sample"])
+                sample_group_pe[row["sample"]] = row["condition"]
                 sample_group_pe_set.add(row["sample"])
         else:
-            sample_group_se[row["condition"]].add(row["sample"])
+            sample_group_se[row["sample"]] = row["condition"]
             sample_group_se_set.add(row["sample"])
         
 
@@ -153,7 +154,7 @@ rule detection_filter:
     params:
         se_dict = sample_group_se,
         pe_dict = sample_group_pe,
-        pseudo_dict = pseudo_pool_dict
+        pseudo_dict = pseudo_pool_dict_simple
     output:
        detected_list = "Report/filter/robustly_detected_ME.txt"
     params:
