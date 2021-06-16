@@ -201,7 +201,7 @@ rule salmon_quant_se:
         #r = "FASTQ/{sample}.fastq.gz",
         index = "salmon/transcriptome_index"
     output:
-        quant = 'salmon/{sample}/quant.sf',
+        quant = 'salmon/SE/{sample}/quant.sf',
         lib = 'salmon/{sample}/lib_format_counts.json'
     log:
         'logs/salmon/{sample}.log'
@@ -224,7 +224,7 @@ rule salmon_quant_reads_pe:
         r2 = lambda w : expand( "FASTQ/{rd2}.fastq.gz", rd2=paired_dict[w.sample]), 
         index = "salmon/transcriptome_index"
     output:
-        quant = temp('salmon/{sample}/quant.sf'),
+        quant = temp('salmon/PE/{sample}/quant.sf'),
         lib = 'salmon/{sample}/lib_format_counts.json'
     log:
         'logs/salmon/{sample}.log'
