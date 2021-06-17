@@ -122,7 +122,7 @@ if str2bool(config.get("optimise_disk", False)):
             corrected_quant = temp("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
         script:
-            "src/correct_quant.py"
+            "../src/correct_quant.py"
 else:
     rule correct_quant:
         input:
@@ -133,7 +133,7 @@ else:
             corrected_quant = protected("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
         script:
-            "src/correct_quant.py"
+            "../src/correct_quant.py"
 		
 
 rule get_all_corrected_quant:
