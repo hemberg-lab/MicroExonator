@@ -54,8 +54,8 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
     
 
-sample_group_se = dict()
-sample_group_pe = dict()
+sample_group_se = defaultdict(list)
+sample_group_pe = defaultdict(list)
 sample_group_se_set = set()
 sample_group_pe_set = set()
 
@@ -87,10 +87,12 @@ if "bulk_samples" in config:
         for row in reader:
             if row["sample"] in pe_samples:
                 if row["sample"] in paired_dict:
-                    sample_group_pe[row["sample"]] = row["condition"]
+                    sample_group_pe[row["condition"]].append(row["sample"])
+                    #sample_group_pe[row["sample"]] = row["condition"]
                     sample_group_pe_set.add(row["sample"])
             else:
-                sample_group_se[row["sample"]] = row["condition"]
+                sample_group_se[row["condition"]].append(row["sample"]),
+                #sample_group_se[row["sample"]] = row["condition"]
                 sample_group_se_set.add(row["sample"])
         
 
@@ -175,8 +177,31 @@ rule get_sparse_quants_pe:
     priority: 10
     script:
         "../src/get_sparse_quants_pe.py"
-           
-         
+
+rule detection_filter_se:
+	input:
+        files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
+    output:
+        "Report/filter/se/{sample_group}.detected.txt"
+        
+rule detection_filter_pe:
+    input:
+        
+    output
+	
+rule detection_filter_sp:
+    input:
+    output:         
+
+rule detection_filter_total:
+    input:
+    output:
+        expand("Report/filter/se/{sample_group}.detected.txt",  sample_group=sample_group_se.keys()),
+        expand("Report/filter/pe/{sample_group}.detected.txt",  sample_group=sample_group_pe.keys()),                
+        expand("Report/filter/sc/{sample_group}.detected.txt",  sample_group=pseudo_pool_dict.keys())
+        
+        
+
 rule detection_filter:
     input : 
         bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
