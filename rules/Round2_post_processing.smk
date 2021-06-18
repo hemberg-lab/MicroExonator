@@ -101,7 +101,7 @@ if str2bool(config.get("optimise_disk", False)):
             "F"
             #config["paired_samples"]    
         output:
-            protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+            temp("Report/quant/{sample}.out_filtered_ME.PSI.gz")
         conda:
             "../envs/core_py3.yaml"
         shell:
