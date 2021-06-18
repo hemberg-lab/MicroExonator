@@ -179,26 +179,29 @@ rule get_sparse_quants_pe:
         "../src/get_sparse_quants_pe.py"
 
 rule detection_filter_se:
-	input:
+    input:
         files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
     output:
-        "Report/filter/se/{sample_group}.detected.txt"
+        detected = "Report/filter/se/{sample_group}.detected.txt"
         
 rule detection_filter_pe:
     input:
-        
-    output
+        files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
+    output:
+        detected = "Report/filter/pe/{sample_group}.detected.txt"
 	
 rule detection_filter_sp:
     input:
-    output:         
+        files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.sample_group] )
+    output:
+        detected = "Report/filter/sc/{cluster}.detected.txt"
+	
 
 rule detection_filter_total:
     input:
-    output:
         expand("Report/filter/se/{sample_group}.detected.txt",  sample_group=sample_group_se.keys()),
         expand("Report/filter/pe/{sample_group}.detected.txt",  sample_group=sample_group_pe.keys()),                
-        expand("Report/filter/sc/{sample_group}.detected.txt",  sample_group=pseudo_pool_dict.keys())
+        expand("Report/filter/sc/{cluster}.detected.txt",  cluster=pseudo_pool_dict.keys())
         
         
 
