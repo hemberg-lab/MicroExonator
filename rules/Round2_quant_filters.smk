@@ -180,19 +180,20 @@ rule get_sparse_quants_pe:
 
 rule detection_filter_se:
     input:
-        files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
+        PSI_files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
     output:
         detected = "Report/filter/se/{sample_group}.detected.txt"
         
 rule detection_filter_pe:
     input:
-        files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
+        PSI_files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] )
     output:
         detected = "Report/filter/pe/{sample_group}.detected.txt"
 	
 rule detection_filter_sp:
     input:
-        files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.cluster] )
+        PSI_files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.cluster] ),
+	ME_reads = lambda w : expand("Round2/ME_reads/{pseudo_pool}.counts.tsv", pseudo_pool = sample_group_se[w.cluster] )
     output:
         detected = "Report/filter/sc/{cluster}.detected.txt"
     script:
