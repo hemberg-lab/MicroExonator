@@ -192,7 +192,7 @@ rule detection_filter_pe:
 	
 rule detection_filter_sp:
     input:
-        files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.sample_group] )
+        files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.cluster] )
     output:
         detected = "Report/filter/sc/{cluster}.detected.txt"
 	
