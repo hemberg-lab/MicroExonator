@@ -61,6 +61,8 @@ sample_group_pe_set = set()
 
 pseudo_pool_dict =  defaultdict(list)
 pseudo_pool_dict_simple = dict()
+cluster_pseudo_pools = defaultdict(list)
+cluster_cells = defaultdict(list)
 
 for cluster in primary_clusters:
     
@@ -68,16 +70,19 @@ for cluster in primary_clusters:
     cells = primary_clusters[cluster]
     pseudo_pools = partition( cells , 3 )
     pseudo_pool_ID = ""
-    
-    for pool in pseudo_pools:
+
+    if cluster !="":    
+
+        for pool in pseudo_pools:
         
-        c+=1
-        pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
-        
-        for cell in pool:
-            pseudo_pool_dict[pseudo_pool_ID].append(cell)
-            pseudo_pool_dict_simple[cell] = pseudo_pool_ID
-            
+            c+=1
+            pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
+            cluster_pseudo_pools[cluster.replace(" ", "_")].append(pseudo_pool_ID)	
+ 
+            for cell in pool:
+                pseudo_pool_dict[pseudo_pool_ID].append(cell)
+                cluster_cells[cluster.replace(" ", "_")].append(cell)
+                pseudo_pool_dict_simple[cell] = pseudo_pool_ID	 
             
 if "bulk_samples" in config:
            
@@ -192,18 +197,21 @@ rule detection_filter_pe:
 	
 rule detection_filter_sp:
     input:
-        PSI_files = lambda w : expand("Report/quant/sparse/bulk/se/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = sample_group_se[w.cluster] ),
-	ME_reads = lambda w : expand("Round2/ME_reads/{pseudo_pool}.counts.tsv", pseudo_pool = sample_group_se[w.cluster] )
+        PSI_files = lambda w : expand("Report/quant/sparse/single_cell/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = cluster_pseudo_pools[w.cluster] ),
+	ME_reads = lambda w : expand("Round2/ME_reads/{pseudo_pool}.counts.tsv", pseudo_pool = cluster_cells[w.cluster] )
+    params:
+        sample_group = {cluster}
     output:
         detected = "Report/filter/sc/{cluster}.detected.txt"
     script:
         "../src/detected_me.py"	
 
+
 rule detection_filter_total:
     input:
         expand("Report/filter/se/{sample_group}.detected.txt",  sample_group=sample_group_se.keys()),
         expand("Report/filter/pe/{sample_group}.detected.txt",  sample_group=sample_group_pe.keys()),                
-        expand("Report/filter/sc/{cluster}.detected.txt",  cluster=pseudo_pool_dict.keys())
+        expand("Report/filter/sc/{cluster}.detected.txt",  cluster=cluster_pseudo_pools.keys())
         
         
 
