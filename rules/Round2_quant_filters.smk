@@ -199,8 +199,6 @@ rule detection_filter_sp:
     input:
         PSI_files = lambda w : expand("Report/quant/sparse/single_cell/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = cluster_pseudo_pools[w.cluster] ),
 	ME_reads = lambda w : expand("Round2/ME_reads/{pseudo_pool}.counts.tsv", pseudo_pool = cluster_cells[w.cluster] )
-    params:
-        sample_group = {cluster}
     output:
         detected = "Report/filter/sc/{cluster}.detected.txt"
     script:
