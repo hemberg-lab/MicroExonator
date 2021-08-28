@@ -3,6 +3,8 @@
 import yaml
 from collections import defaultdict
 import csv
+import random
+random.seed(123)
 
 configfile : "config.yaml"
 DATA = set([])
