@@ -49,6 +49,119 @@ if 'cluster_metadata' in config:
 
 
 
+##### Round2_quant_filters
+
+
+csv.field_size_limit(100000000)
+
+
+  
+def partition (list_in, n):  # Function to do random pooling
+    random.shuffle(list_in)
+    return [list_in[i::n] for i in range(n)]
+  
+
+primary_clusters = defaultdict(list)
+
+pe_samples = set([])
+paired_dict = dict()
+
+if "paired_samples" in config:
+    
+    if config["paired_samples"]!="F":
+    
+        with open(config["paired_samples"]) as file:
+
+            reader = csv.reader(file, delimiter="\t")
+            for row in reader:
+
+                pe_samples.add(row[0])
+                paired_dict[row[0]] = row[1]
+
+
+with open(  config["cluster_metadata"]) as file:
+  
+    reader = csv.DictReader(file, delimiter="\t")
+    
+    for row in reader:
+        primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
+
+
+
+def partition (list_in, n):  # Function to do random pooling
+    random.shuffle(list_in)
+    return [list_in[i::n] for i in range(n)]
+    
+
+sample_group_se = defaultdict(list)
+sample_group_pe = defaultdict(list)
+sample_group_se_set = set()
+sample_group_pe_set = set()
+
+pseudo_pool_dict =  defaultdict(list)
+pseudo_pool_dict_simple = dict()
+cluster_pseudo_pools = defaultdict(list)
+cluster_cells = defaultdict(list)
+
+for cluster in primary_clusters:
+    
+    c = 0
+    cells = primary_clusters[cluster]
+    pseudo_pools = partition( cells , 3 )
+    pseudo_pool_ID = ""
+
+    if cluster !="":    
+
+        for pool in pseudo_pools:
+        
+            c+=1
+            pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
+            cluster_pseudo_pools[cluster.replace(" ", "_")].append(pseudo_pool_ID)	
+ 
+            for cell in pool:
+                pseudo_pool_dict[pseudo_pool_ID].append(cell)
+                cluster_cells[cluster.replace(" ", "_")].append(cell)
+                pseudo_pool_dict_simple[cell] = pseudo_pool_ID	 
+            
+if "bulk_samples" in config:
+           
+    with open(config["bulk_samples"]) as file:
+
+        reader = csv.DictReader(file, delimiter="\t")
+        for row in reader:
+            if row["sample"] in pe_samples:
+                if row["sample"] in paired_dict:
+                    sample_group_pe[row["condition"]].append(row["sample"])
+                    #sample_group_pe[row["sample"]] = row["condition"]
+                    sample_group_pe_set.add(row["sample"])
+            else:
+                sample_group_se[row["condition"]].append(row["sample"]),
+                #sample_group_se[row["sample"]] = row["condition"]
+                sample_group_se_set.add(row["sample"])
+        
+
+with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
+    
+    for sp, cells  in pseudo_pool_dict.items():  
+        for cell in cells:
+            out = "\t".join([cell, sp])  
+            out_pseudo_pool_membership.write(out + "\n")
+        
+    
+    for  group, samples in sample_group_se.items():
+        for sample in samples:
+            out = "\t".join([sample, group])
+            out_sample_groups.write(out + "\n")
+        
+    for  group, sample in sample_group_pe.items():
+        for sample in samples:
+            out = "\t".join([sample, group])
+            out_sample_groups.write(out + "\n")
+#####            
+            
+            
+            
+            
 #### MicroExonator ####
 
 if ("deletion_penalty" in config)==False:
