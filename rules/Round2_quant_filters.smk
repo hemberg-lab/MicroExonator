@@ -40,7 +40,7 @@ if "paired_samples" in config:
                 paired_dict[row[0]] = row[1]
 
 
-with open(config["cluster_metadata"]) as file:
+with open( workflow.default_remote_prefix + config["cluster_metadata"]) as file:
   
     reader = csv.DictReader(file, delimiter="\t")
     
