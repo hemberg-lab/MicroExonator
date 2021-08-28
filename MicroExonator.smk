@@ -32,20 +32,20 @@ rule quant:
 
 
 
-# if 'cluster_metadata' in config:
+if 'cluster_metadata' in config:
 
-#     cluster_files = defaultdict(list)
-#     cluster_files_metadata = defaultdict(list)
-#     single_cell_files = set([])
+    cluster_files = defaultdict(list)
+    cluster_files_metadata = defaultdict(list)
+    single_cell_files = set([])
 
-#     with open(config["cluster_metadata"]) as Single_Cell:
+    with open(config["cluster_metadata"]) as Single_Cell:
 
-#         Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
+        Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
 
-#         for row in Single_Cell_clustering:
+        for row in Single_Cell_clustering:
 
-#             cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
-#             single_cell_files.add(row[config["file_basename"]])
+            cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
+            single_cell_files.add(row[config["file_basename"]])
 
 
 
