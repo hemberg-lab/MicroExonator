@@ -88,8 +88,7 @@ rule Splice_Junction_Library:
 rule GetPWM:
     input:
         config["Genome_fasta"],
-        config["Gene_anontation_bed12"]
-    params:
+        config["Gene_anontation_bed12"],
         config["GT_AG_U2_5"],
         config["GT_AG_U2_3"]
     output:
@@ -98,7 +97,7 @@ rule GetPWM:
     conda:
         "../envs/biopython_py3.yaml"
     shell:
-        "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
+        "python3 src/Get_splicing_PWMs.py {input} {output}"
 
 #if str2bool(config.get("Only_whippet", False))==False:
 #    rule gzip_fastq:
