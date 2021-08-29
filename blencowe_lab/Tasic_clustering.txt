@@ -1,0 +1,35 @@
+sample_title	mouse_line	cre_driver_1	cre_driver_2	cre_reporter	dissection	tdTomato	pass_qc_checks	broad_type	core_intermediate	primary_type	secondary_type	aibs_vignette_id	Run_s
+Calb2_tdTpositive_cell_1	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A200_V	SRR2138604
+Calb2_tdTpositive_cell_24	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A1609_V	SRR2138627
+Calb2_tdTpositive_cell_37	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Mybpc1	Vip Parm1	A1622_VU	SRR2138640
+Calb2_tdTpositive_cell_38	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Parm1	Vip Mybpc1	A1623_VU	SRR2138641
+Calb2_tdTpositive_cell_40	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A1625_VU	SRR2138643
+Calb2_tdTpositive_cell_43	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A1628_VU	SRR2138646
+Calb2_tdTpositive_cell_54	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	lower	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A1639_VL	SRR2138657
+Calb2_tdTpositive_cell_59	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	lower	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	A1644_VL	SRR2138662
+Calb2_tdTpositive_cell_60	Calb2	Calb2-IRES-Cre	NA	RCL-tdT (Ai14)	lower	positive	Y	GABA-ergic Neuron	intermediate	Vip Parm1	Vip Mybpc1	A1645_VL	SRR2138663
+Gad2_tdTpositive_cell_15	Gad2	Gad2-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	intermediate	Vip Mybpc1	Vip Parm1	D1230_V	SRR2138936
+Gad2_tdTpositive_cell_34	Gad2	Gad2-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	D1312_V	SRR2138955
+Htr3a_tdTpositive_cell_21	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	intermediate	Vip Mybpc1	Vip Parm1	H1026_V	SRR2139022
+Htr3a_tdTpositive_cell_27	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1032_V	SRR2139028
+Htr3a_tdTpositive_cell_34	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1039_V	SRR2139035
+Htr3a_tdTpositive_cell_36	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	intermediate	Vip Sncg	Vip Mybpc1	H1041_V	SRR2139037
+Htr3a_tdTpositive_cell_41	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1046_V	SRR2139042
+Htr3a_tdTpositive_cell_42	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1047_V	SRR2139043
+Htr3a_tdTpositive_cell_45	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1050_V	SRR2139046
+Htr3a_tdTpositive_cell_50	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1100_VU	SRR2139051
+Htr3a_tdTpositive_cell_52	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1102_VU	SRR2139053
+Htr3a_tdTpositive_cell_54	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Parm1	Vip Mybpc1	H1104_VU	SRR2139055
+Htr3a_tdTpositive_cell_56	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1106_VU	SRR2139057
+Htr3a_tdTpositive_cell_67	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1118_VU	SRR2139068
+Htr3a_tdTpositive_cell_76	Htr3a	Htr3a-Cre_NO152	NA	RCL-tdT (Ai14)	lower	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	H1127_VL	SRR2139077
+PvalbD-Slc32a1_tdTpositive_cell_15	PvalbD-Slc32a1	Pvalb-2A-DreO	Slc32a1-IRES-Cre	RCRL-tdT (Ai66)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	P1533_V	SRR2139545
+Vip_tdTpositive_cell_13	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V748_VU	SRR2140285
+Vip_tdTpositive_cell_19	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Mybpc1	Vip Parm1	V754_VU	SRR2140291
+Vip_tdTpositive_cell_20	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V755_VU	SRR2140292
+Vip_tdTpositive_cell_21	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Mybpc1	Vip Parm1	V756_VU	SRR2140293
+Vip_tdTpositive_cell_5	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	intermediate	Vip Parm1	Vip Mybpc1	V739_VU	SRR2140277
+Vip_tdTpositive_cell_57	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V986_V	SRR2140329
+Vip_tdTpositive_cell_65	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	All	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V994_V	SRR2140337
+Vip_tdTpositive_cell_7	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V742_VU	SRR2140279
+Vip_tdTpositive_cell_9	Vip	Vip-IRES-Cre	NA	RCL-tdT (Ai14)	upper	positive	Y	GABA-ergic Neuron	core	Vip Mybpc1	NA	V744_VU	SRR2140281
