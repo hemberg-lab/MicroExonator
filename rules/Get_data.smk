@@ -85,20 +85,41 @@ rule Splice_Junction_Library:
         "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} {params.max_read_len} > {output}"
 
 
-rule GetPWM:
-    input:
-        config["Genome_fasta"],
-        config["Gene_anontation_bed12"],
-        config["GT_AG_U2_5"],
-        config["GT_AG_U2_3"]
-    output:
-        "data/GT_AG_U2_5.pwm",
-        "data/GT_AG_U2_3.pwm"
-    conda:
-        "../envs/biopython_py3.yaml"
-    shell:
-        "python3 src/Get_splicing_PWMs.py {input} {output}"
+if config["GT_AG_U2_5"].split("/")[-1]=="NA" and  config["GT_AG_U2_5"].split("/")[-1]=="NA":
+       
+    rule GetPWM:
+        input:
+            config["Genome_fasta"],
+            config["Gene_anontation_bed12"]
+        params:
+            config["GT_AG_U2_5"],
+            config["GT_AG_U2_3"]
+        output:
+            "data/GT_AG_U2_5.pwm",
+            "data/GT_AG_U2_3.pwm"
+        conda:
+            "../envs/biopython_py3.yaml"
+        shell:
+            "python3 src/Get_splicing_PWMs.py {input} {params} {output}"         
+        
+else:    
+    rule GetPWM:
+        input:
+            config["Genome_fasta"],
+            config["Gene_anontation_bed12"],
+            config["GT_AG_U2_5"],
+            config["GT_AG_U2_3"]
+        output:
+            "data/GT_AG_U2_5.pwm",
+            "data/GT_AG_U2_3.pwm"
+        conda:
+            "../envs/biopython_py3.yaml"
+        shell:
+            "python3 src/Get_splicing_PWMs.py {input} {output}"
 
+        
+   
+        
 #if str2bool(config.get("Only_whippet", False))==False:
 #    rule gzip_fastq:
 #        input:
