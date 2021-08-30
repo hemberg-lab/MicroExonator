@@ -146,26 +146,30 @@ if config.get("only_db", False):  #This allows to just quantify microexons from 
             shell:
                 "python2 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "    
 
-    rule merge_tags:
-        input:
-            "Round2/ME_canonical_SJ_tags.de_novo.fa",
-            "data/ME_canonical_SJ_tags.DB.fa"
-        output:
-            "Round2/ME_canonical_SJ_tags.fa"
-        conda:
-            "../envs/core.yaml"
-        shell:
-            "cat {input[0]} {input[1]} > {output}"
+                
+    if  str2bool(config.get("skip_get_SJ_tags_round2", False)):
+        pass
+    else:   
+        rule merge_tags:
+            input:
+                "Round2/ME_canonical_SJ_tags.de_novo.fa",
+                "data/ME_canonical_SJ_tags.DB.fa"
+            output:
+                "Round2/ME_canonical_SJ_tags.fa"
+            conda:
+                "../envs/core.yaml"
+            shell:
+                "cat {input[0]} {input[1]} > {output}"
 
-    rule merge_ME_centric:
-        input:
-            "data/DB.ME_centric"
-        output:
-            "Round2/TOTAL.ME_centric.txt"
-        conda:
-            "../envs/core.yaml"
-        shell:
-            "cat {input} > {output}"            
+        rule merge_ME_centric:
+            input:
+                "data/DB.ME_centric"
+            output:
+                "Round2/TOTAL.ME_centric.txt"
+            conda:
+                "../envs/core.yaml"
+            shell:
+                "cat {input} > {output}"            
             
 else:
     
