@@ -8,7 +8,7 @@ if str2bool(config.get("Keep_fastq_gz", False)):
             get_data = 1 
         conda:
             "../envs/core.yaml"
-        priority: -10
+        priority: 1
         shell:
             "bash {input}"
 
@@ -22,7 +22,7 @@ else:
             get_data = 1 
         conda:
             "../envs/core.yaml"
-        priority: -10
+        priority: 1
         shell:
             "bash {input}"
 
