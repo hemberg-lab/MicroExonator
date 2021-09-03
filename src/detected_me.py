@@ -23,6 +23,14 @@ for input in snakemake.input["ME_reads"]:
         for row in reader:
             spanning_reads_ME[row["ME"]] += int(row["Spanning_cov"])
 
+if len(snakemake.input["PSI_files_pe"])!=0:
+
+    for input in snakemake.input["PSI_files_pe"]:
+        with gzip.open(input, "rt") as file:
+            reader = csv.DictReader(file, delimiter="\t")
+            for row in reader:
+                sample_group_CI_Lo[row["ME"]].append(float(row["CI_Lo"]))
+
 with open(snakemake.output["detected"], "wt") as out:            
     header = "\t".join(['ME', 'total_mesurements', 'detected_samples', 'spanning_reads'])
     out.write(header + "\n")
