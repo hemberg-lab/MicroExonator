@@ -225,11 +225,13 @@ else:
         shell:
             "cat {input[0]} {input[1]} > {output}"
 
+EBWT = ["1.ebwt", "2.ebwt", "3.ebwt", "4.ebwt", "rev.1.ebwt", "rev.2.ebwt" ]
+           
 rule Round2_bowtie_tags_index:
     input:
         "Round2/ME_canonical_SJ_tags.fa"
     output:
-        "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
+        expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
     conda:
         "../envs/core.yaml"
     shell:
@@ -311,7 +313,7 @@ rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
         hard_drive_behavior("{sample}"),
-        "Round2/ME_canonical_SJ_tags.fa.1.ebwt"
+        expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
     output:
         temp("Round2/{sample}.sam")
     threads: 5
