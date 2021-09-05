@@ -1,15 +1,32 @@
 
-rule ME_reads:
-    input:
-        "Round2/{sample}.sam.pre_processed",
-        "FASTQ/{sample}.fastq.gz"
-    output:
-        temp("Round2/{sample}.sam.pre_processed.fastq")
-    priority: 100
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "python2 src/round2_ME_reads_fastq2.py {input}"
+from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
+GS = GSRemoteProvider()
+
+
+if "google_path" in config:
+    rule ME_reads:
+        input:
+            "Round2/{sample}.sam.pre_processed",
+            GS.remote(config["google_path"]  + "{sample}.fastq.gz")
+        output:
+            temp("Round2/{sample}.sam.pre_processed.fastq")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "python2 src/round2_ME_reads_fastq2.py {input}"
+else:
+    rule ME_reads:
+        input:
+            "Round2/{sample}.sam.pre_processed",
+            "FASTQ/{sample}.fastq.gz"
+        output:
+            temp("Round2/{sample}.sam.pre_processed.fastq")
+        priority: 100
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "python2 src/round2_ME_reads_fastq2.py {input}"
         
 rule Get_Genome:
     input:
