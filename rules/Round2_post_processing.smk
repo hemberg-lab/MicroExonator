@@ -24,7 +24,7 @@ rule bowtie_genome_index:
     input:
         "data/Genome"
     output:
-        "data/Genome" + ".1.ebwt"
+        expand("data/Genome.{ebwt}", ebwt=EBWT)	
     priority: 100
     threads : 8
     conda:
@@ -38,7 +38,7 @@ if str2bool(config.get("skip_genome_alignment", False)):
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            "data/Genome" + ".1.ebwt"
+            expand("data/Genome.{ebwt}", ebwt=EBWT)	
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
@@ -52,7 +52,7 @@ else:
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            "data/Genome" + ".1.ebwt"
+            expand("data/Genome.{ebwt}", ebwt=EBWT)	
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
