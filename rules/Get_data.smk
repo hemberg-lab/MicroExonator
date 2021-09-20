@@ -1,4 +1,21 @@
-if str2bool(config.get("Keep_fastq_gz", False)):
+from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
+GS = GSRemoteProvider()
+
+
+if "google_path" in config:
+    rule download_fastq:
+        input:
+            GS.remote(config["google_path"]  + "{sample}.fastq.gz")
+        output:
+            temp("FASTQ/{sample}.fastq.gz")
+        priority: 1
+        conda:
+            "../envs/core.yaml"
+        shell:
+            "cp {input} {output}"
+
+
+elif str2bool(config.get("Keep_fastq_gz", False)):
     rule download_fastq:
         input:
             "download/{sample}.download.sh"
