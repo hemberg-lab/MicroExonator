@@ -336,7 +336,7 @@ rule Round2_bowtie_to_tags:
          hard_drive_behavior("{sample}"),
          expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
     output:
-        temp("Round2/{sample}.sam")
+        temp("Round2/{sample}.sam.raw")
     threads: 5
     priority: 100
     conda:
@@ -347,7 +347,7 @@ rule Round2_bowtie_to_tags:
 
 rule Round2_alingment_pre_processing:
     input:
-        "Round2/{sample}.sam"
+        "Round2/{sample}.sam.raw"
     output:
         temp("Round2/{sample}.sam.pre_processed")
     priority: 100
@@ -359,7 +359,7 @@ rule Round2_alingment_pre_processing:
         
 rule Round2_ME_evidence:
     input:
-        "Round2/{sample}.sam"
+        "Round2/{sample}.sam.raw"
     output:
         "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
     priority: 100

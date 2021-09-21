@@ -40,11 +40,15 @@ random.seed(123)
 #                 paired_dict[row[0]] = row[1]
 
 
-# with open(  config["cluster_metadata"]) as file:
+with open(  config["cluster_metadata"]) as file:
   
-#     reader = csv.DictReader(file, delimiter="\t")
+    reader = csv.DictReader(file, delimiter="\t")
     
-#     for row in reader:
+    for row in reader:
+        DATA.add(row[config["file_basename"]])
+
+#print(DATA)
+    
 #         primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
@@ -122,7 +126,7 @@ random.seed(123)
 if str2bool(config.get("optimise_disk", False)):
     rule correct_quant:
         input:
-            quant = "Report/quant/{sample}.out_filtered_ME.PSI.gz",
+            quant = "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
             ME_centric = "Round2/TOTAL.ME_centric.txt",
             spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
         output:
@@ -133,7 +137,7 @@ if str2bool(config.get("optimise_disk", False)):
 else:
     rule correct_quant:
         input:
-            quant = "Report/quant/{sample}.out_filtered_ME.PSI.gz",
+            quant = "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
             ME_centric = "Round2/TOTAL.ME_centric.txt",
             spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
         output:
@@ -146,7 +150,8 @@ else:
 rule get_all_corrected_quant:
     input:
         expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA)        
-        
+
+#print(expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA))        
         
 def get_cell_sp(cluster):
     return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster]))
@@ -210,6 +215,8 @@ rule detection_filter_sp:
     script:
         "../src/detected_me.py"	
 
+#print(cluster_pseudo_pools)
+#print(cluster_pseudo_pools)
 
 rule detection_filter_total:
     input:

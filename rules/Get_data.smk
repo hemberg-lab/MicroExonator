@@ -1,18 +1,37 @@
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-GS = GSRemoteProvider()
-
+GS = GSRemoteProvider( project="Brain-NeMO" )
+ 
 
 if "google_path" in config:
-    rule download_fastq:
-        input:
-            GS.remote(config["google_path"]  + "{sample}.fastq.gz")
-        output:
-            temp("FASTQ/{sample}.fastq.gz")
-        priority: 1
-        conda:
-            "../envs/core.yaml"
-        shell:
-            "cp {input} {output}"
+    if str2bool(config.get("google_paired", False)):	
+
+        rule download_fastq:
+            params:
+                fastqs = config["google_path"]  + "{sample}/{sample}_*.fastq.gz",
+                project = config["google_project"]
+            output:
+                temp("FASTQ/{sample}.fastq.gz")
+            priority: 1
+            resources:
+                get_data = 1
+            conda:
+                "../envs/download.yaml"
+            shell:
+                "gsutil -u {params.project} cp gs://{params.fastqs} - | cat - > {output}"
+    else:
+
+        rule download_fastq:
+            input:
+                GS.remote(config["google_path"]  + "{sample}.fastq.gz")
+            output:
+                temp("FASTQ/{sample}.fastq.gz")
+            priority: 1
+            resources:
+                get_data = 1
+            conda:
+                "../envs/core.yaml"
+            shell:
+                "cp {input} {output}"
 
 
 elif str2bool(config.get("Keep_fastq_gz", False)):

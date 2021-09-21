@@ -5,3 +5,4 @@ channels:
   - cgat
 dependencies:
   - sra-tools=2.9.1_1
+  - google-cloud-sdk  

@@ -2,6 +2,9 @@
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
 GS = GSRemoteProvider()
 
+#wildcard_constraints:
+#    sample="([a-zA-Z0-9]*)_.*"
+
 
 #if "google_path" in config:
 #    rule ME_reads:
@@ -118,7 +121,7 @@ if str2bool(config.get("optimise_disk", False)):
             "F"
             #config["paired_samples"]    
         output:
-            temp("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+            temp("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
         conda:
             "../envs/core_py3.yaml"
         shell:
@@ -133,7 +136,7 @@ else:
             "F"
             #config["paired_samples"]    
         output:
-            protected("Report/quant/{sample}.out_filtered_ME.PSI.gz")
+            protected("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
         conda:
             "../envs/core_py3.yaml"
         shell:
@@ -174,7 +177,7 @@ def get_min_reads():
 rule coverage_filter:
     input:
        #"Round2/TOTAL.filter1.ME_SJ_coverage"
-       PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.gz", sample=DATA )
+       PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz", sample=DATA )
     params:
         min_reads_sample = get_min_reads()
     output:
