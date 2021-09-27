@@ -132,6 +132,7 @@ if str2bool(config.get("optimise_disk", False)):
         output:
             corrected_quant = temp("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
+        priority: 300
         script:
             "../src/correct_quant.py"
 else:
@@ -143,6 +144,7 @@ else:
         output:
             corrected_quant = protected("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
+        priority: 300
         script:
             "../src/correct_quant.py"
 		
@@ -160,7 +162,7 @@ rule get_sparse_quants_sp:
     input:
         cells = lambda w : get_cell_sp(w.cluster)
     output:
-        corrected_sparse = "Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz"
+        corrected_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_sparse_quants_sp.py" 
@@ -169,7 +171,7 @@ rule get_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
     output:
-        corrected_sparse = "Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz"
+        corrected_sparse = protected("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_sparse_quants_se.py"
@@ -183,7 +185,7 @@ rule get_sparse_quants_pe:
         corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
         corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.out_filtered_ME.PSI.gz", rd2=paired_dict[w.sample])
     output:
-        corrected_sparse = "Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz"
+        corrected_sparse = protected("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_sparse_quants_pe.py"

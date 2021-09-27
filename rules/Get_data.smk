@@ -11,7 +11,7 @@ if "google_path" in config:
                 project = config["google_project"]
             output:
                 temp("FASTQ/{sample}.fastq.gz")
-            priority: 1
+            priority: 0
             resources:
                 get_data = 1
             conda:
@@ -25,7 +25,7 @@ if "google_path" in config:
                 GS.remote(config["google_path"]  + "{sample}.fastq.gz")
             output:
                 temp("FASTQ/{sample}.fastq.gz")
-            priority: 1
+            priority: 0
             resources:
                 get_data = 1
             conda:
@@ -41,7 +41,7 @@ elif str2bool(config.get("Keep_fastq_gz", False)):
         output:
             "FASTQ/{sample}.fastq.gz"
         resources:
-            get_data = 1 
+            get_data = 0 
         conda:
             "../envs/download.yaml"
         priority: 1
@@ -55,7 +55,7 @@ else:
         output:
             temp("FASTQ/{sample}.fastq.gz")
         resources:
-            get_data = 1 
+            get_data = 0 
         conda:
             "../envs/download.yaml"
         priority: 1

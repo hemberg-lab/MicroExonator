@@ -350,7 +350,7 @@ rule Round2_alingment_pre_processing:
         "Round2/{sample}.sam.raw"
     output:
         temp("Round2/{sample}.sam.pre_processed")
-    priority: 100
+    priority: 500
     conda:
         "../envs/core.yaml"
     shell:
@@ -361,8 +361,8 @@ rule Round2_ME_evidence:
     input:
         "Round2/{sample}.sam.raw"
     output:
-        "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
-    priority: 100
+        temp("Round2/ME_reads/{sample}.ME_spanning_reads.tsv")
+    priority: 500
     conda:
         "../envs/core.yaml"
     shell:
