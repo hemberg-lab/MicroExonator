@@ -349,24 +349,27 @@ rule Round2_alingment_pre_processing:
     input:
         "Round2/{sample}.sam.raw"
     output:
-        temp("Round2/{sample}.sam.pre_processed")
+        pre_processed = temp("Round2/{sample}.sam.pre_processed"),
+        spanning_reads = temp("Round2/ME_reads/{sample}.ME_spanning_reads.tsv")
     priority: 500
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
+        """
+        python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output.pre_processed}
+        python2 src/get_ME_spaning_reads.py {input} F > {output.spanning_reads}
+        """
         
-        
-rule Round2_ME_evidence:
-    input:
-        "Round2/{sample}.sam.raw"
-    output:
-        temp("Round2/ME_reads/{sample}.ME_spanning_reads.tsv")
-    priority: 500
-    conda:
-        "../envs/core.yaml"
-    shell:
-        "python2 src/get_ME_spaning_reads.py {input} F > {output}"
+# rule Round2_ME_evidence:
+#     input:
+#         "Round2/{sample}.sam.raw"
+#     output:
+#         temp("Round2/ME_reads/{sample}.ME_spanning_reads.tsv")
+#     priority: 500
+#     conda:
+#         "../envs/core.yaml"
+#     shell:
+#         "python2 src/get_ME_spaning_reads.py {input} F > {output}"
         
 rule get_all_spanning_reads:
     input:
