@@ -41,7 +41,7 @@ elif str2bool(config.get("Keep_fastq_gz", False)):
         output:
             "FASTQ/{sample}.fastq.gz"
         resources:
-            get_data = 0 
+            get_data = 1 
         conda:
             "../envs/download.yaml"
         priority: 1
@@ -55,7 +55,7 @@ else:
         output:
             temp("FASTQ/{sample}.fastq.gz")
         resources:
-            get_data = 0 
+            get_data = 1 
         conda:
             "../envs/download.yaml"
         priority: 1

@@ -39,13 +39,13 @@ random.seed(123)
 #                 pe_samples.add(row[0])
 #                 paired_dict[row[0]] = row[1]
 
-
-with open(  config["cluster_metadata"]) as file:
+if 'cluster_metadata' in config:
+    with open(  config["cluster_metadata"]) as file:
   
-    reader = csv.DictReader(file, delimiter="\t")
+        reader = csv.DictReader(file, delimiter="\t")
     
-    for row in reader:
-        DATA.add(row[config["file_basename"]])
+        for row in reader:
+            DATA.add(row[config["file_basename"]])
 
 #print(DATA)
     
