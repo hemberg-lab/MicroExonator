@@ -81,12 +81,13 @@ if "paired_samples" in config:
                 paired_dict[row[0]] = row[1]
 
 
-with open(  config["cluster_metadata"]) as file:
+if 'cluster_metadata' in config:
+    with open(  config["cluster_metadata"]) as file:
   
-    reader = csv.DictReader(file, delimiter="\t")
+        reader = csv.DictReader(file, delimiter="\t")
     
-    for row in reader:
-        primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
+        for row in reader:
+            primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
 
 
 
