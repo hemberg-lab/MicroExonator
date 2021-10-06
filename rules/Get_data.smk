@@ -1,4 +1,40 @@
-if str2bool(config.get("Keep_fastq_gz", False)):
+from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
+GS = GSRemoteProvider( project="Brain-NeMO" )
+ 
+
+if "google_path" in config:
+    if str2bool(config.get("google_paired", False)):	
+
+        rule download_fastq:
+            params:
+                fastqs = config["google_path"]  + "{sample}/{sample}_*.fastq.gz",
+                project = config["google_project"]
+            output:
+                temp("FASTQ/{sample}.fastq.gz")
+            priority: 0
+            resources:
+                get_data = 1
+            conda:
+                "../envs/download.yaml"
+            shell:
+                "gsutil -u {params.project} cp gs://{params.fastqs} - | cat - > {output}"
+    else:
+
+        rule download_fastq:
+            input:
+                GS.remote(config["google_path"]  + "{sample}.fastq.gz")
+            output:
+                temp("FASTQ/{sample}.fastq.gz")
+            priority: 0
+            resources:
+                get_data = 1
+            conda:
+                "../envs/core.yaml"
+            shell:
+                "cp {input} {output}"
+
+
+elif str2bool(config.get("Keep_fastq_gz", False)):
     rule download_fastq:
         input:
             "download/{sample}.download.sh"
@@ -7,8 +43,8 @@ if str2bool(config.get("Keep_fastq_gz", False)):
         resources:
             get_data = 1 
         conda:
-            "../envs/core.yaml"
-        priority: -10
+            "../envs/download.yaml"
+        priority: 1
         shell:
             "bash {input}"
 
@@ -21,8 +57,8 @@ else:
         resources:
             get_data = 1 
         conda:
-            "../envs/core.yaml"
-        priority: -10
+            "../envs/download.yaml"
+        priority: 1
         shell:
             "bash {input}"
 
@@ -85,21 +121,41 @@ rule Splice_Junction_Library:
         "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} {params.max_read_len} > {output}"
 
 
-rule GetPWM:
-    input:
-        config["Genome_fasta"],
-        config["Gene_anontation_bed12"]
-    params:
-        config["GT_AG_U2_5"],
-        config["GT_AG_U2_3"]
-    output:
-        "data/GT_AG_U2_5.pwm",
-        "data/GT_AG_U2_3.pwm"
-    conda:
-        "../envs/biopython_py3.yaml"
-    shell:
-        "python3 src/Get_splicing_PWMs.py {input} {params} {output}"
+if config["GT_AG_U2_5"].split("/")[-1]=="NA" and  config["GT_AG_U2_5"].split("/")[-1]=="NA":
+       
+    rule GetPWM:
+        input:
+            config["Genome_fasta"],
+            config["Gene_anontation_bed12"]
+        params:
+            config["GT_AG_U2_5"],
+            config["GT_AG_U2_3"]
+        output:
+            "data/GT_AG_U2_5.pwm",
+            "data/GT_AG_U2_3.pwm"
+        conda:
+            "../envs/biopython_py3.yaml"
+        shell:
+            "python3 src/Get_splicing_PWMs.py {input} {params} {output}"         
+        
+else:    
+    rule GetPWM:
+        input:
+            config["Genome_fasta"],
+            config["Gene_anontation_bed12"],
+            config["GT_AG_U2_5"],
+            config["GT_AG_U2_3"]
+        output:
+            "data/GT_AG_U2_5.pwm",
+            "data/GT_AG_U2_3.pwm"
+        conda:
+            "../envs/biopython_py3.yaml"
+        shell:
+            "python3 src/Get_splicing_PWMs.py {input} {output}"
 
+        
+   
+        
 #if str2bool(config.get("Only_whippet", False))==False:
 #    rule gzip_fastq:
 #        input:

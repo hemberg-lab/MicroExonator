@@ -73,7 +73,7 @@ def PWM_to_dict(file):
 	return matrix
 
 
-def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
+def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3 ):
 
 
 	n = 100
@@ -201,40 +201,40 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
+			if mode!="db_split":
+
+
+				for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
+
+					estart = start + q2
+					eend = start + q2 + b2
+					elength = eend - estart
+					exon = "_".join([chrom, strand, str(estart),  str(eend)])
+
+					SJ_start = start + q1 + b1
+					SJ_end = start + q3
+					ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
+
+					if SJ_start <SJ_end:
 
 
 
-			for q1, q2, q3, b1, b2, b3 in zip(qstarts, qstarts[1:] , qstarts[2:], blocksizes, blocksizes[1:], blocksizes[2:]):
+						dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
 
-				estart = start + q2
-				eend = start + q2 + b2
-				elength = eend - estart
-				exon = "_".join([chrom, strand, str(estart),  str(eend)])
+						if strand=="-":
+							dn = dn.reverse_complement()
 
-				SJ_start = start + q1 + b1
-				SJ_end = start + q3
-				ME_intron = " ".join([chrom, str(SJ_start), str(SJ_end), "SJ", "0", strand])
-				
-				if SJ_start <SJ_end:
+						dn = str(dn).upper()
 
 
 
-					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
+						if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
-					if strand=="-":
-						dn = dn.reverse_complement()
+							#if chrom in ME_chroms:
 
-					dn = str(dn).upper()
+							introns.add(ME_intron)
 
-
-
-					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
-
-						#if chrom in ME_chroms:
-
-						introns.add(ME_intron)
-
-						non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
+							non_detected_ME[(chrom, estart, eend, strand, elength)].append(transcript)
 
 
 
@@ -242,7 +242,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	##### Microexon database ######
 
 
-	if ME_DB!=False:
+	if ME_DB!=False and mode!="db_ref":
 
 
 		for row in csv.reader(open(ME_DB), delimiter = '\t'):
@@ -314,7 +314,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
-			if len(row)==1:
+			if len(row)==1 and "_" in row[0]:
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
 			        strand, estart, eend = ME.split("_")[-3:]
@@ -350,7 +350,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_starts = set([])
 	TOTAL_SJ_ends = set([])
 
-	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric,  open('data/DB.ME_centric.non_overlaping.txt', 'w') as  non_overlaping_out  :
+	with open(out1, 'w') as out_tags, open(out2, 'w') as out_ME_centric,  open(out3, 'w') as  non_overlaping_out  :
 
 		for i in non_detected_ME.items():
 
@@ -540,7 +540,4 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 if __name__ == '__main__':
 	Genomictabulator(sys.argv[1])
-	main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8])
-
-
-#python2 ~/my_src/Micro-Exonator/Get_annotated_microexons.py ../../../../../Genome/mm10/mm10.fa Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric ../../../../../Genome/mm10/Tracks/Gene_annotation/gencode.vM11.annotation.bed12 ../../../../../Genome/mm10/Tracks/SpliceRack/mm10_GT_AG_U2_5.good.matrix ../../../../../Genome/mm10/Tracks/SpliceRack/mm10_GT_AG_U2_3.good.matrix ../../../../../Genome/mm10/Tracks/Phylop/mm10.60way.phyloP60way.bw 30
+	main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12])

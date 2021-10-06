@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - cgat
+dependencies:
+  - sra-tools=2.11.0
+  - google-cloud-sdk  
