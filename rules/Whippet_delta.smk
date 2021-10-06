@@ -25,9 +25,10 @@ rule whippet_delta:
         bin = config["whippet_bin_folder"],
         a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["A"].split(","))),
         b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample= whippet_delta[wildcards.comparison_name]["B"].split(","))),
-        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name
+        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name,
+        julia = config["julia"]
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
+        "{params.julia} {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o}"
 
 
 
@@ -41,8 +42,9 @@ rule whippet_delta_ME:
         bin = config["whippet_bin_folder"],
         a = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= whippet_delta[wildcards.comparison_name]["A"].split(","))),
         b = lambda wildcards : ",".join(expand("Whippet/Quant/{sample}.psi.ME.gz", sample= whippet_delta[wildcards.comparison_name]["B"].split(","))),
-        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name + ".ME"
+        o = lambda wildcards : "Whippet/Delta/" + wildcards.comparison_name + ".ME",
+        julia = config["julia"]
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} "
+        "{params.julia} {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} "
 
 

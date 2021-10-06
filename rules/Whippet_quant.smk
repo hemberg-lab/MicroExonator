@@ -45,28 +45,30 @@ if str2bool(config.get("Only_whippet", False)):
               Genome = config["Genome_fasta"],
               ME_GTF = config["Gene_anontation_GTF"]
           params:
-              bin = config["whippet_bin_folder"]
+              bin = config["whippet_bin_folder"],
+              julia = config["julia"]
           output:
               "Whippet/Index/whippet.jls",
               "Whippet/Index/whippet.jls.exons.tab.gz"
           log:
               "logs/whippet_index.log"
           shell:
-              "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
+              "{params.julia} {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}"
 else:
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
               ME_GTF = "Report/out.high_quality.gtf"
           params:
-              bin = config["whippet_bin_folder"]
+              bin = config["whippet_bin_folder"],
+              julia = config["julia"]
           output:
               "Whippet/Index/whippet.jls",
               "Whippet/Index/whippet.jls.exons.tab.gz"
           log:
               "logs/whippet_index.log"
           shell:
-              "julia {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}" 
+              "{params.julia} {params.bin}/whippet-index.jl --fasta {input.Genome} --gtf {input.ME_GTF} --index {output[0]} 2> {log}" 
 
 
 
@@ -91,7 +93,8 @@ if str2bool(config.get("Get_Bamfiles", False)): #config["Get_Bamfiles"])==True:
           params:
               bin = config["whippet_bin_folder"],
               output = "Whippet/Quant/{sample}",
-              flags = "--sam"
+              flags = "--sam",
+              julia = config["julia"]
           output:
               "Whippet/Quant/{sample}.gene.tpm.gz",
               "Whippet/Quant/{sample}.isoform.tpm.gz",
@@ -101,7 +104,7 @@ if str2bool(config.get("Get_Bamfiles", False)): #config["Get_Bamfiles"])==True:
               sam = temp("Whippet/BAM/{sample}.sam")
           priority: 100
           shell:
-              "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"
+              "{params.julia} {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags} > {output.sam}"
 
 else:
       rule  whippet_quant:
@@ -111,7 +114,8 @@ else:
           params:
               bin = config["whippet_bin_folder"],
               output = "Whippet/Quant/{sample}",
-              flags = config["whippet_flags"]
+              flags = config["whippet_flags"],
+              julia = config["julia"]
           output:
               temp("Whippet/Quant/{sample}.gene.tpm.gz"),
               temp("Whippet/Quant/{sample}.isoform.tpm.gz"),
@@ -120,7 +124,7 @@ else:
               temp("Whippet/Quant/{sample}.psi.gz")
           priority: 100
           shell:
-              "julia {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
+              "{params.julia} {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
 
 
 
