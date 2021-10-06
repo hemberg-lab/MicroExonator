@@ -18,7 +18,7 @@ def Tagloader(fasta):
 		SJ_Tags_seq[tag.id.split("|")[0]] = tag.seq
 		SJ_Tags_info[tag.id.split("|")[0]] = tag.id
 
-		print ">" + tag.id   # Get the SJ tags from Round1
+		print ">" + tag.id
 		print tag.seq
 
 	print >> sys.stderr, "OK"
@@ -50,5 +50,4 @@ def main(ME_centric):
 
 if __name__ == '__main__':
 	Tagloader(sys.argv[1])
-	if sys.argv[2]!="NA":
-		main(sys.argv[2])
+	main(sys.argv[2])

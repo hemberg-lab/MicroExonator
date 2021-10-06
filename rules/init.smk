@@ -39,7 +39,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
             DATA.add(RUN)
 
             file_name = "download/" + RUN + ".download.sh"
-            command = "fastq-dump.2.11.0 --split-files -O FASTQ --gzip"
+            command = "fastq-dump.2.9.1 --split-files -O FASTQ --gzip"
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
@@ -48,7 +48,7 @@ if os.path.isfile('./NCBI_accession_list.txt'):
                 download_file.write("#!/bin/bash" + "\n")
                 download_file.write('srr="' + RUN + '"' + "\n" )
                 download_file.write(command + " " + RUN + "\n")
-                download_file.write( "numLines=$(fastq-dump.2.11.0 -X 1 -Z --split-spot $srr | wc -l)" + "\n")
+                download_file.write( "numLines=$(fastq-dump.2.9.1 -X 1 -Z --split-spot $srr | wc -l)" + "\n")
                 download_file.write( "if [ $numLines -eq 8 ]; then cat FASTQ/${srr}_1.fastq.gz FASTQ/${srr}_2.fastq.gz > FASTQ/$srr.fastq.gz && rm FASTQ/${srr}_1.fastq.gz FASTQ/${srr}_2.fastq.gz; fi"  + "\n")
                 download_file.write( "if [ -f FASTQ/${srr}_1.fastq.gz ]; then mv FASTQ/${srr}_1.fastq.gz FASTQ/${srr}.fastq.gz ; elif [ -f FASTQ/${srr}_2.fastq.gz ]; then mv FASTQ/${srr}_2.fastq.gz FASTQ/${srr}.fastq.gz; fi"  + "\n")
 

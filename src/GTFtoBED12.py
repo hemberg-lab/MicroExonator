@@ -30,15 +30,10 @@ def main(gtf_file):
                         ID_type, ID  = pair
                         if ID_type == "transcript_id":
                             transcript = ID.strip('"')
-			
-# 		try:
 
-		if blocktype == 'transcript':
+                if blocktype == 'transcript':
 
-		    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
-			
-# 		except UnboundLocalError:
-# 			print(row)
+                    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
 
                 if blocktype == 'exon':
 

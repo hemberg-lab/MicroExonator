@@ -1,28 +1,8 @@
 
-from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-GS = GSRemoteProvider()
-
-#wildcard_constraints:
-#    sample="([a-zA-Z0-9]*)_.*"
-
-
-#if "google_path" in config:
-#    rule ME_reads:
-#        input:
-#            "Round2/{sample}.sam.pre_processed",
-#            GS.remote(config["google_path"]  + "{sample}.fastq.gz")
-#        output:
-#            temp("Round2/{sample}.sam.pre_processed.fastq")
-#        priority: 100
-#        conda:
-#            "../envs/core.yaml"
-#        shell:
-#            "python2 src/round2_ME_reads_fastq2.py {input}"
-#else:
 rule ME_reads:
     input:
         "Round2/{sample}.sam.pre_processed",
-        "FASTQ/{sample}.fastq.gz"
+	"FASTQ/{sample}.fastq.gz"
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     priority: 100
@@ -44,13 +24,12 @@ rule bowtie_genome_index:
     input:
         "data/Genome"
     output:
-        expand("data/Genome.{ebwt}", ebwt=EBWT)	
+        "data/Genome" + ".1.ebwt"
     priority: 100
-    threads : 8
     conda:
         "../envs/core.yaml"
     shell:
-        "bowtie-build --threads {threads} {input} {input}"
+        "bowtie-build {input} {input}"
         
 if str2bool(config.get("skip_genome_alignment", False)):
 
@@ -58,7 +37,7 @@ if str2bool(config.get("skip_genome_alignment", False)):
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            expand("data/Genome.{ebwt}", ebwt=EBWT)	
+            "data/Genome" + ".1.ebwt"
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
@@ -72,7 +51,7 @@ else:
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            expand("data/Genome.{ebwt}", ebwt=EBWT)	
+            "data/Genome" + ".1.ebwt"
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
@@ -104,7 +83,7 @@ rule ME_SJ_coverage:
     params:
         ME_len = config["ME_len"]
     output:
-        temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
+        protected("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
     priority: 100
     conda:
         "../envs/core.yaml"
@@ -112,37 +91,6 @@ rule ME_SJ_coverage:
         "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
 
-if str2bool(config.get("optimise_disk", False)):
-    rule coverage_to_PSI_report:
-        input:
-            "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-        params:
-            config["min_reads_PSI"],
-            "F"
-            #config["paired_samples"]    
-        output:
-            temp("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
-        conda:
-            "../envs/core_py3.yaml"
-        shell:
-            "python src/counts_to_PSI.py {input} {params} {output}"
-    
-else:    
-    rule coverage_to_PSI_report:
-        input:
-            "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-        params:
-            config["min_reads_PSI"],
-            "F"
-            #config["paired_samples"]    
-        output:
-            protected("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
-        conda:
-            "../envs/core_py3.yaml"
-        shell:
-            "python src/counts_to_PSI.py {input} {params} {output}"
-	
-	
 rule Total_sample_exon_counts:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA )
@@ -163,9 +111,6 @@ rule write_ME_matches:
     shell:
         "python3 src/Get_ME_matches.py {input} > {output}"
 
-	
-	
-	
 
 def get_min_reads():
     if 'min_reads_PSI' in config:
@@ -176,14 +121,13 @@ def get_min_reads():
 
 rule coverage_filter:
     input:
-       #"Round2/TOTAL.filter1.ME_SJ_coverage"
-       PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz", sample=DATA )
+       "Round2/TOTAL.filter1.ME_SJ_coverage"
     params:
         min_reads_sample = get_min_reads()
     output:
         "Round2/TOTAL.sample_cov_filter.txt"
     script:
-        "../src/coverage_sample_filter2.py"
+        "../src/coverage_sample_filter.py"
 
 def get_min_conservation():
     if "min_conservation" in config:
@@ -220,64 +164,31 @@ rule Output:
 
 rule high_confident_filters:
     input:
-        genome = config["Genome_fasta"],
-        transcriptome = config["Gene_anontation_bed12"],
-        #"Round2/TOTAL.filter1.ME_SJ_coverage",
-        out_filtered = "Report/out_filtered_ME.txt",
-        out_low_scored = "Report/out_low_scored_ME.txt",
-	PSI_files = expand("Report/quant/{sample}.out_filtered_ME.PSI.gz", sample=DATA )
+        config["Genome_fasta"],
+        config["Gene_anontation_bed12"],
+        "Round2/TOTAL.filter1.ME_SJ_coverage",
+        "Report/out_filtered_ME.txt",
+        "Report/out_low_scored_ME.txt"
     output:
-        high_qual = "Report/out.high_quality.txt"
+        "Report/out.high_quality.txt"
     conda:
         "../envs/core_py3.yaml"
-    script:
-        "../src/high_confident_list.py"
-	
-#     shell:
-#         "python src/high_confident_list.py {input}  > {output}"	
-	
-# if config.get("split_cov", False):
+    shell:
+        "python src/high_confident_list.py {input}  > {output}"
 
 
-# 	rule coverage_to_PSI_sample:
-# 	    input:
-# 		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-# 	    params:
-# 		    config["min_reads_PSI"],
-# 		    config["paired_samples"]    
-# 	    output:
-# 		    "Round2/{sample}.out_filtered_ME.PSI.txt"
-# 	    conda:
-# 		    "../envs/core_py3.yaml"
-# 	    shell:
-# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
-
-			
-# 	rule coverage_to_PSI_output:
-# 	    input:
-# 		    expand("Round2/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
-# 	    output:
-# 		    "Report/out_filtered_ME.PSI.txt"
-# 	    resources:
-# 		    split = 1
-# 	    priority: 20
-# 	    shell:
-# 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"			
-
-# else:
-# 	rule coverage_to_PSI:
-# 	    input:
-# 		    "Round2/TOTAL.filter1.ME_SJ_coverage"
-# 	    params:
-# 		    config["min_reads_PSI"],
-# 		    config["paired_samples"]    
-# 	    output:
-# 		    "Report/out_filtered_ME.PSI.txt"
-# 	    conda:
-# 		    "../envs/core_py3.yaml"
-# 	    shell:
-# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
-
+rule coverage_to_PSI:
+    input:
+        "Round2/TOTAL.filter1.ME_SJ_coverage"
+    params:
+        config["min_reads_PSI"],
+        config["paired_samples"]    
+    output:
+        "Report/out_filtered_ME.PSI.txt"
+    conda:
+        "../envs/core_py3.yaml"
+    shell:
+        "python src/counts_to_PSI.py {input} {params} > {output}"
 
 
 rule annotation_stats:

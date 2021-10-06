@@ -51,16 +51,14 @@ def main(bed12):
                 seq += exon_seq
 		
 	
-            if strand=="-":
-                seq = seq.reverse_complement()
+        if strand=="-":
+            seq = seq.reverse_complement()
 
-            seq = str(seq).upper()
+        seq = str(seq).upper()
 
-            print(">" + transcript)
-            print(seq)
-
-        else:
-            print >> sys.stderr, chrom + " was not found in reference"
+        print(">" + transcript)
+        print(seq)
+	
 
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])

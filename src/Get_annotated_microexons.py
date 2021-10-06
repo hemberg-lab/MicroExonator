@@ -21,14 +21,14 @@ def percent (c, total):
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Loading genome into RAM memory ...",
+	#print >> sys.stderr, "Cargando genoma en la memoria RAM ...",
 
 	f = open(fasta)
 
 	for chrfa in SeqIO.parse(f, "fasta"):
 		Genome[chrfa.id] = chrfa.seq
 
-	print >> sys.stderr, "OK"
+	#print >> sys.stderr, "OK"
 
 	f.close()
 
@@ -76,6 +76,8 @@ def PWM_to_dict(file):
 def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB=False):
 
 
+
+
 	n = 100
 
 	min_intron_lenght = 80
@@ -94,34 +96,41 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	for index in range(13):
 		U2_GTAG_5_max_score += max(U2_GTAG_5['A'][index], U2_GTAG_5['C'][index], U2_GTAG_5['T'][index], U2_GTAG_5['G'][index])
 
-        for index in range(17):
+	for index in range(17):
 		U2_GTAG_3_max_score += max(U2_GTAG_3['A'][index], U2_GTAG_3['C'][index], U2_GTAG_3['T'][index], U2_GTAG_3['G'][index])
 
 	TOTAL_U2_max_score = U2_GTAG_5_max_score + U2_GTAG_3_max_score
 
+
+
 	found_ME = set([])
 	ME_chroms = set([])
-	
-	if ME_centric!="NA":
 
-		for row in csv.reader(open(ME_centric), delimiter = '\t'):
+	for row in csv.reader(open(ME_centric), delimiter = '\t'):
 
-			ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
+		ME, transcript, sum_total_coverage, total_SJs, total_coverages, len_micro_exon_seq_found, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_scores, mean_conservations, P_MEs, total_ME = row
 
-			ME_strand, ME_start, ME_end = ME.split("_")[-3:]
-			ME_chrom =  "_".join(ME.split("_")[:-3])
+		ME_strand, ME_start, ME_end = ME.split("_")[-3:]
+		ME_chrom =  "_".join(ME.split("_")[:-3])
+		
+		found_ME.add(ME)
+		ME_chroms.add(ME_chrom)
 
-			found_ME.add(ME)
-			ME_chroms.add(ME_chrom)
+
 
 	introns = set([])
+
 	non_detected_ME = defaultdict(list) # a microexon can be derived from more than one transcript. The idea is to collapese the transcript
+
+
 
 	SJ_start_seqs = {}
 	SJ_end_seqs = {}
 
 
 	for row in csv.reader(open(bed12), delimiter = '\t'):
+
+
 
 
 		blocksizes = list(map(int, row[10].strip(",").split(",")))
@@ -315,29 +324,24 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ID)
 									
 			if len(row)==1:
+				
 				ME = row[0]
 				chrom  = "_".join(ME.split("_")[:-3])
-			        strand, estart, eend = ME.split("_")[-3:]
-
+				strand, eestart, eend = ME.split("_")[-3:]
+				
 				estart = int(estart)
 				eend = int(eend)
-                                ME_len = eend-estart
-                                #print(row, chrom, estart, eend)
+
 				if chrom in Genome:
 					
 					dn = Genome[chrom][(estart-2):estart] + Genome[chrom][eend:(eend+2)]
 
 					if strand=="-":
 						dn = dn.reverse_complement()				
-                                        
-                                        #print(elength, ME_len, dn, ME, found_ME)                                        
 
-					#if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
-                                        #if elength <= ME_len and ME not in found_ME:
-					non_detected_ME[(chrom, estart, eend, strand, ME_len)].append(ME)
-					
-				else:
-					print(ME + "Chromosome not in genome")
+					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+
+						non_detected_ME[(chrom, estart, eend, strand, elength)].append(ME)
 
 
 	introns_str =  "\n".join(list(introns))
@@ -350,7 +354,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 	TOTAL_SJ_starts = set([])
 	TOTAL_SJ_ends = set([])
 
-	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric,  open('data/DB.ME_centric.non_overlaping.txt', 'w') as  non_overlaping_out  :
+
+	with open('data/ME_canonical_SJ_tags.DB.fa', 'w') as out_tags, open('data/DB.ME_centric', 'w') as out_ME_centric :
+
+
 
 		for i in non_detected_ME.items():
 
@@ -360,174 +367,155 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 			transcript = transcripts[0]
 
+
 			#ME = "_".join([chrom, str(estart), strand, str(eend)])
 			ME = "_".join([chrom, strand, str(estart),  str(eend)])
-			
-			up_exon_dn = Genome[chrom][(estart-2):estart] 
-			down_exon_dn = Genome[chrom][eend:(eend+2)]
 
-			if strand=="-":
-				up_exon_dn = up_exon_dn.reverse_complement()
-				down_exon_dn = down_exon_dn.reverse_complement()
 
-			up_exon_dn = str(up_exon_dn).upper()
-			down_exon_dn = str(down_exon_dn).upper()
-			
-
-                        #if  ME=="chr6_+_36205401_36205420":
-                        #    print("chr6_+_36205401_36205420", elength, ME)
-
-                        
-			#if elength <= ME_len  and ME not in found_ME:
-
-                                
-                                #if ME=="chr6_+_36205401_36205420":
-                                #    print("chr6_+_36205401_36205420")
-
-			if phylop=="NA":
-
-				mean_conservation=0
-
-			else:
-
-				try:
-					mean_conservation= phylop_bw.stats(chrom, estart-2, eend+2, type="mean")[0]
-				except RuntimeError:
+			if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+				
+				
+				if phylop=="NA":
+					
 					mean_conservation=0
+					
+				else:
 
-				if mean_conservation==None:
-					mean_conservation=0
+					try:
+						mean_conservation= phylop_bw.stats(chrom, estart-2, eend+2, type="mean")[0]
+					except RuntimeError:
+						mean_conservation=0
 
-
-			ME5 = str(Genome[chrom][estart-14:estart+3]).upper()
-			ME3 = str(Genome[chrom][eend-3:eend+10]).upper()
-
-			micro_exon_seq_found = str(Genome[chrom][estart:eend]).upper()
-
-
-			if strand == "-":
-
-				ME5 = str(Genome[chrom][eend-3:eend+14].reverse_complement()).upper()
-				ME3 = str(Genome[chrom][estart-10:estart+3].reverse_complement()).upper()
-
-				micro_exon_seq_found = str(Genome[chrom][estart:eend].reverse_complement()).upper()
+					if mean_conservation==None:
+						mean_conservation=0
 
 
+				ME5 = str(Genome[chrom][estart-14:estart+3]).upper()
+				ME3 = str(Genome[chrom][eend-3:eend+10]).upper()
 
-			U2_score = 0
+				micro_exon_seq_found = str(Genome[chrom][estart:eend]).upper()
 
-			i = 0
-
-			for N in ME5:
-				U2_score += U2_GTAG_3[N][i]
-				i += 1
-
-			i = 0
-
-			for N in ME3:
-				U2_score += U2_GTAG_5[N][i]
-				i += 1
-
-			U2_score = percent(U2_score, TOTAL_U2_max_score)
-
-
-
-			ME_bed = BedTool(" ".join([chrom, str(estart), str(eend - 1), "ME", "0", strand]) , from_string=True)
-
-			SJs_bed = intron_bed.intersect(ME_bed, wa=True, s=True, F=1, nonamecheck=True)
-
-
-			SJs = set([])
-
-			SJ_starts = []
-			SJ_ends = []
-
-			if len(SJs_bed)==0:
-				non_overlaping_out.write("\t".join(map(str, ME_info)) + "\n")
-
-
-			if len(SJs_bed)!=0:
-
-
-				for sj in SJs_bed:
-
-					SJ_chrom, SJ_start, SJ_end, ID, score, SJ_strand = str(sj).strip("\n").split("\t")
-					SJ = SJ_chrom + ":" + SJ_start + SJ_strand + SJ_end
-
-					SJ_starts.append(int(SJ_start))
-					SJ_ends.append(int(SJ_end))
-
-					SJs.add(SJ)
-
-					TOTAL_SJ_starts.add((chrom, SJ_start))
-					TOTAL_SJ_ends.add((chrom, SJ_end))
-
-
-					### TAG creation
-
-
-					UP_TAG =  SJ_start_seqs[(SJ_chrom, int(SJ_start) )]
-					DOWN_TAG =  SJ_end_seqs[(SJ_chrom, int(SJ_end) )]
-
-
-					ME_TAG = UP_TAG +  Genome[chrom][estart:eend] + DOWN_TAG
-
-					tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)]))
-
-
-
-					if strand == "-":
-
-						 ME_TAG = ME_TAG.reverse_complement()
-
-						 tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)][::-1]))
-
-					ME_TAG = str(ME_TAG).upper()
-
-
-
-					ME_TAG_ID = chrom + ":" + "".join([ str(estart), strand, str(eend)])
-
-
-
-					out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
-					out_tags.write(ME_TAG + "\n")
-
-					# print ">" + "|".join([ ME_TAG_ID, transcript,  tag_pos ])
-					# print ME_TAG
-
-
-
-
-
-				total_SJs = ",".join(SJs)
-
-
-
-				min_intron_seq = str(Genome[chrom][max(SJ_starts):min(SJ_ends)]).upper()
 
 				if strand == "-":
 
-					min_intron_seq = str(Genome[chrom][max(SJ_starts):min(SJ_ends)].reverse_complement()).upper()
+					ME5 = str(Genome[chrom][eend-3:eend+14].reverse_complement()).upper()
+					ME3 = str(Genome[chrom][estart-10:estart+3].reverse_complement()).upper()
+
+					micro_exon_seq_found = str(Genome[chrom][estart:eend].reverse_complement()).upper()
 
 
 
-				total_number_of_micro_exons_matches = min_intron_seq.count(up_exon_dn + micro_exon_seq_found + down_exon_dn)
+				U2_score = 0
+
+				i = 0
+
+				for N in ME5:
+					U2_score += U2_GTAG_3[N][i]
+					i += 1
+
+				i = 0
+
+				for N in ME3:
+					U2_score += U2_GTAG_5[N][i]
+					i += 1
+
+				U2_score = percent(U2_score, TOTAL_U2_max_score)
 
 
-				P_ME = 	1 - ( 1 - (float(1)/float(4**len(micro_exon_seq_found)+4)))**( len(min_intron_seq) - (len(micro_exon_seq_found)+4))
+
+				ME_bed = BedTool(" ".join([chrom, str(estart), str(eend - 1), "ME", "0", strand]) , from_string=True)
+
+				SJs_bed = intron_bed.intersect(ME_bed, wa=True, s=True, F=1, nonamecheck=True)
 
 
-				info = ME, transcript, 0, total_SJs, 0, elength, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_score, mean_conservation, P_ME, "|".join(map(str,  [ME, U2_score, mean_conservation]))
+				SJs = set([])
+
+				SJ_starts = []
+				SJ_ends = []
 
 
-				out_ME_centric.write("\t".join(map(str, info)) + "\n")
+
+				if len(SJs_bed)!=0:
+
+
+					for sj in SJs_bed:
+
+						SJ_chrom, SJ_start, SJ_end, ID, score, SJ_strand = str(sj).strip("\n").split("\t")
+						SJ = SJ_chrom + ":" + SJ_start + SJ_strand + SJ_end
+
+						SJ_starts.append(int(SJ_start))
+						SJ_ends.append(int(SJ_end))
+
+						SJs.add(SJ)
+
+						TOTAL_SJ_starts.add((chrom, SJ_start))
+						TOTAL_SJ_ends.add((chrom, SJ_end))
+
+
+						### TAG creation
+
+
+						UP_TAG =  SJ_start_seqs[(SJ_chrom, int(SJ_start) )]
+						DOWN_TAG =  SJ_end_seqs[(SJ_chrom, int(SJ_end) )]
+
+
+						ME_TAG = UP_TAG +  Genome[chrom][estart:eend] + DOWN_TAG
+
+						tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)]))
+
+
+
+						if strand == "-":
+
+							 ME_TAG = ME_TAG.reverse_complement()
+
+							 tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)][::-1]))
+
+						ME_TAG = str(ME_TAG).upper()
+
+
+
+						ME_TAG_ID = chrom + ":" + "".join([ str(estart), strand, str(eend)])
+
+
+
+						out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
+						out_tags.write(ME_TAG + "\n")
+
+						# print ">" + "|".join([ ME_TAG_ID, transcript,  tag_pos ])
+						# print ME_TAG
 
 
 
 
-#			else: 
-#				non_overlaping_out.write("\t".join(map(str, ME_info)) + "\n")
+
+					total_SJs = ",".join(SJs)
+
+
+
+					min_intron_seq = str(Genome[chrom][max(SJ_starts):min(SJ_ends)]).upper()
+
+					if strand == "-":
+
+						min_intron_seq = str(Genome[chrom][max(SJ_starts):min(SJ_ends)].reverse_complement()).upper()
+
+
+
+					total_number_of_micro_exons_matches = min_intron_seq.count("AG" + micro_exon_seq_found + "GT")
+
+
+					P_ME = 	1 - ( 1 - (float(1)/float(4**len(micro_exon_seq_found)+4)))**( len(min_intron_seq) - (len(micro_exon_seq_found)+4))
+
+
+					info = ME, transcript, 0, total_SJs, 0, elength, micro_exon_seq_found, total_number_of_micro_exons_matches, U2_score, mean_conservation, P_ME, "|".join(map(str,  [ME, U2_score, mean_conservation]))
+
+
+					out_ME_centric.write("\t".join(map(str, info)) + "\n")
+
+
+
+
+
 
 
 
