@@ -79,14 +79,21 @@ if os.path.isfile("./local_samples.tsv"):
                     download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
                 
                 
-                else:
+                elif row["path"].split(".")[-1] == "bz2":
+                    download_file =  open(file_name, "w")
+
+                    download_file.write("#!/bin/bash" + "\n")
+                    download_file.write("bzcat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+
+                elif row["path"].split(".")[-1] == "fastq":
                 
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
                     download_file.write("cat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
-
+                else:
+                    print("Error: only fastq, fastq.gz or fastq.bz2 are suported!")
 
 if os.path.isfile("./sample_url.tsv"):
     
