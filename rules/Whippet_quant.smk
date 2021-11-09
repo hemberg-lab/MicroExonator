@@ -12,15 +12,15 @@
 
 #comparison_names = whippet_delta.keys()
       
-rule GetPSI:
-    input:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
-    output:
-        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
-    conda:
-        "../envs/core_py3.yaml"
-    shell:
-      "python3 src/GetPSI.py {input} 5 > {output}"
+#rule GetPSI:
+#    input:
+#        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
+#    output:
+#        "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI"
+#    conda:
+#        "../envs/core_py3.yaml"
+#    shell:
+#      "python3 src/GetPSI.py {input} 5 > {output}"
 
 rule get_GTF:
     input:
@@ -88,7 +88,8 @@ if str2bool(config.get("Get_Bamfiles", False)): #config["Get_Bamfiles"])==True:
 
       rule  whippet_quant:
           input:
-              'FASTQ/{sample}.fastq.gz',
+              #'FASTQ/{sample}.fastq.gz',
+              hard_drive_behavior,
               "Whippet/Index/whippet.jls"
           params:
               bin = config["whippet_bin_folder"],
@@ -109,7 +110,8 @@ if str2bool(config.get("Get_Bamfiles", False)): #config["Get_Bamfiles"])==True:
 else:
       rule  whippet_quant:
           input:
-              'FASTQ/{sample}.fastq.gz',
+              #'FASTQ/{sample}.fastq.gz',
+              hard_drive_behavior,
               "Whippet/Index/whippet.jls"
           params:
               bin = config["whippet_bin_folder"],
@@ -121,7 +123,7 @@ else:
               temp("Whippet/Quant/{sample}.isoform.tpm.gz"),
               temp("Whippet/Quant/{sample}.jnc.gz"),
               temp("Whippet/Quant/{sample}.map.gz"),
-              temp("Whippet/Quant/{sample}.psi.gz")
+              "Whippet/Quant/{sample}.psi.gz"
           priority: 100
           shell:
               "{params.julia} {params.bin}/whippet-quant.jl {input[0]}  -x {input[1]} -o {params.output} {params.flags}"      
@@ -156,23 +158,31 @@ rule BamIndex:
 #        "zcat {input} > {output}"
 
 
+def get_downstream_PSI(wildcards):
+    if str2bool(config.get("use_corrected_PSI", False)):
+        return( "Report/quant/corrected/PSI_sparse/bulk/se/"  + wildcards.sample + ".corrected.PSI.gz" )
+    else:
+        return( "Report/quant/" + wildcards.sample + ".out_filtered_ME.PSI.uncorrected.gz"  ) 
+
+
 rule ME_psi_to_quant:
     input:
-        ME_PSI = "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage.PSI",
+        #ME_PSI = "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
+        ME_PSI = get_downstream_PSI,
         whippet_PSI = "Whippet/Quant/{sample}.psi.gz"
     output:
-        ME_psi =  "Whippet/Quant/{sample}.psi.ME"
+        ME_psi =  "Whippet/Quant/{sample}.psi.ME.gz"
     shell:
-        "python3 src/Replace_PSI_whippet.py {input} > {output} "
+        "python3 src/Replace_PSI_whippet2.py {input} {output} "
 
 
-rule gzip_ME_psi_to_quant:
-    input:
-        ME_psi =  "Whippet/Quant/{sample}.psi.ME"
-    output:
-        ME_psi_gz =  "Whippet/Quant/{sample}.psi.ME.gz"
-    shell:
-        "gzip {input}"
+#rule gzip_ME_psi_to_quant:
+#    input:
+#        ME_psi =  "Whippet/Quant/{sample}.psi.ME"
+#    output:
+#        ME_psi_gz =  "Whippet/Quant/{sample}.psi.ME.gz"
+#    shell:
+#        "gzip {input}"
 
 #condition1 = config["condition1"].split(",") 
 #condition2 = config["condition2"].split(",")  

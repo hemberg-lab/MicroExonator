@@ -130,7 +130,7 @@ if str2bool(config.get("optimise_disk", False)):
             ME_centric = "Round2/TOTAL.ME_centric.txt",
             spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
         output:
-            corrected_quant = temp("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
+            corrected_quant = temp("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
         priority: 300
         script:
@@ -142,7 +142,7 @@ else:
             ME_centric = "Round2/TOTAL.ME_centric.txt",
             spanning_ME_reads =  "Round2/ME_reads/{sample}.ME_spanning_reads.tsv"
         output:
-            corrected_quant = protected("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"),
+            corrected_quant = protected("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"),
             count_spanning_ME_reads = "Round2/ME_reads/{sample}.counts.tsv"
         priority: 300
         script:
@@ -151,48 +151,48 @@ else:
 
 rule get_all_corrected_quant:
     input:
-        expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA)        
+        expand("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz", sample=DATA)        
 
-#print(expand("Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample=DATA))        
+#print(expand("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz", sample=DATA))        
         
 def get_cell_sp(cluster):
-    return(expand( "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz", sample = pseudo_pool_dict[cluster]))
+    return(expand( "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz", sample = pseudo_pool_dict[cluster]))
     
-rule get_sparse_quants_sp:
+rule get_PSI_sparse_quants_sp:
     input:
         cells = lambda w : get_cell_sp(w.cluster)
     output:
-        corrected_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
+        corrected_PSI_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_sparse_quants_sp.py" 
+        "../src/get_PSI_sparse_quants_sp.py" 
                 
-rule get_sparse_quants_se:
+rule get_PSI_sparse_quants_se:
     input:
-        corrected_quant = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz"
+        corrected_quant = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"
     output:
-        corrected_sparse = protected("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz")
+        corrected_PSI_sparse = protected("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_sparse_quants_se.py"
+        "../src/get_PSI_sparse_quants_se.py"
 
           
 def get_pair(rd1):
     return(paired_dict[rd1])
            
-rule get_sparse_quants_pe:
+rule get_PSI_sparse_quants_pe:
     input:
-        corrected_quant_rd1 = "Report/quant/corrected/{sample}.out_filtered_ME.PSI.gz",
-        corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.out_filtered_ME.PSI.gz", rd2=paired_dict[w.sample])
+        corrected_quant_rd1 = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz",
+        corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
     output:
-        corrected_sparse = protected("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz")
+        corrected_PSI_sparse = protected("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_sparse_quants_pe.py"
+        "../src/get_PSI_sparse_quants_pe.py"
 
 rule detection_filter_se:
     input:
-        PSI_files = lambda w : expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] ),
+        PSI_files = lambda w : expand("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se[w.sample_group] ),
         ME_reads = lambda w : expand("Round2/ME_reads/{sample_group}.counts.tsv", sample_group = sample_group_se[w.sample_group] )
     output:
         detected = "Report/filter/se/{sample_group}.detected.txt"
@@ -201,7 +201,7 @@ rule detection_filter_se:
         
 rule detection_filter_pe:
     input:
-        PSI_files = lambda w : expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe[w.sample_group] ),
+        PSI_files = lambda w : expand("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe[w.sample_group] ),
         ME_reads = lambda w : expand("Round2/ME_reads/{sample_group}.counts.tsv", sample_group = sample_group_pe[w.sample_group] )
     output:
         detected = "Report/filter/pe/{sample_group}.detected.txt"
@@ -210,7 +210,7 @@ rule detection_filter_pe:
 	
 rule detection_filter_sp:
     input:
-        PSI_files = lambda w : expand("Report/quant/sparse/single_cell/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = cluster_pseudo_pools[w.cluster] ),
+        PSI_files = lambda w : expand("Report/quant/corrected/PSI_sparse/single_cell/{pseudo_pool}.corrected.PSI.gz", pseudo_pool = cluster_pseudo_pools[w.cluster] ),
 	ME_reads = lambda w : expand("Round2/ME_reads/{pseudo_pool}.counts.tsv", pseudo_pool = cluster_cells[w.cluster] )
     output:
         detected = "Report/filter/sc/{cluster}.detected.txt"
@@ -230,9 +230,9 @@ rule detection_filter_total:
 
 rule detection_filter:
     input : 
-        bulk_se = expand("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
-        bulk_pe = expand("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe_set),
-        single_cell = expand("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
+        bulk_se = expand("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
+        bulk_pe = expand("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe_set),
+        single_cell = expand("Report/quant/corrected/PSI_sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
         bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se_set),
         bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe_set),
         single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict_simple.keys()))

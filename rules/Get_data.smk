@@ -74,6 +74,27 @@ rule get_fastq:
     input:
         expand("FASTQ/{sample}.fastq.gz", sample=DATA)	        
 
+rule validate_fastq:
+    input:
+        "FASTQ/{sample}.fastq.gz"
+    output:
+        "FASTQ/valid/{sample}.valid.fastq.gz"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python src/validate_fastq.py {input} {output}"
+
+rule validate_fastq2:
+    input:
+        "FASTQ/round2/{sample}.fastq.gz"
+    output:
+        "FASTQ/round2/valid/{sample}.valid.fastq.gz"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python src/validate_fastq.py {input} {output}"
+
+
 if "Gene_anontation_bed12" in config:
     pass
 else:
