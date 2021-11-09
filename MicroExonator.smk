@@ -8,6 +8,14 @@ random.seed(123)
 
 configfile : "config.yaml"
 DATA = set([])
+to_validate = set([])
+
+if "validate_fastq_list" in config:
+
+    with open(config["validate_fastq_list"]) as fastq_list:
+        reader = csv.reader(fastq_list, delimiter="\t")
+        for row in reader:
+            to_validate.add(row[0])
 
 def str2bool(v):
   if v==True:
@@ -17,10 +25,40 @@ def str2bool(v):
   else:
     return v.lower() in ("yes", "true", "t", "1")
 
+def hard_drive_behavior(wildcards):
+    
+    fastq = wildcards.sample
+
+    if config.get("Optimize_hard_drive", False)=="T":
+
+        if "validate_fastq_list" in config:
+
+            if fastq in to_validate:
+                return("FASTQ/round2/valid/" + fastq + ".valid.fastq.gz")
+            else:
+                return(  "FASTQ/round2/" + fastq + ".fastq.gz")
+
+        else:
+            return(  "FASTQ/round2/" + fastq + ".fastq.gz")
+    else:
+
+        if "validate_fastq_list" in config:
+
+            if fastq in to_validate:
+                return("FASTQ/valid/" + fastq + ".valid.fastq.gz")
+            else:
+                return(  "FASTQ/" + fastq + ".fastq.gz")
+        else:
+
+            return("FASTQ/" + fastq + ".fastq.gz")
+
+
 rule quant:
     input:
         "Report/out.high_quality.txt",
-        expand("Report/quant/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
+        expand("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz", sample=DATA),
+        expand("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz", sample=DATA),
+        #expand("Round2/ME_reads/{sample}.ME_spanning_reads.tsv", sample=DATA)
         #"Report/out_filtered_ME.PSI.txt",        
         #"Report/stats/Microexons.not_consensus",
         #"Report/stats/Microexons.annotation.stats"        
