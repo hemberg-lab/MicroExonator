@@ -116,6 +116,7 @@ if "paired_samples" in config:
             for row in reader:
 
                 pe_samples.add(row[0])
+                pe_samples.add(row[1])
                 paired_dict[row[0]] = row[1]
 
 

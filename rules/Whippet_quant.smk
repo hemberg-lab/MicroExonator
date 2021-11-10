@@ -37,6 +37,28 @@ rule get_GTF:
     shell:
         "python src/get_isoforms2.py {input} {params}  > {output}"
 
+rule get_GTF_robustly:
+    input:
+        genome_fasta = config["Genome_fasta"],
+        annotation_bed12 = config["Gene_anontation_bed12"],
+        annotation_GTF = config["Gene_anontation_GTF"],
+        out_filtered_ME = "Report/out.robustly_detected.txt"
+    params:
+        chrM = False
+    output:
+        ME_GTF = "Report/out.robustly_detected.gtf"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        "python src/get_isoforms2.py {input} {params}  > {output}"
+
+filter_mode = config.get("filter_mode", "original")
+
+def ME_GTF():
+    if filter_mode=="unbiased":
+        return("Report/out.robustly_detected.gtf")
+    else:
+        return("Report/out.high_quality.gtf")
 
 
 if str2bool(config.get("Only_whippet", False)):
@@ -58,7 +80,7 @@ else:
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
-              ME_GTF = "Report/out.high_quality.gtf"
+              ME_GTF = ME_GTF()
           params:
               bin = config["whippet_bin_folder"],
               julia = config["julia"]
@@ -158,12 +180,15 @@ rule BamIndex:
 #        "zcat {input} > {output}"
 
 
+
 def get_downstream_PSI(wildcards):
     if str2bool(config.get("use_corrected_PSI", False)):
-        return( "Report/quant/corrected/PSI_sparse/bulk/se/"  + wildcards.sample + ".corrected.PSI.gz" )
+        if wildcards.sample in pe_samples:
+            return( "Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz" )
+        else: 
+            return( "Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz" )
     else:
-        return( "Report/quant/" + wildcards.sample + ".out_filtered_ME.PSI.uncorrected.gz"  ) 
-
+        return( "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz"  )
 
 rule ME_psi_to_quant:
     input:

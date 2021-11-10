@@ -171,7 +171,7 @@ rule get_PSI_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"
     output:
-        corrected_PSI_sparse = protected("Report/quant/sparse/bulk/se/{sample}.corrected.PSI.gz")
+        corrected_PSI_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_PSI_sparse_quants_se.py"
@@ -185,7 +185,7 @@ rule get_PSI_sparse_quants_pe:
         corrected_quant_rd1 = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz",
         corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
     output:
-        corrected_PSI_sparse = protected("Report/quant/sparse/bulk/pe/{sample}.corrected.PSI.gz")
+        corrected_PSI_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_PSI_sparse_quants_pe.py"
@@ -227,26 +227,19 @@ rule detection_filter_total:
         expand("Report/filter/sc/{cluster}.detected.txt",  cluster=cluster_pseudo_pools.keys())
         
         
-
 rule detection_filter:
     input : 
-        bulk_se = expand("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz", sample = sample_group_se_set),
-        bulk_pe = expand("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe_set),
-        single_cell = expand("Report/quant/corrected/PSI_sparse/single_cell/{cluster}.corrected.PSI.gz", cluster = pseudo_pool_dict.keys()),   
-        bulk_ME_reads_se = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_se_set),
-        bulk_ME_reads_pe = expand( "Round2/ME_reads/{sample}.counts.tsv",  sample = sample_group_pe_set),
-        single_cell_reads = expand( "Round2/ME_reads/{cluster}.counts.tsv",  cluster = set(pseudo_pool_dict_simple.keys()))
+        bulk_se = expand("Report/filter/se/{sample_group}.detected.txt",  sample_group=sample_group_se.keys()),
+        bulk_pe = expand("Report/filter/pe/{sample_group}.detected.txt",  sample_group=sample_group_pe.keys()),
+        single_cell = expand("Report/filter/sc/{cluster}.detected.txt",  cluster=cluster_pseudo_pools.keys()),
+        ME_centric = "Round2/TOTAL.ME_centric.txt"   
     params:
-        se_dict = sample_group_se,
-        pe_dict = sample_group_pe,
-        pseudo_dict = pseudo_pool_dict_simple
+        min_detected_samples = int(config.get("min_detected_samples", 1))
     output:
-       detected_list = "Report/filter/robustly_detected_ME.txt"
-    params:
-       min_PSI = config["min_PSI"]
+       detected_list = "Report/out.robustly_detected.txt"
     priority: 10
     script:
-        "../src/final_filters.py"  
+        "../src/final_filters2.py"  
 
 
 ## GENE EXPRESSION
