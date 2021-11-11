@@ -215,13 +215,21 @@ rule ME_psi_to_quant:
 
 # # # # # # #
 
+def ME_list():
+    if filter_mode=="unbiased":
+        return("Report/out.robustly_detected.txt")
+    else:
+        return("Report/out.high_quality.txt")
+
+
 if str2bool(config.get("Only_snakepool", False))==False:
 
       rule delta_ME_from_whippet:
           input:
               "Whippet/Index/whippet.jls.exons.tab.gz",
               "Whippet/Delta/{comparison_name}.diff.gz",
-              "Report/out.high_quality.txt"
+              #"Report/out.high_quality.txt"
+              ME_list()
           output:
               "Whippet/Delta/{comparison_name}.diff.microexons"
           shell:
@@ -231,7 +239,8 @@ if str2bool(config.get("Only_snakepool", False))==False:
           input:
               "Whippet/Index/whippet.jls.exons.tab.gz",
               "Whippet/Delta/{comparison_name}.ME.diff.gz",
-              "Report/out.high_quality.txt"
+              #"Report/out.high_quality.txt"
+              ME_list()
           output:
               "Whippet/Delta/{comparison_name}.diff.ME.microexons"
           shell:

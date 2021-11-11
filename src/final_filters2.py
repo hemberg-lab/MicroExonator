@@ -23,9 +23,9 @@ for f in total_filter_files:
 
             if detected_samples>=min_detected_samples:
 
-                detected_ME.add(row["ME"]
+                detected_ME.add(row["ME"])
 
-with open(snakemake.input["ME_centric"]) as file, open(snakemake.output["out_high_quality"]) as out:
+with open(snakemake.input["ME_centric"]) as file, open(snakemake.output["detected_list"], "w") as out:
 
     reader = csv.reader(file, delimiter="\t")
 

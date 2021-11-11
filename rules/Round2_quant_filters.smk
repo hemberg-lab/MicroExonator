@@ -162,19 +162,19 @@ rule get_PSI_sparse_quants_sp:
     input:
         cells = lambda w : get_cell_sp(w.cluster)
     output:
-        corrected_PSI_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
+        corrected_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_PSI_sparse_quants_sp.py" 
+        "../src/get_sparse_quants_sp.py" 
                 
 rule get_PSI_sparse_quants_se:
     input:
         corrected_quant = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"
     output:
-        corrected_PSI_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz")
+        corrected_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_PSI_sparse_quants_se.py"
+        "../src/get_sparse_quants_se.py"
 
           
 def get_pair(rd1):
@@ -185,10 +185,10 @@ rule get_PSI_sparse_quants_pe:
         corrected_quant_rd1 = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz",
         corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
     output:
-        corrected_PSI_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz")
+        corrected_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz")
     priority: 10
     script:
-        "../src/get_PSI_sparse_quants_pe.py"
+        "../src/get_sparse_quants_pe.py"
 
 rule detection_filter_se:
     input:
