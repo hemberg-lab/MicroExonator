@@ -1,5 +1,5 @@
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-GS = GSRemoteProvider()
+#GS = GSRemoteProvider()
 
 
 if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify microexons from annotation and database sources

@@ -1,5 +1,5 @@
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-GS = GSRemoteProvider( project="Brain-NeMO" )
+#GS = GSRemoteProvider( project="Brain-NeMO" )
  
 
 if "google_path" in config:

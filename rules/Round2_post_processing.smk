@@ -1,6 +1,6 @@
 
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-GS = GSRemoteProvider()
+#GS = GSRemoteProvider()
 
 #wildcard_constraints:
 #    sample="([a-zA-Z0-9]*)_.*"
