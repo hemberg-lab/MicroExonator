@@ -272,8 +272,8 @@ if not "Single_Cell" in config:
 
 if str2bool(config["Single_Cell"]):
 #   include : "rules/Snakepool.py"
-   include : "rules/pseudo_pool.smk"
-
+    include : "rules/pseudo_pool.smk"
+    ruleorder: quant_pool_pb > whippet_quant
 #### Benchmark ####
 
 #include : "rules/Benchmark.smk
@@ -306,7 +306,12 @@ rule rerun_incomplete_round2:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=round2_incomplete )
     
+
+rule get_whippet_psi:
+    input:
+        expand("Whippet/Quant/{sample}.psi.gz", sample=DATA)
+
     
 include : "rules/sashimi.smk"
   
-ruleorder: quant_pool_pb > whippet_quant
+#ruleorder: quant_pool_pb > whippet_quant
