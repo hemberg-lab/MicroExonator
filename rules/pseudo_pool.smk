@@ -85,7 +85,7 @@ rule collapse_pseudo_pools:
       gene = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv.gz",
       isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv.gz",
       psi =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv.gz",
-      table =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulk_membership.tsv.gz"
+      table =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulk_membership.tsv"
 
 
 rule merge_quant_gene_sp:
