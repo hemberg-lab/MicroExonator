@@ -59,7 +59,7 @@ if str2bool(config.get("keep_uncollapsed_pseudobulk", False))
     rule quant_pool_pb:
         input:
             fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
-        index = "Whippet/Index/whippet.jls"
+            index = "Whippet/Index/whippet.jls"
         output:
             "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz",
             "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz",
@@ -79,7 +79,7 @@ else:
     rule quant_pool_pb:
         input:
             fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
-        index = "Whippet/Index/whippet.jls"
+            index = "Whippet/Index/whippet.jls"
         output:
             temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz"),
             temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz"),
