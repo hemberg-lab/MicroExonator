@@ -241,12 +241,13 @@ elif str2bool(config.get("skip_discovery_and_quant", False)):
 elif str2bool(config.get("skip_discovery", False)):
     include : "rules/Round2.smk"
     include : "rules/Round2_post_processing.smk"
+    include : "rules/Round2_quant_filters.smk"
 else:
     include : "rules/Round1.smk"
     include : "rules/Round1_post_processing.smk"
     include : "rules/Round2.smk"
     include : "rules/Round2_post_processing.smk"
-
+    include : "rules/Round2_quant_filters.smk"
 rule discovery:
     input:
         expand("Round1/{sample}.sam.row_ME.filter1", sample=DATA )
@@ -262,7 +263,7 @@ if "whippet_delta" in config:
       whippet_delta = yaml.safe_load(stream)
    include : "rules/Whippet_delta.smk"
 
-include : "rules/Round2_quant_filters.smk"
+#include : "rules/Round2_quant_filters.smk"
 
 #### Single Cell ###
 
@@ -270,7 +271,7 @@ if not "Single_Cell" in config:
    config["Single_Cell"]="F"
 
 if str2bool(config["Single_Cell"]):
-   include : "rules/Snakepool.py"
+#   include : "rules/Snakepool.py"
    include : "rules/pseudo_pool.smk"
 
 #### Benchmark ####
@@ -308,4 +309,4 @@ rule rerun_incomplete_round2:
     
 include : "rules/sashimi.smk"
   
-
+ruleorder: quant_pool_pb > whippet_quant
