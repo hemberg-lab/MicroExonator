@@ -106,7 +106,8 @@ rule merge_quant_isoform_sp:
     input:
         files = expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{pseudo_pool}.isoform.tpm.gz", pseudo_pool=sb_IDs)
     params:
-        feature = "Isoform"
+        feature = "Isoform",
+	trim = "{pseudo_pool}"
     output:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
     script:
