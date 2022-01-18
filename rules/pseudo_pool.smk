@@ -54,23 +54,45 @@ def get_files_by_cluster_pb(cluster, pool_ID):
     path="FASTQ/"
     return([path + x + ext for x in cluster_files_pb[(cluster, int(pool_ID))]])
 
-rule quant_pool_pb:
-    input:
-        fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
-	index = "Whippet/Index/whippet.jls"
-    output:
-        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz"),
-	temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz"),
-        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz"),
-        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz"),
-        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
-    params:
-        bin = config["whippet_bin_folder"],
-        julia = config["julia"],
-        output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
-    priority: 10
-    shell:
-        "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+if str2bool(config.get("keep_uncollapsed_pseudobulk", False)
+
+    rule quant_pool_pb:
+        input:
+            fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
+        index = "Whippet/Index/whippet.jls"
+        output:
+            "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz",
+            "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz",
+            "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz",
+            "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz",
+            "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz"
+        params:
+            bin = config["whippet_bin_folder"],
+            julia = config["julia"],
+            output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
+        priority: 10
+        shell:
+            "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+            
+else:	
+
+    rule quant_pool_pb:
+        input:
+            fastq = lambda w: get_files_by_cluster_pb(w.cluster, w.pool_ID),
+        index = "Whippet/Index/whippet.jls"
+        output:
+            temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.gene.tpm.gz"),
+        temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.isoform.tpm.gz"),
+            temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.jnc.gz"),
+            temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.map.gz"),
+            temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
+        params:
+            bin = config["whippet_bin_folder"],
+            julia = config["julia"],
+            output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
+        priority: 10
+        shell:
+            "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
 #print(expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))))
         
