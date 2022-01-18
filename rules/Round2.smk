@@ -258,7 +258,10 @@ rule download_fastq2:
         #"bash {input[0]}"
         "bash {input[0]} && mv {params} {output}"
 
-def hard_drive_behavior(fastq):
+def hard_drive_behavior(sample):
+    
+    fastq = sample
+
     if config.get("Optimize_hard_drive", False)=="T":
     
         if "validate_fastq_list" in config:
@@ -287,14 +290,14 @@ def hard_drive_behavior(fastq):
                 reader = csv.reader(fastq_list, delimiter="\t")
                 for row in reader:
                     to_validate.add(row[0])
-                    
-            if fastq in to_validate:
-                return("FASTQ/" + fastq + ".fastq.gz.valid")
+             
+            if str(fastq) in to_validate:
+                return("FASTQ/" + str(fastq) + ".fastq.gz.valid")
             else:
-                return(  "FASTQ/" + fastq + ".fastq.gz")
+                return(  "FASTQ/" + str(fastq) + ".fastq.gz")
         else:
 
-            return("FASTQ/" + fastq + ".fastq.gz")
+            return("FASTQ/" + str(fastq) + ".fastq.gz")
 
 
 rule validate_fastq:
@@ -302,16 +305,20 @@ rule validate_fastq:
         "FASTQ/{sample}.fastq.gz"
     output:
         "FASTQ/{sample}.fastq.gz.valid"
+    conda:
+         "../envs/biopython_py3.yaml"
     shell:
-        "python3 src/validate_fastq.py {input}"
+        "python3 src/validate_fastq.py {input} {output}"
     
 rule validate_fastq2:
     input:
         "FASTQ/round2/{sample}.fastq.gz"
     output:
         "FASTQ/round2/{sample}.fastq.gz.valid"
+    conda:
+         "../envs/biopython_py3.yaml"
     shell:
-        "python3 src/validate_fastq.py {input}"
+        "python3 src/validate_fastq.py {input} {output}"
 
 
 #if "google_path" in config:
@@ -333,7 +340,7 @@ rule validate_fastq2:
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",
-         hard_drive_behavior("{sample}"),
+         hard_drive_behavior,
          expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
     output:
         temp("Round2/{sample}.sam.raw")

@@ -1,10 +1,15 @@
 from Bio.SeqRecord import SeqRecord
 import gzip
 from Bio import bgzf
+import sys
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
 
-def main(row_fastq):
+
+def main(row_fastq, row_fastq_validated):
 	
-    with gzip.open(row_fastq, "rt") as f, gzip.open(row_fastq + ".gz", 'wt') as out:
+    with gzip.open(row_fastq, "rt") as f, gzip.open(row_fastq_validated, 'wt') as out:
 
         for read in SeqIO.parse(f, "fastq"):
  
@@ -16,4 +21,4 @@ def main(row_fastq):
                 
                 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])
