@@ -82,10 +82,10 @@ rule get_pseudo_pools:
 	
 rule collapse_pseudo_pools:
   input: 
-      gene = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv",
-      isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv",
-      psi =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv",
-      table =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulk_membership.tsv"
+      gene = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv.gz",
+      isoform = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv.gz",
+      psi =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv.gz",
+      table =  "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulk_membership.tsv.gz"
 
 
 rule merge_quant_gene_sp:
@@ -97,7 +97,7 @@ rule merge_quant_gene_sp:
     params:
         feature = "Gene"
     output:
-        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv"
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.gene.tpm.tsv.gz"
     script:
         "../src/merge_quant.py"
 
@@ -108,7 +108,7 @@ rule merge_quant_isoform_sp:
     params:
         feature = "Isoform"
     output:
-        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv"
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.isoform.tpm.tsv.gz"
     script:
         "../src/merge_quant.py"
 	
@@ -118,7 +118,7 @@ rule merge_quant_PSI_sp:
     params:
         feature = "PSI"
     output:
-        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv"
+        merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv.gz"
     script:
         "../src/merge_quant.py"
 
