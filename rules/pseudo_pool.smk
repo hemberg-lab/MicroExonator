@@ -10,8 +10,8 @@ def partition (list_in, n):  # Function to do random pooling
     return [list_in[i::n] for i in range(n)]
 
 #n_sb = 5
-if "n_pseudo_bulks" in config:
-    n_cells = int(config["n_pseudo_bulks"])
+if "cells_pseudobulks" in config:
+    n_cells = int(config["cells_pseudobulks"])
 else:
     n_cells = 15 
 
@@ -20,9 +20,14 @@ sb_IDs = set()
 
 for cluster, files in cluster_files.items():
     sb = 1
-    n_sb = round(len(files)/n_cells)
-    if n_sb<3:
-        n_sb=3
+    
+    if "n_pseudobulks" in config:
+        n_sb = int(config["n_pseudobulks"])
+    
+    else:
+        n_sb = round(len(files)/n_cells)
+        if n_sb<3:
+            n_sb=3
         
     for pool in partition(files, n_sb):
         cluster_files_pb[(cluster, sb)] = pool
@@ -61,10 +66,11 @@ rule quant_pool_pb:
         temp("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz")
     params:
         bin = config["whippet_bin_folder"],
+        julia = config["julia"],
         output = "Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}"
     priority: 10
     shell:
-        "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+        "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
 #print(expand("Whippet/Quant/Single_Cell/Pseudo_bulks/{cluster}_{pool_ID}.psi.gz", cluster=cluster_files.keys(), pool_ID=list(range(1, n_sb+1  ))))
         
@@ -115,3 +121,4 @@ rule merge_quant_PSI_sp:
         merged = "Whippet/Quant/Single_Cell/Pseudo_bulks/pseudo_bulks.psi.tsv"
     script:
         "../src/merge_quant.py"
+
