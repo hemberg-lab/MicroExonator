@@ -183,7 +183,7 @@ def get_pair(rd1):
 rule get_PSI_sparse_quants_pe:
     input:
         corrected_quant_rd1 = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz",
-        corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
+        corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/counts/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
     output:
         corrected_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz")
     priority: 10
