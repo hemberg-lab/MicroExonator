@@ -195,7 +195,7 @@ with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open
             out = "\t".join([sample, group])
             out_sample_groups.write(out + "\n")
         
-    for  group, sample in sample_group_pe.items():
+    for  group, samples in sample_group_pe.items():
         for sample in samples:
             out = "\t".join([sample, group])
             out_sample_groups.write(out + "\n")
