@@ -54,7 +54,7 @@ def get_files_by_cluster_pb(cluster, pool_ID):
     path="FASTQ/"
     return([path + x + ext for x in cluster_files_pb[(cluster, int(pool_ID))]])
 
-if str2bool(config.get("keep_uncollapsed_pseudobulk", False))
+if str2bool(config.get("keep_uncollapsed_pseudobulk", False)):
 
     rule quant_pool_pb:
         input:

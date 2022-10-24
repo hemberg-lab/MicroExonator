@@ -65,7 +65,7 @@ if str2bool(config.get("Only_whippet", False)):
       rule whippet_index:
           input:
               Genome = config["Genome_fasta"],
-              ME_GTF = ME_GTF()
+              ME_GTF = config["Gene_anontation_GTF"]
           params:
               bin = config["whippet_bin_folder"],
               julia = config["julia"]
