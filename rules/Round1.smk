@@ -20,6 +20,8 @@ rule Round1_bwa_mem_to_tags:
     priority: 100
     params: 
         indel = config["indel_penalty"]
+    resources:
+        disk = 1
     conda:
         "../envs/core.yaml"
     shell:
