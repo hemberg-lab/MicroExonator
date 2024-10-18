@@ -4,23 +4,17 @@ channels:
   - defaults
   - cgat
 dependencies:
-  - bcftools=1.7
-  - bedtools=2.27.1
-  - hisat2=2.1.0
-  - htslib=1.7
-  - pybedtools=0.7.10
-  - pysam=0.14.1
+  - biopython=1.*      
+  - hisat2=2.*
+  - htslib
+  - pysam
   - samtools=1.9
-  - biopython
-  - pandas=0.23.4
-  - python=2.7
-  - numpy=1.14.3
-  - numpy-base=1.14.3
-  - pybedtools
+  - pandas
+  - python=2.*
+  - numpy
   - pyBigWig
-  - bwa=0.7.15
+  - bwa=0.7.*
   - bowtie
   - cramtools
-  - tbb=2020.2
+  - tbb=2020.*
   - gffread
-

@@ -4,20 +4,15 @@ channels:
   - defaults
   - cgat
 dependencies:
-  - bcftools=1.7=0
-  - bedtools=2.27.1=he941832_2
-  - hisat2=2.1.0=py36pl5.22.0_0
-  - htslib=1.7=0
-  - pybedtools=0.7.10=py36_2
-  - pysam=0.14.1=py36hae42fb6_1
-  - samtools=1.9=h8ee4bcc_1
-  - sra-tools=2.9.1_1
+  - numpy
+  - pandas
+  - hisat2=2.1.0
+  - htslib=1.*
+  - pysam
+  - samtools=1.9
+  - sra-tools=2.9.*
   - biopython
-  - pandas=0.23.4=py36hf8a1672_0
-  - python=3.6.6=h5001a0f_0
-  - numpy=1.14.3
-  - numpy-base=1.14.3=py36h0ea5e3f_1
-  - pybedtools
+  - python=3.6
   - pyBigWig
-  - bwa=0.7.15
+  - bwa=0.7.*
   - bowtie
