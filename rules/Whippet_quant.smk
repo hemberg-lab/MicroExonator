@@ -52,10 +52,8 @@ rule get_GTF_robustly:
     shell:
         "python src/get_isoforms2.py {input} {params}  > {output}"
 
-filter_mode = config.get("filter_mode", "original")
-
 def ME_GTF():
-    if filter_mode=="unbiased":
+    if FILTER_METHOD == "robustness":
         return("Report/out.robustly_detected.gtf")
     else:
         return("Report/out.high_quality.gtf")
@@ -216,10 +214,7 @@ rule ME_psi_to_quant:
 # # # # # # #
 
 def ME_list():
-    if filter_mode=="unbiased":
-        return("Report/out.robustly_detected.txt")
-    else:
-        return("Report/out.high_quality.txt")
+    return(FILTERED_ME_OUTPUT)
 
 
 if str2bool(config.get("Only_snakepool", False))==False:

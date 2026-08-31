@@ -39,14 +39,6 @@ random.seed(123)
 #                 pe_samples.add(row[0])
 #                 paired_dict[row[0]] = row[1]
 
-if 'cluster_metadata' in config:
-    with open(  config["cluster_metadata"]) as file:
-  
-        reader = csv.DictReader(file, delimiter="\t")
-    
-        for row in reader:
-            DATA.add(row[config["file_basename"]])
-
 #print(DATA)
     
 #         primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
@@ -162,7 +154,7 @@ rule get_PSI_sparse_quants_sp:
     input:
         cells = lambda w : get_cell_sp(w.cluster)
     output:
-        corrected_sparse = protected("Report/quant/sparse/single_cell/{cluster}.corrected.PSI.gz")
+        corrected_sparse = protected("Report/quant/corrected/PSI_sparse/single_cell/{cluster}.corrected.PSI.gz")
     priority: 10
     script:
         "../src/get_sparse_quants_sp.py" 
@@ -198,11 +190,15 @@ rule detection_filter_se:
         detected = "Report/filter/se/{sample_group}.detected.txt"
     script:
         "../src/detected_me.py"
+
+def paired_group_read_files(sample_group):
+    samples = paired_read_samples(sample_group_pe[sample_group], paired_dict)
+    return expand("Round2/ME_reads/{sample}.counts.tsv", sample=samples)
         
 rule detection_filter_pe:
     input:
         PSI_files = lambda w : expand("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz", sample = sample_group_pe[w.sample_group] ),
-        ME_reads = lambda w : expand("Round2/ME_reads/{sample_group}.counts.tsv", sample_group = sample_group_pe[w.sample_group] )
+        ME_reads = lambda w : paired_group_read_files(w.sample_group)
     output:
         detected = "Report/filter/pe/{sample_group}.detected.txt"
     script:

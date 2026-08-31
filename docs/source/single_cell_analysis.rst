@@ -41,9 +41,33 @@ To run this secction the following parameters needs to be incorporated at ``conf
 * ``run_metadata`` indicates the path of a tabulat separated file which contain information about user-defined comparisons across cell-types. Additional information about this file can be found bellow.
 
 
+Grouping for confidence filtering
+---------------------------------
+
+For a pure single-cell run, ``bulk_samples.tsv`` is not required. MicroExonator
+chooses robustness-filter groups as follows:
+
+* If ``cluster_metadata`` is supplied, every value in the configured
+  ``cluster_name`` column becomes a sample group. All listed cells must match
+  input sample names, and every input cell must occur exactly once. Spaces in
+  cluster names are converted to underscores for output paths; labels that
+  collide after conversion or contain other path-special characters are
+  rejected.
+* If ``cluster_metadata`` is omitted, all input cells are treated as one large
+  sample group named ``all_cells``.
+
+The cluster metadata fields are therefore optional for discovery and
+quantification. They remain required when running cluster-dependent downstream
+analyses such as ``snakepool``. A run containing both bulk and single-cell
+inputs must provide both ``bulk_samples`` and ``cluster_metadata`` so every
+input can be assigned unambiguously.
+
+
 .. warning::
 
-    If ``Single_Cell`` is set to ``T`` all the other parameters listed above will become compulsory. Thus, you should only activate this module if you have the required parameters on ``config.yaml``.  
+    The additional ``snakepool`` parameters listed above are compulsory when
+    running the ``snakepool`` target, even though cluster metadata is optional
+    for single-cell discovery and quantification alone.
 
 
 run_metadata

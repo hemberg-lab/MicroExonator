@@ -4,11 +4,34 @@ import yaml
 from collections import defaultdict
 import csv
 import random
+import warnings
+from snakemake.exceptions import WorkflowError
+from src.filtering_config import (
+    load_filter_groups,
+    paired_read_samples,
+    resolve_filter_method,
+    selected_microexon_output,
+)
 random.seed(123)
 
 configfile : "config.yaml"
 DATA = set([])
 to_validate = set([])
+EBWT = [
+    "1.ebwt",
+    "2.ebwt",
+    "3.ebwt",
+    "4.ebwt",
+    "rev.1.ebwt",
+    "rev.2.ebwt",
+]
+
+warnings.simplefilter("default", DeprecationWarning)
+try:
+    FILTER_METHOD = resolve_filter_method(config)
+except ValueError as error:
+    raise WorkflowError(str(error))
+FILTERED_ME_OUTPUT = selected_microexon_output(FILTER_METHOD)
 
 if "validate_fastq_list" in config:
 
@@ -53,55 +76,13 @@ def hard_drive_behavior(wildcards):
             return("FASTQ/" + fastq + ".fastq.gz")
 
 
-rule quant:
-    input:
-        "Report/out.high_quality.txt",
-        expand("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz", sample=DATA),
-        expand("Report/quant/corrected/counts/{sample}.ME.adj_counts.gz", sample=DATA),
-        #expand("Round2/ME_reads/{sample}.ME_spanning_reads.tsv", sample=DATA)
-        #"Report/out_filtered_ME.PSI.txt",        
-        #"Report/stats/Microexons.not_consensus",
-        #"Report/stats/Microexons.annotation.stats"        
-        
-        #"Report/out_filtered_ME.txt"
-        #expand("Genome_aligments/{Software}/TOTAL.exons.{Software}", Software=["Hisat2", "STAR", "Olego"])
-        # expand("Genome_aligments/{Software}/{sample}.sam.SJ_count", sample=DATA, Software=["Hisat2", "STAR"]),
-        #expand("Whippet/Quant/{sample}.psi.gz", sample=DATA),
-        #expand("Ground_Truth/{sample}.GT.SJ_count", sample=DATA)
+cluster_files = defaultdict(list)
+cluster_files_metadata = defaultdict(list)
+single_cell_files = set([])
 
-
-
-
-if 'cluster_metadata' in config:
-
-    cluster_files = defaultdict(list)
-    cluster_files_metadata = defaultdict(list)
-    single_cell_files = set([])
-
-    with open(config["cluster_metadata"]) as Single_Cell:
-
-        Single_Cell_clustering = csv.DictReader(Single_Cell, delimiter="\t")
-
-        for row in Single_Cell_clustering:
-
-            cluster_files[row[config["cluster_name"]].replace(" ", "_")].append(row[config["file_basename"]])
-            single_cell_files.add(row[config["file_basename"]])
-
-
-
-##### Round2_quant_filters
 
 
 csv.field_size_limit(100000000)
-
-
-  
-def partition (list_in, n):  # Function to do random pooling
-    random.shuffle(list_in)
-    return [list_in[i::n] for i in range(n)]
-  
-
-primary_clusters = defaultdict(list)
 
 pe_samples = set([])
 paired_dict = dict()
@@ -118,88 +99,6 @@ if "paired_samples" in config:
                 pe_samples.add(row[0])
                 pe_samples.add(row[1])
                 paired_dict[row[0]] = row[1]
-
-
-if 'cluster_metadata' in config:
-    with open(  config["cluster_metadata"]) as file:
-  
-        reader = csv.DictReader(file, delimiter="\t")
-    
-        for row in reader:
-            primary_clusters[row[config["cluster_name"]]].append(row[config["file_basename"]])
-
-
-
-def partition (list_in, n):  # Function to do random pooling
-    random.shuffle(list_in)
-    return [list_in[i::n] for i in range(n)]
-    
-
-sample_group_se = defaultdict(list)
-sample_group_pe = defaultdict(list)
-sample_group_se_set = set()
-sample_group_pe_set = set()
-
-pseudo_pool_dict =  defaultdict(list)
-pseudo_pool_dict_simple = dict()
-cluster_pseudo_pools = defaultdict(list)
-cluster_cells = defaultdict(list)
-
-for cluster in primary_clusters:
-    
-    c = 0
-    cells = primary_clusters[cluster]
-    pseudo_pools = partition( cells , 3 )
-    pseudo_pool_ID = ""
-
-    if cluster !="":    
-
-        for pool in pseudo_pools:
-        
-            c+=1
-            pseudo_pool_ID =cluster.replace(" ", "_") + "-" + str(c)
-            cluster_pseudo_pools[cluster.replace(" ", "_")].append(pseudo_pool_ID)	
- 
-            for cell in pool:
-                pseudo_pool_dict[pseudo_pool_ID].append(cell)
-                cluster_cells[cluster.replace(" ", "_")].append(cell)
-                pseudo_pool_dict_simple[cell] = pseudo_pool_ID	 
-            
-if "bulk_samples" in config:
-           
-    with open(config["bulk_samples"]) as file:
-
-        reader = csv.DictReader(file, delimiter="\t")
-        for row in reader:
-            if row["sample"] in pe_samples:
-                if row["sample"] in paired_dict:
-                    sample_group_pe[row["condition"]].append(row["sample"])
-                    #sample_group_pe[row["sample"]] = row["condition"]
-                    sample_group_pe_set.add(row["sample"])
-            else:
-                sample_group_se[row["condition"]].append(row["sample"]),
-                #sample_group_se[row["sample"]] = row["condition"]
-                sample_group_se_set.add(row["sample"])
-        
-
-with open("pseudo_pool_membership.txt", "w") as out_pseudo_pool_membership, open("sample_groups.txt", "w") as out_sample_groups:
-    
-    for sp, cells  in pseudo_pool_dict.items():  
-        for cell in cells:
-            out = "\t".join([cell, sp])  
-            out_pseudo_pool_membership.write(out + "\n")
-        
-    
-    for  group, samples in sample_group_se.items():
-        for sample in samples:
-            out = "\t".join([sample, group])
-            out_sample_groups.write(out + "\n")
-        
-    for  group, samples in sample_group_pe.items():
-        for sample in samples:
-            out = "\t".join([sample, group])
-            out_sample_groups.write(out + "\n")
-#####            
             
             
             
@@ -223,9 +122,89 @@ if ("paired_samples" in config)==False:
 if ("min_reads_PSI" in config)==False:
     config["min_reads_PSI"]="5"
 
+if "Single_Cell" not in config:
+    config["Single_Cell"]="F"
+
 
 include : "rules/init.smk"
 include : "rules/Get_data.smk"
+
+
+try:
+    filter_groups = load_filter_groups(config, DATA, paired_dict=paired_dict)
+except ValueError as error:
+    raise WorkflowError(str(error))
+
+sample_group_se = defaultdict(list, filter_groups["bulk_se"])
+sample_group_pe = defaultdict(list, filter_groups["bulk_pe"])
+sample_group_se_set = set(
+    sample for samples in sample_group_se.values() for sample in samples
+)
+sample_group_pe_set = set(
+    sample for samples in sample_group_pe.values() for sample in samples
+)
+
+primary_clusters = defaultdict(list, filter_groups["single_cell"])
+cluster_files = defaultdict(
+    list,
+    {
+        cluster.replace(" ", "_"): cells
+        for cluster, cells in filter_groups["single_cell"].items()
+    },
+)
+single_cell_files = set(
+    sample for samples in primary_clusters.values() for sample in samples
+)
+
+def partition(list_in, n):
+    randomized = list(list_in)
+    random.shuffle(randomized)
+    return [randomized[i::n] for i in range(n)]
+
+pseudo_pool_dict = defaultdict(list)
+pseudo_pool_dict_simple = dict()
+cluster_pseudo_pools = defaultdict(list)
+cluster_cells = defaultdict(list)
+
+for cluster, cells in primary_clusters.items():
+    cluster_id = cluster.replace(" ", "_")
+    number_of_pools = min(3, len(cells))
+    if cluster_id and number_of_pools:
+        for pool_number, pool in enumerate(
+            partition(cells, number_of_pools), start=1
+        ):
+            pseudo_pool_id = "{}-{}".format(cluster_id, pool_number)
+            cluster_pseudo_pools[cluster_id].append(pseudo_pool_id)
+            cluster_cells[cluster_id].extend(pool)
+            for cell in pool:
+                pseudo_pool_dict[pseudo_pool_id].append(cell)
+                pseudo_pool_dict_simple[cell] = pseudo_pool_id
+
+with open("pseudo_pool_membership.txt", "w") as pool_membership, open(
+    "sample_groups.txt", "w"
+) as sample_groups:
+    for pseudo_pool, cells in pseudo_pool_dict.items():
+        for cell in cells:
+            pool_membership.write("{}\t{}\n".format(cell, pseudo_pool))
+    for group, samples in sample_group_se.items():
+        for sample in samples:
+            sample_groups.write("{}\t{}\n".format(sample, group))
+    for group, samples in sample_group_pe.items():
+        for sample in samples:
+            sample_groups.write("{}\t{}\n".format(sample, group))
+
+
+rule quant:
+    input:
+        FILTERED_ME_OUTPUT,
+        expand(
+            "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
+            sample=DATA,
+        ),
+        expand(
+            "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz",
+            sample=DATA,
+        )
 
 
 rule bamfiles:
@@ -238,6 +217,8 @@ if str2bool(config.get("downstream_only", False)):
     pass
 elif str2bool(config.get("skip_discovery_and_quant", False)):
     include : "rules/Round2_post_processing.smk"
+    if FILTER_METHOD == "robustness":
+        include : "rules/Round2_quant_filters.smk"
 elif str2bool(config.get("skip_discovery", False)):
     include : "rules/Round2.smk"
     include : "rules/Round2_post_processing.smk"
@@ -267,10 +248,7 @@ if "whippet_delta" in config:
 
 #### Single Cell ###
 
-if not "Single_Cell" in config:
-   config["Single_Cell"]="F"
-
-if str2bool(config["Single_Cell"]):
+if str2bool(config["Single_Cell"]) and "whippet_bin_folder" in config:
 #   include : "rules/Snakepool.py"
     include : "rules/pseudo_pool.smk"
     ruleorder: quant_pool_pb > whippet_quant

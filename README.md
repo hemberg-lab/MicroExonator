@@ -25,6 +25,14 @@ Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.i
 
 Extended documentation can be found at https://microexonator.readthedocs.io.
 
+The default confidence filter is now the quantitative robustness route. Bulk
+RNA-seq runs must declare biological sample groups in a tab-separated
+`bulk_samples.tsv` file and set `bulk_samples` in `config.yaml`. Pure
+single-cell runs may omit this file: cluster metadata defines the groups when
+provided, otherwise all cells are treated as one `all_cells` group. See the
+Discovery and Quantification documentation for the full configuration and the
+explicit `legacy_mixture` compatibility option.
+
 
 # Contact
 

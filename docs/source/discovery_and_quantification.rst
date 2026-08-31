@@ -33,6 +33,7 @@ An example of a ``config.yaml`` file that contain all these parameters would loo
     ME_len : 30
     Optimize_hard_drive : T
     min_number_files_detected : 3
+    bulk_samples : /path/to/bulk_samples.tsv
 
 Here:
 
@@ -52,6 +53,27 @@ Here:
 
 * ``min_number_files_detected`` correspond to the minumun number of in which a microexon needs to be found in order to concider it as high confidence. Setting this number to at least 2 is recommended single-end FASTQ files and 3 if paired end files are also present.
 
+* ``bulk_samples`` points to a tab-separated file that assigns every bulk
+  sample to a biological condition. This file is required for bulk RNA-seq
+  runs. It must contain the columns ``sample`` and ``condition``. Sample names
+  must match the input sample names exactly. For paired-end data, list the
+  first-read sample declared in ``paired_samples``; MicroExonator includes
+  evidence from both mates. Condition names are used in output paths: spaces
+  are converted to underscores, and other path-special characters are
+  rejected.
+
+For example:
+
+.. code-block:: text
+
+    sample\tcondition
+    control_1\tcontrol
+    control_2\tcontrol
+    treated_1\ttreated
+
+Pure single-cell runs do not require ``bulk_samples``. Their grouping policy is
+described in :doc:`single_cell_analysis`.
+
 .. note::
 
   If the corresponding files for ``GT_AG_U2_5``, ``GT_AG_U2_5`` or ``conservation_bigwig`` are not available for the specie you are currently working on, you can set any of these parameters as ``NA``.
@@ -67,6 +89,47 @@ The following parameters can be specified to further optimize the Discovery and 
 * ``min_reads_PSI`` is the minimun number of reads that needs supoort the existence of a novel microexon to consider it as high confidence. The default value is 3, but 5 or more is recommended if enough RNA-seq samples are provided.
 
 * ``paired_samples`` is a path to a tab-delimited file with two columns that indicate the correspndace between paired end samples names. This will enable MicroExonator to report a single quantification output per paired-end sample.
+
+Confidence filtering
+--------------------
+
+``filter_method`` selects the confidence filter. Its default value is
+``robustness``:
+
+.. code-block:: bash
+
+    filter_method : robustness
+    min_detected_samples : 1
+
+The robustness route retains a microexon within a sample group when its PSI
+confidence-interval lower bound is at least 0.1 in more than half of its
+measurements and it has at least three spanning reads across that group. A
+microexon must meet these criteria in at least ``min_detected_samples``
+measurements within one group. The selected table is written to
+``Report/out.robustly_detected.txt``.
+
+The historical Gaussian-mixture route is preserved for reproducibility but is
+no longer the default. It must be requested explicitly:
+
+.. code-block:: bash
+
+    filter_method : legacy_mixture
+
+This route writes ``Report/out.high_quality.txt`` and retains the historical
+posterior calculation unchanged. The description of which mixture component
+is used in the published Methods text does not fully match the implementation;
+the implementation is intentionally preserved here so old analyses remain
+reproducible. This discrepancy is tracked in `Issue #37
+<https://github.com/hemberg-lab/MicroExonator/issues/37>`_.
+
+The mixture fit requires enough quantified microexons with variation in their
+U2 scores. When that condition is not met, the pipeline now explains that too
+few microexons may have been quantified and recommends
+``filter_method: robustness``. It does not switch methods silently.
+
+The old ``filter_mode`` and ``skip_mixture_model_filter`` settings are accepted
+temporarily with deprecation warnings. New configurations should use
+``filter_method``.
 
 .. note::
 
@@ -196,10 +259,13 @@ Output
 ======
 
 
-The main results of MicroExonator discovery and quantification modules can be found at the Results folder. All the detected microexons that passed though the quantitative filters can be found at ``out.high_quality.txt``. This is a tabular separated file with 14 columns that contain the folowing information:
+The main results of MicroExonator discovery and quantification modules can be
+found in the ``Report`` folder. With the default robustness filter, detected
+microexons are written to ``out.robustly_detected.txt``. This tab-separated
+file has 12 columns:
 
 
-.. list-table:: **out.high_quality.txt**
+.. list-table:: **out.robustly_detected.txt**
    :header-rows: 1
 
    * - Column
@@ -241,15 +307,9 @@ The main results of MicroExonator discovery and quantification modules can be fo
    * - Total_ME
      - ME coordinates, U2 score and conservation for all microexon matches
 
-   * - ME_P_value
-     - Value used for the final microexon filters 
-
-   * - ME_type
-     - Microexon type (IN, RESCUED or OUT)
-
-
-
-MicroExonator also reports microexons that do not meet the confidence filtering criteria. Detected microexons that are equal or shorter than 3 nt are reported at  ``out_shorter_than_3_ME.txt``. Microexons that are longer than 3 nt, but did not have sufficiently low ME_P_value are reported at ``out_low_scored_ME.txt``. Finally, microexons that had ME_P_values below the threshold, but they can also correspond to alternative splicing acceptors or donors (as the microexon sequence matches either at the begining or the end of an intron) are reported at ``out.ambiguous.txt``.
+The legacy mixture route adds ``ME_P_value`` and ``ME_type`` to its output and
+also reports ``out_shorter_than_3_ME.txt`` and ``out_low_scored_ME.txt``. These
+legacy-specific files are not part of the default robustness filter.
 
 On the other hand, microexon quantification is provided as ``out_filtered_ME.PSI.txt`` file. This file contains the following information:
 
@@ -298,7 +358,4 @@ On the other hand, microexon quantification is provided as ``out_filtered_ME.PSI
 
    * - Alt3_coverages
      - Alternative donor coverage
-
-
-
 

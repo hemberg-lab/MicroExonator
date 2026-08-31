@@ -1,5 +1,6 @@
 
 from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
+from src.legacy_mixture import LEGACY_MIXTURE_FAILURE
 #GS = GSRemoteProvider()
 
 #wildcard_constraints:
@@ -189,16 +190,31 @@ def get_min_conservation():
         return(int(config["min_conservation"]))
     else:
         return(2) #default value for min_conservation is 2
+
+rule validate_legacy_mixture:
+    input:
+        ME_coverage = "Round2/TOTAL.sample_cov_filter.txt",
+        ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt"
+    params:
+        min_number_files_detected = config["min_number_files_detected"]
+    output:
+        validation = temp("Report/.legacy_mixture_input.valid")
+    conda:
+        "../envs/core_py3.yaml"
+    script:
+        "../src/validate_legacy_mixture.py"
 	
 rule Output:
     input:
         ME_table = "Round2/TOTAL.ME_centric.txt",
         ME_coverage = "Round2/TOTAL.sample_cov_filter.txt",
-        ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt"
+        ME_matches_file = "Round2/TOTAL.ME_centric.ME_matches.txt",
+        legacy_validation = "Report/.legacy_mixture_input.valid"
     params:
         wd = config["working_directory"],
         min_number_files_detected = config["min_number_files_detected"],
-        skip_mixture = str(str2bool(config.get("skip_mixture_model_filter", False))),
+        skip_mixture = "False",
+        legacy_failure_message = LEGACY_MIXTURE_FAILURE,
         min_conservation = get_min_conservation()
     output:
         out_filtered_ME = "Report/out_filtered_ME.txt",

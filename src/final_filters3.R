@@ -81,8 +81,12 @@ out_shorter_than_3_ME <- snakemake@output[["out_shorter_than_3_ME"]]
 #out_filtered_ME_cov <- snakemake@out[["out_filtered_ME_cov"]]
 
 if (skip_mixturemodel==FALSE){
-  
-fit_U2_score <- normalmixEM(ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05)
+
+tryCatch({
+
+fit_U2_score <- normalmixEM(
+  ME_matches_filter$U2_score, maxit = 10000, epsilon = 1e-05
+)
 #ggplot_mix_comps(fit_U2_score, "Mixture model Micro-exon >=3 after coverge filter")
 post.df <- as.data.frame(cbind(x = fit_U2_score$x, fit_U2_score$posterior))
 
@@ -135,6 +139,17 @@ write.table(ME_final[ME_P_value > P_ME_fit],
 
 write.table(ME_centric_raw[ME %in% uniq_seq_filter & len_micro_exon_seq_found<3, ],
             out_shorter_than_3_ME, col.names=TRUE, row.names=FALSE, quote=FALSE, sep="\t")
+
+}, error = function(error) {
+  stop(
+    paste(
+      snakemake@params[["legacy_failure_message"]],
+      paste("Original R error:", conditionMessage(error)),
+      sep = "\n"
+    ),
+    call. = FALSE
+  )
+})
   
 } else {
 
