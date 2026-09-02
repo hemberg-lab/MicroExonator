@@ -18,7 +18,7 @@ rule Round1_bwa_mem_to_tags:
         temp("Round1/{sample}.sam")
     threads: 5
     priority: 100
-    params: 
+    params:
         indel = config["indel_penalty"]
     resources:
         disk = 1
@@ -37,4 +37,4 @@ rule Round1_alingment_pre_processing:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/alingment_pre_processing.py {input} F > {output}"
+        "python3 src/alingment_pre_processing.py {input} F > {output}"

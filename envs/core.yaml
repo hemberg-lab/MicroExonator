@@ -4,13 +4,13 @@ channels:
   - defaults
   - cgat
 dependencies:
-  - biopython=1.*      
+  - biopython
   - hisat2=2.*
   - htslib
   - pysam
   - samtools=1.9
   - pandas
-  - python=2.*
+  - python=3.8
   - numpy
   - pyBigWig
   - bwa=0.7.*

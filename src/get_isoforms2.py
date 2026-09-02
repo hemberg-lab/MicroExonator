@@ -3,7 +3,6 @@ import sys
 from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 
 annotated_ME  = set([])
 
@@ -24,7 +23,7 @@ def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
 def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
-	
+
     #chrM generates some indixing errors in mm10, that is why it should be excluded
 
     with open(annotation_bed12) as F:
@@ -78,13 +77,13 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     SJ_start, SJ_end = SJ.split(":")[1].split("+")
 
                 if row["ME"] not in annotated_ME:
-                    
+
                     if (chrom, int(SJ_start), strand) in ME_starts:
                         primary_ME = ME_starts[(chrom, int(SJ_start), strand)]
                         secondary_ME[primary_ME].add(row["ME"])
                     else:
                         ME_starts[(chrom, int(SJ_start), strand)] = row["ME"]
-                        
+
                     if (chrom, int(SJ_end), strand) in ME_ends:
                         primary_ME = ME_ends[(chrom, int(SJ_end), strand)]
                         secondary_ME[primary_ME].add(row["ME"])
@@ -95,13 +94,13 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
     gene_coordinates = dict()
     transcript_coordinates  = dict()
 
-	
-	
+
+
     gene_chrom = dict()
     gene_strand = dict()
     gene_starts = defaultdict(set)
     gene_ends = defaultdict(set)
-    
+
 
 
     for row in csv.reader(open(annotation_gtf), delimiter = '\t'):
@@ -135,7 +134,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 transcript_id = tag_dict["transcript_id"]
 
                 transcript_to_gene[transcript_id] = gene_id
-				
+
                 gene_chrom[gene_id]=chrom
                 gene_strand[gene_id]=strand
                 gene_starts[gene_id].add(int(start))
@@ -176,19 +175,19 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                 gene_id = transcript_to_gene[transcript_id]
                 #g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
-				
+
                 g_chrom = gene_chrom[gene_id]
                 g_strand = gene_strand[gene_id]
                 g_start= str(min(gene_starts[gene_id]))
                 g_end = str(max(gene_ends[gene_id]))
-				
+
                 gene_coordinates[gene_id] = (g_chrom, g_start, g_end, g_strand)
-				
+
                 t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
 
 
                 past_intron = ""
-                
+
 
                 for q1, q2, b in zip(qstarts, qstarts[1:], blocksizes):
                     estart = start + q1  + 1 #GTF is 1-based
@@ -221,13 +220,13 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                         ME_start += 1 ## GTF 1-based
 
-                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]                  
- 
+                        ME = [ME_chrom, ME_strand, ME_start, ME_end ]
+
 
                         if ((gene_id, intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
 
                             if (tuple(ME) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
-                
+
                                 ME_transcripts[transcript_id].append(ME)
 
                                 gene_ME_intron.add((gene_id, intron))
@@ -271,11 +270,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                 non_ME_transcripts[transcript_id].append(exon)
 
                 ME_transcripts[transcript_id].append(exon)
-				
+
 
             if transcript_id.split(".")[0] in transcript_to_gene:  ### zebrafish fix
-		
-		
+
+
                 transcript_id = transcript_id.split(".")[0]
 
                 gene_id = transcript_to_gene[transcript_id]
@@ -299,9 +298,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                     intron  =  (chrom, strand, istart, iend)
                     non_ME_transcripts[transcript_id].append(exon)
-                    
 
-                    
+
+
 
                     if (tuple(exon) in set( map( tuple, ME_transcripts[transcript_id]) ) )==False:
 
@@ -314,12 +313,12 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME = ME.split("_")
                         ME_chrom = "_".join(ME[:-3])
                         ME_strand, ME_start, ME_end  = ME[-3:]
-			
+
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
 
-                        ME_start += 1 ## GTF 1-based			
-			
+                        ME_start += 1 ## GTF 1-based
+
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
 
@@ -339,9 +338,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         ME_strand, ME_start, ME_end  = ME[-3:]
                         ME_start = int(ME_start)
                         ME_end = int(ME_end)
-			
-                        ME_start += 1 ## GTF 1-based				
-			
+
+                        ME_start += 1 ## GTF 1-based
+
                         ME = [ME_chrom, ME_strand, ME_start, ME_end ]
 
                         if ((gene_id, past_intron) in  gene_ME_intron) == False and int(t_start)<ME_start and int(t_end) > ME_end:
@@ -368,11 +367,11 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
 
                 non_ME_transcripts[transcript_id].append(exon)
 
-                ME_transcripts[transcript_id].append(exon)	# fix zebrafish	
-		
-		
+                ME_transcripts[transcript_id].append(exon)	# fix zebrafish
+
+
     printed_genes = set()
-    
+
     transcript_secondary_exons = set()
 
     for transcript_id in non_ME_transcripts:
@@ -384,19 +383,19 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
         gene_id = transcript_to_gene[transcript_id]
         g_chrom, g_start, g_end, g_strand = gene_coordinates[gene_id]
         t_chrom, t_start, t_end, t_strand = transcript_coordinates[transcript_id]
-        
 
-        
+
+
         if g_chrom in chrom_sizes:  #This is to avoid indexing problems with chromosomes that are in the anotation but not at the genome
-            
+
             if chrom_sizes[g_chrom] > int(g_end): # this should solve the mouse mithocodrial genes issues
-            
+
                 if  gene_id not in printed_genes:
 
                     if chrM==False:
                         if g_chrom!="chrM":
                             print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
-                            printed_genes.add(gene_id)		
+                            printed_genes.add(gene_id)
                     else:
                         print("\t".join(map(str, [ g_chrom, "MicroExonator", "gene", g_start, g_end, ".", g_strand, ".", "gene_id " +'"'+ gene_id +'"'+ ";" ])))
                         printed_genes.add(gene_id)
@@ -438,7 +437,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                         transcript_id_ME =  "_".join( [  transcript_id, ".".join(map (str, new_ME_starts ))  ])
                     else:
                         transcript_id_ME = transcript_id
-                    
+
 
                     if chrM==False:
                         if t_chrom!="chrM":
@@ -451,9 +450,9 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                     for e in ME_transcripts[transcript_id]:
 
                         e_chrom, e_strand, e_start, e_end = e
-                        
+
                         if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) in secondary_ME:
-                            
+
                             transcript_secondary_exons.add(transcript_id)
 
                         if tuple(e) in new_MEs:
@@ -472,55 +471,55 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
                             else:
                                 print("\t".join(map(str, [e_chrom, "MicroExonator", "exon", e_start, e_end, ".", e_strand, ".", "gene_id " +'"'+ gene_id +'"'+ "; " + "transcript_id " +'"'+ transcript_id_ME +'"'+ ";"  ])))
 
-								
-								
-	
 
-####								
+
+
+
+####
 
     transcript_secondary_exons_pairs = set()
-	                          
+
     for transcript_id in transcript_secondary_exons:
-        
+
         for e in ME_transcripts[transcript_id]:
 
             e_chrom, e_strand, e_start, e_end = e
-	
+
             exonID = "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])
 
             if exonID in secondary_ME:
-                
+
                 for sec_ME in list(secondary_ME["_".join([e_chrom, e_strand, str(e_start-1), str(e_end)])]):
-			
-			
+
+
                     sec_ME_l = sec_ME.split("_")
                     ME_chrom = "_".join(sec_ME_l[:-3])
                     ME_strand, ME_start, ME_end  = sec_ME_l[-3:]
-                    
-                    ME_e =  [ME_chrom, ME_strand, str(int(ME_start)-1), ME_end]
-                    
-                    if ME_e not in ME_transcripts[transcript_id]:
-				
-                    	transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
-		
 
-				
+                    ME_e =  [ME_chrom, ME_strand, str(int(ME_start)-1), ME_end]
+
+                    if ME_e not in ME_transcripts[transcript_id]:
+
+                    	transcript_secondary_exons_pairs.add((sec_ME, exonID, transcript_id))
+
+
+
 ####
-								
-								
-   
-                                
+
+
+
+
     for sec_ME, primary_ME, transcript_id in transcript_secondary_exons_pairs:
-        
+
         primary_ME_match = False
-	
+
         for e in ME_transcripts[transcript_id]:
             e_chrom, e_strand, e_start, e_end = e
             if "_".join([e_chrom, e_strand, str(e_start-1), str(e_end)]) == primary_ME:
                 primary_ME_match = True
-                
+
         if primary_ME_match==True:
-        
+
             sec_ME = sec_ME.split("_")
             ME_chrom = "_".join(sec_ME[:-3])
             ME_strand, ME_start, ME_end  = sec_ME[-3:]
@@ -528,7 +527,7 @@ def main(annotation_bed12, annotation_gtf, out_filtered_ME, chrM):
             ME_start = int(ME_start)
             ME_end = int(ME_end)
 
-            ME_start += 1 ## GTF 1-based	
+            ME_start += 1 ## GTF 1-based
 
 
             gene_id = transcript_to_gene[transcript_id]

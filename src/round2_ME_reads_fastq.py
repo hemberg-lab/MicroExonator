@@ -3,26 +3,26 @@ import csv
 
 
 def main(alingment_pre_processed_round2):
-	
-	for row in csv.reader(open(alingment_pre_processed_round2), delimiter = '\t'):
 
-		try:
-			read, flag, tag, start, cigar, seq, qual = row
+    for row in csv.reader(open(alingment_pre_processed_round2), delimiter = '\t'):
 
-			if len(seq)>len(qual):
-				qual = qual + qual[ -(len(seq) - len(qual)) : ]
+        try:
+            read, flag, tag, start, cigar, seq, qual = row
 
-			elif len(seq)<len(qual):
-				qual = qual[:len(seq)]
+            if len(seq)>len(qual):
+                qual = qual + qual[ -(len(seq) - len(qual)) : ]
 
-			print "@" + read
-			print seq
-			print "+"
-			print qual
+            elif len(seq)<len(qual):
+                qual = qual[:len(seq)]
 
-		except ValueError: #minor fraction of lines dont have 7 columns due to errors.
-			pass
+            print("@" + read)
+            print(seq)
+            print("+")
+            print(qual)
+
+        except ValueError: #minor fraction of lines dont have 7 columns due to errors.
+            pass
 
 
 if __name__ == '__main__':
-	main(sys.argv[1])
+    main(sys.argv[1])

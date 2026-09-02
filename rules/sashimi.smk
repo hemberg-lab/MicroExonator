@@ -32,7 +32,7 @@ if "sashimi_tsv" in config:
                 "ggsashimi/{ME}.sh"
                 #"ggsashimi/{ME}.pdf"
             shell:
-                "echo python src/sashimi-plot.py -b {params.tsv} -c {params.region} -g {params.gtf} -o {params.out} -P {params.pallete} -C 3 -O 3 -A mean > {output}"
+                "echo python3 src/sashimi-plot.py -b {params.tsv} -c {params.region} -g {params.gtf} -o {params.out} -P {params.pallete} -C 3 -O 3 -A mean > {output}"
 
         rule run_sashimi:
             input:

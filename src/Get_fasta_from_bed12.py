@@ -3,28 +3,27 @@ import csv
 from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 
 Genome = {}
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Loading the genome into RAM memory ...",
+    print("Loading the genome into RAM memory ...", end=" ", file=sys.stderr)
 
-	f = open(fasta)
+    f = open(fasta)
 
-	for chrfa in SeqIO.parse(f, "fasta"):
-		Genome[chrfa.id] = chrfa.seq
+    for chrfa in SeqIO.parse(f, "fasta"):
+        Genome[chrfa.id] = chrfa.seq
 
-	print >> sys.stderr, "OK"
+    print("OK", file=sys.stderr)
 
-	f.close()
+    f.close()
 
 
 def main(bed12):
 
     transcripts_seq = defaultdict(str)
-	
+
 
     for row in csv.reader(open(bed12), delimiter = '\t'):
         start = int(row[1])
@@ -34,10 +33,9 @@ def main(bed12):
         chrom = row[0]
         transcript = row[3]
         blocksizes = map(int, row[10].strip(",").split(","))
-        qstarts = map (int, row[11].strip(",").split(","))
-        
-	seq = ""
-	
+        qstarts = map(int, row[11].strip(",").split(","))
+        seq = ""
+
         if chrom in Genome:
 
             for q, b in zip(qstarts, blocksizes):
@@ -49,8 +47,8 @@ def main(bed12):
                 exon_seq = Genome[chrom][estart:eend]
 
                 seq += exon_seq
-		
-	
+
+
             if strand=="-":
                 seq = seq.reverse_complement()
 
@@ -60,7 +58,7 @@ def main(bed12):
             print(seq)
 
         else:
-            print >> sys.stderr, chrom + " was not found in reference"
+            print(chrom + " was not found in reference", file=sys.stderr)
 
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])

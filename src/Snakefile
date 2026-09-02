@@ -23,7 +23,7 @@ rule Splice_Junction_Library:
     output:
         "Round1/ME_TAGs.fa"
     shell:
-        "python2 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
+        "python3 src/SJ_tags_generator_for_micro_exons.py {input} {params.ME_len} > {output}"
 
 
 # rule sra_to_fastq:
@@ -66,7 +66,7 @@ rule download_to_fastq:
 #     output:
 #         temp("data/fastq/{sample}.fastq")
 #     shell:
-#         "python2 src/split_paired_end.py {input} > {output}"
+#         "python3 src/split_paired_end.py {input} > {output}"
 
 
 rule bwa_index:
@@ -95,7 +95,7 @@ rule Round1_alingment_pre_processing:
     output:
         "Round1/{sample}.sam.pre_processed"
     shell:
-        "python2 src/alingment_pre_processing.py {input} F > {output}"
+        "python3 src/alingment_pre_processing.py {input} F > {output}"
 
 
 
@@ -116,7 +116,7 @@ rule row_Micro_Exon_reads:
         "Round1/{sample}.sam.row_ME",
         "Round1/{sample}.sam.row_ME.fastq"
     shell:
-        "python2 src/row_ME.py {input} > {output[0]}"
+        "python3 src/row_ME.py {input} > {output[0]}"
 
 
 rule hisat2_genome_index:
@@ -153,7 +153,7 @@ rule Round1_filter:
     output:
         "Round1/{sample}.sam.row_ME.filter1"
     shell:
-        "python2 src/ME_filter1.py {input} {params.ME_len} > {output}"
+        "python3 src/ME_filter1.py {input} {params.ME_len} > {output}"
 
 
 rule Micro_Exon_table:
@@ -162,7 +162,7 @@ rule Micro_Exon_table:
     output:
         "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric"
     shell:
-        "cat {input} > Round1/TOTAL/TOTAL.sam.row_ME.filter1 && python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
+        "cat {input} > Round1/TOTAL/TOTAL.sam.row_ME.filter1 && python3 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
 
 
 rule Micro_Exon_Tags:
@@ -172,7 +172,7 @@ rule Micro_Exon_Tags:
     output:
         "Round2/ME_canonical_SJ_tags.fa"
     shell:
-        "python2 src/Micro_exons_tags.py  {input} > {output}"
+        "python3 src/Micro_exons_tags.py  {input} > {output}"
 
 
 
@@ -209,7 +209,7 @@ rule Round2_alingment_pre_processing:
     output:
         temp("Round2/{sample}.sam.pre_processed")
     shell:
-        "python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
+        "python3 src/alingment_pre_processing_round2_bowtie.py {input} F > {output}"
 
 
 
@@ -226,7 +226,7 @@ rule ME_reads:
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     shell:
-        "python2 src/round2_ME_reads_fastq.py {input} > {output}"
+        "python3 src/round2_ME_reads_fastq.py {input} > {output}"
 
 
 rule bowtie_genome_index:
@@ -255,7 +255,7 @@ rule Round2_filter:
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1")
     shell:
-        "python2 src/Filter1_round2.py {input} > {output}"
+        "python3 src/Filter1_round2.py {input} > {output}"
 
 
 rule ME_SJ_coverage:
@@ -269,7 +269,7 @@ rule ME_SJ_coverage:
     output:
         "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
     shell:
-        "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
+        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
 
 

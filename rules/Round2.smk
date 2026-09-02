@@ -3,7 +3,7 @@ from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
 
 
 if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify microexons from annotation and database sources
-    
+
     rule Micro_Exon_Tags:
         input:
             "Round1/ME_TAGs.fa"
@@ -14,11 +14,11 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
         conda:
             "../envs/core.yaml"
         shell:
-            "python2 src/Micro_exons_tags.py  {input} {params} > {output}"
-            
-            
+            "python3 src/Micro_exons_tags.py  {input} {params} > {output}"
+
+
     if  str2bool(config.get("split_DB", False))==True:
-                    
+
         rule split_ME_DB:
             input:
                 config["ME_DB"]
@@ -26,8 +26,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 dynamic("data/splits/ME_DB.{split}")
             shell:
                 "split -l 5000 {input} data/splits/ME_DB."
-                
-                
+
+
         if config["conservation_bigwig"].split("/")[0]=="NA":
 
             rule Get_ME_from_annotation_ref:
@@ -49,8 +49,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"                  
-               
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+
             rule Get_ME_from_annotation_split:
                 input:
                     genome = config["Genome_fasta"],
@@ -70,7 +70,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
 
         else:
 
@@ -93,8 +93,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"                  
- 
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+
             rule Get_ME_from_annotation_split:
                 input:
                     genome = config["Genome_fasta"],
@@ -114,8 +114,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python2 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
-                    
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+
 
         rule ME_DB_splits_output:
             input:
@@ -127,10 +127,10 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 SJ_tags = "data/ME_canonical_SJ_tags.DB.fa",
                 ME_centric = "data/DB.ME_centric"
             shell:
-                "cat {input.ref_SJ_tags} {input.splits_SJ_tags} > {output.SJ_tags} && cat {input.ref_ME_centric} {input.splits_ME_centric} > {output.ME_centric}" 
-            
+                "cat {input.ref_SJ_tags} {input.splits_SJ_tags} > {output.SJ_tags} && cat {input.ref_ME_centric} {input.splits_ME_centric} > {output.ME_centric}"
+
     else:
-    
+
         rule Get_ME_from_annotation:
             input:
                 genome = config["Genome_fasta"],
@@ -148,12 +148,12 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
             conda:
                 "../envs/pybedtools.yaml"
             shell:
-                "python2 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "    
+                "python3 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "
 
-                
+
     if  str2bool(config.get("skip_get_SJ_tags_round2", False)):
         pass
-    else:   
+    else:
         rule merge_tags:
             input:
                 "Round2/ME_canonical_SJ_tags.de_novo.fa",
@@ -173,10 +173,10 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
             conda:
                 "../envs/core.yaml"
             shell:
-                "cat {input} > {output}"            
-            
+                "cat {input} > {output}"
+
 else:
-    
+
     rule Micro_Exon_Tags:
         input:
             "Round1/ME_TAGs.fa",
@@ -186,8 +186,8 @@ else:
         conda:
             "../envs/core.yaml"
         shell:
-            "python2 src/Micro_exons_tags.py  {input} > {output}"
-    
+            "python3 src/Micro_exons_tags.py  {input} > {output}"
+
     rule Get_ME_from_annotation:
         input:
             config["Genome_fasta"],
@@ -205,8 +205,8 @@ else:
         conda:
             "../envs/pybedtools.yaml"
         shell:
-            "python2 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} "    
-    
+            "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} "
+
     rule merge_tags:
         input:
             "Round2/ME_canonical_SJ_tags.de_novo.fa",
@@ -230,7 +230,7 @@ else:
             "awk 'NR==FNR {{seen[$1]=1; print; next}} !seen[$1]' {input.annotated} {input.denovo} > {output}"
 
 EBWT = ["1.ebwt", "2.ebwt", "3.ebwt", "4.ebwt", "rev.1.ebwt", "rev.2.ebwt" ]
-           
+
 rule Round2_bowtie_tags_index:
     input:
         "Round2/ME_canonical_SJ_tags.fa"
@@ -250,7 +250,7 @@ rule download_fastq2:
     output:
         temp("FASTQ/round2/{sample}.fastq")
     priority: -10
-    resources: 
+    resources:
         get_data = 1
     conda:
         "../envs/core.yaml"
@@ -260,34 +260,34 @@ rule download_fastq2:
 
 def hard_drive_behavior(fastq):
     if config.get("Optimize_hard_drive", False)=="T":
-    
+
         if "validate_fastq_list" in config:
-        
+
             to_validate = set[()]
-            
+
             with open(config["validate_fastq_list"]) as fastq_list:
                 reader = csv.reader(fastq_list, delimiter="\t")
                 for row in reader:
                     to_validate.add(row[0])
-                    
+
             if fastq in to_validate:
                 return("FASTQ/round2/" + str(fastq) + ".fastq.gz.valid")
             else:
                 return(  "FASTQ/round2/" + str(fastq) + ".fastq.gz")
-                
+
         else:
             return(  "FASTQ/round2/" + str(fastq) + ".fastq.gz")
     else:
 
         if "validate_fastq_list" in config:
-        
+
             to_validate = set([])
-            
+
             with open(config["validate_fastq_list"]) as fastq_list:
                 reader = csv.reader(fastq_list, delimiter="\t")
                 for row in reader:
                     to_validate.add(row[0])
-                    
+
             if fastq in to_validate:
                 return("FASTQ/" + str(fastq) + ".fastq.gz.valid")
             else:
@@ -304,7 +304,7 @@ def hard_drive_behavior(fastq):
 #        "FASTQ/{sample}.fastq.gz.valid"
 #    shell:
 #        "python3 src/validate_fastq.py {input}"
-    
+
 #rule validate_fastq2:
 #    input:
 #        "FASTQ/round2/{sample}.fastq.gz"
@@ -356,10 +356,10 @@ rule Round2_alingment_pre_processing:
         "../envs/core.yaml"
     shell:
         """
-        python2 src/alingment_pre_processing_round2_bowtie.py {input} F > {output.pre_processed}
-        python2 src/get_ME_spaning_reads.py {input} F > {output.spanning_reads}
+        python3 src/alingment_pre_processing_round2_bowtie.py {input} F > {output.pre_processed}
+        python3 src/get_ME_spaning_reads.py {input} F > {output.spanning_reads}
         """
-        
+
 # rule Round2_ME_evidence:
 #     input:
 #         "Round2/{sample}.sam.raw"
@@ -369,8 +369,8 @@ rule Round2_alingment_pre_processing:
 #     conda:
 #         "../envs/core.yaml"
 #     shell:
-#         "python2 src/get_ME_spaning_reads.py {input} F > {output}"
-        
+#         "python3 src/get_ME_spaning_reads.py {input} F > {output}"
+
 rule get_all_spanning_reads:
     input:
         expand("Round2/ME_reads/{sample}.ME_spanning_reads.tsv", sample=DATA)

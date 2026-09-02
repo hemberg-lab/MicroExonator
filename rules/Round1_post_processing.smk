@@ -11,7 +11,7 @@ rule row_Micro_Exon_reads:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/row_ME2.py {input} > {output[0]}"
+        "python3 src/row_ME2.py {input} > {output[0]}"
 
 
 rule hisat2_genome_index:
@@ -68,7 +68,7 @@ rule Round1_filter:
     conda:
         "../envs/pybedtools.yaml"
     shell:
-        "python2 src/ME_filter1.py {input} {params.bw} {params.ME_len} > {output}"
+        "python3 src/ME_filter1.py {input} {params.bw} {params.ME_len} > {output}"
 
 
 rule Micro_Exon_table:
@@ -80,5 +80,5 @@ rule Micro_Exon_table:
         "../envs/core.yaml"
     shell:
         "cat Round1/*.sam.row_ME.filter1 | awk 'NF==16' > Round1/TOTAL/TOTAL.sam.row_ME.filter1  &&"
-        "python2 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
+        "python3 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
 

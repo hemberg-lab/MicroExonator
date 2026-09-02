@@ -12,7 +12,7 @@ dependencies:
   - samtools=1.9
   - sra-tools=2.9.*
   - biopython
-  - python=3.6
+  - python=3.8
   - pyBigWig
   - bwa=0.7.*
   - bowtie

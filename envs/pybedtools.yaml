@@ -4,8 +4,8 @@ channels:
   - defaults
   - cgat
 dependencies:
- - pybedtools=0.8.0
+ - pybedtools
  - bedtools=2.27.*
  - biopython
  - pyBigWig
- - python=2.7.*
+ - python=3.8

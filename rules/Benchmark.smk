@@ -78,7 +78,7 @@ rule SJ_count:
     output:
         "Genome_aligments/{Software}/{sample}.sam.SJ_count"
     shell:
-        "python2 src/Get_introns_from_sam.py {input} Rd1 40 1000000 8 > {output}"
+        "python3 src/Get_introns_from_sam.py {input} Rd1 40 1000000 8 > {output}"
 
 
 rule sam_merge:
@@ -96,7 +96,7 @@ rule get_exons:
     output:
         "Genome_aligments/{Software}/TOTAL.exons.{Software}"
     shell:
-        "python2 Get_exons_from_sam.py {input} > {output}"
+        "python3 Get_exons_from_sam.py {input} > {output}"
 
 
 
@@ -107,7 +107,7 @@ rule SJ_ground_count:
     output:
         "Ground_Truth/{sample}.GT.SJ_count"
     shell:
-        "python2 SJ_count_truth.py /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/gencode.vM11.annotation.bed12 simulated_ME_isoforms.bed12 {input}  > {output}"
+        "python3 SJ_count_truth.py /lustre/scratch117/cellgen/team218/gp7/Genome/mm10/Tracks/Gene_annotation/gencode.vM11.annotation.bed12 simulated_ME_isoforms.bed12 {input}  > {output}"
 
 
 

@@ -18,7 +18,7 @@ from src.legacy_mixture import LEGACY_MIXTURE_FAILURE
 #        conda:
 #            "../envs/core.yaml"
 #        shell:
-#            "python2 src/round2_ME_reads_fastq2.py {input}"
+#            "python3 src/round2_ME_reads_fastq2.py {input}"
 #else:
 rule ME_reads:
     input:
@@ -30,8 +30,8 @@ rule ME_reads:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/round2_ME_reads_fastq2.py {input}"
-        
+        "python3 src/round2_ME_reads_fastq2.py {input}"
+
 rule Get_Genome:
     input:
         config["Genome_fasta"]
@@ -45,20 +45,20 @@ rule bowtie_genome_index:
     input:
         "data/Genome"
     output:
-        expand("data/Genome.{ebwt}", ebwt=EBWT)	
+        expand("data/Genome.{ebwt}", ebwt=EBWT)
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
         "bowtie-build --threads 8 {input} {input}"
-        
+
 if str2bool(config.get("skip_genome_alignment", False)):
 
     rule bowtie_to_genome:
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            expand("data/Genome.{ebwt}", ebwt=EBWT)	
+            expand("data/Genome.{ebwt}", ebwt=EBWT)
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
@@ -72,7 +72,7 @@ else:
         input:
             "Round2/{sample}.sam.pre_processed.fastq",
             "data/Genome",
-            expand("data/Genome.{ebwt}", ebwt=EBWT)	
+            expand("data/Genome.{ebwt}", ebwt=EBWT)
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
         priority: 100
@@ -92,7 +92,7 @@ rule Round2_filter:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/Filter1_round2.py {input} > {output}"
+        "python3 src/Filter1_round2.py {input} > {output}"
 
 
 rule ME_SJ_coverage:
@@ -109,7 +109,7 @@ rule ME_SJ_coverage:
     conda:
         "../envs/core.yaml"
     shell:
-        "python2 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
+        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
 
 
 if str2bool(config.get("optimise_disk", False)):
@@ -119,30 +119,30 @@ if str2bool(config.get("optimise_disk", False)):
         params:
             config["min_reads_PSI"],
             "F"
-            #config["paired_samples"]    
+            #config["paired_samples"]
         output:
             temp("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
         conda:
             "../envs/core_py3.yaml"
         shell:
-            "python src/counts_to_PSI.py {input} {params} {output}"
-    
-else:    
+            "python3 src/counts_to_PSI.py {input} {params} {output}"
+
+else:
     rule coverage_to_PSI_report:
         input:
             "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
         params:
             config["min_reads_PSI"],
             "F"
-            #config["paired_samples"]    
+            #config["paired_samples"]
         output:
             protected("Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz")
         conda:
             "../envs/core_py3.yaml"
         shell:
-            "python src/counts_to_PSI.py {input} {params} {output}"
-	
-	
+            "python3 src/counts_to_PSI.py {input} {params} {output}"
+
+
 rule Total_sample_exon_counts:
     input:
         expand("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage", sample=DATA )
@@ -163,9 +163,9 @@ rule write_ME_matches:
     shell:
         "python3 src/Get_ME_matches.py {input} > {output}"
 
-	
-	
-	
+
+
+
 
 def get_min_reads():
     if 'min_reads_PSI' in config:
@@ -203,7 +203,7 @@ rule validate_legacy_mixture:
         "../envs/core_py3.yaml"
     script:
         "../src/validate_legacy_mixture.py"
-	
+
 rule Output:
     input:
         ME_table = "Round2/TOTAL.ME_centric.txt",
@@ -227,8 +227,8 @@ rule Output:
     conda:
         "../envs/R.yaml"
     script:
-        "../src/final_filters3.R"        
-        
+        "../src/final_filters3.R"
+
 #    shell:
 #        '''R -e  'rmarkdown::render("src/final_filters2.Rmd",params = list(ME_table="{params.wd}{input[0]}", ME_coverage="{params.wd}{input[1]}", ME_matches_file="{params.wd}{input[2]}", out_filtered_ME="{params.wd}{output[0]}", out_low_scored_ME="{params.wd}{output[1]}", out_shorter_than_3_ME="{params.wd}{output[2]}", min_number_files_detected={params.min_number_files_detected}, out_filtered_ME_cov="{params.wd}{output[4]}" ), output_file="{params.wd}{output[3]}")' 2> {log} '''
 
@@ -247,10 +247,10 @@ rule high_confident_filters:
         "../envs/core_py3.yaml"
     script:
         "../src/high_confident_list.py"
-	
+
 #     shell:
-#         "python src/high_confident_list.py {input}  > {output}"	
-	
+#         "python3 src/high_confident_list.py {input}  > {output}"
+
 # if config.get("split_cov", False):
 
 
@@ -259,15 +259,15 @@ rule high_confident_filters:
 # 		    "Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage"
 # 	    params:
 # 		    config["min_reads_PSI"],
-# 		    config["paired_samples"]    
+# 		    config["paired_samples"]
 # 	    output:
 # 		    "Round2/{sample}.out_filtered_ME.PSI.txt"
 # 	    conda:
 # 		    "../envs/core_py3.yaml"
 # 	    shell:
-# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
+# 		    "python3 src/counts_to_PSI.py {input} {params} > {output}"
 
-			
+
 # 	rule coverage_to_PSI_output:
 # 	    input:
 # 		    expand("Round2/{sample}.out_filtered_ME.PSI.txt", sample=DATA)
@@ -277,7 +277,7 @@ rule high_confident_filters:
 # 		    split = 1
 # 	    priority: 20
 # 	    shell:
-# 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"			
+# 		    "awk '(NR == 1) || (FNR > 1)' {input} > {output}"
 
 # else:
 # 	rule coverage_to_PSI:
@@ -285,13 +285,13 @@ rule high_confident_filters:
 # 		    "Round2/TOTAL.filter1.ME_SJ_coverage"
 # 	    params:
 # 		    config["min_reads_PSI"],
-# 		    config["paired_samples"]    
+# 		    config["paired_samples"]
 # 	    output:
 # 		    "Report/out_filtered_ME.PSI.txt"
 # 	    conda:
 # 		    "../envs/core_py3.yaml"
 # 	    shell:
-# 		    "python src/counts_to_PSI.py {input} {params} > {output}"
+# 		    "python3 src/counts_to_PSI.py {input} {params} > {output}"
 
 
 

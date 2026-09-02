@@ -40,7 +40,7 @@ def urls_to_download(urls, split=False):
 
 
             if FILE in splits:
-                split_pairs = ["python2 src/split_paired_end.py", D_folder +  basename + ".fastq > ", D_folder + basename + ".fastq.split"]
+                split_pairs = ["python3 src/split_paired_end.py", D_folder +  basename + ".fastq > ", D_folder + basename + ".fastq.split"]
                 move = ["mv", D_folder + basename + ".fastq.split", O_folder + basename + ".fastq"]
                 rm = ["rm", D_folder + FILE, D_folder + basename + ".fastq"]
 
@@ -56,7 +56,7 @@ def urls_to_download(urls, split=False):
 
 
             if FILE in splits:
-                split_pairs = ["python2 src/split_paired_end.py", D_folder +  basename + ".fastq > ", D_folder + basename + ".fastq.split"]
+                split_pairs = ["python3 src/split_paired_end.py", D_folder +  basename + ".fastq > ", D_folder + basename + ".fastq.split"]
                 move = ["mv", D_folder + basename + ".fastq.split", O_folder + basename + ".fastq"]
                 rm = ["rm", D_folder + basename + ".fastq"]
 
@@ -102,7 +102,7 @@ def accession_to_download(accession, split=False):
         if SRA in splits:
 
             to_fastq = ["fastq-dump --split-files -O", D_folder, "--accession", SRA]
-            merge = ["python src/merge_pairs.py", D_folder + SRA + "_1.fastq", D_folder + SRA + "_2.fastq", D_folder + SRA + ".fastq"]
+            merge = ["python3 src/merge_pairs.py", D_folder + SRA + "_1.fastq", D_folder + SRA + "_2.fastq", D_folder + SRA + ".fastq"]
             rm = ["rm", D_folder + SRA + "_1.fastq", D_folder + SRA + "_2.fastq"]
 
         else:

@@ -4,7 +4,6 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from Bio.SeqRecord import SeqRecord
 from random import randint, sample
 from operator import itemgetter
@@ -15,136 +14,136 @@ Genome = {}
 
 def Genomictabulator(fasta):
 
-	print >> sys.stderr, "Loading the genome into RAM memory ...",
+    print("Loading the genome into RAM memory ...", end=' ', file=sys.stderr)
 
-	f = open(fasta)
+    f = open(fasta)
 
-	for chrfa in SeqIO.parse(f, "fasta"):
-		Genome[chrfa.id] = chrfa.seq
+    for chrfa in SeqIO.parse(f, "fasta"):
+        Genome[chrfa.id] = chrfa.seq
 
-	print >> sys.stderr, "OK"
+    print("OK", file=sys.stderr)
 
-	f.close()
+    f.close()
 
 
 def main(sam_pre_processed, row_fastq):
 
-	fastq_out = open( ".".join(sys.argv[2].split(".")[:-1]) + ".row_ME.fastq", 'w')
-	ME_reads = set([])
+    fastq_out = open( ".".join(sys.argv[2].split(".")[:-1]) + ".row_ME.fastq", 'w')
+    ME_reads = set([])
 
-	for row in csv.reader(open(sam_pre_processed), delimiter = '\t'):
+    for row in csv.reader(open(sam_pre_processed), delimiter = '\t'):
 
-		if len(row)==14: #To avoid rare errors (like SRR2138604.sam.pre_processed)
-			read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found = row
-			intron_tag, transcript_ID, anchors = tag.split("|")
+        if len(row)==14: #To avoid rare errors (like SRR2138604.sam.pre_processed)
+            read, flag, tag, start, cigar, seq, qual, q_block_starts, q_block_ends,  micro_exon_seq_found, I_pos_tag, DRU, DRD, DR_corrected_micro_exon_seq_found = row
+            intron_tag, transcript_ID, anchors = tag.split("|")
 
-			chr = "_".join(re.findall(r"[\w']+", intron_tag)[:-2])
-			istart, iend = re.findall(r"[\w']+", intron_tag)[-2:]
+            chr = "_".join(re.findall(r"[\w']+", intron_tag)[:-2])
+            istart, iend = re.findall(r"[\w']+", intron_tag)[-2:]
 
-			istart = int(istart)
-			iend = int(iend)
-			
-			try:
+            istart = int(istart)
+            iend = int(iend)
 
-				intron_seq = str(Genome[chr][istart:iend]).upper()
+            try:
 
-				micro_exons_coords = []
+                intron_seq = str(Genome[chr][istart:iend]).upper()
 
-				island = "AG" + DR_corrected_micro_exon_seq_found + "GT"
-				rev_island = str(Seq(island).reverse_complement())
+                micro_exons_coords = []
 
-				strand = "+"
+                island = "AG" + DR_corrected_micro_exon_seq_found + "GT"
+                rev_island = str(Seq(island).reverse_complement())
 
-				if "-" in intron_tag:
-					strand = "-"
+                strand = "+"
 
-				if strand == "+" and island in intron_seq:
+                if "-" in intron_tag:
+                    strand = "-"
 
-					for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(island, i)]:
+                if strand == "+" and island in intron_seq:
 
-						ME_start = i + 2 + istart
-						ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
-						ME_chr = chr
-						ME_strand = strand
+                    for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(island, i)]:
 
-						micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
+                        ME_start = i + 2 + istart
+                        ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
+                        ME_chr = chr
+                        ME_strand = strand
 
-
-				elif strand == "-" and rev_island in intron_seq:
+                        micro_exons_coords.append("_".join((list(map(str, [ME_chr, ME_strand, ME_start, ME_end])))))
 
 
-					for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(rev_island, i)]:
-
-						ME_start = i + 2 + istart
-						ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
-						ME_chr = chr
-						ME_strand = strand
-
-						micro_exons_coords.append("_".join((map(str, [ME_chr, ME_strand, ME_start, ME_end]))))
-
-				micro_exons_coords = ",".join(micro_exons_coords)
-
-				if micro_exons_coords!="":
-					print "\t".join(row) + "\t" + micro_exons_coords
-					ME_reads.add(read)
-                    
-# 					if flag==16:
-# 						seq = str(Seq(island).reverse_complement())
-# 						qual = qual[::-1]
-
-# 					if len(seq)==len(qual):
-
-# 						fastq_out.write("@" + read + "\n")
-# 						fastq_out.write(seq + "\n")
-# 						fastq_out.write("+" + "\n")
-# 						fastq_out.write(qual + "\n")
-
-# 					elif len(seq)>len(qual):  ## preventing errors with hisat
-
-# 						qual2 = qual + qual[ -(len(seq) - len(qual)) : ]
-
-# 						fastq_out.write("@" + read + "\n")
-# 						fastq_out.write(seq + "\n")
-# 						fastq_out.write("+" + "\n")
-# 						fastq_out.write(qual2 + "\n")
-
-# 					elif len(seq)<len(qual):
-
-# 						qual2 = qual[:len(seq)]
-
-# 						fastq_out.write("@" + read + "\n")
-# 						fastq_out.write(seq + "\n")
-# 						fastq_out.write("+" + "\n")
-# 						fastq_out.write(qual2 + "\n")
-                        
-					# ME_fastq = SeqRecord( seq, id = read, description = "" )
-					# ME_fastq.letter_annotations["phred_quality"] = qual
-
-					# fastq_out.write(ME_fastq.format("fastq"))
+                elif strand == "-" and rev_island in intron_seq:
 
 
-					# print "@" + read.qname
-					# print seq
-					# print "+"
-					# print q
+                    for i in [i for i in range(len(intron_seq)) if intron_seq.startswith(rev_island, i)]:
 
-					
-			except KeyError:
-				pass 
+                        ME_start = i + 2 + istart
+                        ME_end = ME_start + len(DR_corrected_micro_exon_seq_found)
+                        ME_chr = chr
+                        ME_strand = strand
 
-			
-	with gzip.open(row_fastq) as f:
+                        micro_exons_coords.append("_".join((list(map(str, [ME_chr, ME_strand, ME_start, ME_end])))))
 
-		for read in SeqIO.parse(f, "fastq"):
+                micro_exons_coords = ",".join(micro_exons_coords)
 
-			if read.id in ME_reads:
-                
-				f_out = SeqRecord( read.seq, read.id, description = "" )
-				f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
+                if micro_exons_coords!="":
+                    print("\t".join(row) + "\t" + micro_exons_coords)
+                    ME_reads.add(read)
 
-				fastq_out.write(f_out.format("fastq"))
-			
-			
+#                   if flag==16:
+#                       seq = str(Seq(island).reverse_complement())
+#                       qual = qual[::-1]
+
+#                   if len(seq)==len(qual):
+
+#                       fastq_out.write("@" + read + "\n")
+#                       fastq_out.write(seq + "\n")
+#                       fastq_out.write("+" + "\n")
+#                       fastq_out.write(qual + "\n")
+
+#                   elif len(seq)>len(qual):  ## preventing errors with hisat
+
+#                       qual2 = qual + qual[ -(len(seq) - len(qual)) : ]
+
+#                       fastq_out.write("@" + read + "\n")
+#                       fastq_out.write(seq + "\n")
+#                       fastq_out.write("+" + "\n")
+#                       fastq_out.write(qual2 + "\n")
+
+#                   elif len(seq)<len(qual):
+
+#                       qual2 = qual[:len(seq)]
+
+#                       fastq_out.write("@" + read + "\n")
+#                       fastq_out.write(seq + "\n")
+#                       fastq_out.write("+" + "\n")
+#                       fastq_out.write(qual2 + "\n")
+
+                    # ME_fastq = SeqRecord( seq, id = read, description = "" )
+                    # ME_fastq.letter_annotations["phred_quality"] = qual
+
+                    # fastq_out.write(ME_fastq.format("fastq"))
+
+
+                    # print "@" + read.qname
+                    # print seq
+                    # print "+"
+                    # print q
+
+
+            except KeyError:
+                pass
+
+
+    with gzip.open(row_fastq) as f:
+
+        for read in SeqIO.parse(f, "fastq"):
+
+            if read.id in ME_reads:
+
+                f_out = SeqRecord( read.seq, read.id, description = "" )
+                f_out.letter_annotations["phred_quality"] = read.letter_annotations["phred_quality"]
+
+                fastq_out.write(f_out.format("fastq"))
+
+
 if __name__ == '__main__':
-	Genomictabulator(sys.argv[1])
-	main(sys.argv[2], sys.argv[3])
+    Genomictabulator(sys.argv[1])
+    main(sys.argv[2], sys.argv[3])

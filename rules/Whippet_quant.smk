@@ -35,7 +35,7 @@ rule get_GTF:
     conda:
         "../envs/core.yaml"
     shell:
-        "python src/get_isoforms2.py {input} {params}  > {output}"
+        "python3 src/get_isoforms2.py {input} {params}  > {output}"
 
 rule get_GTF_robustly:
     input:
@@ -50,7 +50,7 @@ rule get_GTF_robustly:
     conda:
         "../envs/core.yaml"
     shell:
-        "python src/get_isoforms2.py {input} {params}  > {output}"
+        "python3 src/get_isoforms2.py {input} {params}  > {output}"
 
 def ME_GTF():
     if FILTER_METHOD == "robustness":
@@ -226,7 +226,7 @@ if str2bool(config.get("Only_snakepool", False))==False:
           output:
               "Whippet/Delta/{comparison_name}.diff.microexons"
           shell:
-              "python src/whippet_delta_to_ME.py {input} > {output}"
+              "python3 src/whippet_delta_to_ME.py {input} > {output}"
 
       rule delta_ME_from_MicroExonator:
           input:
@@ -237,4 +237,4 @@ if str2bool(config.get("Only_snakepool", False))==False:
           output:
               "Whippet/Delta/{comparison_name}.diff.ME.microexons"
           shell:
-              "python src/whippet_delta_to_ME.py {input} > {output}"
+              "python3 src/whippet_delta_to_ME.py {input} > {output}"

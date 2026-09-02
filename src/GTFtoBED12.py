@@ -3,17 +3,17 @@ import csv
 from collections import defaultdict
 
 def main(gtf_file):
-    
+
     with open(gtf_file) as gtf:
-        
+
         transcript_coords = dict()
         transcript_qstarts_blocksize = defaultdict(list)
         reader = csv.reader(gtf, delimiter="\t")
-        
+
         for row in reader:
-            
+
             if row[0][0]!="#":
-                
+
                 chrom = row[0]
                 group = row[1]
                 blocktype = row[2]
@@ -30,21 +30,13 @@ def main(gtf_file):
                         ID_type, ID  = pair
                         if ID_type == "transcript_id":
                             transcript = ID.strip('"')
-			
-# 		try:
 
-		if blocktype == 'transcript':
+#       try:
 
-		    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
-			
-# 		except UnboundLocalError:
-# 			print(row)
-
-                if blocktype == 'exon':
-
+                if blocktype == 'transcript':
+                    transcript_coords[transcript] = (chrom, block_start, block_end, strand)
+                elif blocktype == 'exon':
                     exon_size = block_end - block_start
-
-
                     transcript_qstarts_blocksize[transcript].append((block_start, exon_size))
 
 
@@ -67,7 +59,7 @@ def main(gtf_file):
 
             bed12 = [chrom, start, end, transcript, "0", strand, start, end, "0", n_blocks, blocksizes, qstarts]
 
-            print( "\t".join(map(str, bed12)))
+            print(( "\t".join(map(str, bed12))))
 
 if __name__ == '__main__':
-	main(sys.argv[1])
+    main(sys.argv[1])
