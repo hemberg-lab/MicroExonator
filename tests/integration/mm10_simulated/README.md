@@ -24,7 +24,9 @@ Both contain approximately 10% unrelated annotated exon-junction background.
 - `single_end/fastq/`: nine single-end FASTQs.
 - `paired_end/fastq/`: eighteen synchronized mate FASTQs.
 - Per-layout `local_samples.tsv`, `bulk_samples.tsv`, and configuration
-  templates; paired-end also has a headerless `paired_samples.tsv`.
+  templates (`single_end/config.template.yaml` and
+  `paired_end/config.template.yaml`); paired-end also has a headerless
+  `paired_samples.tsv`. Templates contain placeholders only, never local paths.
 - `PROVENANCE.json` and `SHA256SUMS`: source hashes, fixed seeds, and artifact
   integrity.
 
