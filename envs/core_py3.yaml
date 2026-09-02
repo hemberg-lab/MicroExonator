@@ -12,7 +12,8 @@ dependencies:
   - samtools=1.9
   - sra-tools=2.9.*
   - biopython
-  - python=3.8
+  # HISAT2 2.1.0 is only packaged through Python 3.7 on the supported channels.
+  - python=3.7
   - pyBigWig
   - bwa=0.7.*
   - bowtie
