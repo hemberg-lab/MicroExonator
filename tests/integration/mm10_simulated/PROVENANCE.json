@@ -1,0 +1,16 @@
+{
+  "annotated_events": 65,
+  "annotation": "GENCODE VM25 comprehensive annotation (mm10), converted to BED12",
+  "annotation_sha256": "cb045e7225d4d1ed75da56faebea25e6a4f903ae96b321001df92fa066864c58",
+  "coordinate_system": "mm10 BED-style, zero-based, half-open",
+  "events": 100,
+  "generator": "temporary one-off simulator; intentionally not committed",
+  "genome": "UCSC mm10 genome FASTA (mm10.fa)",
+  "genome_sha256": "db16cb4633191754f1d9cc70e73d2a1f60d03fdf62bcf4902a31a4717a3d2de7",
+  "non_annotated_events": 35,
+  "paired_end_seed": 991027,
+  "selection_seed": 458921,
+  "single_end_seed": 794311,
+  "source_events": "Parada et al., Supplementary Table 3 (v5)",
+  "source_events_sha256": "92aa38e6ce38b42729523d54893643b3d4eac5ea15115cbc9f2eda1ddb98bd24"
+}

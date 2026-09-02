@@ -1,0 +1,21 @@
+{
+  "Genome_fasta": "/absolute/path/to/mm10.fa",
+  "Gene_anontation_bed12": "/absolute/path/to/decompressed/GENCODE_VM25_comprehensive.bed",
+  "Gene_anontation_GTF": "NA",
+  "GT_AG_U2_3": "/absolute/path/to/MicroExonator/PWM/Mouse/mm10_GT_AG_U2_3.good.matrix",
+  "GT_AG_U2_5": "/absolute/path/to/MicroExonator/PWM/Mouse/mm10_GT_AG_U2_5.good.matrix",
+  "Keep_fastq_gz": "T",
+  "ME_DB": "/absolute/path/to/mm10_simulated/empty_microexons.bed",
+  "ME_len": "30",
+  "Optimize_hard_drive": "F",
+  "Single_Cell": "F",
+  "bulk_samples": "/absolute/path/to/staged/bulk_samples.tsv",
+  "conservation_bigwig": "NA",
+  "filter_method": "robustness",
+  "max_read_len": "100",
+  "min_detected_samples": "2",
+  "min_number_files_detected": "2",
+  "min_reads_PSI": "5",
+  "paired_samples": "F",
+  "working_directory": "/absolute/path/to/isolated/run/"
+}
