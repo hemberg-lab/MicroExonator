@@ -50,12 +50,19 @@ Here there is an list of the additonal keys that need to be incorporated as a pa
     whippet_bin_folder : /path/to/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
     Gene_anontation_GTF : /path/to/gene.annotation.gtf
     whippet_delta : /path/to/whippet_delta.yaml
+    # Optional compatibility mode: use pre-correction PSI for MicroExonator-driven Whippet analyses.
+    use_uncorrected_PSI : true
 
 * ``whippet_bin_folder`` correspodn t the path of whippet binary folder (``Whippet/bin``) that is located inside ``julia_0.6.1`` virtual enviroment folder. The specific routh to ``Whippet/bin`` may variate, so it is important that you manually identify the correct path.
 
 * ``Gene_anontation_GTF`` corresponds the path of a gene annotation file as Gene Transfer Format (`GTF <https://en.wikipedia.org/wiki/Gene_transfer_format#:~:text=The%20Gene%20transfer%20format%20(GTF,conventions%20specific%20to%20gene%20information.>`_). Working with the same annotation data base than the one used on the previous steps is recommended. 
 
 * ``whippet_delta`` indicate the path of a `YAML <https://en.wikipedia.org/wiki/YAML#:~:text=Open%20format%3F&text=YAML%20(a%20recursive%20acronym%20for,is%20being%20stored%20or%20transmitted.>`_ file you need to create to provide information about the desired comparisons between groups of samples.
+
+* MicroExonator-driven Whippet analyses use the corrected MicroExonator PSI
+  values by default. Set ``use_uncorrected_PSI : true`` only to retain the
+  historical pre-correction PSI input. The setting affects the
+  ``.diff.ME.microexons`` route, not PSI values calculated by Whippet itself.
 
 
 whippet_delta YAML file
@@ -100,4 +107,3 @@ Output
 ======
 
 Quantification files generated per each sample can be found at ``Whipet/Quant``. Differentially included microexon analyses that can be obtained with Whippet, are reported at ``Whippet/Delta`` folder. MicroExonator performs these analyses using both PSI values calculated internally by the pipeline and PSI values directly calculated with Whippet. These results are reported under the same format than the ``diff.gz`` descrived at the `Whippet's GitHub page <https://github.com/timbitz/Whippet.jl#output-formats>`_. However, to provide easier interpretation, we filter the Whippet splicing nodes that correspond to microexon inclusion events, these are reported as ``.microexons`` files, where ``.diff.ME.microexons`` files correspond to the output when MicroExonator PSI values are taken as input and ``.diff.microexons`` when Whippet PSI  values are taken as input.
-
