@@ -220,14 +220,14 @@ else:
 
     rule merge_ME_centric:
         input:
-            "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
-            "data/DB.ME_centric"
+            denovo = "Round1/TOTAL/TOTAL.sam.row_ME.filter1.ME_centric",
+            annotated = "data/DB.ME_centric"
         output:
             "Round2/TOTAL.ME_centric.txt"
         conda:
             "../envs/core.yaml"
         shell:
-            "cat {input[0]} {input[1]} > {output}"
+            "awk 'NR==FNR {{seen[$1]=1; print; next}} !seen[$1]' {input.annotated} {input.denovo} > {output}"
 
 EBWT = ["1.ebwt", "2.ebwt", "3.ebwt", "4.ebwt", "rev.1.ebwt", "rev.2.ebwt" ]
            

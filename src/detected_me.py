@@ -1,8 +1,16 @@
 """Snakemake adapter for within-group robustness filtering."""
 
 import csv
+import os
+import sys
 
-from src.robustness_filter import detect_group_microexons
+# Snakemake executes ``script:`` rules from a temporary copy under
+# ``.snakemake/scripts``.  Resolve the project's staged source directory from
+# the workflow working directory instead of relying on that temporary copy's
+# import path.
+sys.path.insert(0, os.path.join(os.getcwd(), "src"))
+
+from robustness_filter import detect_group_microexons
 
 
 detected = detect_group_microexons(

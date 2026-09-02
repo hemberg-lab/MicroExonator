@@ -170,7 +170,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 					if (chrom, eend) in SJ_start_seqs:
 
-						if f_seq[-100:] > len(SJ_start_seqs[(chrom, eend )]):
+						if len(f_seq[-100:]) > len(SJ_start_seqs[(chrom, eend )]):
 
 							SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
 
@@ -191,7 +191,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 				if (chrom, estart) in SJ_end_seqs:
 
-					if r_seq[:100] > len(SJ_end_seqs[(chrom, estart )]):
+					if len(r_seq[:100]) > len(SJ_end_seqs[(chrom, estart )]):
 
 						SJ_end_seqs[(chrom, estart )] = r_seq[:100]
 
@@ -228,7 +228,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
-					if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
+					if elength <= ME_len and dn=="AGGT":
 
 						#if chrom in ME_chroms:
 

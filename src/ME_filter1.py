@@ -249,6 +249,7 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 
 			var_index = 0
+			match_lengths = []
 
 			for var in cigar_vars:
 				var_type = var[0]
@@ -257,6 +258,7 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 				if var_type == 'M':
 					t_score += var_value
+					match_lengths.append(var_value)
 
 				elif var_type == 'I':
 					t_score += var_value
@@ -346,7 +348,7 @@ def main(row_ME, reads_genome, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len):
 
 			same_ME = False
 
-			if start <= (up-8) and cigar.count("I") == 1 and cigar.count("D") == 0 and cigar.count("S") == 0 and (read in black_list)==False and len(DR_corrected_micro_exon_seq_found) <= ME_len:
+			if start <= (up-8) and start + sum(match_lengths) >= up + 8 and cigar.count("I") == 1 and cigar.count("D") == 0 and cigar.count("S") == 0 and (read in black_list)==False and len(DR_corrected_micro_exon_seq_found) <= ME_len:
 
 
 				if read in exons_reads_genome:
