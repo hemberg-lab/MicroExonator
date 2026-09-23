@@ -132,7 +132,7 @@ def main(sam_pre_processed, row_fastq):
                 pass
 
 
-    with gzip.open(row_fastq) as f:
+    with gzip.open(row_fastq, "rt") as f:
 
         for read in SeqIO.parse(f, "fastq"):
 

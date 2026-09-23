@@ -21,7 +21,7 @@ def main(alingment_pre_processed_round2, row_fastq):
             read, flag, tag, start, cigar, seq, qual = row[:7]
             ME_reads.add(read)
 
-    with gzip.open(row_fastq) as f:
+    with gzip.open(row_fastq, "rt") as f:
 
         for read in SeqIO.parse(f, "fastq"):
 
