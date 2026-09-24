@@ -97,6 +97,17 @@ rule Round2_filter:
         "python3 src/Filter1_round2.py {input} {params.tags} > {output}"
 
 
+rule ambiguous_positions:
+    input:
+        "Round2/TOTAL.ME_centric.txt"
+    output:
+        "Report/ME_ambiguous_positions.txt"
+    conda:
+        "../envs/core_py3.yaml"
+    shell:
+        "python3 src/ambiguous_positions.py {input} > {output}"
+
+
 rule junction_genomic_copies:
     input:
         tags = "Round2/ME_canonical_SJ_tags.fa",

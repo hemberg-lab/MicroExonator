@@ -198,6 +198,7 @@ rule quant:
     input:
         FILTERED_ME_OUTPUT,
         "Report/ME_junction_genomic_copies.txt",
+        "Report/ME_ambiguous_positions.txt",
         expand(
             "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
             sample=DATA,

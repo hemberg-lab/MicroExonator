@@ -14,10 +14,10 @@ from collections import defaultdict
 
 READ_LENGTH = 100
 MINIMUM_VALID_SUPPORT = 12
-# ME053 is a 3-nt CAG in a long intron that occurs again in the same intron.
-# The current reporting stage collapses it into the other CAG coordinate, so it
-# is deliberately the sole allowed absence from the final coordinate list.
-EXPECTED_COLLAPSED_TRUTH_EVENTS = frozenset({"chr17_-_30598522_30598525"})
+# Events whose position reads cannot resolve (for example ME053, a 3-nt CAG
+# that also fits other positions in its intron) are reported at the best
+# splice-site position; Report/ME_ambiguous_positions.txt lists the
+# alternatives, and a missing truth event is checked through that record.
 # Largest accepted gap between the mean corrected PSI of a group and the
 # simulated target PSI. In the Python 3 baseline run, events with complete
 # skipping evidence have a median gap of 0.027 and a 95th percentile of 0.10.
@@ -527,7 +527,11 @@ def validate_pipeline_outputs(
     expected_missing=(),
     psi_tolerance=PSI_TOLERANCE,
 ):
-    """Validate discovery and quantification except declared collapsed events.
+    """Validate discovery and quantification except declared missing events.
+
+    A truth event missing from the output is accepted when
+    Report/ME_ambiguous_positions.txt lists it as an alternative position of a
+    reported event; that event's quantification is then checked in its place.
 
     When events.tsv carries psi_<group> target columns and psi_tolerance is not
     None, the mean corrected PSI of every truth event in every sample group must
@@ -552,7 +556,15 @@ def validate_pipeline_outputs(
     with open(robust_path) as handle:
         reader = csv.DictReader(handle, delimiter="\t")
         discovered = {row["ME"] for row in reader}
-    missing_discoveries = truth_microexons - discovered
+    resolved = {}
+    ambiguous_path = run_directory / "Report" / "ME_ambiguous_positions.txt"
+    if ambiguous_path.exists():
+        with open(ambiguous_path) as handle:
+            for row in csv.DictReader(handle, delimiter="\t"):
+                for alternative in filter(None, row["alternative_positions"].split(",")):
+                    if alternative in truth_microexons - discovered and row["ME"] in discovered:
+                        resolved[alternative] = row["ME"]
+    missing_discoveries = truth_microexons - discovered - set(resolved)
     if missing_discoveries != expected_missing:
         raise ValidationError(
             "robust output missing {} truth events (expected only {}): {}".format(
@@ -583,7 +595,10 @@ def validate_pipeline_outputs(
         with gzip.open(quant_path, "rt") as handle:
             for row in csv.DictReader(handle, delimiter="\t"):
                 rows[row["ME"]] = row
-            missing_quantifications = sorted(required_microexons - set(rows))
+        for truth_event, reported_event in resolved.items():
+            if reported_event in rows:
+                rows[truth_event] = rows[reported_event]
+        missing_quantifications = sorted(required_microexons - set(rows))
         if missing_quantifications:
             raise ValidationError(
                 "sample {} is missing {} truth quantifications: {}".format(
@@ -645,6 +660,7 @@ def validate_pipeline_outputs(
         "truth_events": len(truth_microexons),
         "reported_truth_events": len(truth_microexons - missing_discoveries),
         "expected_missing_events": sorted(expected_missing),
+        "resolved_ambiguous_events": resolved,
         "samples": len(samples),
         "quantified_event_samples": quantified,
         "additional_discoveries": sorted(discovered - truth_microexons),
@@ -674,7 +690,6 @@ def main(argv=None):
         args.fixture_dir / "truth" / "events.tsv",
         args.fixture_dir / args.layout / "bulk_samples.tsv",
         args.run_dir,
-        expected_missing=EXPECTED_COLLAPSED_TRUTH_EVENTS,
         psi_tolerance=None if args.skip_psi_accuracy else args.psi_tolerance,
     )
     print(

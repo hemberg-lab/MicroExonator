@@ -79,13 +79,15 @@ fixture laid out like this one.
 The runner decompresses VM25 inside the work directory, builds a temporary
 FASTA index there without modifying or copying the 2.6 GB reference, writes an
 isolated concrete configuration, runs the pinned workflow, and invokes
-`validate_smoke.py`. A passing run must report 99 of the 100 truth coordinates
-in `Report/out.robustly_detected.txt` and produce numeric PSI, `CI_Lo`, and
-`CI_Hi` for each reported truth event in all nine biological samples. The sole
-permitted omission is `chr17_-_30598522_30598525` (ME053), a repeated 3-nt CAG
-within one intron that the current reporting stage collapses into another CAG
-coordinate. The validator rejects any other missing coordinate, including a
-second missing truth event. For every reported truth event, the mean
+`validate_smoke.py`. A passing run must report every truth coordinate in
+`Report/out.robustly_detected.txt` and produce numeric PSI, `CI_Lo`, and
+`CI_Hi` for each truth event in all nine biological samples. A truth event
+whose position reads cannot resolve counts as reported when
+`Report/ME_ambiguous_positions.txt` lists it as an alternative position of a
+reported event, whose quantification is then checked in its place. This
+applies to `chr17_-_30598522_30598525` (ME053), a 3-nt CAG that fits 46
+positions in its intron and is reported at the best-scoring one. The validator
+rejects any other missing coordinate. For every reported truth event, the mean
 corrected PSI of each sample group must also lie within 0.15 of the simulated
 target PSI (`--psi-tolerance` changes the threshold; `--skip-psi-accuracy`
 checks bounds only). Additional discoveries are informational.

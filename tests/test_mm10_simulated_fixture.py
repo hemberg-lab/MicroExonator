@@ -241,6 +241,41 @@ class PipelineOutputValidationTests(unittest.TestCase):
             self.assertEqual(report["expected_missing_events"], [collapsed])
             self.assertEqual(report["quantified_event_samples"], 2)
 
+    def rename_reported_event(self, run_dir, old, new):
+        robust = run_dir / "Report" / "out.robustly_detected.txt"
+        robust.write_text(robust.read_text().replace(old, new))
+        quant_dir = run_dir / "Report" / "quant" / "corrected" / "PSI_sparse" / "bulk" / "se"
+        for quant in quant_dir.glob("*.corrected.PSI.gz"):
+            with gzip.open(quant, "rt") as handle:
+                text = handle.read()
+            with gzip.open(quant, "wt") as handle:
+                handle.write(text.replace(old, new))
+
+    def test_truth_event_at_an_ambiguous_position_is_resolved_to_the_reported_one(self):
+        """Reads cannot place a repeated short sequence; the reported position carries them."""
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.rename_reported_event(run_dir, "chr2_-_200_214", "chr2_-_500_514")
+            (run_dir / "Report" / "ME_ambiguous_positions.txt").write_text(
+                "ME\tME_seq\tn_positions\talternative_positions\n"
+                "chr2_-_500_514\tACGTACGTACGTAC\t3\tchr2_-_200_214,chr2_-_800_814\n"
+            )
+
+            report = self.validator.validate_pipeline_outputs(
+                "single_end", events, samples, run_dir
+            )
+
+            self.assertEqual(report["resolved_ambiguous_events"], {"chr2_-_200_214": "chr2_-_500_514"})
+            self.assertEqual(report["quantified_event_samples"], 4)
+
+    def test_missing_truth_event_without_ambiguity_record_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.rename_reported_event(run_dir, "chr2_-_200_214", "chr2_-_500_514")
+
+            with self.assertRaises(self.validator.ValidationError):
+                self.validator.validate_pipeline_outputs("single_end", events, samples, run_dir)
+
     def test_completed_run_rejects_nonnumeric_confidence_bound(self):
         with tempfile.TemporaryDirectory() as directory:
             events, samples, run_dir = self.make_run(pathlib.Path(directory))
