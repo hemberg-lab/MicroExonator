@@ -200,6 +200,7 @@ rule quant:
         "Report/ME_junction_genomic_copies.txt",
         "Report/ME_ambiguous_positions.txt",
         "Report/ME_consecutive_runs.txt",
+        "Report/read_lengths.tsv",
         expand(
             "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
             sample=DATA,

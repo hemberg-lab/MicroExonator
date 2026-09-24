@@ -52,7 +52,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_len = config["ME_len"],
                     mode = "db_ref",
                     synthetic_skip_tags = synthetic_skip_tag_source(),
-                    flank = config.get("max_read_len", 100)
+                    flank = config["max_read_len"]
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -76,7 +76,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_len = config["ME_len"],
                     mode = "db_split",
                     synthetic_skip_tags = synthetic_skip_tag_source(),
-                    flank = config.get("max_read_len", 100)
+                    flank = config["max_read_len"]
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -102,7 +102,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_len = config["ME_len"],
                     mode = "db_ref",
                     synthetic_skip_tags = synthetic_skip_tag_source(),
-                    flank = config.get("max_read_len", 100)
+                    flank = config["max_read_len"]
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -126,7 +126,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_len = config["ME_len"],
                     mode = "db_split",
                     synthetic_skip_tags = synthetic_skip_tag_source(),
-                    flank = config.get("max_read_len", 100)
+                    flank = config["max_read_len"]
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -164,7 +164,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 ME_centric = "NA",
                 ME_len = config["ME_len"],
                 synthetic_skip_tags = synthetic_skip_tag_source(),
-                flank = config.get("max_read_len", 100)
+                flank = config["max_read_len"]
             output:
                 "data/ME_canonical_SJ_tags.DB.fa",
                 "data/DB.ME_centric"
@@ -224,7 +224,7 @@ else:
             bw = config["conservation_bigwig"],
             ME_len = config["ME_len"],
             synthetic_skip_tags = synthetic_skip_tag_source(),
-            flank = config.get("max_read_len", 100)
+            flank = config["max_read_len"]
         output:
             "data/ME_canonical_SJ_tags.DB.fa",
             "data/DB.ME_centric"
@@ -362,15 +362,16 @@ rule Round2_bowtie_to_tags:
          hard_drive_behavior,
          expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
     params:
-        max_read_len = config.get("max_read_len", 100)
+        max_read_len = config["max_read_len"]
     output:
-        temp("Round2/{sample}.sam.raw")
+        sam = temp("Round2/{sample}.sam.raw"),
+        lengths = "Round2/read_lengths/{sample}.tsv"
     threads: 5
     priority: 100
     conda:
          "../envs/core.yaml"
     shell:
-        "gzip -dc {input[1]} | awk -v L={params.max_read_len} 'NR % 2 == 0 {{ $0 = substr($0, 1, L) }} 1' | bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output}"
+        "gzip -dc {input[1]} | awk -v L={params.max_read_len} -v out={output.lengths} -f src/trim_reads.awk | bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output.sam}"
 
 
 rule Round2_alingment_pre_processing:
@@ -402,3 +403,14 @@ rule Round2_alingment_pre_processing:
 rule get_all_spanning_reads:
     input:
         expand("Round2/ME_reads/{sample}.ME_spanning_reads.tsv", sample=DATA)
+
+
+rule read_length_report:
+    input:
+        expand("Round2/read_lengths/{sample}.tsv", sample=DATA)
+    params:
+        max_read_len = config["max_read_len"]
+    output:
+        "Report/read_lengths.tsv"
+    shell:
+        "python3 src/read_length_report.py {params.max_read_len} {input} > {output}"

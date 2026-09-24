@@ -125,8 +125,12 @@ rule generate_fasta_from_bed12:
 if not "ME_len" in config:
     config["ME_len"] = 30
 
+# Length of exon sequence on each side of every splice-junction tag. Reads up
+# to this length (+8 nt) align in every junction-crossing position; longer
+# reads are trimmed to it before Round2 tag alignment. See the docs.
 if not "max_read_len" in config:
-    config["max_read_len"] = 100
+    config["max_read_len"] = 150
+config["max_read_len"] = int(config["max_read_len"])
 
 rule Splice_Junction_Library:
     input:
