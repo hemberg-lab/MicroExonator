@@ -24,6 +24,8 @@ class WorkflowSelectionTests(unittest.TestCase):
         include_bulk_manifest=True,
         skip_discovery_and_quant=False,
         explicit_cluster_columns=True,
+        extra_config=(),
+        print_shell=False,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -110,9 +112,13 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("skip_discovery_and_quant: T\n")
                 if filter_method is not None:
                     handle.write("filter_method: {}\n".format(filter_method))
+                for line in extra_config:
+                    handle.write(line + "\n")
 
             result = subprocess.run(
-                [snakemake, "-s", "MicroExonator.smk", "-n", "-j", "1", "quant"],
+                [snakemake, "-s", "MicroExonator.smk", "-n", "-j", "1"]
+                + (["-p"] if print_shell else [])
+                + ["quant"],
                 cwd=temp_dir,
                 env=dict(os.environ, XDG_CACHE_HOME=os.path.join(temp_dir, ".cache")),
                 text=True,
@@ -173,6 +179,33 @@ class WorkflowSelectionTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("Report/out.robustly_detected.txt", result.stdout)
+
+
+class QuantificationOnlyRouteTests(unittest.TestCase):
+    """skip_discovery + only_db: the fixed-universe route used by MegaSearch."""
+
+    def annotation_command(self, *extra_config):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self,
+            extra_config=("skip_discovery: T", "only_db: T") + extra_config,
+            print_shell=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        commands = [
+            line.strip()
+            for line in result.stdout.splitlines()
+            if "src/Get_annotated_microexons.py" in line
+        ]
+        self.assertEqual(len(commands), 1, result.stdout)
+        return commands[0]
+
+    def test_synthetic_skip_tags_are_on_by_default(self):
+        self.assertTrue(self.annotation_command().endswith(" Round1/ME_TAGs.fa"))
+
+    def test_synthetic_skip_tags_can_be_disabled(self):
+        self.assertTrue(
+            self.annotation_command("synthetic_skip_tags: F").endswith(" NA")
+        )
 
 
 if __name__ == "__main__":

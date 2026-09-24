@@ -2,6 +2,14 @@ from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
 #GS = GSRemoteProvider()
 
 
+def synthetic_skip_tag_source():
+    """Existing skipping tags, or NA to disable synthetic skipping tags."""
+    if str2bool(config.get("synthetic_skip_tags", True)):
+        return "Round1/ME_TAGs.fa"
+    return "NA"
+
+
+
 if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify microexons from annotation and database sources
 
     rule Micro_Exon_Tags:
@@ -36,12 +44,14 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     bed12 = config["Gene_anontation_bed12"],
                     GTAG_5 = "data/GT_AG_U2_5.pwm",
                     GTAG_3 = "data/GT_AG_U2_3.pwm",
-                    ME_DB = config["ME_DB"]
+                    ME_DB = config["ME_DB"],
+                    SJ_tags = "Round1/ME_TAGs.fa"
                 params:
                     bw = config["conservation_bigwig"],
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
-                    mode = "db_ref"
+                    mode = "db_ref",
+                    synthetic_skip_tags = synthetic_skip_tag_source()
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -49,7 +59,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
 
             rule Get_ME_from_annotation_split:
                 input:
@@ -57,12 +67,14 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     bed12 = config["Gene_anontation_bed12"],
                     GTAG_5 = "data/GT_AG_U2_5.pwm",
                     GTAG_3 = "data/GT_AG_U2_3.pwm",
-                    ME_DB = "data/splits/ME_DB.{split}"
+                    ME_DB = "data/splits/ME_DB.{split}",
+                    SJ_tags = "Round1/ME_TAGs.fa"
                 params:
                     bw = config["conservation_bigwig"],
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
-                    mode = "db_split"
+                    mode = "db_split",
+                    synthetic_skip_tags = synthetic_skip_tag_source()
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -70,7 +82,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
 
         else:
 
@@ -81,11 +93,13 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     GTAG_5 = "data/GT_AG_U2_5.pwm",
                     GTAG_3 = "data/GT_AG_U2_3.pwm",
                     ME_DB = config["ME_DB"],
-                    bw = config["conservation_bigwig"]
+                    bw = config["conservation_bigwig"],
+                    SJ_tags = "Round1/ME_TAGs.fa"
                 params:
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
-                    mode = "db_ref"
+                    mode = "db_ref",
+                    synthetic_skip_tags = synthetic_skip_tag_source()
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -93,7 +107,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
 
             rule Get_ME_from_annotation_split:
                 input:
@@ -102,11 +116,13 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     GTAG_5 = "data/GT_AG_U2_5.pwm",
                     GTAG_3 = "data/GT_AG_U2_3.pwm",
                     ME_DB = "data/splits/ME_DB.{split}",
-                    bw = config["conservation_bigwig"]
+                    bw = config["conservation_bigwig"],
+                    SJ_tags = "Round1/ME_TAGs.fa"
                 params:
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
-                    mode = "db_split"
+                    mode = "db_split",
+                    synthetic_skip_tags = synthetic_skip_tag_source()
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -114,7 +130,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
 
 
         rule ME_DB_splits_output:
@@ -137,18 +153,20 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 bed12 = config["Gene_anontation_bed12"],
                 GTAG_5 = "data/GT_AG_U2_5.pwm",
                 GTAG_3 = "data/GT_AG_U2_3.pwm",
-                ME_DB = config["ME_DB"]
+                ME_DB = config["ME_DB"],
+                SJ_tags = "Round1/ME_TAGs.fa"
             params:
                 bw = config["conservation_bigwig"],
                 ME_centric = "NA",
-                ME_len = config["ME_len"]
+                ME_len = config["ME_len"],
+                synthetic_skip_tags = synthetic_skip_tag_source()
             output:
                 "data/ME_canonical_SJ_tags.DB.fa",
                 "data/DB.ME_centric"
             conda:
                 "../envs/pybedtools.yaml"
             shell:
-                "python3 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} "
+                "python3 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.synthetic_skip_tags}"
 
 
     if  str2bool(config.get("skip_get_SJ_tags_round2", False)):
@@ -195,17 +213,19 @@ else:
             config["Gene_anontation_bed12"],
             "data/GT_AG_U2_5.pwm",
             "data/GT_AG_U2_3.pwm",
-            config["ME_DB"]
+            config["ME_DB"],
+            SJ_tags = "Round1/ME_TAGs.fa"
         params:
             bw = config["conservation_bigwig"],
-            ME_len = config["ME_len"]
+            ME_len = config["ME_len"],
+            synthetic_skip_tags = synthetic_skip_tag_source()
         output:
             "data/ME_canonical_SJ_tags.DB.fa",
             "data/DB.ME_centric"
         conda:
             "../envs/pybedtools.yaml"
         shell:
-            "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} "
+            "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} {params.synthetic_skip_tags}"
 
     rule merge_tags:
         input:

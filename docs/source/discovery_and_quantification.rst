@@ -88,6 +88,8 @@ The following parameters can be specified to further optimize the Discovery and 
 
 * ``min_reads_PSI`` is the minimun number of reads that needs supoort the existence of a novel microexon to consider it as high confidence. The default value is 3, but 5 or more is recommended if enough RNA-seq samples are provided.
 
+* ``synthetic_skip_tags`` (default ``T``) adds a skipping tag for every intron that contains a microexon but has no annotated exon-exon junction tag, for example when the annotation only contains the isoform that includes the microexon. Without it, skipping reads cannot be counted for such microexons and their PSI is fixed at 1. Introns that start or end at another microexon are excluded, because their skipping junction is the neighbouring microexon's inclusion junction. The added tags are listed in ``data/ME_synthetic_skip_tags.txt``. Set it to ``F`` to reproduce results from earlier versions.
+
 * ``paired_samples`` is a path to a tab-delimited file with two columns that indicate the correspndace between paired end samples names. This will enable MicroExonator to report a single quantification output per paired-end sample.
 
 Confidence filtering

@@ -7,6 +7,14 @@ from pybedtools import BedTool
 import pyBigWig
 from collections import defaultdict
 
+from synthetic_skip_tags import (
+    load_tag_introns,
+    microexon_boundaries,
+    needs_synthetic_tag,
+    parse_microexon_id,
+    skip_tag_record,
+)
+
 
 
 Genome = {}
@@ -72,7 +80,7 @@ def PWM_to_dict(file):
     return matrix
 
 
-def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3 ):
+def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3, existing_SJ_tags="NA"):
 
 
     n = 100
@@ -353,6 +361,17 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
     TOTAL_SJ_starts = set([])
     TOTAL_SJ_ends = set([])
 
+    # Synthetic skipping tags (see src/synthetic_skip_tags.py): one per containing
+    # intron that has no skipping tag and does not border another microexon.
+    write_synthetic = existing_SJ_tags != "NA"
+    existing_skip_introns = load_tag_introns(existing_SJ_tags) if write_synthetic else set()
+    synthetic_written = set()
+    ME_boundaries = microexon_boundaries(
+        [(c, st, s, e) for (c, s, e, st, l) in non_detected_ME]
+        + [parse_microexon_id(me) for me in found_ME]
+    )
+    synthetic_out = open(out1 + '.synthetic_skip_tags.txt', 'w')
+
     with open(out1, 'w') as out_tags, open(out2, 'w') as out_ME_centric,  open(out3, 'w') as  non_overlaping_out  :
 
         for i in non_detected_ME.items():
@@ -496,6 +515,19 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                     out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
                     out_tags.write(ME_TAG + "\n")
 
+                    if write_synthetic and needs_synthetic_tag(
+                        SJ_chrom, SJ_strand, int(SJ_start), int(SJ_end),
+                        existing_skip_introns, synthetic_written, ME_boundaries,
+                    ):
+                        skip_header, skip_sequence = skip_tag_record(
+                            SJ_chrom, SJ_strand, int(SJ_start), int(SJ_end),
+                            transcript, UP_TAG, DOWN_TAG,
+                        )
+                        out_tags.write(">" + skip_header + "\n")
+                        out_tags.write(skip_sequence + "\n")
+                        synthetic_out.write("\t".join([SJ, ME, transcript]) + "\n")
+                        synthetic_written.add(SJ)
+
                     # print ">" + "|".join([ ME_TAG_ID, transcript,  tag_pos ])
                     # print ME_TAG
 
@@ -526,6 +558,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                 out_ME_centric.write("\t".join(map(str, info)) + "\n")
 
+    synthetic_out.close()
+
 
 
 
@@ -543,4 +577,5 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])
-    main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12])
+    existing_SJ_tags = sys.argv[13] if len(sys.argv) > 13 else "NA"
+    main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12], existing_SJ_tags)
