@@ -314,7 +314,7 @@ def main(argv=None):
         environment=_execution_environment(args.snakemake),
     )
 
-    validator = fixture_root / "validate_smoke.py"
+    validator = pathlib.Path(__file__).resolve().parent / "validate_smoke.py"
     subprocess.run(
         [
             sys.executable,
