@@ -86,13 +86,35 @@ rule Round2_filter:
     input:
         "Round2/{sample}.sam.pre_processed",
         "Round2/{sample}.sam.pre_processed.hg19.sam",
+    params:
+        tags = "Round2/ME_canonical_SJ_tags.fa" if str2bool(config.get("mismatch_aware_blacklist", True)) else "NA"
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1")
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
-        "python3 src/Filter1_round2.py {input} > {output}"
+        "python3 src/Filter1_round2.py {input} {params.tags} > {output}"
+
+
+rule junction_genomic_copies:
+    input:
+        tags = "Round2/ME_canonical_SJ_tags.fa",
+        ME_centric = "Round2/TOTAL.ME_centric.txt",
+        genome = "data/Genome",
+        index = expand("data/Genome.{ebwt}", ebwt=EBWT)
+    output:
+        cores = temp("Round2/junction_cores.fa"),
+        hits = temp("Round2/junction_cores.genome_hits.txt"),
+        report = "Report/ME_junction_genomic_copies.txt"
+    conda:
+        "../envs/core.yaml"
+    shell:
+        """
+        python3 src/junction_genomic_copies.py cores {input.tags} {input.ME_centric} > {output.cores}
+        bowtie {input.genome} -f {output.cores} -v 0 -k 5 > {output.hits}
+        python3 src/junction_genomic_copies.py report {output.cores} {output.hits} > {output.report}
+        """
 
 
 rule ME_SJ_coverage:
