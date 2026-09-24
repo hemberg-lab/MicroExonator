@@ -77,5 +77,7 @@ in `Report/out.robustly_detected.txt` and produce numeric PSI, `CI_Lo`, and
 permitted omission is `chr17_-_30598522_30598525` (ME053), a repeated 3-nt CAG
 within one intron that the current reporting stage collapses into another CAG
 coordinate. The validator rejects any other missing coordinate, including a
-second missing truth event. Additional discoveries and PSI deviations are
-informational in this first smoke-test version.
+second missing truth event. For every reported truth event, the mean
+corrected PSI of each sample group must also lie within 0.15 of the simulated
+target PSI (`--psi-tolerance` changes the threshold; `--skip-psi-accuracy`
+checks bounds only). Additional discoveries are informational.

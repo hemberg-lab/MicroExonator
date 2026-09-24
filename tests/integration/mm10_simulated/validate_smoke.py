@@ -18,6 +18,10 @@ MINIMUM_VALID_SUPPORT = 12
 # The current reporting stage collapses it into the other CAG coordinate, so it
 # is deliberately the sole allowed absence from the final coordinate list.
 EXPECTED_COLLAPSED_TRUTH_EVENTS = frozenset({"chr17_-_30598522_30598525"})
+# Largest accepted gap between the mean corrected PSI of a group and the
+# simulated target PSI. In the Python 3 baseline run, events with complete
+# skipping evidence have a median gap of 0.027 and a 95th percentile of 0.10.
+PSI_TOLERANCE = 0.15
 
 
 class ValidationError(RuntimeError):
@@ -224,6 +228,31 @@ def _read_bulk_samples(samples_path):
     if len(samples) != len(set(samples)):
         raise ValidationError("bulk_samples.tsv contains duplicate samples")
     return samples
+
+
+def _read_sample_groups(samples_path):
+    with open(samples_path) as handle:
+        return {
+            row["sample"]: row["condition"]
+            for row in csv.DictReader(handle, delimiter="\t")
+        }
+
+
+def _read_target_psi(events_path):
+    """Return {ME: {group: target PSI}} from psi_<group> columns, if present."""
+    targets = {}
+    with open(events_path) as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        groups = [
+            field[len("psi_"):]
+            for field in reader.fieldnames or ()
+            if field.startswith("psi_")
+        ]
+        for row in reader:
+            targets[row["ME"]] = {
+                group: float(row["psi_" + group]) for group in groups
+            }
+    return targets
 
 
 def _parse_positions(value):
@@ -491,9 +520,19 @@ def _numeric(row, field, sample, microexon):
 
 
 def validate_pipeline_outputs(
-    layout, events_path, samples_path, run_directory, expected_missing=()
+    layout,
+    events_path,
+    samples_path,
+    run_directory,
+    expected_missing=(),
+    psi_tolerance=PSI_TOLERANCE,
 ):
-    """Validate discovery and quantification except declared collapsed events."""
+    """Validate discovery and quantification except declared collapsed events.
+
+    When events.tsv carries psi_<group> target columns and psi_tolerance is not
+    None, the mean corrected PSI of every truth event in every sample group must
+    lie within psi_tolerance of its simulated target.
+    """
     if layout not in ("single_end", "paired_end"):
         raise ValidationError("layout must be single_end or paired_end")
     run_directory = pathlib.Path(run_directory)
@@ -527,6 +566,8 @@ def validate_pipeline_outputs(
     required_microexons = truth_microexons - expected_missing
     quantified = 0
     psi_deviations = []
+    sample_groups = _read_sample_groups(samples_path)
+    observed_psi = defaultdict(list)
     for sample in samples:
         quant_path = (
             run_directory
@@ -563,6 +604,42 @@ def validate_pipeline_outputs(
                     )
                 )
             quantified += 1
+            observed_psi[(microexon, sample_groups[sample])].append(psi)
+
+    targets = _read_target_psi(events_path)
+    for (microexon, group), values in sorted(observed_psi.items()):
+        target = targets.get(microexon, {}).get(group)
+        if target is None:
+            continue
+        observed = sum(values) / len(values)
+        psi_deviations.append(
+            {
+                "ME": microexon,
+                "group": group,
+                "observed": observed,
+                "target": target,
+                "deviation": observed - target,
+            }
+        )
+    if psi_tolerance is not None:
+        failures = [
+            item for item in psi_deviations
+            if abs(item["deviation"]) > psi_tolerance
+        ]
+        if failures:
+            failures.sort(key=lambda item: -abs(item["deviation"]))
+            failing_events = sorted({item["ME"] for item in failures})
+            raise ValidationError(
+                "{} truth events deviate from target PSI by more than {} "
+                "in at least one group; largest: {}".format(
+                    len(failing_events),
+                    psi_tolerance,
+                    ", ".join(
+                        "{ME} {group} observed {observed:.2f} target {target:.2f}".format(**item)
+                        for item in failures[:10]
+                    ),
+                )
+            )
 
     return {
         "truth_events": len(truth_microexons),
@@ -580,6 +657,17 @@ def main(argv=None):
     parser.add_argument("--layout", required=True, choices=("single_end", "paired_end"))
     parser.add_argument("--fixture-dir", type=pathlib.Path, default=pathlib.Path(__file__).parent)
     parser.add_argument("--run-dir", type=pathlib.Path, required=True)
+    parser.add_argument(
+        "--psi-tolerance",
+        type=float,
+        default=PSI_TOLERANCE,
+        help="largest accepted |mean group PSI - target PSI| (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--skip-psi-accuracy",
+        action="store_true",
+        help="check PSI bounds only, not agreement with the simulated targets",
+    )
     args = parser.parse_args(argv)
     report = validate_pipeline_outputs(
         args.layout,
@@ -587,12 +675,16 @@ def main(argv=None):
         args.fixture_dir / args.layout / "bulk_samples.tsv",
         args.run_dir,
         expected_missing=EXPECTED_COLLAPSED_TRUTH_EVENTS,
+        psi_tolerance=None if args.skip_psi_accuracy else args.psi_tolerance,
     )
     print(
         "Validated {reported_truth_events}/{truth_events} reported truth events across {samples} samples "
         "({quantified_event_samples} event-sample quantifications).".format(**report)
     )
     print("Additional discoveries (non-failing): {}".format(len(report["additional_discoveries"])))
+    if report["psi_deviations"]:
+        largest = max(abs(item["deviation"]) for item in report["psi_deviations"])
+        print("Largest group PSI deviation from target: {:.3f}".format(largest))
     return 0
 
 

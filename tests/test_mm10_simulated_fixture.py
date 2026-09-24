@@ -269,6 +269,57 @@ class PipelineOutputValidationTests(unittest.TestCase):
                 )
 
 
+    def write_targets(self, events, target_psi):
+        """Rewrite events.tsv with a psi_A target column."""
+        with open(events, "w", newline="") as handle:
+            writer = csv.DictWriter(
+                handle, fieldnames=("event_id", "ME", "profile", "psi_A"), delimiter="\t"
+            )
+            writer.writeheader()
+            for index, (microexon, psi) in enumerate(target_psi.items(), start=1):
+                writer.writerow(
+                    {"event_id": "event-{}".format(index), "ME": microexon, "profile": "stable", "psi_A": psi}
+                )
+
+    def test_completed_run_accepts_psi_close_to_simulated_targets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.write_targets(events, {"chr1_+_100_103": 0.45, "chr2_-_200_214": 0.75})
+
+            report = self.validator.validate_pipeline_outputs(
+                "single_end", events, samples, run_dir
+            )
+
+            deviations = {item["ME"]: item["deviation"] for item in report["psi_deviations"]}
+            self.assertAlmostEqual(deviations["chr1_+_100_103"], 0.05)
+            self.assertAlmostEqual(deviations["chr2_-_200_214"], 0.0)
+
+    def test_completed_run_rejects_psi_far_from_simulated_target(self):
+        """An event pinned at high PSI despite simulated skipping must fail."""
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.write_targets(events, {"chr1_+_100_103": 0.5, "chr2_-_200_214": 0.35})
+
+            with self.assertRaisesRegex(
+                self.validator.ValidationError,
+                "1 truth events deviate.*chr2_-_200_214 A observed 0.75 target 0.35",
+            ):
+                self.validator.validate_pipeline_outputs(
+                    "single_end", events, samples, run_dir
+                )
+
+    def test_psi_accuracy_check_can_be_disabled(self):
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.write_targets(events, {"chr1_+_100_103": 0.5, "chr2_-_200_214": 0.35})
+
+            report = self.validator.validate_pipeline_outputs(
+                "single_end", events, samples, run_dir, psi_tolerance=None
+            )
+
+            self.assertEqual(len(report["psi_deviations"]), 2)
+
+
 class SmokeRunnerTests(unittest.TestCase):
     def test_execution_environment_puts_conda_base_before_system_python(self):
         runner = load_runner()
