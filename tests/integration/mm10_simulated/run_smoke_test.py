@@ -216,10 +216,16 @@ def main(argv=None):
     parser.add_argument("--snakemake", required=True, type=pathlib.Path)
     parser.add_argument("--workdir", required=True, type=pathlib.Path)
     parser.add_argument("--cores", type=int, default=4)
+    parser.add_argument(
+        "--fixture-dir",
+        type=pathlib.Path,
+        default=pathlib.Path(__file__).resolve().parent,
+        help="fixture laid out like this directory (default: the committed mm10 fixture)",
+    )
     args = parser.parse_args(argv)
 
-    fixture_root = pathlib.Path(__file__).resolve().parent
-    repository = fixture_root.parents[2]
+    fixture_root = args.fixture_dir.resolve()
+    repository = pathlib.Path(__file__).resolve().parents[3]
     observed_version = _tool_version(args.snakemake)
     if observed_version != PINNED_SNAKEMAKE:
         raise RuntimeError(
