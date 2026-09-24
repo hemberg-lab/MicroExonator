@@ -108,6 +108,17 @@ rule ambiguous_positions:
         "python3 src/ambiguous_positions.py {input} > {output}"
 
 
+rule consecutive_runs:
+    input:
+        "Round2/TOTAL.ME_centric.txt"
+    output:
+        "Report/ME_consecutive_runs.txt"
+    conda:
+        "../envs/core_py3.yaml"
+    shell:
+        "python3 src/consecutive_runs.py {input} > {output}"
+
+
 rule junction_genomic_copies:
     input:
         tags = "Round2/ME_canonical_SJ_tags.fa",
