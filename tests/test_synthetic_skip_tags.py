@@ -96,7 +96,7 @@ class SyntheticSkipTagGenerationTests(unittest.TestCase):
     Exons used: E1 100-200, m1 500-512 (12 nt), m2 600-609 (9 nt), E2 1000-1100.
     """
 
-    def run_script(self, transcripts, strand="+", existing_tags="", enabled=True):
+    def run_script(self, transcripts, strand="+", existing_tags="", enabled=True, flank=None):
         with tempfile.TemporaryDirectory() as directory:
             workdir = pathlib.Path(directory)
             (workdir / "data").mkdir()
@@ -128,7 +128,7 @@ class SyntheticSkipTagGenerationTests(unittest.TestCase):
                     str(REPOSITORY / "PWM" / "Mouse" / "mm10_GT_AG_U2_3.good.matrix"),
                     "NA", "30", str(workdir / "empty.bed"),
                     str(workdir / "ME_TAGs.fa") if enabled else "NA",
-                ],
+                ] + ([str(flank)] if flank is not None else []),
                 cwd=workdir, capture_output=True, text=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -156,6 +156,12 @@ class SyntheticSkipTagGenerationTests(unittest.TestCase):
         self.assertEqual(centric, {"chr1_+_500_512": "chr1:200+1000"})
         self.assertEqual(list(skip_tags), ["chr1:200+1000|tx_inc|100_100"])
         self.assertEqual(skip_tags["chr1:200+1000|tx_inc|100_100"], genome[100:200] + genome[1000:1100])
+
+    def test_flank_length_follows_max_read_len(self):
+        skip_tags, centric, genome = self.run_script(
+            {"tx_inc": [(100, 200), (500, 512), (1000, 1100)]}, flank=60
+        )
+        self.assertEqual(skip_tags, {"chr1:200+1000|tx_inc|60_60": genome[140:200] + genome[1000:1060]})
 
     def test_existing_skipping_tag_is_not_duplicated(self):
         skip_tags, centric, genome = self.run_script(

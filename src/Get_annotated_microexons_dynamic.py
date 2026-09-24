@@ -80,10 +80,12 @@ def PWM_to_dict(file):
     return matrix
 
 
-def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3, existing_SJ_tags="NA"):
+def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_DB, mode, out1, out2, out3, existing_SJ_tags="NA", flank=100):
 
 
-    n = 100
+    # Tag flanks must be at least as long as the reads (max_read_len); reads
+    # longer than a flank cannot align end to end across every junction.
+    n = flank
 
     min_intron_lenght = 80
 
@@ -177,13 +179,13 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                     if (chrom, eend) in SJ_start_seqs:
 
-                        if len(f_seq[-100:]) > len(SJ_start_seqs[(chrom, eend )]):
+                        if len(f_seq[-flank:]) > len(SJ_start_seqs[(chrom, eend )]):
 
-                            SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
+                            SJ_start_seqs[(chrom, eend )] = f_seq[-flank:]
 
                     else:
 
-                        SJ_start_seqs[(chrom, eend )] = f_seq[-100:]
+                        SJ_start_seqs[(chrom, eend )] = f_seq[-flank:]
 
 
 
@@ -198,13 +200,13 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                 if (chrom, estart) in SJ_end_seqs:
 
-                    if len(r_seq[:100]) > len(SJ_end_seqs[(chrom, estart )]):
+                    if len(r_seq[:flank]) > len(SJ_end_seqs[(chrom, estart )]):
 
-                        SJ_end_seqs[(chrom, estart )] = r_seq[:100]
+                        SJ_end_seqs[(chrom, estart )] = r_seq[:flank]
 
                 else:
 
-                    SJ_end_seqs[(chrom, estart )] = r_seq[:100]
+                    SJ_end_seqs[(chrom, estart )] = r_seq[:flank]
 
 
 
@@ -578,4 +580,5 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 if __name__ == '__main__':
     Genomictabulator(sys.argv[1])
     existing_SJ_tags = sys.argv[13] if len(sys.argv) > 13 else "NA"
-    main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12], existing_SJ_tags)
+    flank = int(sys.argv[14]) if len(sys.argv) > 14 else 100
+    main (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], int(sys.argv[7]), sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12], existing_SJ_tags, flank)

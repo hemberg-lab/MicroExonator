@@ -51,7 +51,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
                     mode = "db_ref",
-                    synthetic_skip_tags = synthetic_skip_tag_source()
+                    synthetic_skip_tags = synthetic_skip_tag_source(),
+                    flank = config.get("max_read_len", 100)
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -59,7 +60,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags} {params.flank}"
 
             rule Get_ME_from_annotation_split:
                 input:
@@ -74,7 +75,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
                     mode = "db_split",
-                    synthetic_skip_tags = synthetic_skip_tag_source()
+                    synthetic_skip_tags = synthetic_skip_tag_source(),
+                    flank = config.get("max_read_len", 100)
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -82,7 +84,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags} {params.flank}"
 
         else:
 
@@ -99,7 +101,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
                     mode = "db_ref",
-                    synthetic_skip_tags = synthetic_skip_tag_source()
+                    synthetic_skip_tags = synthetic_skip_tag_source(),
+                    flank = config.get("max_read_len", 100)
                 output:
                     "data/splits/ref.ME_canonical_SJ_tags.DB.fa",
                     "data/splits/ref.DB.ME_centric",
@@ -107,7 +110,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags} {params.flank}"
 
             rule Get_ME_from_annotation_split:
                 input:
@@ -122,7 +125,8 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                     ME_centric = "NA",
                     ME_len = config["ME_len"],
                     mode = "db_split",
-                    synthetic_skip_tags = synthetic_skip_tag_source()
+                    synthetic_skip_tags = synthetic_skip_tag_source(),
+                    flank = config.get("max_read_len", 100)
                 output:
                     "data/splits/ME_canonical_SJ_tags.DB.fa.{split}",
                     "data/splits/DB.ME_centric.{split}",
@@ -130,7 +134,7 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 conda:
                     "../envs/pybedtools.yaml"
                 shell:
-                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags}"
+                    "python3 src/Get_annotated_microexons_dynamic.py {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {input.bw} {params.ME_len} {input.ME_DB} {params.mode} {output} {params.synthetic_skip_tags} {params.flank}"
 
 
         rule ME_DB_splits_output:
@@ -159,14 +163,15 @@ if  str2bool(config.get("only_db", False))==True:  #This allows to just quantify
                 bw = config["conservation_bigwig"],
                 ME_centric = "NA",
                 ME_len = config["ME_len"],
-                synthetic_skip_tags = synthetic_skip_tag_source()
+                synthetic_skip_tags = synthetic_skip_tag_source(),
+                flank = config.get("max_read_len", 100)
             output:
                 "data/ME_canonical_SJ_tags.DB.fa",
                 "data/DB.ME_centric"
             conda:
                 "../envs/pybedtools.yaml"
             shell:
-                "python3 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.synthetic_skip_tags}"
+                "python3 src/Get_annotated_microexons.py  {input.genome} {params.ME_centric} {input.bed12} {input.GTAG_5} {input.GTAG_3} {params.bw} {params.ME_len} {input.ME_DB} {params.synthetic_skip_tags} {params.flank}"
 
 
     if  str2bool(config.get("skip_get_SJ_tags_round2", False)):
@@ -218,14 +223,15 @@ else:
         params:
             bw = config["conservation_bigwig"],
             ME_len = config["ME_len"],
-            synthetic_skip_tags = synthetic_skip_tag_source()
+            synthetic_skip_tags = synthetic_skip_tag_source(),
+            flank = config.get("max_read_len", 100)
         output:
             "data/ME_canonical_SJ_tags.DB.fa",
             "data/DB.ME_centric"
         conda:
             "../envs/pybedtools.yaml"
         shell:
-            "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} {params.synthetic_skip_tags}"
+            "python3 src/Get_annotated_microexons.py  {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} {params.bw} {params.ME_len} {input[5]} {params.synthetic_skip_tags} {params.flank}"
 
     rule merge_tags:
         input:
@@ -355,6 +361,8 @@ rule Round2_bowtie_to_tags:
         "Round2/ME_canonical_SJ_tags.fa",
          hard_drive_behavior,
          expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
+    params:
+        max_read_len = config.get("max_read_len", 100)
     output:
         temp("Round2/{sample}.sam.raw")
     threads: 5
@@ -362,7 +370,7 @@ rule Round2_bowtie_to_tags:
     conda:
          "../envs/core.yaml"
     shell:
-        "gzip -dc {input[1]} |  bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output}"
+        "gzip -dc {input[1]} | awk -v L={params.max_read_len} 'NR % 2 == 0 {{ $0 = substr($0, 1, L) }} 1' | bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output}"
 
 
 rule Round2_alingment_pre_processing:
