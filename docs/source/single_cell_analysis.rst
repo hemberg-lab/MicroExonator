@@ -20,23 +20,23 @@ To run this secction the following parameters needs to be incorporated at ``conf
 .. code-block:: bash
 
     Single_Cell : T
-    cluster_metadata : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Paper/MicroExonator/Whippet/Tasic_clustering.txt
+    cluster_metadata : /path/to/cluster_metadata.tsv
     cluster_name : broad_type
     file_basename : Run_s
     cdf_t : 0.8
     min_p_mean : 0.9
     min_delta : 0.1
     min_rep : 25
-    run_metadata : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Paper/MicroExonator/Whippet/Tasic_run.txt
+    run_metadata : /path/to/run_metadata.tsv
 
 
 * ``Single_Cell`` correspond to an optiona parameter that needs to be set as ``T`` in order to run ``snakepool``.
 * ``cluster_metadata`` must indicate the path of a tabular separated file that contain at least two colums to indicate the cluster and file base names. This file must have the first row as header.
 * ``cluster_name`` indicate the name of the column, inside ``cluster_metadata``, which has cluster name information.
-* ``file_baseame`` indicate the name of the column, inside ``cluster_metadata``, which has the sample names. These needs to match with sample names defined on the input files (See :doc:`setup`)
+* ``file_basename`` indicate the name of the column, inside ``cluster_metadata``, which has the sample names. These needs to match with sample names defined on the input files (See :doc:`setup`)
 * ``cdf_t`` parameter set a theshold to run a `Cumulative distribution function <https://en.wikipedia.org/wiki/Cumulative_distribution_function>`_ over the resultant Probability values obtained for each node across comutational replicates, asuming these fit a `beta distribution <https://en.wikipedia.org/wiki/Beta_distribution>`_. Which in practical terms can be considered as a user-defined threshold (between 0.5 and 1) to calculate a p-value assosiated to node's probability of differential inclusion across computational replicates.
 * ``min_p_mean`` corresponds to a threshold of mean probability values across computational samples to define a node as differentially included across the comparing cell-types.
-* ``min_p_delta`` corresponds to a threshold of mean delta PSI values across computational samples to define a node as differentially included across the comparing cell-types.
+* ``min_delta`` corresponds to a threshold of mean delta PSI values across computational samples to define a node as differentially included across the comparing cell-types.
 * ``min_rep`` minimun set of computational replicates that can be considered to define a node as differentially included across the comparing cell-types. This parameter is relevant because when nodes have limmited read coverage across cells, only some few computational replictates could enable quantitative alternative splicing analyses, leading to unreliable assesment of its alternative inclusion. The number of compuational repeats is defined for each sample inside `run_metadata`. We recomend to set this value to at least the half of the compuational replicates that are scheduled to run by the user.
 * ``run_metadata`` indicates the path of a tabulat separated file which contain information about user-defined comparisons across cell-types. Additional information about this file can be found bellow.
 
@@ -135,6 +135,17 @@ After setting up all the files described above, this single cell analysis module
 
     It is allways a good idea to use ``-np`` to execute an snakemake ``dry-run`` before submiting a large set of jobs.
 
+Pseudo-bulk quantification (optional)
+-------------------------------------
+
+Single cells are usually sequenced shallowly, so few reads cross any one splice junction in a cell. Pooling cells of the same type into pseudo-bulks increases the number of splicing nodes that can be quantified. With the ``collapse_pseudo_pools`` target, MicroExonator randomly assigns the cells of each cluster to pseudo-bulks, runs ``whippet-quant`` on each and writes the results to ``Whippet/Quant/Single_Cell/Pseudo_bulks/``, together with ``pseudo_bulk_membership.tsv``, which records which cells went into each pseudo-bulk:
+
+.. code-block:: bash
+
+    snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} collapse_pseudo_pools
+
+The number of pseudo-bulks per cluster is the number of cells divided by ``cells_pseudobulks`` (default 15), or a fixed number given by ``n_pseudobulks``. ``seed`` (default 123) fixes the random assignment. See :doc:`parameters` for all single-cell parameters.
+
 Unpooled quantification (optional)
 ----------------------------------
 
@@ -144,7 +155,7 @@ In order to generate PSI quantification files at the single cell level (as oppos
 
     snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} quant_unpool_single_cell
     
-This can enable users do run custom downstream analysis over alternative splicing quantification files generated for every cell by separated. 
+This allows custom downstream analyses on the quantification of each cell. To avoid writing very many files, the per-cell results can instead be aggregated by cluster (using ``cluster_metadata``) with the ``collapse_whippet`` target; the results are written to ``Whippet/Quant/Collapsed/``.
 
 .. warning::
 

@@ -1,31 +1,135 @@
 .. _input_files:
 
-===========  
+===========
 Setup
 ===========
 
-Before runnung MicroExonator there are several files that needs to be created inside ``MicroExonator/`` root folder:
+Before running MicroExonator, a few files need to be created inside the ``MicroExonator/`` folder: one or more lists of input samples, a ``config.yaml`` file and, on a cluster, a ``cluster.json`` file. Examples of all of them are in the ``Examples/`` folder.
 
 RNA-seq samples
 ===============
 
-Input RNA-seq data either a ``local_samples.tsv``, ``NCBI_accession_list.txt`` or ``sample_url.tsv`` needs to be defined.
-If you want to run MicroExonator over RNA-seq samples that are locally stored, they need to be defined inside ``local_samples.tsv``.
-MicroExonator can also download and run samples from NCBI if the corresponding SRA accession names are defined inside of ``NCBI_accession_list.txt``,
-in addition any ``fastq.gz`` that can be directly download from a URL can be included into the aalysis by defining them inside a ``sample_url.tsv``.
-You can find examples of these files inside the ``Examples/`` folder.
-Is posible to combine different types of input sources, but at least one of these files needs to be defined inside ``MicroExonator/`` root folder. 
+Samples can be stored locally, downloaded from a URL, or downloaded from NCBI's Sequence Read Archive (SRA). Each source has its own file, the files must sit in the ``MicroExonator/`` folder under these exact names, and at least one of them must exist. Sources can be combined in one run.
+
+**Local files: local_samples.tsv**
+
+A tab-separated file with a header and the columns ``path`` and ``sample``. ``path`` points to a FASTQ file (``.fastq.gz``, ``.fastq.bz2`` or plain ``.fastq``) and ``sample`` is the name the sample will have in every output:
+
+.. code-block:: text
+
+    path	sample
+    /data/condition_A.rep1.fastq.gz	A1
+    /data/condition_A.rep2.fastq.gz	A2
+    /data/condition_A.rep3.fastq.gz	A3
+    /data/condition_B.rep1.fastq.gz	B1
+    /data/condition_B.rep2.fastq.gz	B2
+    /data/condition_B.rep3.fastq.gz	B3
+
+**Files at a URL: sample_url.tsv**
+
+The same structure, with a column named ``url`` instead of ``path``. Each URL must point directly to a gzip-compressed FASTQ file.
+
+**SRA runs: NCBI_accession_list.txt**
+
+One SRA run accession per line, with no header:
+
+.. code-block:: text
+
+    SRR1805814
+    SRR1805815
+    SRR1805816
+
+The run accession becomes the sample name. For paired-end runs both mates are downloaded and joined into one FASTQ file, and each mate is then treated as a separate read. To report paired-end data from local files as a single sample, see ``paired_samples`` in :doc:`parameters`.
+
+By default, downloaded or copied FASTQ files are kept only while they are needed (see ``Keep_fastq_gz`` and ``Optimize_hard_drive`` in :doc:`parameters`).
+
+Sample groups
+=============
+
+Bulk RNA-seq runs also need a ``bulk_samples`` file that assigns every sample to a biological condition. It is used to decide which microexons are detected robustly within each group (see :doc:`discovery_and_quantification`). It is a tab-separated file with the columns ``sample`` and ``condition``:
+
+.. code-block:: text
+
+    sample	condition
+    A1	control
+    A2	control
+    A3	control
+    B1	treated
+    B2	treated
+    B3	treated
+
+Sample names must match the names given in the sample lists above. Its path is given with the ``bulk_samples`` key in ``config.yaml``.
+
+Configuration file
+==================
+
+All parameters are given in a file called ``config.yaml`` inside the ``MicroExonator/`` folder, in `YAML <https://yaml.org/>`_ format (``key : value``, one per line). The minimal configuration is described in :doc:`discovery_and_quantification` and every parameter is listed in :doc:`parameters`. Complete examples are in ``Examples/Runs/``.
 
 Cluster configuration
 =====================
 
-If you are working on a high performace cluster, then it is very likely that you need to submit jobs to queueing systems such as lsf, qsub, SLURM, etc.
-To make MicroExonator work with these queueing systems, you need to create a `cluster.json` file. 
-We currently provide in the Examples folder a ``cluster.json`` file to run MicroExonator with `lsf <https://www.ibm.com/support/knowledgecenter/en/SSETD4/product_welcome_platform_lsf.html>`_.
-To adapt MicroExonator to other quequing systems please see the `SnakeMake documentation <https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html?highlight=cluster.json#cluster-configuration>`_.
+On a cluster, jobs are usually submitted through a scheduler such as LSF or SLURM. Snakemake can submit each step as a separate job; it reads the resources for each step from a JSON file, which we assume is called ``cluster.json`` and sits in the ``MicroExonator/`` folder.
 
-Config file
-===========
+Every step of the workflow is a Snakemake rule (in the ``rules/`` folder). Default resources for all rules are given under ``"__default__"``; for LSF this may look like:
 
-Each MicroExonator's module has certain compulsory and optional parameters that needs to be defined inside a ``config.yaml`` file.
-The necesary content of ``config.yaml`` is described on each moudle section and examples can be found at the ``Examples/`` folder.
+.. code-block:: json
+
+    "__default__" :
+    {
+        "queue"     : "normal",
+        "nCPUs"     : "1",
+        "memory"    : 10000,
+        "resources" : "\"select[mem>10000] rusage[mem=10000] span[hosts=1]\"",
+        "name"      : "JOBNAME.{rule}.{wildcards}",
+        "output"    : "logs/{rule}.{wildcards}.out",
+        "error"     : "logs/{rule}.{wildcards}.err",
+        "Group"     : "your_group",
+        "tCPU"      : "99999"
+    }
+
+This gives every job one CPU and 10 GB of memory, which is enough for most steps with the human or mouse genome. Rules that need more are given their own entry, which overrides the default. For example, to give the discovery alignment five CPUs:
+
+.. code-block:: json
+
+    "Round1_bwa_mem_to_tags" :
+    {
+        "nCPUs"    : 5
+    }
+
+A complete file for LSF is in ``Examples/Cluster_config/lsf/cluster.json``. For other schedulers, see the `Snakemake documentation <https://snakemake.readthedocs.io/en/v7.32.4/snakefiles/configuration.html#cluster-configuration-deprecated>`_.
+
+.. _cluster_resources:
+
+Recommended resources
+---------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Rule
+     - CPUs
+     - Memory (GB)
+   * - Round1_bwa_mem_to_tags
+     - 5
+     - default
+   * - hisat2_genome_index
+     - 5
+     - default
+   * - Round2_bowtie_to_tags
+     - 5
+     - default
+   * - bowtie_genome_index
+     - default
+     - 30 for the human genome
+   * - bowtie_to_genome
+     - 2
+     - default
+   * - total_hisat2_to_genome
+     - 5
+     - default
+   * - Output
+     - 2
+     - 30
+   * - whippet_quant
+     - default
+     - 2

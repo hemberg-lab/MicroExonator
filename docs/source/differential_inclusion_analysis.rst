@@ -5,70 +5,55 @@
 Differential inclusion analysis
 ===============================
 
+This downstream module tests for differential inclusion of annotated and novel microexons between user-defined groups of samples, using `Whippet <https://github.com/timbitz/Whippet.jl>`_. Whippet builds a contiguous splice graph for each gene from the annotation, where nodes are non-overlapping stretches of exonic sequence and edges are splice junctions or contiguous sequence, and quantifies splicing by mapping reads directly to these graphs. MicroExonator adds the detected microexons to the annotation first, so that they become nodes of the graph.
 
-On this secction we descrive the a downstream module that was developed to perform alternative splicing analysis between sample groups. To quantify and assess differential inclusion of novel and annotated microexons, on this moudle we have integrated `Whippet <https://github.com/timbitz/Whippet.jl>`_, which enables a fast and accurate assesment of alterntive splicing events across user-defined sample groups.
+Whippet's k-mers are long relative to microexons, so its own PSI for microexon nodes is not reliable. For microexons, use the ``.diff.ME.microexons`` results described below, which are computed from MicroExonator's PSI.
 
 Install
 =======
 
-To run this downstream module for the first time you need to create a environment that has `snakemake` and the version of `julia` that is compatible with `Whipet v0.11`. To creat this enviroment execute the following command inside ``MicroExonator/`` folder:
+Whippet runs on Julia. The current Whippet release works with Julia 1.6, which can be built from its repository:
 
 .. code-block:: bash
 
-    conda env create -f Whippet/julia_0.6.1.yaml
+    git clone https://github.com/JuliaLang/julia
+    cd julia
+    git checkout v1.6.0
+    make
 
-Then, activate the newly created enviroment:
-
-.. code-block:: bash
-
-    source activate julia_0.6.1
-
-Enter julia's interactive mode:
+This produces a ``julia`` executable inside the ``julia/`` folder (prebuilt binaries from `julialang.org <https://julialang.org/downloads/oldreleases/>`_ work too). Then install Whippet with that Julia:
 
 .. code-block:: bash
 
-    julia
+    git clone https://github.com/timbitz/Whippet.jl.git
+    cd Whippet.jl
+    /path/to/julia --project -e 'using Pkg; Pkg.instantiate()'
 
-Install Whippet by excecuting the following command on the interactive session:
-
-.. code-block:: bash
-
-    Pkg.add("Whippet")
-
-.. note::
-
-    To exit julia interactive session press ``control + d``.
-
+where ``/path/to/julia`` is the full path of the Julia executable.
 
 Configure
 =========
 
-Here there is an list of the additonal keys that need to be incorporated as a part of config.yaml:
+Add these keys to ``config.yaml``:
 
-.. code-block:: bash
-    
-    whippet_bin_folder : /path/to/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
-    Gene_anontation_GTF : /path/to/gene.annotation.gtf
+.. code-block:: yaml
+
+    whippet_bin_folder : /path/to/Whippet.jl/bin
+    julia : /path/to/julia/julia
+    Gene_anontation_GTF : /path/to/gencode.annotation.gtf
     whippet_delta : /path/to/whippet_delta.yaml
-    # Optional compatibility mode: use pre-correction PSI for MicroExonator-driven Whippet analyses.
-    use_uncorrected_PSI : true
 
-* ``whippet_bin_folder`` correspodn t the path of whippet binary folder (``Whippet/bin``) that is located inside ``julia_0.6.1`` virtual enviroment folder. The specific routh to ``Whippet/bin`` may variate, so it is important that you manually identify the correct path.
+* ``whippet_bin_folder``: the ``bin/`` folder of the Whippet installation.
+* ``julia``: the Julia executable used to install Whippet.
+* ``Gene_anontation_GTF``: the gene annotation as `GTF <https://en.wikipedia.org/wiki/Gene_transfer_format>`_, with gene, transcript and exon features. Use the same annotation as for discovery and quantification.
+* ``whippet_delta``: a YAML file describing the comparisons (see below).
 
-* ``Gene_anontation_GTF`` corresponds the path of a gene annotation file as Gene Transfer Format (`GTF <https://en.wikipedia.org/wiki/Gene_transfer_format#:~:text=The%20Gene%20transfer%20format%20(GTF,conventions%20specific%20to%20gene%20information.>`_). Working with the same annotation data base than the one used on the previous steps is recommended. 
-
-* ``whippet_delta`` indicate the path of a `YAML <https://en.wikipedia.org/wiki/YAML#:~:text=Open%20format%3F&text=YAML%20(a%20recursive%20acronym%20for,is%20being%20stored%20or%20transmitted.>`_ file you need to create to provide information about the desired comparisons between groups of samples.
-
-* MicroExonator-driven Whippet analyses use the corrected MicroExonator PSI
-  values by default. Set ``use_uncorrected_PSI : true`` only to retain the
-  historical pre-correction PSI input. The setting affects the
-  ``.diff.ME.microexons`` route, not PSI values calculated by Whippet itself.
-
+MicroExonator passes its corrected PSI values to Whippet by default. Set ``use_uncorrected_PSI : T`` only to reproduce analyses that used the uncorrected values; it affects the ``.diff.ME.microexons`` results, not the PSI values Whippet calculates itself.
 
 whippet_delta YAML file
 -----------------------
 
-This file can contain the information to schedule any number of comparison between sample groups of any size. Every comparison should have the following structure inside the YAML file:
+Each comparison has this structure:
 
 .. code-block:: bash
 
@@ -76,7 +61,7 @@ This file can contain the information to schedule any number of comparison betwe
       A : sample1,sample2,sample3
       B : sample4,sample5,sample6
 
-Where ``sample1 ... sample6`` correspond to base names given to each RNA-seq samples at the corresponding input files (See :doc:`setup`) and `comparison_ID` to any given name for the sheduled comparison. As an example see the :download:`YAML file <../../Examples/Runs/Parada_et_al/whippet_delta.yaml>` we used in our publication. 
+where ``sample1`` to ``sample6`` are sample names as defined in the input files (see :doc:`setup`; for SRA data, the run accessions) and ``comparison_ID`` is any name for the comparison. There is no limit on the number of comparisons or on group sizes. The :download:`YAML file <../../Examples/Runs/Parada_et_al/whippet_delta.yaml>` used in our publication is an example.
 
 .. warning::
 
@@ -86,7 +71,7 @@ Where ``sample1 ... sample6`` correspond to base names given to each RNA-seq sam
 Optional parameters
 -------------------
 
-If you just want to skip Discovery and Quantification modules and just asses alternative splicing events annotated at the provided GTF file, then include the following like at the configuratio file:
+To skip discovery and quantification and analyse only the splicing events in the GTF annotation, add:
 
 .. code-block:: bash
 
@@ -95,7 +80,7 @@ If you just want to skip Discovery and Quantification modules and just asses alt
 Run
 ===
 
-In order to run this module you need to run the standar MicroExonator command, but providing ``differential_inclusion`` as a target. If you have not run previous ``discovery`` and ``quantification`` modules, MicroExonator will include them into the job plan (unless ``downstream_only`` is set as ``T``)   
+Run the usual MicroExonator command with ``differential_inclusion`` as the target. If discovery and quantification have not been run yet, they are added to the job plan and their results are passed to Whippet automatically (unless ``downstream_only`` is ``T``). A single command can therefore run thousands of jobs; a dry-run (``-n``) first is recommended.
 
 .. code-block:: bash
 
@@ -106,4 +91,7 @@ In order to run this module you need to run the standar MicroExonator command, b
 Output
 ======
 
-Quantification files generated per each sample can be found at ``Whipet/Quant``. Differentially included microexon analyses that can be obtained with Whippet, are reported at ``Whippet/Delta`` folder. MicroExonator performs these analyses using both PSI values calculated internally by the pipeline and PSI values directly calculated with Whippet. These results are reported under the same format than the ``diff.gz`` descrived at the `Whippet's GitHub page <https://github.com/timbitz/Whippet.jl#output-formats>`_. However, to provide easier interpretation, we filter the Whippet splicing nodes that correspond to microexon inclusion events, these are reported as ``.microexons`` files, where ``.diff.ME.microexons`` files correspond to the output when MicroExonator PSI values are taken as input and ``.diff.microexons`` when Whippet PSI  values are taken as input.
+Results are in the ``Whippet/`` folder.
+
+* ``Whippet/Quant/``: Whippet quantification of every sample. ``.psi.gz`` files contain PSI for all splicing nodes of the annotation (see the `Whippet documentation <https://github.com/timbitz/Whippet.jl#output-formats>`_), and ``.psi.ME.gz`` files the same table with MicroExonator's PSI for microexon nodes.
+* ``Whippet/Delta/``: differential inclusion for each comparison, in Whippet's ``.diff.gz`` format. For easier reading, the nodes that correspond to microexons are also written to ``.microexons`` files: ``.diff.ME.microexons`` uses MicroExonator's PSI and should be preferred for microexons; ``.diff.microexons`` uses Whippet's own PSI. The ``.diff.ME.microexons`` files are not produced when ``downstream_only`` is ``T``.
