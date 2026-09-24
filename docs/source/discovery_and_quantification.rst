@@ -84,7 +84,7 @@ Optional configuration
 
 The following parameters can be specified to further optimize the Discovery and Quantification. The can also be omited, in case there are not relevant or available.
 
-* ``ME_DB`` is a path to a known Microexon annotation file, such as the one that can be obtained from Vast DB. The input format must be in bed12 (additional formats will be supported in future versions)
+* ``ME_DB`` is a path to a file of known microexons, such as one derived from VastDB, whose events are quantified in addition to the annotated ones. The format is recognised line by line, so one file can mix BED12 rows (internal blocks of at most ``ME_len`` nt with canonical AG/GT splice sites), BED6 rows (same filters) and single-column ``chrom_strand_start_end`` IDs (accepted as given, with no length or splice-site filter). Events that do not lie inside an annotated intron cannot be quantified and are listed in ``data/DB.ME_centric.non_overlaping.txt``.
 
 * ``min_reads_PSI`` is the minimun number of reads that needs supoort the existence of a novel microexon to consider it as high confidence. The default value is 3, but 5 or more is recommended if enough RNA-seq samples are provided.
 
