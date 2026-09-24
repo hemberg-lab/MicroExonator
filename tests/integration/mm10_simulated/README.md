@@ -68,6 +68,14 @@ python3 tests/integration/mm10_simulated/run_smoke_test.py \
   --workdir /tmp/microexonator-mm10-paired
 ```
 
+Building the mm10 Bowtie and HISAT2 indexes takes hours. To reuse the ones an
+earlier run built from the same FASTA, add `--genome-index-dir
+/path/to/earlier-run/data`; the runner links the 14 `Genome.*` index files into
+the new run and refuses an incomplete set. `--config KEY=VALUE` (repeatable)
+overrides a configuration value, for example `--config synthetic_skip_tags=F`
+to reproduce the previous tag library, and `--fixture-dir` runs another
+fixture laid out like this one.
+
 The runner decompresses VM25 inside the work directory, builds a temporary
 FASTA index there without modifying or copying the 2.6 GB reference, writes an
 isolated concrete configuration, runs the pinned workflow, and invokes

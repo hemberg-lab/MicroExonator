@@ -13,6 +13,11 @@ import sys
 
 
 PINNED_SNAKEMAKE = "7.32.4"
+# Index files MicroExonator builds for data/Genome (Bowtie for Round2, HISAT2 for Round1).
+GENOME_INDEX_SUFFIXES = (
+    ["{}.ebwt".format(part) for part in ("1", "2", "3", "4", "rev.1", "rev.2")]
+    + ["{}.ht2".format(part) for part in range(1, 9)]
+)
 
 
 def read_simple_yaml(path):
@@ -38,6 +43,29 @@ def _absolute_local_manifest(source, destination):
             writer.writerow({"sample": row["sample"], "path": str(path.resolve())})
 
 
+def link_genome_index(index_dir, workdir):
+    """Link a finished data/Genome Bowtie + HISAT2 index into a new run.
+
+    index_dir must hold Genome.<suffix> for every GENOME_INDEX_SUFFIXES entry,
+    built from the same FASTA, e.g. the data/ folder of an earlier run.
+    Snakemake then treats the index rules as complete and skips them.
+    """
+    index_dir = pathlib.Path(index_dir).resolve()
+    missing = [
+        suffix for suffix in GENOME_INDEX_SUFFIXES
+        if not (index_dir / ("Genome." + suffix)).is_file()
+    ]
+    if missing:
+        raise FileNotFoundError(
+            "incomplete genome index in {}: missing Genome.{}".format(
+                index_dir, ", Genome.".join(missing)
+            )
+        )
+    data_dir = pathlib.Path(workdir) / "data"
+    for suffix in GENOME_INDEX_SUFFIXES:
+        (data_dir / ("Genome." + suffix)).symlink_to(index_dir / ("Genome." + suffix))
+
+
 def prepare_workdir(
     layout,
     genome_fasta,
@@ -45,6 +73,7 @@ def prepare_workdir(
     workdir,
     fixture_root=None,
     repository=None,
+    extra_config=None,
 ):
     """Create the isolated run directory and return its concrete config path."""
     if layout not in ("single_end", "paired_end"):
@@ -126,6 +155,7 @@ def prepare_workdir(
         "Optimize_hard_drive": "F",
         "working_directory": str(workdir) + os.sep,
     }
+    config.update(extra_config or {})
     config_path = workdir / "config.yaml"
     with open(config_path, "w") as handle:
         json.dump(config, handle, indent=2, sort_keys=True)
@@ -217,6 +247,18 @@ def main(argv=None):
     parser.add_argument("--workdir", required=True, type=pathlib.Path)
     parser.add_argument("--cores", type=int, default=4)
     parser.add_argument(
+        "--genome-index-dir",
+        type=pathlib.Path,
+        help="reuse a finished data/Genome Bowtie + HISAT2 index (for example an earlier run's data/)",
+    )
+    parser.add_argument(
+        "--config",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="override a configuration value (repeatable), e.g. synthetic_skip_tags=F",
+    )
+    parser.add_argument(
         "--fixture-dir",
         type=pathlib.Path,
         default=pathlib.Path(__file__).resolve().parent,
@@ -240,7 +282,10 @@ def main(argv=None):
         args.workdir,
         fixture_root,
         repository,
+        extra_config=dict(item.split("=", 1) for item in args.config),
     )
+    if args.genome_index_dir:
+        link_genome_index(args.genome_index_dir, args.workdir)
     samtools = _resolve_samtools(args.snakemake)
     temporary_fai = _build_temporary_fai(samtools, args.genome_fasta.resolve(), args.workdir.resolve())
     print("Temporary FASTA index: {}".format(temporary_fai))

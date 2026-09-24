@@ -358,6 +358,24 @@ class SmokeRunnerTests(unittest.TestCase):
 
             self.assertEqual(pathlib.Path(observed), samtools.resolve())
 
+    def test_genome_index_is_linked_only_when_complete(self):
+        runner = load_runner()
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            index = root / "index"
+            index.mkdir()
+            for suffix in runner.GENOME_INDEX_SUFFIXES[:-1]:
+                (index / ("Genome." + suffix)).write_text("x")
+            workdir = root / "run"
+            (workdir / "data").mkdir(parents=True)
+            with self.assertRaisesRegex(FileNotFoundError, "Genome.8.ht2"):
+                runner.link_genome_index(index, workdir)
+            (index / "Genome.8.ht2").write_text("x")
+            runner.link_genome_index(index, workdir)
+            linked = sorted(p.name for p in (workdir / "data").iterdir())
+            self.assertEqual(len(linked), 14)
+            self.assertTrue((workdir / "data" / "Genome.rev.2.ebwt").is_symlink())
+
     def test_prepare_workdir_stages_absolute_inputs_and_robustness_config(self):
         runner = load_runner()
         with tempfile.TemporaryDirectory() as directory:
@@ -383,10 +401,12 @@ class SmokeRunnerTests(unittest.TestCase):
             workdir = root / "run"
 
             config_path = runner.prepare_workdir(
-                "single_end", genome, annotation, workdir, fixture, repository
+                "single_end", genome, annotation, workdir, fixture, repository,
+                extra_config={"synthetic_skip_tags": "F"},
             )
 
             config = runner.read_simple_yaml(config_path)
+            self.assertEqual(config["synthetic_skip_tags"], "F")
             self.assertEqual(config["filter_method"], "robustness")
             self.assertEqual(config["min_detected_samples"], "2")
             self.assertEqual(config["min_reads_PSI"], "5")
