@@ -621,10 +621,17 @@ def validate_pipeline_outputs(
             quantified += 1
             observed_psi[(microexon, sample_groups[sample])].append(psi)
 
+    # Junctions with an exact unspliced copy in the genome lose their reads to
+    # the genome blacklist; the pipeline flags them and their PSI is not scored.
+    unscored = set()
+    copies_path = run_directory / "Report" / "ME_junction_genomic_copies.txt"
+    if copies_path.exists():
+        with open(copies_path) as handle:
+            unscored = {row["ME"] for row in csv.DictReader(handle, delimiter="\t")}
     targets = _read_target_psi(events_path)
     for (microexon, group), values in sorted(observed_psi.items()):
         target = targets.get(microexon, {}).get(group)
-        if target is None:
+        if target is None or microexon in unscored:
             continue
         observed = sum(values) / len(values)
         psi_deviations.append(
@@ -661,6 +668,7 @@ def validate_pipeline_outputs(
         "reported_truth_events": len(truth_microexons - missing_discoveries),
         "expected_missing_events": sorted(expected_missing),
         "resolved_ambiguous_events": resolved,
+        "unscored_genomic_copy_events": sorted(unscored & truth_microexons),
         "samples": len(samples),
         "quantified_event_samples": quantified,
         "additional_discoveries": sorted(discovered - truth_microexons),

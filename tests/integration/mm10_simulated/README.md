@@ -87,7 +87,10 @@ whose position reads cannot resolve counts as reported when
 reported event, whose quantification is then checked in its place. This
 applies to `chr17_-_30598522_30598525` (ME053), a 3-nt CAG that fits 46
 positions in its intron and is reported at the best-scoring one. The validator
-rejects any other missing coordinate. For every reported truth event, the mean
+rejects any other missing coordinate. Events listed in
+`Report/ME_junction_genomic_copies.txt` (a junction with an exact unspliced
+copy in the genome, such as ME006's skipping junction) are quantified but
+their PSI is not compared with the target. For every reported truth event, the mean
 corrected PSI of each sample group must also lie within 0.15 of the simulated
 target PSI (`--psi-tolerance` changes the threshold; `--skip-psi-accuracy`
 checks bounds only). Additional discoveries are informational.

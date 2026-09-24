@@ -276,6 +276,22 @@ class PipelineOutputValidationTests(unittest.TestCase):
             with self.assertRaises(self.validator.ValidationError):
                 self.validator.validate_pipeline_outputs("single_end", events, samples, run_dir)
 
+    def test_psi_of_event_with_flagged_genomic_copy_is_not_scored(self):
+        """Reads from a junction with an exact genomic copy cannot be counted."""
+        with tempfile.TemporaryDirectory() as directory:
+            events, samples, run_dir = self.make_run(pathlib.Path(directory))
+            self.write_targets(events, {"chr1_+_100_103": 0.5, "chr2_-_200_214": 0.35})
+            with self.assertRaises(self.validator.ValidationError):
+                self.validator.validate_pipeline_outputs("single_end", events, samples, run_dir)
+            (run_dir / "Report" / "ME_junction_genomic_copies.txt").write_text(
+                "ME\tjunction\tintron\tgenomic_copies\n"
+                "chr2_-_200_214\tskipping\tchr2:50-900\tchr10:5:-\n"
+            )
+
+            report = self.validator.validate_pipeline_outputs("single_end", events, samples, run_dir)
+
+            self.assertEqual(report["unscored_genomic_copy_events"], ["chr2_-_200_214"])
+
     def test_completed_run_rejects_nonnumeric_confidence_bound(self):
         with tempfile.TemporaryDirectory() as directory:
             events, samples, run_dir = self.make_run(pathlib.Path(directory))
