@@ -1,0 +1,33 @@
+# Python and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Snakemake state, including per-run conda environments
+.snakemake/
+
+# macOS
+.DS_Store
+
+# Run-specific inputs and outputs written when the workflow is run inside the
+# clone. Anchored to the repository root so tracked examples such as
+# Examples/Runs/*/config.yaml are unaffected.
+/config.yaml
+/cluster.json
+/whippet_delta.yaml
+/NCBI_accession_list.txt
+/local_samples.tsv
+/local_samples_cram.tsv
+/sample_url.tsv
+/sample_groups.txt
+/pseudo_pool_membership.txt
+/Round1/
+/Round2/
+/Report/
+/Whippet/
+/FASTQ/
+/download/
+/logs/
+/data/
+/Genome/
+/salmon/
