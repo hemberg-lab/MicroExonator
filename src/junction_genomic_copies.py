@@ -5,7 +5,11 @@ Reads that align to the genome without splicing are removed before counting
 typically a processed pseudogene (retrocopy) of one isoform, reads from that
 junction are indistinguishable from the copy and are removed too. A copy of the
 skipping junction pushes PSI up; a copy of the inclusion junction pushes it
-down. This script lists those events so their PSI can be read with care.
+down. Copies with up to 2 mismatches are listed too: Filter1_round2.py keeps reads
+that fit the junction better than the copy, but reads that miss the differing
+positions fit both equally and are still removed. This script lists those
+events, with the fewest mismatches of any copy, so their PSI can be read with
+care.
 
 Usage:
   junction_genomic_copies.py cores TAGS_FASTA ME_CENTRIC > cores.fa
@@ -70,16 +74,18 @@ def junction_cores(tags_fasta, me_centric):
 def report(cores_fasta, bowtie_hits):
     """Group bowtie (default output) hits by event and junction type."""
     names = [name for name, _ in read_fasta(cores_fasta)]
-    copies = {}
+    copies, mismatches = {}, {}
     for row in csv.reader(open(bowtie_hits), delimiter="\t"):
         if len(row) < 4:
             continue
         copies.setdefault(row[0], []).append("{}:{}:{}".format(row[2], int(row[3]) + 1, row[1]))
-    lines = ["ME\tjunction\tintron\tgenomic_copies"]
+        found = len(row[7].split(",")) if len(row) > 7 and row[7] else 0
+        mismatches[row[0]] = min(mismatches.get(row[0], found), found)
+    lines = ["ME\tjunction\tintron\tmismatches\tgenomic_copies"]
     for name in names:
         if name in copies:
             microexon, kind, intron = name.split("|")
-            lines.append("\t".join([microexon, kind, intron, ",".join(sorted(copies[name]))]))
+            lines.append("\t".join([microexon, kind, intron, str(mismatches[name]), ",".join(sorted(copies[name]))]))
     return lines
 
 

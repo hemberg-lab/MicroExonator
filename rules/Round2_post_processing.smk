@@ -134,7 +134,7 @@ rule junction_genomic_copies:
     shell:
         """
         python3 src/junction_genomic_copies.py cores {input.tags} {input.ME_centric} > {output.cores}
-        bowtie {input.genome} -f {output.cores} -v 0 -k 5 > {output.hits}
+        bowtie {input.genome} -f {output.cores} -v 2 -k 5 > {output.hits}
         python3 src/junction_genomic_copies.py report {output.cores} {output.hits} > {output.report}
         """
 

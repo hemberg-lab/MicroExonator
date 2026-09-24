@@ -45,11 +45,14 @@ class JunctionGenomicCopiesTests(unittest.TestCase):
             cores = directory / "cores.fa"
             cores.write_text(">{0}|skipping|chr1:1000+2000\nACGT\n>{0}|inclusion|chr1:1000+2000\nACGT\n".format(ME))
             hits = directory / "hits.txt"
-            hits.write_text("{}|skipping|chr1:1000+2000\t-\tchr10\t127948282\tACGT\tIIII\t0\t\n".format(ME))
+            hits.write_text(
+                "{0}|skipping|chr1:1000+2000\t-\tchr10\t127948282\tACGT\tIIII\t0\t\n"
+                "{0}|skipping|chr1:1000+2000\t+\tchr5\t9\tACGT\tIIII\t0\t2:T>C,40:A>G\n".format(ME)
+            )
             lines = jgc.report(cores, hits)
         self.assertEqual(lines, [
-            "ME\tjunction\tintron\tgenomic_copies",
-            ME + "\tskipping\tchr1:1000+2000\tchr10:127948283:-",
+            "ME\tjunction\tintron\tmismatches\tgenomic_copies",
+            ME + "\tskipping\tchr1:1000+2000\t0\tchr10:127948283:-,chr5:10:+",
         ])
 
 
