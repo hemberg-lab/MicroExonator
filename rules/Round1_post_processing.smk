@@ -21,7 +21,7 @@ rule hisat2_genome_index:
         "data/Genome.1.ht2"
     threads: 5
     conda:
-        "../envs/core.yaml"
+        "../envs/core_py3.yaml"
     shell:
         "hisat2-build {input} data/Genome"
 
@@ -35,7 +35,7 @@ if str2bool(config.get("skip_genome_alignment", False)):
 	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
 	    threads: 1
 	    conda:
-	        "../envs/core.yaml"
+	        "../envs/core_py3.yaml"
 	    shell:
 	        "touch {output}"
 else:
@@ -48,7 +48,7 @@ else:
 	        temp("Round1/{sample}.sam.row_ME.Genome.Aligned.out.sam")
 	    threads: 1
 	    conda:
-	        "../envs/core.yaml"
+	        "../envs/core_py3.yaml"
 	    shell:
 	        "hisat2 -x data/Genome -U {input[0]} > {output}"
 
@@ -81,4 +81,3 @@ rule Micro_Exon_table:
     shell:
         "cat Round1/*.sam.row_ME.filter1 | awk 'NF==16' > Round1/TOTAL/TOTAL.sam.row_ME.filter1  &&"
         "python3 src/ME_centric_table.py Round1/TOTAL/TOTAL.sam.row_ME.filter1 > {output}"
-
