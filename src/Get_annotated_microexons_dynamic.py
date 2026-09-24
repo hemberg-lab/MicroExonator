@@ -299,8 +299,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
             if len(row)==6:
 
                 chrom, estart, eend, ID, score, strand = row
-                start = int(estart)
-                end = int(eend)
+                estart = int(estart)
+                eend = int(eend)
+                elength = eend - estart
+                exon = "_".join([chrom, strand, str(estart), str(eend)])
 
                 if chrom in Genome:
 
@@ -308,6 +310,8 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                     if strand=="-":
                         dn = dn.reverse_complement()
+
+                    dn = str(dn).upper()
 
                     if elength <= ME_len and dn=="AGGT" and exon not in found_ME:
 
@@ -320,7 +324,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                 estart = int(estart)
                 eend = int(eend)
-                ME_len = eend-estart
+                db_len = eend-estart
                 #print(row, chrom, estart, eend)
                 if chrom in Genome:
 
@@ -333,7 +337,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
                     #if elength <= ME_len and dn=="AGGT" and exon not in found_ME: enabeling non-canonical annotated microexons
                     #if elength <= ME_len and ME not in found_ME:
-                    non_detected_ME[(chrom, estart, eend, strand, ME_len)].append(ME)
+                    non_detected_ME[(chrom, estart, eend, strand, db_len)].append(ME)
 
                 else:
                     print(ME + "Chromosome not in genome")
