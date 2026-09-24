@@ -90,6 +90,8 @@ The following parameters can be specified to further optimize the Discovery and 
 
 * ``synthetic_skip_tags`` (default ``T``) adds a skipping tag for every intron that contains a microexon but has no annotated exon-exon junction tag, for example when the annotation only contains the isoform that includes the microexon. Without it, skipping reads cannot be counted for such microexons and their PSI is fixed at 1. Introns that start or end at another microexon are excluded, because their skipping junction is the neighbouring microexon's inclusion junction. The added tags are listed in ``data/ME_synthetic_skip_tags.txt``. Set it to ``F`` to reproduce results from earlier versions.
 
+* ``consecutive_microexon_skips`` (default ``T``) counts skipping reads for microexons that sit next to another microexon (for example E1-m1-m2-E2). A read on the E1|m2 junction skips m1, but that junction is m2's inclusion junction and has no skipping tag, so the read used to count only as m2 inclusion. With this option, reads that cross a junction of an inclusion tag (with at least 8 nt on each side) also count as exclusion for every other microexon inside that junction. Only the immediate junction is used, so runs of three or more microexons are handled too. Junctions added this way appear in ``SJ_coords``. Set it to ``F`` to reproduce results from earlier versions.
+
 * ``paired_samples`` is a path to a tab-delimited file with two columns that indicate the correspndace between paired end samples names. This will enable MicroExonator to report a single quantification output per paired-end sample.
 
 Confidence filtering

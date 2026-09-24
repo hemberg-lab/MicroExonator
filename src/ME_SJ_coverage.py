@@ -6,6 +6,8 @@ from collections import defaultdict
 import re
 import os
 
+from neighbour_skip_counts import MicroexonIndex, skipped_by_read
+
 #chr, start, end = re.findall(r"[\w']+", intron)
 
 tags = {}
@@ -29,7 +31,21 @@ def Tags_indexer(tags_fasta):
     print("OK", file=sys.stderr)
 
 
-def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
+def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour_skips="T"):
+
+    # Consecutive microexons (see src/neighbour_skip_counts.py): map each
+    # inclusion tag to its microexon, so reads on a neighbour's tag can count
+    # as exclusion for the microexons they jump over.
+    tag_microexon = {}
+    if neighbour_skips == "T":
+        for row in csv.reader(open(ME_centric_filter3), delimiter = '\t'):
+            total_SJs, micro_exon_seq_found, total_ME = row[3], row[6], row[11]
+            if total_ME != "":
+                true_ME = max([i.split("|") for i in total_ME.split(",")], key=lambda item:float(item[1]))[0]
+                for SJ in total_SJs.split(","):
+                    tag_microexon[SJ + "_" + micro_exon_seq_found] = true_ME
+    microexon_index = MicroexonIndex(tag_microexon.values())
+    neighbour_skip_cov = defaultdict(lambda: defaultdict(int))
 
 
     exon5_exon = defaultdict(set)
@@ -157,6 +173,11 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 
                 ME_SJ[ME_SJ_ID]+=1
 
+                if ME_SJ_ID in tag_microexon:
+                    skipped = skipped_by_read(microexon_index, intron_tag, tag_microexon[ME_SJ_ID], start, matches, anchor_up, anchor_ME)
+                    for skipped_ME, junction in skipped.items():
+                        neighbour_skip_cov[skipped_ME][junction] += 1
+
                 # if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
                 #
                 #   ME_up_down_uniq[ME_SJ_ID].add(seq)
@@ -206,7 +227,7 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 
 
 
-                SJ_coverage = ME_SJ[SJ]
+                SJ_coverage = ME_SJ[SJ] + neighbour_skip_cov[ME][SJ]
 
                 ME_SJ_ID = SJ+"_"+micro_exon_seq_found
 
@@ -225,6 +246,15 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
                 ME_SJ_coverage_ups.append(ME_SJ_coverage_up)
                 ME_SJ_coverage_downs.append(ME_SJ_coverage_down)
 
+
+            # Skipping junctions seen only on a neighbour's inclusion tag
+            for SJ in sorted(set(neighbour_skip_cov[ME]) - set(total_SJs.split(","))):
+                total_SJs += "," + SJ
+                SJ_coverages.append(neighbour_skip_cov[ME][SJ])
+                ME_SJ_coverages.append(0)
+                ME_SJ_coverage_up_down_uniqs.append(0)
+                ME_SJ_coverage_ups.append(0)
+                ME_SJ_coverage_downs.append(0)
 
             sum_SJ_coverage = sum(SJ_coverages)
             sum_ME_coverage = sum(ME_SJ_coverages)
@@ -403,7 +433,8 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len):
 
 if __name__ == '__main__':
     Tags_indexer(sys.argv[1])
-    main(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5])  )
+    neighbour_skips = sys.argv[6] if len(sys.argv) > 6 else "T"
+    main(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), neighbour_skips)
 
 #python ~/my_src/ME/Pipeline/Round_2/ME_SJ_coverage.py /media/HD3/Resultados/Micro_exons/Tags/Round2/TOTAL.sam.row_ME.filter1.ME_centric.filter2.filter3.ME_tags.fa /media/HD3/Resultados/Micro_exons/Tags/Round1/TOTAL.sam.row_ME.filter1.ME_centric.filter2.filter3 ~/db/transcriptome/hg19/Gene_models/gencode/v19/gencode.v19.annotation.bed12 adipose1x75.sam.ME_SJ
 

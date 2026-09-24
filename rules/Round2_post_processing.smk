@@ -102,14 +102,15 @@ rule ME_SJ_coverage:
         config["Gene_anontation_bed12"],
         "Round2/{sample}.sam.pre_processed.filter1"
     params:
-        ME_len = config["ME_len"]
+        ME_len = config["ME_len"],
+        neighbour_skips = "T" if str2bool(config.get("consecutive_microexon_skips", True)) else "F"
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
-        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} > {output}"
+        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} {params.neighbour_skips} > {output}"
 
 
 if str2bool(config.get("optimise_disk", False)):
