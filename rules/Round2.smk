@@ -371,7 +371,7 @@ rule Round2_bowtie_to_tags:
     conda:
          "../envs/core.yaml"
     shell:
-        "gzip -dc {input[1]} | awk -v L={params.max_read_len} -v out={output.lengths} -f src/trim_reads.awk | bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output.sam}"
+        "gzip -dc {input[1]} | awk -v L={params.max_read_len} -v out={output.lengths} -f src/trim_reads.awk | bowtie {input[0]} -p {threads} -q - -S -v 2 -k 10 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' | python3 src/select_tag_alignments.py > {output.sam}"
 
 
 rule Round2_alingment_pre_processing:

@@ -28,6 +28,8 @@ Reads are aligned end to end, so a read is counted only if it fits entirely insi
 
 If reads are longer than the flanks, they fit only in some positions, and an inclusion tag has *m* more positions than a skipping tag, where *m* is the microexon length. Inclusion is then over-counted by a factor that grows with microexon length (up to 1.6x for a 30 nt microexon with 150 nt reads on 100 nt flanks), and most junction reads are lost. To prevent this, reads longer than ``max_read_len`` are trimmed to that length before they are aligned to the tags.
 
+Tag flanks are cut from spliced transcripts, so when an exon is shorter than the flank, a tag's flank also contains the next junction, and a read from that junction fits equally well inside the neighbouring tag's flank, where it crosses no junction. To keep such reads, Bowtie reports up to 10 alignments per read, and MicroExonator keeps one alignment per read that crosses its tag's junction with at least 8 nt on each side (fewest mismatches first, ties broken by a fixed seed). This makes the counts independent of the flank length.
+
 In practice, set ``max_read_len`` to the length of the longest reads in your data. Shorter reads in the same run are handled correctly. ``Report/read_lengths.tsv`` shows the read lengths of each sample and flags samples that look like a different library type (for example single-cell data included by mistake).
 
 .. _skipping_tags:
