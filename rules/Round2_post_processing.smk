@@ -103,7 +103,7 @@ rule ME_SJ_coverage:
         "Round2/{sample}.sam.pre_processed.filter1"
     params:
         ME_len = config["ME_len"],
-        neighbour_skips = "T" if str2bool(config.get("consecutive_microexon_skips", True)) else "F"
+        neighbour_skips = "T" if str2bool(config.get("consecutive_microexons", True)) else "F"
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
     priority: 100

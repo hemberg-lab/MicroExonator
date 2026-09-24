@@ -66,6 +66,34 @@ class NeighbourSkipHelperTests(unittest.TestCase):
         skipped = nsc.skipped_by_read(index, "chr1:1000+2000", m3, 85, 40, 100, 12)
         self.assertEqual(skipped, {M1: "chr1:1000+1600", M2: "chr1:1000+1600"})
 
+    def test_read_on_shared_junction_is_inclusion_for_the_upstream_neighbour(self):
+        index = nsc.MicroexonIndex([M1, M2])
+        # m2's m1|m2|E2 tag; the read crosses m1|m2 and spans m1 (9 nt) with 8 nt anchors.
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1209+2000", M2, 80, 40, 100, 18), {M1: 2})
+        # Starting inside m1: crosses only the m1|m2 junction.
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1209+2000", M2, 90, 40, 100, 18), {M1: 1})
+
+    def test_read_on_shared_junction_is_inclusion_for_the_downstream_neighbour(self):
+        index = nsc.MicroexonIndex([M1, M2])
+        # m1's E1|m1|m2 tag; the read crosses m1|m2 but not m2|E2.
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1000+1400", M1, 90, 40, 100, 9), {M2: 1})
+        # m1's E1|m1|E2 tag has no adjacent microexon.
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1000+2000", M1, 90, 40, 100, 9), {})
+
+    def test_minus_strand_neighbours_follow_transcript_order(self):
+        # Minus strand transcript order: E1 (>2000), m2 (1400-1418), m1 (1200-1209), E2 (<1000).
+        m1, m2 = "chr1_-_1200_1209", "chr1_-_1400_1418"
+        index = nsc.MicroexonIndex([m1, m2])
+        # m1's tag on intron 1000-1400 (upstream neighbour m2 starts at 1400).
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1000-1400", m1, 80, 40, 100, 9), {m2: 1})
+        # m2's tag on intron 1209-2000 (downstream neighbour m1 ends at 1209); read spans m1.
+        self.assertEqual(nsc.included_neighbours(index, "chr1:1209-2000", m2, 95, 40, 100, 18), {m1: 2})
+
+    def test_twin_intron_is_the_neighbours_intron_bordering_this_microexon(self):
+        self.assertEqual(nsc.twin_intron_index(["chr1:1000+2000", "chr1:1000+1400"], M2), 1)
+        self.assertEqual(nsc.twin_intron_index(["chr1:1000+2000", "chr1:1209+2000"], M1), 1)
+        self.assertEqual(nsc.twin_intron_index(["chr1:1000+2000"], M2), 0)
+
 
 @unittest.skipUnless(BIOPYTHON_AVAILABLE, "needs the pipeline Biopython environment")
 class MicroexonCoverageScriptTests(unittest.TestCase):
@@ -135,12 +163,15 @@ class MicroexonCoverageScriptTests(unittest.TestCase):
         self.assertEqual(output[M1]["SJ_covs"], [1, 1])
         self.assertEqual(output[M2]["SJ_covs"], [1, 1])
         self.assertEqual(output[M1]["sum_ME"], 2)
-        self.assertEqual(output[M2]["sum_ME"], 1)
+        # r3 (m1|m2 on m1's tag) is also m2 inclusion, credited to m2's m1|m2|E2 intron.
+        self.assertEqual(output[M2]["ME_covs"], ["1", "1"])
+        self.assertEqual(output[M2]["sum_ME"], 2)
 
     def test_option_off_reproduces_the_old_counts(self):
         output = self.run_script("chr1:1000+1400,chr1:1000+2000", "F")
         self.assertEqual(output[M1]["SJ_covs"], [0, 1])
         self.assertEqual(output[M2]["SJ_covs"], [0, 1])
+        self.assertEqual(output[M2]["sum_ME"], 1)
 
     def test_skipping_junction_missing_from_the_event_is_appended(self):
         output = self.run_script("chr1:1000+2000")

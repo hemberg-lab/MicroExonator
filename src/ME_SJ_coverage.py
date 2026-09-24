@@ -6,7 +6,7 @@ from collections import defaultdict
 import re
 import os
 
-from neighbour_skip_counts import MicroexonIndex, skipped_by_read
+from neighbour_skip_counts import MicroexonIndex, included_neighbours, skipped_by_read, twin_intron_index
 
 #chr, start, end = re.findall(r"[\w']+", intron)
 
@@ -46,6 +46,7 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
                     tag_microexon[SJ + "_" + micro_exon_seq_found] = true_ME
     microexon_index = MicroexonIndex(tag_microexon.values())
     neighbour_skip_cov = defaultdict(lambda: defaultdict(int))
+    neighbour_inc_cov = defaultdict(lambda: defaultdict(int))
 
 
     exon5_exon = defaultdict(set)
@@ -177,6 +178,9 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
                     skipped = skipped_by_read(microexon_index, intron_tag, tag_microexon[ME_SJ_ID], start, matches, anchor_up, anchor_ME)
                     for skipped_ME, junction in skipped.items():
                         neighbour_skip_cov[skipped_ME][junction] += 1
+                    included = included_neighbours(microexon_index, intron_tag, tag_microexon[ME_SJ_ID], start, matches, anchor_up, anchor_ME)
+                    for included_ME, weight in included.items():
+                        neighbour_inc_cov[included_ME][tag_microexon[ME_SJ_ID]] += weight
 
                 # if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
                 #
@@ -246,6 +250,10 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
                 ME_SJ_coverage_ups.append(ME_SJ_coverage_up)
                 ME_SJ_coverage_downs.append(ME_SJ_coverage_down)
 
+
+            # Inclusion reads that aligned to an adjacent microexon's tag
+            for neighbour, weight in neighbour_inc_cov[ME].items():
+                ME_SJ_coverages[twin_intron_index(total_SJs.split(","), neighbour)] += weight
 
             # Skipping junctions seen only on a neighbour's inclusion tag
             for SJ in sorted(set(neighbour_skip_cov[ME]) - set(total_SJs.split(","))):
