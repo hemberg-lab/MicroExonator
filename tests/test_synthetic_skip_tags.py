@@ -157,6 +157,20 @@ class SyntheticSkipTagGenerationTests(unittest.TestCase):
         self.assertEqual(list(skip_tags), ["chr1:200+1000|tx_inc|100_100"])
         self.assertEqual(skip_tags["chr1:200+1000|tx_inc|100_100"], genome[100:200] + genome[1000:1100])
 
+    def test_each_annotated_upstream_path_gets_its_own_tag(self):
+        # tx_b reaches the same exon end (200) through a shorter exon and another
+        # upstream exon, so the 100 nt before the junction differ between paths.
+        skip_tags, centric, genome = self.run_script({
+            "tx_a": [(100, 200), (500, 512), (1000, 1100)],
+            "tx_b": [(20, 60), (150, 200), (500, 512), (1000, 1100)],
+        })
+        self.assertEqual(sorted(skip_tags), [
+            "chr1:200+1000|tx_a#p1|90_100",
+            "chr1:200+1000|tx_a|100_100",
+        ])
+        self.assertEqual(skip_tags["chr1:200+1000|tx_a|100_100"], genome[100:200] + genome[1000:1100])
+        self.assertEqual(skip_tags["chr1:200+1000|tx_a#p1|90_100"], genome[20:60] + genome[150:200] + genome[1000:1100])
+
     def test_flank_length_follows_max_read_len(self):
         skip_tags, centric, genome = self.run_script(
             {"tx_inc": [(100, 200), (500, 512), (1000, 1100)]}, flank=60

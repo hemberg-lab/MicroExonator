@@ -7,6 +7,7 @@ from pybedtools import BedTool
 import pyBigWig
 from collections import defaultdict
 
+from tag_paths import maximal_flanks, path_label
 from synthetic_skip_tags import (
     load_tag_introns,
     microexon_boundaries,
@@ -177,15 +178,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                     f_seq += str(Genome[chrom][estart:eend])
 
 
-                    if (chrom, eend) in SJ_start_seqs:
-
-                        if len(f_seq[-flank:]) > len(SJ_start_seqs[(chrom, eend )]):
-
-                            SJ_start_seqs[(chrom, eend )] = f_seq[-flank:]
-
-                    else:
-
-                        SJ_start_seqs[(chrom, eend )] = f_seq[-flank:]
+                    SJ_start_seqs.setdefault((chrom, eend), set()).add(f_seq[-flank:])
 
 
 
@@ -198,15 +191,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                 r_seq = str(Genome[chrom][estart:eend]) + r_seq
 
 
-                if (chrom, estart) in SJ_end_seqs:
-
-                    if len(r_seq[:flank]) > len(SJ_end_seqs[(chrom, estart )]):
-
-                        SJ_end_seqs[(chrom, estart )] = r_seq[:flank]
-
-                else:
-
-                    SJ_end_seqs[(chrom, estart )] = r_seq[:flank]
+                SJ_end_seqs.setdefault((chrom, estart), set()).add(r_seq[:flank])
 
 
 
@@ -353,6 +338,10 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                     print(ME + "Chromosome not in genome")
 
 
+    # One flank per distinct annotated path (see src/tag_paths.py)
+    SJ_start_seqs = {k: maximal_flanks(v, "up") for k, v in SJ_start_seqs.items()}
+    SJ_end_seqs = {k: maximal_flanks(v, "down") for k, v in SJ_end_seqs.items()}
+
     introns_str =  "\n".join(list(introns))
 
 
@@ -490,44 +479,45 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
                     ### TAG creation
 
 
-                    UP_TAG =  SJ_start_seqs[(SJ_chrom, int(SJ_start) )]
-                    DOWN_TAG =  SJ_end_seqs[(SJ_chrom, int(SJ_end) )]
-
-
-                    ME_TAG = UP_TAG +  Genome[chrom][estart:eend] + DOWN_TAG
-
-                    tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)]))
-
-
-
-                    if strand == "-":
-
-                         ME_TAG = ME_TAG.reverse_complement()
-
-                         tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)][::-1]))
-
-                    ME_TAG = str(ME_TAG).upper()
-
-
-
-                    ME_TAG_ID = chrom + ":" + "".join([ str(estart), strand, str(eend)])
-
-
-
-                    out_tags.write(">" + "|".join([ SJ, transcript ,  tag_pos]) + "\n" )
-                    out_tags.write(ME_TAG + "\n")
-
-                    if write_synthetic and needs_synthetic_tag(
+                    path_pairs = [
+                        (UP_TAG, DOWN_TAG)
+                        for UP_TAG in SJ_start_seqs[(SJ_chrom, int(SJ_start) )]
+                        for DOWN_TAG in SJ_end_seqs[(SJ_chrom, int(SJ_end) )]
+                    ]
+                    write_skip = write_synthetic and needs_synthetic_tag(
                         SJ_chrom, SJ_strand, int(SJ_start), int(SJ_end),
                         existing_skip_introns, synthetic_written, ME_boundaries,
-                    ):
-                        skip_header, skip_sequence = skip_tag_record(
-                            SJ_chrom, SJ_strand, int(SJ_start), int(SJ_end),
-                            transcript, UP_TAG, DOWN_TAG,
-                        )
-                        out_tags.write(">" + skip_header + "\n")
-                        out_tags.write(skip_sequence + "\n")
-                        synthetic_out.write("\t".join([SJ, ME, transcript]) + "\n")
+                    )
+
+                    for path_index, (UP_TAG, DOWN_TAG) in enumerate(path_pairs):
+
+                        path_transcript = path_label(transcript, path_index)
+
+                        ME_TAG = UP_TAG +  Genome[chrom][estart:eend] + DOWN_TAG
+
+                        tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)]))
+
+                        if strand == "-":
+
+                             ME_TAG = ME_TAG.reverse_complement()
+
+                             tag_pos = "_".join(map(str, [len(UP_TAG), micro_exon_seq_found, len(DOWN_TAG)][::-1]))
+
+                        ME_TAG = str(ME_TAG).upper()
+
+                        out_tags.write(">" + "|".join([ SJ, path_transcript ,  tag_pos]) + "\n" )
+                        out_tags.write(ME_TAG + "\n")
+
+                        if write_skip:
+                            skip_header, skip_sequence = skip_tag_record(
+                                SJ_chrom, SJ_strand, int(SJ_start), int(SJ_end),
+                                path_transcript, UP_TAG, DOWN_TAG,
+                            )
+                            out_tags.write(">" + skip_header + "\n")
+                            out_tags.write(skip_sequence + "\n")
+                            synthetic_out.write("\t".join([SJ, ME, path_transcript]) + "\n")
+
+                    if write_skip:
                         synthetic_written.add(SJ)
 
                     # print ">" + "|".join([ ME_TAG_ID, transcript,  tag_pos ])

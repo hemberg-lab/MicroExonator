@@ -5,6 +5,8 @@ from Bio.Seq import Seq
 from random import randint, sample
 from operator import itemgetter
 from collections import defaultdict
+
+from tag_paths import maximal_tags
 from operator import itemgetter
 
 
@@ -131,13 +133,15 @@ def main(bed12, ME_len, max_read_len):
         infos = i[1]
         intron = i[0]
 
-        qName, tag, chr, istart, iend, strand, block_up, block_down, sum_blocks = max(infos, key=itemgetter(8))
+        # One tag per distinct annotated flank path (see src/tag_paths.py)
+        paths = maximal_tags([(info[6], str(info[1]), info[7], info[0]) for info in infos])
 
+        for block_up, tag, block_down, qName in paths:
 
-        ID = ">" + intron + "|" + qName + "|" + str(block_up) + "_" + str(block_down)
+            ID = ">" + intron + "|" + qName + "|" + str(block_up) + "_" + str(block_down)
 
-        print(ID)
-        print(tag)
+            print(ID)
+            print(tag)
 
 
 #>chr12:3701518+3702264|ENST00000562877.1|100_19
