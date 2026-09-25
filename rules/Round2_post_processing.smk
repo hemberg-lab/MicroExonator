@@ -147,14 +147,15 @@ rule ME_SJ_coverage:
         "Round2/{sample}.sam.pre_processed.filter1"
     params:
         ME_len = config["ME_len"],
-        neighbour_skips = "T" if str2bool(config.get("consecutive_microexons", True)) else "F"
+        neighbour_skips = "T" if str2bool(config.get("consecutive_microexons", True)) else "F",
+        shared_site = "T" if str2bool(config.get("shared_splice_site_correction", True)) else "F"
     output:
         temp("Round2/{sample}.sam.pre_processed.filter1.ME_SJ_coverage")
     priority: 100
     conda:
         "../envs/core.yaml"
     shell:
-        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} {params.neighbour_skips} > {output}"
+        "python3 src/ME_SJ_coverage.py {input} {params.ME_len} {params.neighbour_skips} {params.shared_site} > {output}"
 
 
 if str2bool(config.get("optimise_disk", False)):

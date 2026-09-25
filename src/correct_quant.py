@@ -70,6 +70,11 @@ with gzip.open(snakemake.input["quant"], "rt") as file, gzip.open(snakemake.outp
         
         if half_counts <0:
             half_counts = 0
+
+        # A longer exon shares a splice site: ME_SJ_coverage.py already counted
+        # the microexon's unshared-side reads (see src/shared_site.py).
+        if row.get("Shared_site_half_reads", "NA") not in ("NA", None):
+            half_counts = float(row["Shared_site_half_reads"])
             
         ME_coverages_corrected = full_counts + half_counts
         

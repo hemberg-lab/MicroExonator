@@ -7,11 +7,13 @@ import re
 import os
 
 from neighbour_skip_counts import MicroexonIndex, included_neighbours, skipped_by_read, twin_intron_index
+from shared_site import long_exon_units, shared_sides, unique_side_half_reads
 
 #chr, start, end = re.findall(r"[\w']+", intron)
 
 tags = {}
 SJ_transcript_ID = {}
+tagged_introns = set()
 
 def Tags_indexer(tags_fasta):
 
@@ -28,10 +30,13 @@ def Tags_indexer(tags_fasta):
             tags[SJ] = str(record.seq)
             SJ_transcript_ID[SJ] = transcript_ID
 
+        elif len(record.id.split("|")[-1].split("_")) == 2:
+            tagged_introns.add(record.id.split("|")[0])
+
     print("OK", file=sys.stderr)
 
 
-def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour_skips="T"):
+def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour_skips="T", shared_site="T"):
 
     # Consecutive microexons (see src/neighbour_skip_counts.py): map each
     # inclusion tag to its microexon, so reads on a neighbour's tag can count
@@ -109,6 +114,7 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
 
     ME_up_count = defaultdict(int)
     ME_down_count = defaultdict(int)
+    ME_full_count = defaultdict(int)
 
 
 
@@ -185,6 +191,9 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
                 # if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
                 #
                 #   ME_up_down_uniq[ME_SJ_ID].add(seq)
+
+                if (start <= anchor_up - 8) and (start + matches  >= anchor_up + anchor_ME + 8):
+                    ME_full_count[ME_SJ_ID] += 1
 
                 if (start <= anchor_up - 8) and (start + matches  >= anchor_up + 8):
 
@@ -381,6 +390,24 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
             for p in total_cov_alternatives_3_pairs:
                 total_cov_alternatives_3 += p[1]
 
+            # A longer exon shares a splice site (src/shared_site.py): count the
+            # microexon's single-junction reads from its unshared side, and each
+            # longer exon once, through its far-side junction.
+            shared_site_half = "NA"
+            if shared_site == "T" and (alternatives_3 or alternatives_5):
+                credited = set()
+                alternatives_3 = sorted(alternatives_3)
+                alternatives_5 = sorted(alternatives_5)
+                cov_alternatives_3 = long_exon_units(alternatives_3, ME_strand, True, estart_introns, eend_introns, ME_SJ, tagged_introns, credited)
+                cov_alternatives_5 = long_exon_units(alternatives_5, ME_strand, False, estart_introns, eend_introns, ME_SJ, tagged_introns, credited)
+                total_cov_alternatives_3 = sum(cov_alternatives_3)
+                total_cov_alternatives_5 = sum(cov_alternatives_5)
+                own_tags = [SJ + "_" + micro_exon_seq_found for SJ in total_SJs.split(",")]
+                up_only = sum(ME_up_count[t] - ME_full_count[t] for t in own_tags)
+                down_only = sum(ME_down_count[t] for t in own_tags)
+                sides = shared_sides(is_alternative_3, is_alternative_5)
+                shared_site_half = unique_side_half_reads(up_only, down_only, sides) + sum(neighbour_inc_cov[ME].values()) / 2
+
             if alternatives_5 == []:
                 alternatives_5 = "None"
             else:
@@ -430,7 +457,7 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
             # print ME, len_micro_exon_seq_found, micro_exon_seq_found, U2_scores, mean_conservations, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down
 
 
-            print("\t".join(map(str, [os.path.basename(ME_round2_filter1).split(".")[0], ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3, cov_alternatives_3,  total_cov_alternatives_3 ])))
+            print("\t".join(map(str, [os.path.basename(ME_round2_filter1).split(".")[0], ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3, cov_alternatives_3,  total_cov_alternatives_3, shared_site_half ])))
             #print os.path.basename(ME_round2_filter1).split(".")[0], ME, ME_SJ_coverages, ME_SJ_coverage_up_down_uniqs
 
 #chr19:1105808+1106398_TGCCATCAAGTGGAACTTCACCAAG
@@ -442,7 +469,8 @@ def main(ME_centric_filter3, gencode_bed12, ME_round2_filter1, ME_len, neighbour
 if __name__ == '__main__':
     Tags_indexer(sys.argv[1])
     neighbour_skips = sys.argv[6] if len(sys.argv) > 6 else "T"
-    main(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), neighbour_skips)
+    shared_site = sys.argv[7] if len(sys.argv) > 7 else "T"
+    main(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), neighbour_skips, shared_site)
 
 #python ~/my_src/ME/Pipeline/Round_2/ME_SJ_coverage.py /media/HD3/Resultados/Micro_exons/Tags/Round2/TOTAL.sam.row_ME.filter1.ME_centric.filter2.filter3.ME_tags.fa /media/HD3/Resultados/Micro_exons/Tags/Round1/TOTAL.sam.row_ME.filter1.ME_centric.filter2.filter3 ~/db/transcriptome/hg19/Gene_models/gencode/v19/gencode.v19.annotation.bed12 adipose1x75.sam.ME_SJ
 

@@ -77,7 +77,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
   
   with  gzip.open(out_PSI, "wt") as out:
     
-    out.write( "\t".join(["File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", "Unique_ME_reads", "sum_ME_SJ_coverage_up", "sum_ME_SJ_coverage_down"])+ "\n")    
+    out.write( "\t".join(["File", "ME_coords", "SJ_coords", "ME_coverages", "SJ_coverages", "PSI", "CI_Lo", "CI_Hi", "Alt5", "Alt3", "Alt5_coverages", "Alt3_coverages", "Unique_ME_reads", "sum_ME_SJ_coverage_up", "sum_ME_SJ_coverage_down", "Shared_site_half_reads"])+ "\n")    
   
     paired_files = set([])
     pair12 = dict()
@@ -102,7 +102,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
       for line in reader:
 
         #FILE_NAME, ME, total_SJs, ME_SJ_coverages, sum_ME_coverage, sum_ME_SJ_coverage_up_down_uniq, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, SJ_coverages, sum_SJ_coverage, is_alternative_5, is_alternative_3, alternatives_5, cov_alternatives_5, total_cov_alternatives_5, alternatives_3, cov_alternatives_3, total_cov_alternatives_3 = row
-        header = ['FILE_NAME', 'ME', 'total_SJs', 'ME_SJ_coverages', 'sum_ME_coverage', 'sum_ME_SJ_coverage_up_down_uniq', 'sum_ME_SJ_coverage_up', 'sum_ME_SJ_coverage_down', 'SJ_coverages', 'sum_SJ_coverage', 'is_alternative_5', 'is_alternative_3', 'alternatives_5', 'cov_alternatives_5', 'total_cov_alternatives_5', 'alternatives_3', 'cov_alternatives_3', 'total_cov_alternatives_3'] 
+        header = ['FILE_NAME', 'ME', 'total_SJs', 'ME_SJ_coverages', 'sum_ME_coverage', 'sum_ME_SJ_coverage_up_down_uniq', 'sum_ME_SJ_coverage_up', 'sum_ME_SJ_coverage_down', 'SJ_coverages', 'sum_SJ_coverage', 'is_alternative_5', 'is_alternative_3', 'alternatives_5', 'cov_alternatives_5', 'total_cov_alternatives_5', 'alternatives_3', 'cov_alternatives_3', 'total_cov_alternatives_3', 'shared_site_half']
         row = dict()
         for col, col_name in zip(line, header):
             row[col_name] = col
@@ -115,6 +115,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
         Unique_ME_reads = row["sum_ME_SJ_coverage_up_down_uniq"]
         sum_ME_SJ_coverage_up = row['sum_ME_SJ_coverage_up']
         sum_ME_SJ_coverage_down = row['sum_ME_SJ_coverage_down']
+        shared_site_half = row.get('shared_site_half', 'NA')
 
         SUM_PSI = float(sum_ME_coverage)+float(sum_SJ_coverage)+float(total_cov_alternatives_3)+float(total_cov_alternatives_5)
         if SUM_PSI>=min_sum_PSI:
@@ -130,12 +131,12 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
 
         if row["FILE_NAME"] in paired_files:
 
-          info = [Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sum_ME_coverage, sum_SJ_coverage, total_cov_alternatives_3, total_cov_alternatives_5, row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"]]
+          info = [Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sum_ME_coverage, sum_SJ_coverage, total_cov_alternatives_3, total_cov_alternatives_5, row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], shared_site_half]
           paired_info[(row["FILE_NAME"], row["ME"])] = info
 
         else:
 
-          out.write( "\t".join(map(str,  [row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"]]) )+ "\n")	
+          out.write( "\t".join(map(str,  [row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"], shared_site_half]) )+ "\n")	
           #print(row["FILE_NAME"], row["ME"], row["total_SJs"], row["ME_SJ_coverages"], row["SJ_coverages"], PSI, CI_Lo, CI_Hi, row["alternatives_5"], row["alternatives_3"], row["cov_alternatives_5"], row["cov_alternatives_3"], row["sum_ME_SJ_coverage_up_down_uniq"], row["sum_ME_SJ_coverage_up"], row["sum_ME_SJ_coverage_down"], sep='\t')
 
       for p, p1info in paired_info.items():
@@ -146,9 +147,11 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
           FILE_NAME_2 = pair12[FILE_NAME_1]
           p2info = paired_info[(FILE_NAME_2, ME_1)]
 
-          Unique_ME_reads_1, sum_ME_SJ_coverage_up_1, sum_ME_SJ_coverage_down_1, sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1, FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3 = p1info
+          Unique_ME_reads_1, sum_ME_SJ_coverage_up_1, sum_ME_SJ_coverage_down_1, sum_ME_coverage_1, sum_SJ_coverage_1, total_cov_alternatives_3_1, total_cov_alternatives_5_1, FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3, shared_site_half_1 = p1info
           Unique_ME_reads_2, sum_ME_SJ_coverage_up_2, sum_ME_SJ_coverage_down_2, sum_ME_coverage_2, sum_SJ_coverage_2, total_cov_alternatives_3_2, total_cov_alternatives_5_2 = p2info[:7]
 
+          shared_site_half_2 = p2info[-1]
+          shared_site_half = "NA" if "NA" in (shared_site_half_1, shared_site_half_2) else float(shared_site_half_1) + float(shared_site_half_2)
           Unique_ME_reads = int(Unique_ME_reads_1) + int(Unique_ME_reads_2)
           sum_ME_SJ_coverage_up = int(sum_ME_SJ_coverage_up_1) + int(sum_ME_SJ_coverage_up_2)
           sum_ME_SJ_coverage_down = int(sum_ME_SJ_coverage_down_1) + int(sum_ME_SJ_coverage_down_2)
@@ -170,7 +173,7 @@ def main(total_cov, min_sum_PSI, paired, out_PSI):
               PSI = "NA"
               CI_Lo, CI_Hi = ["NA", "NA"]
 
-          out.write( "\t".join(map(str,  [FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down] ) )+ "\n")	
+          out.write( "\t".join(map(str,  [FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, shared_site_half] ) )+ "\n")	
 
           #print(FILE_NAME, ME, total_SJs, ME_SJ_coverages, SJ_coverages, PSI, CI_Lo, CI_Hi, alternatives_5, alternatives_3, cov_alternatives_5, cov_alternatives_3,  Unique_ME_reads, sum_ME_SJ_coverage_up, sum_ME_SJ_coverage_down, sep="\t")
 
