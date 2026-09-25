@@ -14,8 +14,10 @@ def Tagloader(fasta):
     f = open(fasta)
 
     for tag in SeqIO.parse(f, "fasta"):
-        SJ_Tags_seq[tag.id.split("|")[0]] = tag.seq
-        SJ_Tags_info[tag.id.split("|")[0]] = tag.id
+        # An intron can have one skipping tag per distinct annotated flank path
+        # (see src/tag_paths.py); keep all of them.
+        SJ_Tags_seq.setdefault(tag.id.split("|")[0], []).append(tag.seq)
+        SJ_Tags_info.setdefault(tag.id.split("|")[0], []).append(tag.id)
 
         print(">" + tag.id)   # Get the SJ tags from Round1
         print(tag.seq)
@@ -36,14 +38,12 @@ def main(ME_centric):
 
         for SJ in total_SJs.split(","):
 
-            SJ_Tag_seq = SJ_Tags_seq[SJ]
-            up_block, down_block =  SJ_Tags_info[SJ].split("|")[-1].split("_")
-
-            ME_Tag_ID = "|".join(SJ_Tags_info[SJ].split("|")[:-1] + ["_".join([up_block, micro_exon_seq_found, down_block])] )
-            ME_Tag_seq = SJ_Tag_seq[:int(up_block)] + micro_exon_seq_found + SJ_Tag_seq[int(up_block):]
-            #
-            print(">" + ME_Tag_ID)
-            print(ME_Tag_seq)
+            for SJ_Tag_info, SJ_Tag_seq in zip(SJ_Tags_info[SJ], SJ_Tags_seq[SJ]):
+                up_block, down_block =  SJ_Tag_info.split("|")[-1].split("_")
+                ME_Tag_ID = "|".join(SJ_Tag_info.split("|")[:-1] + ["_".join([up_block, micro_exon_seq_found, down_block])] )
+                ME_Tag_seq = SJ_Tag_seq[:int(up_block)] + micro_exon_seq_found + SJ_Tag_seq[int(up_block):]
+                print(">" + ME_Tag_ID)
+                print(ME_Tag_seq)
 
 
 
