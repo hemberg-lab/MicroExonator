@@ -48,7 +48,7 @@ Every other parameter is listed, with its default, in :doc:`parameters`. The one
 * ``min_reads_PSI``: minimum number of junction reads to report a PSI value (default 5).
 * ``skip_discovery : T`` together with ``only_db : T``: quantify only the annotated microexons and those in ``ME_DB``, without discovery.
 * ``paired_samples``: pool the two files of each paired-end sample.
-* ``synthetic_skip_tags``, ``consecutive_microexons`` and ``mismatch_aware_blacklist`` (all ``T`` by default): corrections for microexons without an annotated skipping junction, for adjacent microexons, and for junctions with a copy in the genome. They are explained in :doc:`how_it_works`. Set them to ``F`` to reproduce results from earlier versions.
+* ``synthetic_skip_tags``, ``consecutive_microexons``, ``shared_splice_site_correction`` and ``mismatch_aware_blacklist`` (all ``T`` by default): corrections for microexons without an annotated skipping junction, for adjacent microexons, for microexons that share a splice site with a longer exon, and for junctions with a copy in the genome. They are explained in :doc:`how_it_works`. Set them to ``F`` to reproduce results from earlier versions.
 
 .. note::
 

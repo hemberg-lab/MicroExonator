@@ -94,6 +94,9 @@ Quantification
    * - ``consecutive_microexons``
      - T
      - Correct inclusion and exclusion counts for microexons next to another microexon. See :ref:`consecutive`.
+   * - ``shared_splice_site_correction``
+     - T
+     - Count microexons that share one splice site with a longer annotated exon from their unshared side, and count the longer exon once as exclusion. See :ref:`shared_site`.
    * - ``mismatch_aware_blacklist``
      - T
      - Remove a read that also aligns to the genome without splicing only if the genome alignment is at least as good as the tag alignment. With ``F``, every read with a genome alignment is removed. See :ref:`blacklist`.
