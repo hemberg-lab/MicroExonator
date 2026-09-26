@@ -25,6 +25,11 @@ Each fix can be switched off to reproduce the counts of earlier versions. See :d
 * **Junctions with a copy in the genome.** Reads that also align to the genome are now removed only if they fit the genome at least as well as the junction (``mismatch_aware_blacklist``).
 * **Mixed** ``ME_DB`` **files.** BED6 rows are read correctly, and single-column rows no longer change the length limit for the rows after them.
 
+Differential inclusion without Whippet
+======================================
+
+* ``delta_method : microexonator`` tests differential inclusion of microexons with MicroExonator's own PSI and read counts, using Whippet's statistical model, so Julia and Whippet do not need to be installed. With the same inputs it reproduces Whippet's ``DeltaPsi`` to within 0.02. See :doc:`differential_inclusion_analysis`.
+
 New reports
 ===========
 

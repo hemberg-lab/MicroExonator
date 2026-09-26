@@ -156,6 +156,32 @@ Differential inclusion (Whippet)
      - F
      - Give Whippet the uncorrected MicroExonator PSI values instead of the corrected ones (for reproducing older analyses).
 
+Differential inclusion without Whippet
+======================================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 12 63
+
+   * - Parameter
+     - Default
+     - Description
+   * - ``delta_method``
+     - whippet
+     - ``whippet`` runs Whippet; ``microexonator`` tests microexons with MicroExonator's own counts and needs no Whippet installation (see :doc:`differential_inclusion_analysis`).
+   * - ``delta_min_reads``
+     - 5
+     - Minimum corrected reads (inclusion plus exclusion) for a sample to be used.
+   * - ``delta_min_samples``
+     - 1
+     - Minimum number of usable samples in each group.
+   * - ``delta_empirical_size``
+     - 1000
+     - Number of draws per posterior. Larger values make ``Probability`` less variable between runs.
+   * - ``delta_seed``
+     - 123456
+     - Random seed.
+
 Single-cell analysis
 ====================
 

@@ -9,6 +9,19 @@ This downstream module tests for differential inclusion of annotated and novel m
 
 Whippet's k-mers are long relative to microexons, so its own PSI for microexon nodes is not reliable. For microexons, use the ``.diff.ME.microexons`` results described below, which are computed from MicroExonator's PSI.
 
+Without Whippet
+===============
+
+With ``delta_method : microexonator``, MicroExonator tests differential inclusion of microexons itself, and neither Julia nor Whippet is needed. It applies Whippet's statistical model (``whippet-delta.jl``) to MicroExonator's own per-sample PSI and read counts:
+
+* each sample with a PSI and at least ``delta_min_reads`` reads gives the posterior Beta(PSI × N + 1, (1 − PSI) × N + 1), where N is the sample's corrected inclusion plus exclusion reads;
+* the posteriors of a group's replicates are sampled, pooled and fitted with a single Beta;
+* ``DeltaPsi`` is the difference between the group means, and ``Probability`` is the probability that the difference is not in the opposite direction, estimated from ``delta_empirical_size`` draws.
+
+Only ``whippet_delta`` (the comparisons YAML file, described below) is required; ``whippet_bin_folder`` and ``julia`` can be left out. Results are written to ``Delta/{comparison_ID}.diff.ME.microexons``, with the same columns as the Whippet route plus the number of samples and reads used in each group. Whippet-specific columns (``Node``, ``Complexity``, ``Entropy``) are ``NA``.
+
+Compared with the Whippet route, a microexon is only tested with samples where MicroExonator measured it. The Whippet route keeps Whippet's own PSI for samples without a MicroExonator PSI, and weighs every sample by Whippet's read count for the node.
+
 Install
 =======
 
