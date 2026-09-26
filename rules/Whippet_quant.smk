@@ -180,11 +180,7 @@ rule BamIndex:
 
 
 def get_downstream_PSI(wildcards):
-    if str2bool(config.get("use_uncorrected_PSI", False)):
-        return( "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz"  )
-    if wildcards.sample in pe_samples:
-        return( "Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz" )
-    return( "Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz" )
+    return downstream_PSI(wildcards.sample)
 
 rule ME_psi_to_quant:
     input:

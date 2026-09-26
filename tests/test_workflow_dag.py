@@ -26,6 +26,8 @@ class WorkflowSelectionTests(unittest.TestCase):
         explicit_cluster_columns=True,
         extra_config=(),
         print_shell=False,
+        target="quant",
+        delta_comparisons=None,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -90,6 +92,9 @@ class WorkflowSelectionTests(unittest.TestCase):
                     absolute_path = os.path.join(temp_dir, relative_path)
                     os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
                     open(absolute_path, "w").close()
+            if delta_comparisons is not None:
+                with open(os.path.join(temp_dir, "whippet.delta.yaml"), "w") as handle:
+                    handle.write(delta_comparisons)
             with open(os.path.join(temp_dir, "config.yaml"), "w") as handle:
                 handle.write("Genome_fasta: genome.fa\n")
                 handle.write("Gene_anontation_bed12: annotation.bed12\n")
@@ -112,13 +117,15 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("skip_discovery_and_quant: T\n")
                 if filter_method is not None:
                     handle.write("filter_method: {}\n".format(filter_method))
+                if delta_comparisons is not None:
+                    handle.write("whippet_delta: whippet.delta.yaml\n")
                 for line in extra_config:
                     handle.write(line + "\n")
 
             result = subprocess.run(
                 [snakemake, "-s", "MicroExonator.smk", "-n", "-j", "1"]
                 + (["-p"] if print_shell else [])
-                + ["quant"],
+                + [target],
                 cwd=temp_dir,
                 env=dict(os.environ, XDG_CACHE_HOME=os.path.join(temp_dir, ".cache")),
                 text=True,
@@ -179,6 +186,44 @@ class WorkflowSelectionTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("Report/out.robustly_detected.txt", result.stdout)
+
+
+class DeltaMethodTests(unittest.TestCase):
+    """delta_method selects Whippet or the Whippet-free model for differential_inclusion."""
+
+    COMPARISON = "control_vs_case:\n  A: sample_a\n  B: sample_a\n"
+
+    def delta_dry_run(self, *extra_config):
+        return WorkflowSelectionTests.run_quant_dry_run(
+            self,
+            extra_config=extra_config,
+            print_shell=True,
+            target="differential_inclusion",
+            delta_comparisons=self.COMPARISON,
+        )
+
+    def test_microexonator_delta_needs_no_whippet(self):
+        result = self.delta_dry_run("delta_method: microexonator")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("src/me_delta.py", result.stdout)
+        self.assertIn("Delta/control_vs_case.diff.ME.microexons", result.stdout)
+        self.assertIn("Report/quant/corrected/PSI_sparse/bulk/se/sample_a.corrected.PSI.gz", result.stdout)
+        self.assertNotIn("whippet-", result.stdout)
+        self.assertNotIn("julia", result.stdout)
+
+    def test_whippet_remains_the_default(self):
+        result = self.delta_dry_run("whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("whippet-delta.jl", result.stdout)
+        self.assertNotIn("src/me_delta.py", result.stdout)
+
+    def test_unknown_delta_method_is_rejected(self):
+        result = self.delta_dry_run("delta_method: rmats")
+
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("delta_method", result.stdout)
 
 
 class QuantificationOnlyRouteTests(unittest.TestCase):

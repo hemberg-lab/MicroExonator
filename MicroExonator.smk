@@ -156,6 +156,14 @@ single_cell_files = set(
     sample for samples in primary_clusters.values() for sample in samples
 )
 
+def downstream_PSI(sample):
+    """Per-sample PSI table used for differential inclusion."""
+    if str2bool(config.get("use_uncorrected_PSI", False)):
+        return "Report/quant/{}.out_filtered_ME.PSI.uncorrected.gz".format(sample)
+    if sample in pe_samples:
+        return "Report/quant/corrected/PSI_sparse/bulk/pe/{}.corrected.PSI.gz".format(sample)
+    return "Report/quant/corrected/PSI_sparse/bulk/se/{}.corrected.PSI.gz".format(sample)
+
 def partition(list_in, n):
     randomized = list(list_in)
     random.shuffle(randomized)
@@ -243,10 +251,17 @@ rule discovery:
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.smk"
 
+DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()
+if DELTA_METHOD not in ("whippet", "microexonator"):
+   raise WorkflowError('delta_method must be "whippet" or "microexonator", not "{}"'.format(config["delta_method"]))
+
 if "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
       whippet_delta = yaml.safe_load(stream)
-   include : "rules/Whippet_delta.smk"
+   if DELTA_METHOD == "microexonator":
+      include : "rules/ME_delta.smk"
+   else:
+      include : "rules/Whippet_delta.smk"
 
 #include : "rules/Round2_quant_filters.smk"
 
