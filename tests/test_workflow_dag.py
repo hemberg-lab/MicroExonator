@@ -141,6 +141,8 @@ class WorkflowSelectionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("Report/out.robustly_detected.txt", result.stdout)
         self.assertNotIn("Report/out.high_quality.txt", result.stdout)
+        self.assertIn("Report/ME_junction_genomic_copies.txt", result.stdout)
+        self.assertIn("Report/read_lengths.tsv", result.stdout)
 
     def test_legacy_quant_runs_mixture_preflight(self):
         result = self.run_quant_dry_run(filter_method="legacy_mixture")
@@ -186,6 +188,8 @@ class WorkflowSelectionTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("Report/out.robustly_detected.txt", result.stdout)
+        self.assertNotIn("Report/ME_junction_genomic_copies.txt", result.stdout)
+        self.assertNotIn("Report/read_lengths.tsv", result.stdout)
 
 
 class DeltaMethodTests(unittest.TestCase):
@@ -242,14 +246,16 @@ class QuantificationOnlyRouteTests(unittest.TestCase):
             if "src/Get_annotated_microexons.py" in line
         ]
         self.assertEqual(len(commands), 1, result.stdout)
-        return commands[0]
+        arguments = commands[0].split()
+        return arguments[arguments.index("src/Get_annotated_microexons.py"):]
 
     def test_synthetic_skip_tags_are_on_by_default(self):
-        self.assertTrue(self.annotation_command().endswith(" Round1/ME_TAGs.fa"))
+        # sys.argv[9] of Get_annotated_microexons.py is the skip-tag source.
+        self.assertEqual(self.annotation_command()[9], "Round1/ME_TAGs.fa")
 
     def test_synthetic_skip_tags_can_be_disabled(self):
-        self.assertTrue(
-            self.annotation_command("synthetic_skip_tags: F").endswith(" NA")
+        self.assertEqual(
+            self.annotation_command("synthetic_skip_tags: F")[9], "NA"
         )
 
 

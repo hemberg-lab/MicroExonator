@@ -202,13 +202,23 @@ with open("pseudo_pool_membership.txt", "w") as pool_membership, open(
             sample_groups.write("{}\t{}\n".format(sample, group))
 
 
+# The junction genomic-copy and read-length reports are built from the Round2
+# alignment step, which does not run on existing quantifications.
+if str2bool(config.get("skip_discovery_and_quant", False)):
+    ROUND2_ALIGNMENT_REPORTS = []
+else:
+    ROUND2_ALIGNMENT_REPORTS = [
+        "Report/ME_junction_genomic_copies.txt",
+        "Report/read_lengths.tsv",
+    ]
+
+
 rule quant:
     input:
         FILTERED_ME_OUTPUT,
-        "Report/ME_junction_genomic_copies.txt",
+        ROUND2_ALIGNMENT_REPORTS,
         "Report/ME_ambiguous_positions.txt",
         "Report/ME_consecutive_runs.txt",
-        "Report/read_lengths.tsv",
         expand(
             "Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz",
             sample=DATA,
