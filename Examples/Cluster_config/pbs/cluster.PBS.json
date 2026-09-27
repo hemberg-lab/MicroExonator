@@ -1,0 +1,653 @@
+{
+    "__default__": {
+        "nodes": "1",
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "10000",
+        "queue": "medium",
+        "name": "ME.{rule}",
+        "output": "logs/{rule}.{wildcards}.out",
+        "error": "logs/{rule}.{wildcards}.err",
+        "extra_flags": "",
+        "walltime": "24:00:00",
+        "runtime": 86400
+    },
+    "Round1_bwa_mem_to_tags": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.Round1_bwa_mem_to_tags.{wildcards.sample}",
+        "output": "logs/ME.Round1_bwa_mem_to_tags.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_bwa_mem_to_tags.{wildcards.sample}.err"
+    },
+    "hisat2_genome_index": {
+        "ppn": "5",
+        "threads": "5"
+    },
+    "hisat2_to_Genome": {
+        "ppn": "1",
+        "threads": "1",
+        "name": "ME.hisat2_to_Genome.{wildcards.sample}",
+        "output": "logs/ME.hisat2_to_Genome.{wildcards.sample}.out",
+        "error": "logs/ME.hisat2_to_Genome.{wildcards.sample}.err"
+    },
+    "bowtie_genome_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "30000"
+    },
+    "bowtie_to_genome": {
+        "ppn": "1",
+        "threads": "1",
+        "name": "ME.bowtie_to_genome.{wildcards.sample}",
+        "output": "logs/ME.bowtie_to_genome.{wildcards.sample}.out",
+        "error": "logs/ME.bowtie_to_genome.{wildcards.sample}.err"
+    },
+    "Round2_bowtie_to_tags": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.Round2_bowtie_to_tags.{wildcards.sample}",
+        "output": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.err"
+    },
+    "generate_fasta_from_bed12": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "30000"
+    },
+    "Output": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "30000"
+    },
+    "whippet_index": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "64000",
+        "walltime": "48:00:00",
+        "runtime": 172800
+    },
+    "whippet_quant": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "2000",
+        "name": "ME.whippet_quant.{wildcards.sample}",
+        "output": "logs/ME.whippet_quant.{wildcards.sample}.out",
+        "error": "logs/ME.whippet_quant.{wildcards.sample}.err"
+    },
+    "salmon_index": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "32000"
+    },
+    "salmon_quant_se": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "16000",
+        "name": "ME.salmon_quant_se.{wildcards.sample}",
+        "output": "logs/ME.salmon_quant_se.{wildcards.sample}.out",
+        "error": "logs/ME.salmon_quant_se.{wildcards.sample}.err"
+    },
+    "salmon_quant_reads_pe": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "16000",
+        "name": "ME.salmon_quant_reads_pe.{wildcards.sample}",
+        "output": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.out",
+        "error": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.err"
+    },
+    "total_hisat2_to_genome": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.total_hisat2_to_genome.{wildcards.sample}",
+        "output": "logs/ME.total_hisat2_to_genome.{wildcards.sample}.out",
+        "error": "logs/ME.total_hisat2_to_genome.{wildcards.sample}.err"
+    },
+    "umbrella_reference_identity": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.reference_identity",
+        "output": "logs/U.reference_identity.out",
+        "error": "logs/U.reference_identity.err"
+    },
+    "umbrella_microexon_gtf": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "24000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.microexon_gtf",
+        "output": "logs/U.microexon_gtf.out",
+        "error": "logs/U.microexon_gtf.err"
+    },
+    "umbrella_fixed_universe": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "24000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.fixed_universe",
+        "output": "logs/U.fixed_universe.out",
+        "error": "logs/U.fixed_universe.err"
+    },
+    "umbrella_splice_hints": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.splice_hints",
+        "output": "logs/U.splice_hints.out",
+        "error": "logs/U.splice_hints.err"
+    },
+    "umbrella_intron_catalog": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.intron_catalog",
+        "output": "logs/U.intron_catalog.out",
+        "error": "logs/U.intron_catalog.err"
+    },
+    "umbrella_tx2gene": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.tx2gene",
+        "output": "logs/U.tx2gene.out",
+        "error": "logs/U.tx2gene.err"
+    },
+    "umbrella_chrom_sizes": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.chrom_sizes",
+        "output": "logs/U.chrom_sizes.out",
+        "error": "logs/U.chrom_sizes.err"
+    },
+    "umbrella_gentrome": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.gentrome",
+        "output": "logs/U.gentrome.out",
+        "error": "logs/U.gentrome.err"
+    },
+    "umbrella_suppa_events": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.suppa_events",
+        "output": "logs/U.suppa_events.out",
+        "error": "logs/U.suppa_events.err"
+    },
+    "umbrella_reference_manifest": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.reference_manifest",
+        "output": "logs/U.reference_manifest.out",
+        "error": "logs/U.reference_manifest.err"
+    },
+    "umbrella_hisat2_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "32000",
+        "walltime": "48:00:00",
+        "runtime": 172800,
+        "name": "U.hisat2_index",
+        "output": "logs/U.hisat2_index.out",
+        "error": "logs/U.hisat2_index.err"
+    },
+    "umbrella_whippet_index": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "64000",
+        "walltime": "48:00:00",
+        "runtime": 172800,
+        "name": "U.whippet_index",
+        "output": "logs/U.whippet_index.out",
+        "error": "logs/U.whippet_index.err"
+    },
+    "umbrella_salmon_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "48000",
+        "walltime": "48:00:00",
+        "runtime": 172800,
+        "name": "U.salmon_index",
+        "output": "logs/U.salmon_index.out",
+        "error": "logs/U.salmon_index.err"
+    },
+    "umbrella_stage_reads": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "name": "U.stage_reads.{wildcards.run_id}",
+        "output": "logs/U.stage_reads.{wildcards.run_id}.out",
+        "error": "logs/U.stage_reads.{wildcards.run_id}.err"
+    },
+    "umbrella_stage_single": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "name": "U.stage_single.{wildcards.run_id}",
+        "output": "logs/U.stage_single.{wildcards.run_id}.out",
+        "error": "logs/U.stage_single.{wildcards.run_id}.err"
+    },
+    "umbrella_validate_reads": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.validate_reads.{wildcards.run_id}",
+        "output": "logs/U.validate_reads.{wildcards.run_id}.out",
+        "error": "logs/U.validate_reads.{wildcards.run_id}.err"
+    },
+    "umbrella_legacy_fastq": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.legacy_fastq.{wildcards.run_id}",
+        "output": "logs/U.legacy_fastq.{wildcards.run_id}.out",
+        "error": "logs/U.legacy_fastq.{wildcards.run_id}.err"
+    },
+    "umbrella_read_length": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.read_length.{wildcards.run_id}",
+        "output": "logs/U.read_length.{wildcards.run_id}.out",
+        "error": "logs/U.read_length.{wildcards.run_id}.err"
+    },
+    "umbrella_hisat2": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "16000",
+        "name": "U.hisat2.{wildcards.run_id}",
+        "output": "logs/U.hisat2.{wildcards.run_id}.out",
+        "error": "logs/U.hisat2.{wildcards.run_id}.err"
+    },
+    "umbrella_junctions": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "name": "U.junctions.{wildcards.run_id}",
+        "output": "logs/U.junctions.{wildcards.run_id}.out",
+        "error": "logs/U.junctions.{wildcards.run_id}.err"
+    },
+    "umbrella_featurecounts": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "8000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.featurecounts.{wildcards.run_id}",
+        "output": "logs/U.featurecounts.{wildcards.run_id}.out",
+        "error": "logs/U.featurecounts.{wildcards.run_id}.err"
+    },
+    "umbrella_rmats_prep": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "name": "U.rmats_prep.{wildcards.run_id}",
+        "output": "logs/U.rmats_prep.{wildcards.run_id}.out",
+        "error": "logs/U.rmats_prep.{wildcards.run_id}.err"
+    },
+    "umbrella_coverage_run": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.coverage_run.{wildcards.run_id}",
+        "output": "logs/U.coverage_run.{wildcards.run_id}.out",
+        "error": "logs/U.coverage_run.{wildcards.run_id}.err"
+    },
+    "umbrella_salmon_quant": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "32000",
+        "name": "U.salmon_quant.{wildcards.run_id}",
+        "output": "logs/U.salmon_quant.{wildcards.run_id}.out",
+        "error": "logs/U.salmon_quant.{wildcards.run_id}.err"
+    },
+    "umbrella_whippet_quant": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "12000",
+        "name": "U.whippet_quant.{wildcards.run_id}",
+        "output": "logs/U.whippet_quant.{wildcards.run_id}.out",
+        "error": "logs/U.whippet_quant.{wildcards.run_id}.err"
+    },
+    "umbrella_legacy_bridge": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.legacy_bridge.{wildcards.sample}",
+        "output": "logs/U.legacy_bridge.{wildcards.sample}.out",
+        "error": "logs/U.legacy_bridge.{wildcards.sample}.err"
+    },
+    "umbrella_junction_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.junction_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.junction_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.junction_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_capture_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.capture_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.capture_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.capture_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_coverage_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.coverage_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.coverage_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.coverage_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_whippet_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.whippet_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.whippet_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.whippet_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_featurecounts_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.featurecounts_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.featurecounts_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.featurecounts_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_salmon_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.salmon_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.salmon_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.salmon_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_microexonator_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.microexonator_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.microexonator_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.microexonator_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_qc_shard": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.qc_shard.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.qc_shard.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.qc_shard.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_rmats_inventory": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.rmats_inventory.{wildcards.group}.{wildcards.batch_id}",
+        "output": "logs/U.rmats_inventory.{wildcards.group}.{wildcards.batch_id}.out",
+        "error": "logs/U.rmats_inventory.{wildcards.group}.{wildcards.batch_id}.err"
+    },
+    "umbrella_comparison_preflight": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "name": "U.comparison_preflight.{wildcards.comparison_id}",
+        "output": "logs/U.comparison_preflight.{wildcards.comparison_id}.out",
+        "error": "logs/U.comparison_preflight.{wildcards.comparison_id}.err"
+    },
+    "umbrella_comparison_join": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "32000",
+        "name": "U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}",
+        "output": "logs/U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}.out",
+        "error": "logs/U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}.err"
+    },
+    "umbrella_deseq2": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "32000",
+        "name": "U.deseq2.{wildcards.comparison_id}.{wildcards.route}",
+        "output": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.out",
+        "error": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.err"
+    },
+    "umbrella_microexonator_delta": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "name": "U.microexonator_delta.{wildcards.comparison_id}",
+        "output": "logs/U.microexonator_delta.{wildcards.comparison_id}.out",
+        "error": "logs/U.microexonator_delta.{wildcards.comparison_id}.err"
+    },
+    "umbrella_whippet_delta": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "name": "U.whippet_delta.{wildcards.comparison_id}",
+        "output": "logs/U.whippet_delta.{wildcards.comparison_id}.out",
+        "error": "logs/U.whippet_delta.{wildcards.comparison_id}.err"
+    },
+    "umbrella_rmats_post": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "32000",
+        "name": "U.rmats_post.{wildcards.comparison_id}",
+        "output": "logs/U.rmats_post.{wildcards.comparison_id}.out",
+        "error": "logs/U.rmats_post.{wildcards.comparison_id}.err"
+    },
+    "umbrella_leafcutter": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "name": "U.leafcutter.{wildcards.comparison_id}",
+        "output": "logs/U.leafcutter.{wildcards.comparison_id}.out",
+        "error": "logs/U.leafcutter.{wildcards.comparison_id}.err"
+    },
+    "umbrella_suppa": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "name": "U.suppa.{wildcards.comparison_id}",
+        "output": "logs/U.suppa.{wildcards.comparison_id}.out",
+        "error": "logs/U.suppa.{wildcards.comparison_id}.err"
+    },
+    "umbrella_synthesis": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "name": "U.synthesis.{wildcards.comparison_id}",
+        "output": "logs/U.synthesis.{wildcards.comparison_id}.out",
+        "error": "logs/U.synthesis.{wildcards.comparison_id}.err"
+    },
+    "download_fastq": {
+        "name": "ME.download_fastq.{wildcards.sample}",
+        "output": "logs/ME.download_fastq.{wildcards.sample}.out",
+        "error": "logs/ME.download_fastq.{wildcards.sample}.err"
+    },
+    "unzip": {
+        "name": "ME.unzip.{wildcards.sample}",
+        "output": "logs/ME.unzip.{wildcards.sample}.out",
+        "error": "logs/ME.unzip.{wildcards.sample}.err"
+    },
+    "validate_fastq": {
+        "name": "ME.validate_fastq.{wildcards.sample}",
+        "output": "logs/ME.validate_fastq.{wildcards.sample}.out",
+        "error": "logs/ME.validate_fastq.{wildcards.sample}.err"
+    },
+    "validate_fastq2": {
+        "name": "ME.validate_fastq2.{wildcards.sample}",
+        "output": "logs/ME.validate_fastq2.{wildcards.sample}.out",
+        "error": "logs/ME.validate_fastq2.{wildcards.sample}.err"
+    },
+    "Round1_alingment_pre_processing": {
+        "name": "ME.Round1_alingment_pre_processing.{wildcards.sample}",
+        "output": "logs/ME.Round1_alingment_pre_processing.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_alingment_pre_processing.{wildcards.sample}.err"
+    },
+    "row_Micro_Exon_reads": {
+        "name": "ME.row_Micro_Exon_reads.{wildcards.sample}",
+        "output": "logs/ME.row_Micro_Exon_reads.{wildcards.sample}.out",
+        "error": "logs/ME.row_Micro_Exon_reads.{wildcards.sample}.err"
+    },
+    "Round1_filter": {
+        "name": "ME.Round1_filter.{wildcards.sample}",
+        "output": "logs/ME.Round1_filter.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_filter.{wildcards.sample}.err"
+    },
+    "download_fastq2": {
+        "name": "ME.download_fastq2.{wildcards.sample}",
+        "output": "logs/ME.download_fastq2.{wildcards.sample}.out",
+        "error": "logs/ME.download_fastq2.{wildcards.sample}.err"
+    },
+    "Round2_alingment_pre_processing": {
+        "name": "ME.Round2_alingment_pre_processing.{wildcards.sample}",
+        "output": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.err"
+    },
+    "ME_reads": {
+        "name": "ME.ME_reads.{wildcards.sample}",
+        "output": "logs/ME.ME_reads.{wildcards.sample}.out",
+        "error": "logs/ME.ME_reads.{wildcards.sample}.err"
+    },
+    "Round2_filter": {
+        "name": "ME.Round2_filter.{wildcards.sample}",
+        "output": "logs/ME.Round2_filter.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_filter.{wildcards.sample}.err"
+    },
+    "ME_SJ_coverage": {
+        "name": "ME.ME_SJ_coverage.{wildcards.sample}",
+        "output": "logs/ME.ME_SJ_coverage.{wildcards.sample}.out",
+        "error": "logs/ME.ME_SJ_coverage.{wildcards.sample}.err"
+    },
+    "coverage_to_PSI_report": {
+        "name": "ME.coverage_to_PSI_report.{wildcards.sample}",
+        "output": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.out",
+        "error": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.err"
+    },
+    "correct_quant": {
+        "name": "ME.correct_quant.{wildcards.sample}",
+        "output": "logs/ME.correct_quant.{wildcards.sample}.out",
+        "error": "logs/ME.correct_quant.{wildcards.sample}.err"
+    },
+    "get_PSI_sparse_quants_se": {
+        "name": "ME.get_PSI_sparse_quants_se.{wildcards.sample}",
+        "output": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.err"
+    },
+    "get_PSI_sparse_quants_pe": {
+        "name": "ME.get_PSI_sparse_quants_pe.{wildcards.sample}",
+        "output": "logs/ME.get_PSI_sparse_quants_pe.{wildcards.sample}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_pe.{wildcards.sample}.err"
+    },
+    "SamToBam": {
+        "name": "ME.SamToBam.{wildcards.sample}",
+        "output": "logs/ME.SamToBam.{wildcards.sample}.out",
+        "error": "logs/ME.SamToBam.{wildcards.sample}.err"
+    },
+    "BamIndex": {
+        "name": "ME.BamIndex.{wildcards.sample}",
+        "output": "logs/ME.BamIndex.{wildcards.sample}.out",
+        "error": "logs/ME.BamIndex.{wildcards.sample}.err"
+    },
+    "ME_psi_to_quant": {
+        "name": "ME.ME_psi_to_quant.{wildcards.sample}",
+        "output": "logs/ME.ME_psi_to_quant.{wildcards.sample}.out",
+        "error": "logs/ME.ME_psi_to_quant.{wildcards.sample}.err"
+    },
+    "detection_filter_se": {
+        "name": "ME.detection_filter_se.{wildcards.sample_group}",
+        "output": "logs/ME.detection_filter_se.{wildcards.sample_group}.out",
+        "error": "logs/ME.detection_filter_se.{wildcards.sample_group}.err"
+    },
+    "detection_filter_pe": {
+        "name": "ME.detection_filter_pe.{wildcards.sample_group}",
+        "output": "logs/ME.detection_filter_pe.{wildcards.sample_group}.out",
+        "error": "logs/ME.detection_filter_pe.{wildcards.sample_group}.err"
+    },
+    "microexonator_delta": {
+        "name": "ME.microexonator_delta.{wildcards.comparison_name}",
+        "output": "logs/ME.microexonator_delta.{wildcards.comparison_name}.out",
+        "error": "logs/ME.microexonator_delta.{wildcards.comparison_name}.err"
+    },
+    "whippet_delta": {
+        "name": "ME.whippet_delta.{wildcards.comparison_name}",
+        "output": "logs/ME.whippet_delta.{wildcards.comparison_name}.out",
+        "error": "logs/ME.whippet_delta.{wildcards.comparison_name}.err"
+    },
+    "whippet_delta_ME": {
+        "name": "ME.whippet_delta_ME.{wildcards.comparison_name}",
+        "output": "logs/ME.whippet_delta_ME.{wildcards.comparison_name}.out",
+        "error": "logs/ME.whippet_delta_ME.{wildcards.comparison_name}.err"
+    },
+    "delta_ME_from_whippet": {
+        "name": "ME.delta_ME_from_whippet.{wildcards.comparison_name}",
+        "output": "logs/ME.delta_ME_from_whippet.{wildcards.comparison_name}.out",
+        "error": "logs/ME.delta_ME_from_whippet.{wildcards.comparison_name}.err"
+    },
+    "delta_ME_from_MicroExonator": {
+        "name": "ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}",
+        "output": "logs/ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}.out",
+        "error": "logs/ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}.err"
+    },
+    "get_PSI_sparse_quants_sp": {
+        "name": "ME.get_PSI_sparse_quants_sp.{wildcards.cluster}",
+        "output": "logs/ME.get_PSI_sparse_quants_sp.{wildcards.cluster}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_sp.{wildcards.cluster}.err"
+    },
+    "detection_filter_sp": {
+        "name": "ME.detection_filter_sp.{wildcards.cluster}",
+        "output": "logs/ME.detection_filter_sp.{wildcards.cluster}.out",
+        "error": "logs/ME.detection_filter_sp.{wildcards.cluster}.err"
+    }
+}
