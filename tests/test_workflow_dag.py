@@ -335,6 +335,50 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotIn("salmon index", result.stdout)
         self.assertNotIn("whippet-index.jl", result.stdout)
 
+    def test_shared_alignment_pe_uses_native_mates_hints_and_fragment_counts(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella"
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("hisat2 -p 1 -x hisat -1 umbrella/work/ref/project/batch/run_pe/R1.fastq.gz "
+                      "-2 umbrella/work/ref/project/batch/run_pe/R2.fastq.gz "
+                      "--known-splicesite-infile splice_sites.txt", out)
+        self.assertNotIn("--dta", out)
+        self.assertIn("-p --countReadPairs", out)
+        self.assertIn("-t paired", out)
+        for shard in ("junctions/ref/project/control/batch.junctions.tsv.gz",
+                      "junctions/ref/project/control/batch.capture.tsv.gz",
+                      "genes/ref/project/control/batch.featurecounts.tsv.gz",
+                      "qc/ref/project/control/batch.qc.tsv.gz",
+                      "rmats/ref/project/control/batch.rmats_inventory.tsv",
+                      "coverage/ref/project/control/batch.sum_cpm.bw"):
+            self.assertIn(shard, out)
+        # Every BAM consumer is a declared rule, so the BAM can be temporary.
+        for rule in ("umbrella_junctions", "umbrella_featurecounts",
+                     "umbrella_rmats_prep", "umbrella_coverage_run"):
+            self.assertIn("rule {}:".format(rule), out)
+
+    def test_shared_alignment_se_and_optional_analyses_can_be_disabled(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_layout="SE", print_shell=True,
+            target="quant_umbrella",
+            extra_config=("umbrella_optional:", "  rmats: false", "  coverage: false"),
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("-U umbrella/work/ref/project/batch/run_se/R1.fastq.gz", out)
+        self.assertNotIn("--countReadPairs", out)
+        self.assertNotIn("rmats.py", out)
+        self.assertNotIn("genomecov", out)
+        self.assertIn("junctions/ref/project/control/batch.junctions.tsv.gz", out)
+
+    def test_legacy_quant_does_not_reach_umbrella_rules(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(self, print_shell=True)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("umbrella", result.stdout)
+        self.assertNotIn("hisat2 -p", result.stdout)
+
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
             self, umbrella=True, umbrella_layout="SE", print_shell=True,

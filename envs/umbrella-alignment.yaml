@@ -1,0 +1,12 @@
+name: microexonator-umbrella-alignment
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - hisat2=2.2.1
+  - samtools=1.20
+  - subread=2.0.6
+  - rmats=4.3.0
+  - bedtools=2.31.1
+  - ucsc-bedgraphtobigwig=455

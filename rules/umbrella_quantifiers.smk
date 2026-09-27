@@ -139,4 +139,5 @@ rule quant_umbrella:
         rules.quant.input,
         UMBRELLA_WHIPPET_PSI,
         UMBRELLA_SALMON_SHARDS,
+        UMBRELLA_ALIGNMENT_TARGETS,
         UMBRELLA_REFERENCE_MANIFEST
