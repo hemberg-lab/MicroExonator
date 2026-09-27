@@ -109,8 +109,8 @@ does not vote.
   stages the mm10 fixture (two groups, two batches, SE and PE) against
   prebuilt full-mm10 indexes; it never builds an index. `--dry-run` needs no
   tools. The full run uses conda; rMATS and SUPPA2 packages are Linux-first.
-- **Before a cluster pilot.** Record the real manifest and sample count, build
-  the fixed Whippet GTF with every ME_DB microexon in it, compute the
+- **Before a cluster pilot.** Record the real manifest and sample count, check
+  the microexon report (`whippet.microexons.report.tsv`), compute the
   reference ID, and pin tool versions in `umbrella_reference: versions`.
 
 ## Known limits
