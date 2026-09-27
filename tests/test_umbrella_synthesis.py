@@ -74,9 +74,9 @@ class ToolInputTests(unittest.TestCase):
                         "chrom\tstart\tend\tstrand\tlabel\tmax_anchor\tmulti_total\tshort_anchor_total\tA1\tA2\tB1\n"
                         "chr1\t201\t300\t+\tindex_intron\t40\t0\t0\t5\t0\t2\n")
             files = leafcutter_files(joined, self.PREFLIGHT, root / "leaf")
-            self.assertEqual(Path(files[0]).read_text(), "chr1\t201\t300\t.\t5\t+\n")
+            self.assertEqual(Path(files[0]).read_text(), "chr1\t200\t300\t.\t5\t+\n")
             self.assertEqual(Path(files[1]).read_text(), "")
-            self.assertEqual((root / "leaf" / "groups.txt").read_text(), "A1\ta\nA2\ta\nB1\tb\n")
+            self.assertEqual((root / "leaf" / "groups.txt").read_text(), "A1.junc\ta\nA2.junc\ta\nB1.junc\tb\n")
 
     def test_suppa_tables_average_technical_runs(self):
         with tempfile.TemporaryDirectory() as directory:

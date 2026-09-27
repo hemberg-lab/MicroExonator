@@ -8,10 +8,14 @@ Subcommands
   suppa      SUPPA2 TPM tables for group A and B from joined transcript TPM
              (runs averaged per biological replicate)
 
-LeafCutter junction files are six columns: chrom, intron start, intron end
-(1-based, closed, as in the junction shards), '.', count, strand. LeafCutter
-only needs consistent coordinates to cluster introns and test them; check the
-convention before mapping its clusters onto an exon annotation.
+LeafCutter junction files are six columns: chrom, start, end, '.', count,
+strand, in the convention of clustering/leafcutter_cluster.py, which reads
+(A, B) and keys the intron as (A, B + 1): A is the last base of the upstream
+exon and B the last intron base (1-based). The intron key is then (upstream
+exon end, downstream exon start), matching GTF exons, as leafcutter_ds.R
+expects. Junction shards store the intron itself (first and last intron base),
+so A = intron start - 1. LeafCutter names samples after the junction files,
+so the groups file uses the file names (replicate + '.junc').
 """
 
 import argparse
@@ -55,13 +59,14 @@ def leafcutter_files(joined, preflight, directory):
             for row in rows:
                 count = int(row[index[replicate]])
                 if count:
-                    stream.write("{}\t{}\t{}\t.\t{}\t{}\n".format(row[0], row[1], row[2], count, row[3]))
+                    stream.write("{}\t{}\t{}\t.\t{}\t{}\n".format(
+                        row[0], int(row[1]) - 1, row[2], count, row[3]))
         written.append(str(path))
     # absolute paths: LeafCutter is run from inside the directory
     (directory / "juncfiles.txt").write_text("".join(
         str(Path(path).resolve()) + "\n" for path in written))
     (directory / "groups.txt").write_text("".join(
-        "{}\t{}\n".format(replicate, side) for side in ("a", "b")
+        "{}.junc\t{}\n".format(replicate, side) for side in ("a", "b")
         for replicate in preflight["replicates"][side]))
     return written
 

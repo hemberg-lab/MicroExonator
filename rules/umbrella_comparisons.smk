@@ -166,7 +166,7 @@ rule umbrella_leafcutter:
             shell("python3 src/umbrella_tool_inputs.py leafcutter --joined {input.joined} "
                   "--preflight {input.preflight} --directory {params.work}")
             shell("cd {params.work} && python3 {params.directory}/clustering/leafcutter_cluster.py "
-                  "-j juncfiles.txt -o comparison > ../logs/leafcutter.log 2>&1")
+                  "-j juncfiles.txt -o comparison -s True -l 500000 > ../logs/leafcutter.log 2>&1")
             shell("cd {params.work} && {params.rscript} {params.directory}/scripts/leafcutter_ds.R "
                   "--num_threads {threads} -i 2 comparison_perind_numers.counts.gz groups.txt "
                   ">> ../logs/leafcutter.log 2>&1")
