@@ -9,6 +9,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from src.umbrella_manifest import link_legacy_fastq
+
 
 def umbrella_run(wildcards):
     run = UMBRELLA_MANIFEST.by_run.get(wildcards.run_id)
@@ -56,8 +58,9 @@ rule umbrella_stage_reads:
         sources=umbrella_sources,
         manifest=str(UMBRELLA_MANIFEST.path)
     output:
-        r1="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz",
-        r2="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R2.fastq.gz"
+        # temporary: removed once every tool that reads them has run
+        r1=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz"),
+        r2=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R2.fastq.gz")
     wildcard_constraints:
         run_id=PE_RUN_PATTERN
     run:
@@ -96,7 +99,7 @@ rule umbrella_stage_single:
         sources=umbrella_sources,
         manifest=str(UMBRELLA_MANIFEST.path)
     output:
-        "umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz"
+        temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz")
     wildcard_constraints:
         run_id=SE_RUN_PATTERN
     run:
@@ -174,17 +177,9 @@ rule umbrella_legacy_bridge:
     output:
         "FASTQ/{sample}.fastq.gz"
     run:
-        run = UMBRELLA_MANIFEST.by_run[wildcards.sample]
-        Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
-        if run.layout == "PE":
-            # Keep one inode when the temporary concat is released by Snakemake.
-            try:
-                os.link(input.fastq, output[0])
-            except OSError:
-                shutil.copyfile(input.fastq, output[0])
-        else:
-            # Native R1 is persistent, so a link to the staged path remains valid.
-            os.symlink(str(Path(input.fastq).absolute()), output[0])
+        # PE: the concatenation is temporary; SE: the staged R1 is temporary.
+        # Either way MicroExonator gets a path that outlives the staged file.
+        link_legacy_fastq(input.fastq, output[0])
 
 
 rule umbrella_intake:

@@ -1,6 +1,7 @@
 """Contract tests for canonical umbrella sample metadata."""
 
 import pathlib
+from pathlib import Path
 import tempfile
 import unittest
 
@@ -84,3 +85,26 @@ class ManifestTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LegacyFastqLinkTests(unittest.TestCase):
+    def test_legacy_fastq_outlives_the_temporary_staged_file(self):
+        import os
+        from src.umbrella_manifest import link_legacy_fastq
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.fastq.gz"
+            source.write_bytes(b"reads")
+            # local .gz source: staged as a symlink, legacy path points at the source
+            staged = root / "staged_link.fastq.gz"
+            staged.symlink_to(source)
+            link_legacy_fastq(staged, root / "FASTQ" / "a.fastq.gz")
+            staged.unlink()
+            self.assertEqual((root / "FASTQ" / "a.fastq.gz").read_bytes(), b"reads")
+            # workflow-owned staged file (download): hard link keeps the data
+            owned = root / "owned.fastq.gz"
+            owned.write_bytes(b"downloaded")
+            link_legacy_fastq(owned, root / "FASTQ" / "b.fastq.gz")
+            owned.unlink()
+            self.assertEqual((root / "FASTQ" / "b.fastq.gz").read_bytes(), b"downloaded")
+            self.assertFalse(os.path.islink(root / "FASTQ" / "b.fastq.gz"))

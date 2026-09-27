@@ -53,7 +53,7 @@ and optionally `leafcutter_rscript`), `suppa2`.
 
 ## What is kept
 
-Everything per run is temporary (staged reads excepted, see below), except the
+Everything per run is temporary, including the staged reads, except the
 rMATS prep files that `--task post` needs later. Kept per
 `{reference_id}/{project_id}/{group}/{batch_id}`:
 
@@ -106,9 +106,6 @@ does not vote.
 - Whippet psi path columns (`Inc_Paths`, `Exc_Paths`, `Edges`) are not kept.
 - Technical runs are summed in count tables, but the delta tools still see
   each run's PSI table separately (flagged as `technical_run_replicates`).
-- Staged native reads under `umbrella/work/` are not yet temporary: the
-  single-end legacy route links to them. Making them temporary is the next
-  disk saving.
 - Junction capture uses splice-site sets per chromosome and strand, not per
   gene.
 - The planned Salmon versus Whippet TPM concordance is not implemented.

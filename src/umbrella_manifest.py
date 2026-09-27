@@ -82,6 +82,27 @@ class UmbrellaManifest:
         return run.work_dir + "/legacy.fastq.gz"
 
 
+def link_legacy_fastq(staged, destination):
+    """Give MicroExonator its FASTQ without tying it to the temporary staged file.
+
+    A staged symlink (a local .gz source) is followed, and the legacy path
+    links to the original source, which the workflow never deletes. A
+    workflow-owned staged file is hard-linked, so it survives the staged path
+    being removed; across file systems it is copied.
+    """
+    import os
+    import shutil
+    staged, destination = Path(staged), Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if staged.is_symlink():
+        destination.symlink_to(staged.resolve())
+        return
+    try:
+        os.link(staged, destination)
+    except OSError:
+        shutil.copyfile(staged, destination)
+
+
 def load_umbrella_manifest(path):
     path = Path(path).expanduser().resolve()
     with path.open(newline="") as stream:
