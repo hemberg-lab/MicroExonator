@@ -482,3 +482,90 @@ class SmokeRunnerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+UMBRELLA_RUNNER_PATH = FIXTURE_ROOT / "run_umbrella_smoke.py"
+UMBRELLA_VALIDATOR_PATH = FIXTURE_ROOT / "validate_umbrella_smoke.py"
+
+
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class UmbrellaFixtureTests(unittest.TestCase):
+    """The umbrella smoke fixture: two groups, two batches, SE and PE."""
+
+    def reference(self, root, prebuilt=True):
+        reference = {}
+        for key in ("genome_fasta", "annotation_gtf", "whippet_gtf", "me_db",
+                    "transcriptome_fasta", "decoys", "salmon_gtf", "splice_sites"):
+            path = root / key
+            path.write_text("")
+            reference[key] = str(path)
+        if prebuilt:
+            for number in range(1, 9):
+                (root / "hisat.{}.ht2".format(number)).write_text("")
+            (root / "salmon_index").mkdir()
+            (root / "salmon_index" / "hash.bin").write_text("")
+            for name in ("whippet.jls", "whippet.jls.exons.tab.gz"):
+                (root / name).write_text("")
+            reference.update(hisat2_index_prefix=str(root / "hisat"),
+                             whippet_index=str(root / "whippet.jls"),
+                             salmon_index=str(root / "salmon_index"))
+        return reference
+
+    def test_manifest_has_two_groups_two_batches_and_both_layouts(self):
+        from src.umbrella_manifest import load_umbrella_manifest
+        manifest = load_umbrella_manifest(FIXTURE_ROOT / "umbrella_manifest.tsv")
+        runs = manifest.included_runs()
+        self.assertEqual(manifest.groups(), ["A", "B"])
+        self.assertEqual(manifest.batches(), ["batch1", "batch2"])
+        self.assertEqual({run.layout for run in runs}, {"SE", "PE"})
+        for run in runs:
+            for source in (run.source_1, run.source_2):
+                if source:
+                    self.assertTrue(pathlib.Path(source).is_file(), source)
+
+    def test_comparisons_preflight_as_the_validator_expects(self):
+        from src.comparison_preflight import load_comparisons, preflight
+        from src.umbrella_manifest import load_umbrella_manifest
+        manifest = load_umbrella_manifest(FIXTURE_ROOT / "umbrella_manifest.tsv")
+        try:
+            comparisons = load_comparisons(FIXTURE_ROOT / "umbrella_comparisons.yaml")
+        except Exception as error:  # PyYAML absent from this interpreter
+            self.skipTest("cannot parse YAML here: {}".format(error))
+        results = {c["comparison_id"]: preflight(manifest, c) for c in comparisons}
+        self.assertTrue(all(r["inference_supported"] for r in results.values()))
+        self.assertFalse(results["A_vs_B"]["tools"]["rmats"]["supported"])
+        self.assertTrue(results["A_vs_B_single_end"]["tools"]["rmats"]["supported"])
+
+    def test_runner_refuses_to_build_indexes_and_stages_absolute_paths(self):
+        runner = load_module("umbrella_runner", UMBRELLA_RUNNER_PATH)
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            bare = root / "bare"
+            bare.mkdir()
+            with self.assertRaisesRegex(RuntimeError, "never builds an index"):
+                runner.check_reference(self.reference(bare, prebuilt=False))
+            refs = root / "refs"
+            refs.mkdir()
+            bed = root / "annotation.bed"
+            bed.write_text("")
+            config = runner.stage(root / "work", refs / "genome_fasta", bed,
+                                  self.reference(refs), "ref123")
+            staged = (root / "work" / "umbrella_manifest.tsv").read_text()
+            self.assertIn("\tref123\t", staged)
+            for line in staged.splitlines()[1:]:
+                self.assertTrue(line.split("\t")[7].startswith("/"), line)
+            self.assertIn('"umbrella_comparisons"', config.read_text())
+            # the real pilot size is external to the fixture
+            self.assertNotIn("25", UMBRELLA_RUNNER_PATH.read_text())
+
+    def test_validator_derives_skipping_junctions_from_truth(self):
+        validator = load_module("umbrella_validator", UMBRELLA_VALIDATOR_PATH)
+        event = {"upstream_exon": "chr11:82810007-82810218:-",
+                 "downstream_exon": "chr11:82803821-82806189:-"}
+        self.assertEqual(validator.skipping_junction(event), ("chr11", 82806190, 82810006, "-"))

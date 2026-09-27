@@ -1,0 +1,12 @@
+comparisons:
+  # both batches: SE and PE runs in each group, so rMATS must refuse (mixed layouts)
+  - comparison_id: A_vs_B
+    project_id: mm10sim
+    group_a: A
+    group_b: B
+  # single-end batch only: every tool can run
+  - comparison_id: A_vs_B_single_end
+    project_id: mm10sim
+    group_a: A
+    group_b: B
+    exclude: [A3, B3]

@@ -1,0 +1,7 @@
+sample_id	run_id	biological_replicate_id	project_id	batch_id	group	source_type	source_1	source_2	layout	strandedness	reference_id	include
+A1	A1_se	A1	mm10sim	batch1	A	fastq	single_end/fastq/A1.fastq.gz		SE	auto	REFERENCE_ID	true
+A2	A2_se	A2	mm10sim	batch1	A	fastq	single_end/fastq/A2.fastq.gz		SE	auto	REFERENCE_ID	true
+B1	B1_se	B1	mm10sim	batch1	B	fastq	single_end/fastq/B1.fastq.gz		SE	auto	REFERENCE_ID	true
+B2	B2_se	B2	mm10sim	batch1	B	fastq	single_end/fastq/B2.fastq.gz		SE	auto	REFERENCE_ID	true
+A3	A3_pe	A3	mm10sim	batch2	A	fastq	paired_end/fastq/A3_R1.fastq.gz	paired_end/fastq/A3_R2.fastq.gz	PE	auto	REFERENCE_ID	true
+B3	B3_pe	B3	mm10sim	batch2	B	fastq	paired_end/fastq/B3_R1.fastq.gz	paired_end/fastq/B3_R2.fastq.gz	PE	auto	REFERENCE_ID	true
