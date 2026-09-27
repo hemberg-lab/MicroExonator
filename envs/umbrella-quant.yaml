@@ -1,0 +1,8 @@
+name: microexonator-umbrella-quant
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - hisat2=2.2.1
+  - salmon=1.10.3

@@ -279,6 +279,10 @@ rule discovery:
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.smk"
 
+if "umbrella_manifest" in config:
+   include : "rules/umbrella_reference.smk"
+   include : "rules/umbrella_quantifiers.smk"
+
 DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()
 if DELTA_METHOD not in ("whippet", "microexonator"):
    raise WorkflowError('delta_method must be "whippet" or "microexonator", not "{}"'.format(config["delta_method"]))

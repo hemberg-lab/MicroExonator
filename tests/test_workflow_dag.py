@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -28,6 +29,9 @@ class WorkflowSelectionTests(unittest.TestCase):
         print_shell=False,
         target="quant",
         delta_comparisons=None,
+        umbrella=False,
+        umbrella_layout="PE",
+        umbrella_prebuilt=True,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -95,6 +99,21 @@ class WorkflowSelectionTests(unittest.TestCase):
             if delta_comparisons is not None:
                 with open(os.path.join(temp_dir, "whippet.delta.yaml"), "w") as handle:
                     handle.write(delta_comparisons)
+            if umbrella:
+                with open(os.path.join(temp_dir, "umbrella.tsv"), "w") as handle:
+                    handle.write("sample_id\trun_id\tbiological_replicate_id\tproject_id\tbatch_id\tgroup\tsource_type\tsource_1\tsource_2\tlayout\tstrandedness\treference_id\tinclude\n")
+                    source_2 = "r2.fastq.gz" if umbrella_layout == "PE" else ""
+                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\tref\ttrue\n".format(
+                        umbrella_layout.lower(), source_2, umbrella_layout))
+                for name in ("r1.fastq.gz", "r2.fastq.gz", "transcripts.fa", "decoys.txt", "fixed.gtf", "salmon.gtf", "splice_sites.txt"):
+                    open(os.path.join(temp_dir, name), "w").close()
+                if umbrella_prebuilt:
+                    os.mkdir(os.path.join(temp_dir, "salmon_index"))
+                    open(os.path.join(temp_dir, "salmon_index", "hash.bin"), "w").close()
+                    for name in ("whippet.jls", "whippet.jls.exons.tab.gz"):
+                        open(os.path.join(temp_dir, name), "w").close()
+                    for number in range(1, 9):
+                        open(os.path.join(temp_dir, "hisat.{}.ht2".format(number)), "w").close()
             with open(os.path.join(temp_dir, "config.yaml"), "w") as handle:
                 handle.write("Genome_fasta: genome.fa\n")
                 handle.write("Gene_anontation_bed12: annotation.bed12\n")
@@ -119,11 +138,37 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("filter_method: {}\n".format(filter_method))
                 if delta_comparisons is not None:
                     handle.write("whippet_delta: whippet.delta.yaml\n")
+                if umbrella:
+                    handle.write("umbrella_manifest: umbrella.tsv\n")
+                    handle.write("whippet_bin_folder: /opt/whippet/bin\n")
+                    handle.write("julia: julia\n")
+                    handle.write("umbrella_reference:\n")
+                    for key, value in (
+                        ("genome_fasta", "genome.fa"),
+                        ("annotation_gtf", "annotation.gtf"),
+                        ("whippet_gtf", "fixed.gtf"),
+                        ("me_db", "microexons.bed12"),
+                        ("transcriptome_fasta", "transcripts.fa"),
+                        ("decoys", "decoys.txt"),
+                        ("salmon_gtf", "salmon.gtf"),
+                        ("splice_sites", "splice_sites.txt"),
+                    ) + ((
+                        ("hisat2_index_prefix", "hisat"),
+                        ("whippet_index", "whippet.jls"),
+                        ("salmon_index", "salmon_index"),
+                    ) if umbrella_prebuilt else ()):
+                        handle.write("  {}: {}\n".format(key, value))
                 for line in extra_config:
                     handle.write(line + "\n")
 
+            command = [snakemake]
+            if sys.platform == "darwin":
+                # appdirs ignores XDG_CACHE_HOME on macOS; keep Snakemake's
+                # runtime source cache inside this isolated fixture.
+                command = [os.path.join(os.path.dirname(snakemake), "python"), "-c",
+                           "import appdirs, runpy; appdirs.system = 'linux'; runpy.run_module('snakemake', run_name='__main__')"]
             result = subprocess.run(
-                [snakemake, "-s", "MicroExonator.smk", "-n", "-j", "1"]
+                command + ["-s", "MicroExonator.smk", "-n", "-j", "1"]
                 + (["-p"] if print_shell else [])
                 + [target],
                 cwd=temp_dir,
@@ -257,6 +302,48 @@ class QuantificationOnlyRouteTests(unittest.TestCase):
         self.assertEqual(
             self.annotation_command("synthetic_skip_tags: F")[9], "NA"
         )
+
+
+class UmbrellaNativeQuantificationTests(unittest.TestCase):
+    def test_built_reference_declares_all_index_outputs(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_prebuilt=False, print_shell=True,
+            target="quant_umbrella"
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rule umbrella_hisat2_index:", result.stdout)
+        self.assertIn("umbrella/reference/ref/hisat2/genome.8.ht2", result.stdout)
+        self.assertIn("rule umbrella_salmon_index:", result.stdout)
+        self.assertIn("-d decoys.txt", result.stdout)
+        self.assertIn("rule umbrella_whippet_index:", result.stdout)
+        self.assertNotIn("Report/out.robustly_detected.gtf", result.stdout)
+
+    def test_pe_uses_native_mates_and_never_legacy_se_salmon_route(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella"
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("whippet-quant.jl umbrella/work/ref/project/batch/run_pe/R1.fastq.gz umbrella/work/ref/project/batch/run_pe/R2.fastq.gz", result.stdout)
+        self.assertIn("salmon quant", result.stdout)
+        self.assertIn("-1 umbrella/work/ref/project/batch/run_pe/R1.fastq.gz", result.stdout)
+        self.assertIn("-2 umbrella/work/ref/project/batch/run_pe/R2.fastq.gz", result.stdout)
+        self.assertIn("--validateMappings", result.stdout)
+        self.assertNotIn("salmon/SE/run_pe", result.stdout)
+        self.assertNotIn("lengthScaledTPM", result.stdout)
+        self.assertNotIn("Report/out.robustly_detected.gtf", result.stdout)
+        self.assertNotIn("rule umbrella_hisat2_index:", result.stdout)
+        self.assertNotIn("salmon index", result.stdout)
+        self.assertNotIn("whippet-index.jl", result.stdout)
+
+    def test_se_salmon_uses_single_read_argument(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_layout="SE", print_shell=True,
+            target="quant_umbrella"
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("salmon quant", result.stdout)
+        self.assertIn("-r umbrella/work/ref/project/batch/run_se/R1.fastq.gz", result.stdout)
+        self.assertNotIn("-2 umbrella/work/ref/project/batch/run_se", result.stdout)
 
 
 if __name__ == "__main__":
