@@ -1,4 +1,10 @@
-"""Reduce Salmon transcript quantifications into immutable gene shards."""
+"""Reduce Salmon transcript quantifications into immutable group shards.
+
+Gene level (for tximport/DESeq2): estimated counts, TPM and the TPM-weighted
+effective length. A gene with zero TPM in a run gets the mean effective length
+of its transcripts, as tximport does, so its offset is never log(0).
+Transcript level (for SUPPA2): TPM and estimated counts.
+"""
 
 import argparse
 import csv
@@ -34,7 +40,8 @@ def _tx2gene(path):
 
 
 def _quant(path, mapping):
-    genes = defaultdict(lambda: [0.0, 0.0, 0.0])
+    genes = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0])
+    transcripts = {}
     with open(path, newline="") as stream:
         reader = csv.DictReader(stream, delimiter="\t")
         if not reader.fieldnames or not {"Name", "EffectiveLength", "TPM", "NumReads"}.issubset(reader.fieldnames):
@@ -48,12 +55,24 @@ def _quant(path, mapping):
             effective_length = float(row["EffectiveLength"])
             if min(count, tpm, effective_length) < 0:
                 raise ValueError("negative Salmon quantity for {}".format(transcript))
+            transcripts[transcript] = (count, tpm)
             values = genes[mapping[transcript]]
             values[0] += count
             values[1] += tpm
             values[2] += tpm * effective_length
-    return {gene: (count, tpm, weighted / tpm if tpm else 0.0)
-            for gene, (count, tpm, weighted) in genes.items()}
+            values[3] += effective_length
+            values[4] += 1
+    gene_values = {gene: (count, tpm, weighted / tpm if tpm else length_sum / n)
+                   for gene, (count, tpm, weighted, length_sum, n) in genes.items()}
+    return gene_values, transcripts
+
+
+def _matrix(label, rows, runs, lookup, index):
+    lines = ["{}\t{}\n".format(label, "\t".join(runs))]
+    for row in rows:
+        lines.append("{}\t{}\n".format(row, "\t".join(
+            _number(lookup[run].get(row, (0.0, 0.0, 0.0))[index]) for run in runs)))
+    return _gzip_text("".join(lines))
 
 
 def reduce_group(quant_by_run, tx2gene_path, prefix, reference_id, manifest_sha256):
@@ -61,15 +80,18 @@ def reduce_group(quant_by_run, tx2gene_path, prefix, reference_id, manifest_sha2
         raise ValueError("Salmon shard requires at least one run")
     mapping = _tx2gene(tx2gene_path)
     runs = sorted(quant_by_run)
-    values = {run: _quant(quant_by_run[run], mapping) for run in runs}
-    genes = sorted(set().union(*(set(value) for value in values.values())))
+    parsed = {run: _quant(quant_by_run[run], mapping) for run in runs}
+    genes_by_run = {run: parsed[run][0] for run in runs}
+    tx_by_run = {run: parsed[run][1] for run in runs}
+    genes = sorted(set().union(*(set(value) for value in genes_by_run.values())))
+    transcripts = sorted(set().union(*(set(value) for value in tx_by_run.values())))
     outputs = {}
     for kind, index in (("counts", 0), ("tpm", 1), ("length", 2)):
-        lines = ["gene_id\t{}\n".format("\t".join(runs))]
-        for gene in genes:
-            lines.append("{}\t{}\n".format(gene, "\t".join(
-                _number(values[run].get(gene, (0.0, 0.0, 0.0))[index]) for run in runs)))
-        outputs[prefix + ".salmon_" + kind + ".tsv.gz"] = _gzip_text("".join(lines))
+        outputs[prefix + ".salmon_" + kind + ".tsv.gz"] = _matrix(
+            "gene_id", genes, runs, genes_by_run, index)
+    for kind, index in (("tx_counts", 0), ("tx_tpm", 1)):
+        outputs[prefix + ".salmon_" + kind + ".tsv.gz"] = _matrix(
+            "transcript_id", transcripts, runs, tx_by_run, index)
     write_immutable_bundle(outputs, prefix + ".salmon_checksums.json", {
         "reference_id": reference_id, "manifest_sha256": manifest_sha256,
         "runs": runs,

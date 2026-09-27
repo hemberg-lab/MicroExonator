@@ -96,6 +96,8 @@ rule umbrella_salmon_shard:
         counts=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_counts.tsv.gz"),
         tpm=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tpm.tsv.gz"),
         length=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_length.tsv.gz"),
+        tx_counts=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tx_counts.tsv.gz"),
+        tx_tpm=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tx_tpm.tsv.gz"),
         checksums=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_checksums.json")
     run:
         records = umbrella_group_runs(wildcards)
@@ -116,8 +118,9 @@ for reference_id, project_id, group, batch_id in sorted({
         for run in UMBRELLA_MANIFEST.included_runs()}):
     prefix = "genes/{}/{}/{}/{}".format(reference_id, project_id, group, batch_id)
     UMBRELLA_SALMON_SHARDS.extend(prefix + ".salmon_" + suffix for suffix in
-                                  ("counts.tsv.gz", "tpm.tsv.gz",
-                                   "length.tsv.gz", "checksums.json"))
+                                  ("counts.tsv.gz", "tpm.tsv.gz", "length.tsv.gz",
+                                   "tx_counts.tsv.gz", "tx_tpm.tsv.gz",
+                                   "checksums.json"))
 
 
 rule quant_microexonator:
