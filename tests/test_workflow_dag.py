@@ -392,6 +392,21 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotIn("umbrella", result.stdout)
         self.assertNotIn("hisat2 -p", result.stdout)
 
+    def test_reference_identity_gates_index_builds_and_sra_downloads_are_capped(self):
+        rows = ["sample_s\tSRR000001\trep_s\tproject\tbatch\tcontrol\tsra\tSRR000001\t\tPE\tunstranded\tref\ttrue"]
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_prebuilt=False, print_shell=True,
+            target="quant_umbrella", umbrella_extra_rows=rows)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("rule umbrella_reference_identity:", out)
+        # the identity check runs before any index is built
+        self.assertLess(out.index("rule umbrella_reference_identity:"), out.index("rule umbrella_hisat2_index:"))
+        self.assertLess(out.index("rule umbrella_reference_identity:"), out.index("rule umbrella_salmon_index:"))
+        staging = [block for block in out.split("\n\n") if "rule umbrella_stage_reads:" in block]
+        self.assertTrue(any("SRR000001" in block and "get_data=1" in block for block in staging), staging)
+        self.assertTrue(any("run_pe" in block and "get_data=0" in block for block in staging), staging)
+
     def test_splicing_shards_and_comparison_joins(self):
         rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
                 "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)

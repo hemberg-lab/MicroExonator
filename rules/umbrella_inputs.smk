@@ -63,6 +63,9 @@ rule umbrella_stage_reads:
         r2=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R2.fastq.gz")
     wildcard_constraints:
         run_id=PE_RUN_PATTERN
+    resources:
+        # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
+        get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
     run:
         record = umbrella_run(wildcards)
         if record.layout != "PE":
@@ -102,6 +105,9 @@ rule umbrella_stage_single:
         temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz")
     wildcard_constraints:
         run_id=SE_RUN_PATTERN
+    resources:
+        # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
+        get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
     run:
         record = umbrella_run(wildcards)
         if record.layout != "SE":

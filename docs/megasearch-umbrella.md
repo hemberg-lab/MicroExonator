@@ -28,9 +28,14 @@ summed per replicate and they never count as independent replicates.
 `whippet_gtf` (the fixed Whippet annotation), `me_db`, `transcriptome_fasta`, `decoys`, `salmon_gtf`,
 `splice_sites` (HISAT2 format, full annotation plus any extra junctions).
 Optional prebuilt indexes: `hisat2_index_prefix` (with `hisat2_index_type:
-large` for `.ht2l`), `whippet_index`, `salmon_index`. The workflow hashes the
-whole bundle into `umbrella/reference/<id>/manifest.json` and refuses a
-manifest whose `reference_id` does not match.
+large` for `.ht2l`), `whippet_index`, `salmon_index`. The `reference_id` is a
+hash of the configured files (prebuilt indexes included), `versions`,
+`hisat2_index_type` and `umbrella_insert_microexons`; files the workflow
+builds are recorded in `umbrella/reference/<id>/manifest.json` but are not
+part of the ID. Get it before the first run with
+`python3 src/shard_guard.py reference-id --configfile config.yaml` and put it
+in the manifest. `umbrella_reference_identity` checks it before any index is
+built, so a wrong ID fails in minutes.
 
 **ME_DB microexons in the GTFs.** The configured GTFs are never changed.
 The workflow writes derived copies under `umbrella/reference/<id>/`
@@ -103,15 +108,17 @@ does not vote.
 - **Batches.** Add runs with a new `batch_id` to the manifest and rerun
   `quant_umbrella`. Existing shards are checked, not rewritten; joins and
   comparisons rerun from shards.
+- **SRA downloads.** Staging an SRA run takes one `get_data` resource, as
+  the legacy download rules do: `--resources get_data=10` allows ten at once.
 - **Checking temporaries.** `snakemake --delete-temp-output --dry-run`
   lists what would be removed.
 - **Local smoke test.** `tests/integration/mm10_simulated/run_umbrella_smoke.py`
   stages the mm10 fixture (two groups, two batches, SE and PE) against
   prebuilt full-mm10 indexes; it never builds an index. `--dry-run` needs no
   tools. The full run uses conda; rMATS and SUPPA2 packages are Linux-first.
-- **Before a cluster pilot.** Record the real manifest and sample count, check
-  the microexon report (`whippet.microexons.report.tsv`), compute the
-  reference ID, and pin tool versions in `umbrella_reference: versions`.
+- **Before a cluster pilot.** Record the real manifest and sample count, pin
+  tool versions in `umbrella_reference: versions`, compute the reference ID,
+  and check the microexon report (`whippet.microexons.report.tsv`).
 
 ## Known limits
 

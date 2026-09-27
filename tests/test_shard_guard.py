@@ -1,8 +1,11 @@
+import unittest.mock
+import json
+import io
 import tempfile
 import unittest
 from pathlib import Path
 
-from src.shard_guard import (hisat2_members, reference_manifest,
+from src.shard_guard import (hisat2_members, main as shard_guard_main, reference_identity, reference_manifest,
                              checksum_path, validate_fixed_microexons,
                              write_immutable_bundle)
 
@@ -39,6 +42,36 @@ class ShardGuardTests(unittest.TestCase):
             self.assertNotEqual(original["reference_id"], changed["reference_id"])
             with self.assertRaisesRegex(ValueError, "reference_id mismatch"):
                 reference_manifest(paths, expected_id=original["reference_id"])
+
+    def test_reference_id_needs_only_configured_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = {}
+            for key in ("genome_fasta", "annotation_gtf", "whippet_gtf", "me_db", "transcriptome_fasta",
+                        "decoys", "salmon_gtf", "splice_sites"):
+                (root / key).write_text(key)
+                reference[key] = str(root / key)
+            reference["versions"] = {"hisat2": "2.2.1"}
+            identity, settings = reference_identity(reference)
+            before = reference_manifest(identity, versions=reference["versions"], settings=settings)
+            # files the workflow builds later are recorded but do not change the ID
+            (root / "tx2gene.tsv").write_text("built")
+            built = dict(identity, tx2gene=str(root / "tx2gene.tsv"))
+            after = reference_manifest(built, versions=reference["versions"], identity=identity,
+                                       settings=settings)
+            self.assertEqual(before["reference_id"], after["reference_id"])
+            self.assertIn("tx2gene", after["checksums"])
+            # the command line prints the same ID from a config file
+            config = root / "config.json"
+            config.write_text(json.dumps({"umbrella_reference": reference}))
+            with unittest.mock.patch("sys.stdout", new_callable=io.StringIO) as stdout:
+                shard_guard_main(["reference-id", "--configfile", str(config)])
+            self.assertEqual(stdout.getvalue().strip(), before["reference_id"])
+            # a prebuilt index or turning off the microexon insertion gives another reference
+            off = reference_manifest(*reference_identity(reference, insert_microexons=False)[:1],
+                                     versions=reference["versions"],
+                                     settings=reference_identity(reference, False)[1])
+            self.assertNotEqual(off["reference_id"], before["reference_id"])
 
     def test_directory_checksum_ignores_snakemake_timestamp_only(self):
         with tempfile.TemporaryDirectory() as directory:

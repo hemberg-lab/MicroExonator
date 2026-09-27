@@ -70,21 +70,62 @@ def checksum_path(path):
     return members
 
 
-def reference_manifest(paths, expected_id=None, versions=None):
-    """Hash every logical input and index member before assigning an identity."""
+def reference_manifest(paths, expected_id=None, versions=None, identity=None, settings=None):
+    """Hash every logical input and index member; derive the identity.
+
+    `identity` names the entries of `paths` that define the reference_id (all
+    of them when None). Built files (derived GTFs, tx2gene, indexes built by
+    the workflow) are deterministic given those inputs, `versions` and
+    `settings`, so they are checksummed for provenance but left out of the ID.
+    That makes the ID computable before anything is built
+    (`python3 src/shard_guard.py reference-id`).
+    """
     checksums = {}
     for name, value in sorted(paths.items()):
         if isinstance(value, (list, tuple)):
             checksums[name] = [checksum_path(member) for member in value]
         else:
             checksums[name] = checksum_path(value)
-    identity = {"checksums": checksums, "versions": versions or {}}
-    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
-    reference_id = hashlib.sha256(encoded).hexdigest()[:16]
+    keys = sorted(paths) if identity is None else sorted(identity)
+    reference_id = _identity_hash({key: checksums[key] for key in keys}, versions, settings)
     if expected_id is not None and expected_id != reference_id:
         raise ValueError("reference_id mismatch: configured {} but computed {}".format(
             expected_id, reference_id))
-    return {"reference_id": reference_id, "inputs": paths, **identity}
+    return {"reference_id": reference_id, "inputs": paths, "identity_inputs": keys,
+            "checksums": checksums, "versions": versions or {}, "settings": settings or {}}
+
+
+def _identity_hash(checksums, versions, settings):
+    identity = {"checksums": checksums, "versions": versions or {}}
+    if settings:
+        identity["settings"] = settings
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()[:16]
+
+
+REFERENCE_FILES = {"genome": "genome_fasta", "annotation": "annotation_gtf",
+                   "whippet_annotation": "whippet_gtf", "me_db": "me_db",
+                   "salmon_gtf": "salmon_gtf", "transcripts": "transcriptome_fasta",
+                   "decoys": "decoys", "splice_sites": "splice_sites",
+                   "annotation_bed12": "annotation_bed12"}
+
+
+def reference_identity(reference, insert_microexons=True):
+    """(paths, settings) that define a reference_id, from config `umbrella_reference`.
+
+    Configured files and any prebuilt index count; built outputs do not.
+    """
+    paths = {name: reference[key] for name, key in REFERENCE_FILES.items() if reference.get(key)}
+    large = reference.get("hisat2_index_type", "small") == "large"
+    if reference.get("hisat2_index_prefix"):
+        paths["hisat2"] = hisat2_members(reference["hisat2_index_prefix"], large)
+    if reference.get("whippet_index"):
+        paths["whippet"] = [reference["whippet_index"], reference["whippet_index"] + ".exons.tab.gz"]
+    if reference.get("salmon_index"):
+        paths["salmon"] = reference["salmon_index"]
+    settings = {"hisat2_index_type": "large" if large else "small",
+                "insert_microexons": bool(insert_microexons)}
+    return paths, settings
 
 
 def _json_bytes(value):
@@ -123,3 +164,27 @@ def write_immutable_bundle(outputs, guard_path, metadata):
     for path, data in outputs.items():
         write_immutable(path, data)
     write_immutable(guard_path, guard)
+
+
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(description="Print the umbrella reference_id of a config.")
+    parser.add_argument("command", choices=["reference-id"])
+    parser.add_argument("--configfile", required=True, help="Snakemake config (YAML or JSON)")
+    args = parser.parse_args(argv)
+    with open(args.configfile) as stream:
+        text = stream.read()
+    try:
+        config = json.loads(text)
+    except ValueError:
+        import yaml
+        config = yaml.safe_load(text)
+    insert = str(config.get("umbrella_insert_microexons", True)).lower() not in ("false", "f", "0", "no")
+    paths, settings = reference_identity(config["umbrella_reference"], insert)
+    manifest = reference_manifest(paths, versions=config["umbrella_reference"].get("versions", {}),
+                                  settings=settings)
+    print(manifest["reference_id"])
+
+
+if __name__ == "__main__":
+    main()

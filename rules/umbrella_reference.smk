@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from src.shard_guard import hisat2_members, reference_manifest, write_immutable
+from src.shard_guard import hisat2_members, reference_identity, reference_manifest, write_immutable
 
 
 UMBRELLA_REFERENCE = config.get("umbrella_reference")
@@ -54,10 +54,30 @@ else:
 UMBRELLA_SPLICE_HINTS = UMBRELLA_REFERENCE_ROOT + "/hisat2_splice_sites.txt"
 
 
+UMBRELLA_IDENTITY = UMBRELLA_REFERENCE_ROOT + "/identity.json"
+_IDENTITY_PATHS, _IDENTITY_SETTINGS = reference_identity(UMBRELLA_REFERENCE, UMBRELLA_INSERT_MICROEXONS)
+
+
+# Checks the manifest's reference_id against the configured inputs before any
+# index is built, so a wrong ID fails in minutes rather than after the builds.
+rule umbrella_reference_identity:
+    input:
+        [member for value in _IDENTITY_PATHS.values()
+         for member in (value if isinstance(value, list) else [value])]
+    output:
+        UMBRELLA_IDENTITY
+    run:
+        manifest = reference_manifest(_IDENTITY_PATHS, expected_id=UMBRELLA_REFERENCE_ID,
+                                      versions=UMBRELLA_REFERENCE.get("versions", {}),
+                                      settings=_IDENTITY_SETTINGS)
+        Path(output[0]).write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
+
+
 rule umbrella_microexon_gtf:
     input:
         gtf=lambda w: UMBRELLA_BASE_GTF[w.base],
-        me_db=UMBRELLA_REFERENCE["me_db"]
+        me_db=UMBRELLA_REFERENCE["me_db"],
+        identity=UMBRELLA_IDENTITY
     output:
         gtf=protected(UMBRELLA_REFERENCE_ROOT + "/{base}.microexons.gtf.gz"),
         report=protected(UMBRELLA_REFERENCE_ROOT + "/{base}.microexons.report.tsv")
@@ -107,7 +127,8 @@ rule umbrella_fixed_universe:
 if "hisat2_index_prefix" not in UMBRELLA_REFERENCE:
     rule umbrella_hisat2_index:
         input:
-            UMBRELLA_REFERENCE["genome_fasta"]
+            genome=UMBRELLA_REFERENCE["genome_fasta"],
+            identity=UMBRELLA_IDENTITY
         output:
             UMBRELLA_HISAT_MEMBERS
         params:
@@ -117,7 +138,7 @@ if "hisat2_index_prefix" not in UMBRELLA_REFERENCE:
         conda:
             "../envs/umbrella-quant.yaml"
         shell:
-            "hisat2-build {params.large} -p {threads} {input} {params.prefix}"
+            "hisat2-build {params.large} -p {threads} {input.genome} {params.prefix}"
 
 
 if "whippet_index" not in UMBRELLA_REFERENCE:
@@ -125,7 +146,8 @@ if "whippet_index" not in UMBRELLA_REFERENCE:
         input:
             genome=UMBRELLA_REFERENCE["genome_fasta"],
             fixed_gtf=UMBRELLA_GTF["whippet"],
-            validated=UMBRELLA_FIXED_UNIVERSE
+            validated=UMBRELLA_FIXED_UNIVERSE,
+            identity=UMBRELLA_IDENTITY
         output:
             UMBRELLA_WHIPPET_MEMBERS
         params:
@@ -173,7 +195,8 @@ if "salmon_index" not in UMBRELLA_REFERENCE:
     rule umbrella_gentrome:
         input:
             transcripts=UMBRELLA_REFERENCE["transcriptome_fasta"],
-            genome=UMBRELLA_REFERENCE["genome_fasta"]
+            genome=UMBRELLA_REFERENCE["genome_fasta"],
+            identity=UMBRELLA_IDENTITY
         output:
             temp(UMBRELLA_REFERENCE_ROOT + "/salmon/gentrome.fa")
         run:
@@ -232,6 +255,10 @@ rule umbrella_reference_manifest:
         paths["splice_sites"] = str(input.splice_sites)
         if input.annotation_bed12:
             paths["annotation_bed12"] = str(input.annotation_bed12[0])
+        # the ID covers configured inputs only, so `python3 src/shard_guard.py
+        # reference-id --configfile <config>` gives it before anything is built
+        identity, settings = reference_identity(UMBRELLA_REFERENCE, UMBRELLA_INSERT_MICROEXONS)
         manifest = reference_manifest(paths, expected_id=UMBRELLA_REFERENCE_ID,
-                                      versions=UMBRELLA_REFERENCE.get("versions", {}))
+                                      versions=UMBRELLA_REFERENCE.get("versions", {}),
+                                      identity=identity, settings=settings)
         write_immutable(output[0], (json.dumps(manifest, sort_keys=True, indent=2) + "\n").encode())
