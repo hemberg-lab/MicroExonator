@@ -126,8 +126,16 @@ if "Single_Cell" not in config:
     config["Single_Cell"]="F"
 
 
-include : "rules/init.smk"
-include : "rules/Get_data.smk"
+if "umbrella_manifest" in config:
+    from src.umbrella_manifest import load_umbrella_manifest
+    try:
+        UMBRELLA_MANIFEST = load_umbrella_manifest(config["umbrella_manifest"])
+    except (OSError, ValueError) as error:
+        raise WorkflowError("invalid umbrella_manifest: {}".format(error))
+    include : "rules/umbrella_inputs.smk"
+else:
+    include : "rules/init.smk"
+    include : "rules/Get_data.smk"
 
 
 try:
