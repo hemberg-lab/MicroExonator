@@ -282,6 +282,7 @@ if "whippet_bin_folder" in config:
 if "umbrella_manifest" in config:
    include : "rules/umbrella_reference.smk"
    include : "rules/umbrella_alignment.smk"
+   include : "rules/umbrella_reducers.smk"
    include : "rules/umbrella_quantifiers.smk"
 
 DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()

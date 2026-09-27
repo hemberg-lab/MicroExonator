@@ -32,6 +32,8 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella=False,
         umbrella_layout="PE",
         umbrella_prebuilt=True,
+        umbrella_extra_rows=(),
+        umbrella_comparisons=None,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -105,6 +107,11 @@ class WorkflowSelectionTests(unittest.TestCase):
                     source_2 = "r2.fastq.gz" if umbrella_layout == "PE" else ""
                     handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\tref\ttrue\n".format(
                         umbrella_layout.lower(), source_2, umbrella_layout))
+                    for row in umbrella_extra_rows:
+                        handle.write(row + "\n")
+                if umbrella_comparisons is not None:
+                    with open(os.path.join(temp_dir, "comparisons.yaml"), "w") as handle:
+                        handle.write(umbrella_comparisons)
                 for name in ("r1.fastq.gz", "r2.fastq.gz", "transcripts.fa", "decoys.txt", "fixed.gtf", "salmon.gtf", "splice_sites.txt"):
                     open(os.path.join(temp_dir, name), "w").close()
                 if umbrella_prebuilt:
@@ -140,6 +147,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("whippet_delta: whippet.delta.yaml\n")
                 if umbrella:
                     handle.write("umbrella_manifest: umbrella.tsv\n")
+                    if umbrella_comparisons is not None:
+                        handle.write("umbrella_comparisons: comparisons.yaml\n")
                     handle.write("whippet_bin_folder: /opt/whippet/bin\n")
                     handle.write("julia: julia\n")
                     handle.write("umbrella_reference:\n")
@@ -378,6 +387,25 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertNotIn("umbrella", result.stdout)
         self.assertNotIn("hisat2 -p", result.stdout)
+
+    def test_splicing_shards_and_comparison_joins(self):
+        rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
+                "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
+                for name, group in (("b", "control"), ("c", "case"), ("d", "case"))]
+        comparisons = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
+                       "    group_a: case\n    group_b: control\n")
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella",
+            umbrella_extra_rows=rows, umbrella_comparisons=comparisons,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("splicing/ref/project/control/batch.microexonator.tsv.gz", out)
+        self.assertIn("splicing/ref/project/case/batch.whippet.tsv.gz", out)
+        self.assertIn("comparisons/ref/project/case_vs_control/preflight.json", out)
+        self.assertIn("--kind junctions", out)
+        self.assertIn("--collapse comparisons/ref/project/case_vs_control/preflight.json", out)
+        self.assertIn("comparisons/ref/project/case_vs_control/joined/whippet.tsv.gz", out)
 
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
