@@ -325,6 +325,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("rule umbrella_salmon_index:", result.stdout)
         self.assertIn("-d decoys.txt", result.stdout)
         self.assertIn("rule umbrella_whippet_index:", result.stdout)
+        self.assertIn("--gtf umbrella/reference/ref/whippet.microexons.gtf.gz", result.stdout)
         self.assertNotIn("Report/out.robustly_detected.gtf", result.stdout)
 
     def test_pe_uses_native_mates_and_never_legacy_se_salmon_route(self):
@@ -352,7 +353,10 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         out = result.stdout
         self.assertIn("hisat2 -p 1 -x hisat -1 umbrella/work/ref/project/batch/run_pe/R1.fastq.gz "
                       "-2 umbrella/work/ref/project/batch/run_pe/R2.fastq.gz "
-                      "--known-splicesite-infile splice_sites.txt", out)
+                      "--known-splicesite-infile umbrella/reference/ref/hisat2_splice_sites.txt", out)
+        # ME_DB microexons are added to derived GTF copies, never to the configured files
+        self.assertIn("src/insert_microexons_gtf.py --gtf annotation.gtf", out)
+        self.assertIn("src/insert_microexons_gtf.py --gtf fixed.gtf", out)
         self.assertNotIn("--dta", out)
         self.assertIn("-p --countReadPairs", out)
         self.assertIn("-t paired", out)

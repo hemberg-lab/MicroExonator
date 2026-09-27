@@ -66,9 +66,9 @@ def umbrella_hisat2_strand(wildcards):
 
 rule umbrella_intron_catalog:
     input:
-        whippet_gtf=UMBRELLA_REFERENCE["whippet_gtf"],
-        annotation_gtf=UMBRELLA_REFERENCE["annotation_gtf"],
-        splice_sites=UMBRELLA_REFERENCE["splice_sites"]
+        whippet_gtf=UMBRELLA_GTF["whippet"],
+        annotation_gtf=UMBRELLA_GTF["annotation"],
+        splice_sites=UMBRELLA_SPLICE_HINTS
     output:
         protected(UMBRELLA_INTRON_CATALOG)
     shell:
@@ -95,7 +95,7 @@ rule umbrella_hisat2:
         reads=lambda w: UMBRELLA_MANIFEST.native_reads(umbrella_align_run(w).run_id),
         valid=UMBRELLA_WORK + "/reads.valid",
         index=UMBRELLA_HISAT_MEMBERS,
-        splice_sites=UMBRELLA_REFERENCE["splice_sites"],
+        splice_sites=UMBRELLA_SPLICE_HINTS,
         reference=UMBRELLA_REFERENCE_MANIFEST
     output:
         bam=temp(UMBRELLA_WORK + "/align/aligned.bam"),
@@ -140,7 +140,7 @@ rule umbrella_featurecounts:
         bam=UMBRELLA_WORK + "/align/aligned.bam",
         bai=UMBRELLA_WORK + "/align/aligned.bam.bai",
         summary=UMBRELLA_WORK + "/align/junctions.summary.json",
-        gtf=UMBRELLA_REFERENCE["annotation_gtf"]
+        gtf=UMBRELLA_GTF["annotation"]
     output:
         counts=temp(UMBRELLA_WORK + "/align/featurecounts.txt"),
         summary=temp(UMBRELLA_WORK + "/align/featurecounts.txt.summary")
@@ -183,7 +183,7 @@ rule umbrella_rmats_prep:
         bam=lambda w: umbrella_align_run(w).work_dir + "/align/aligned.bam",
         bai=lambda w: umbrella_align_run(w).work_dir + "/align/aligned.bam.bai",
         read_length=lambda w: umbrella_align_run(w).work_dir + "/align/read_length.txt",
-        gtf=UMBRELLA_REFERENCE["annotation_gtf"]
+        gtf=UMBRELLA_GTF["annotation"]
     output:
         prep=protected("rmats/" + UMBRELLA_SHARD + "/{run_id}.rmats"),
         record=protected("rmats/" + UMBRELLA_SHARD + "/{run_id}.rmats.json")

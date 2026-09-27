@@ -5,8 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from src.shard_guard import (hisat2_members, reference_manifest,
-                             validate_fixed_microexons, write_immutable)
+from src.shard_guard import hisat2_members, reference_manifest, write_immutable
 
 
 UMBRELLA_REFERENCE = config.get("umbrella_reference")
@@ -38,16 +37,71 @@ UMBRELLA_TX2GENE = UMBRELLA_REFERENCE_ROOT + "/tx2gene.tsv"
 UMBRELLA_FIXED_UNIVERSE = UMBRELLA_REFERENCE_ROOT + "/fixed_universe.json"
 UMBRELLA_REFERENCE_MANIFEST = UMBRELLA_REFERENCE_ROOT + "/manifest.json"
 
+# ME_DB microexons missing from a GTF are added to a derived copy built here
+# (src/insert_microexons_gtf.py); the configured GTFs are never changed.
+# Whippet, the junction labels, HISAT2 splice hints, featureCounts and rMATS
+# use the derived copies; Salmon and SUPPA2 keep salmon_gtf, whose transcripts
+# must match transcriptome_fasta. `umbrella_insert_microexons: false` uses
+# the configured GTFs as they are.
+UMBRELLA_INSERT_MICROEXONS = str(config.get("umbrella_insert_microexons", True)).lower() not in ("false", "f", "0", "no")
+UMBRELLA_BASE_GTF = {"whippet": UMBRELLA_REFERENCE["whippet_gtf"],
+                     "annotation": UMBRELLA_REFERENCE["annotation_gtf"]}
+if UMBRELLA_INSERT_MICROEXONS:
+    UMBRELLA_GTF = {base: UMBRELLA_REFERENCE_ROOT + "/{}.microexons.gtf.gz".format(base)
+                    for base in UMBRELLA_BASE_GTF}
+else:
+    UMBRELLA_GTF = dict(UMBRELLA_BASE_GTF)
+UMBRELLA_SPLICE_HINTS = UMBRELLA_REFERENCE_ROOT + "/hisat2_splice_sites.txt"
+
+
+rule umbrella_microexon_gtf:
+    input:
+        gtf=lambda w: UMBRELLA_BASE_GTF[w.base],
+        me_db=UMBRELLA_REFERENCE["me_db"]
+    output:
+        gtf=protected(UMBRELLA_REFERENCE_ROOT + "/{base}.microexons.gtf.gz"),
+        report=protected(UMBRELLA_REFERENCE_ROOT + "/{base}.microexons.report.tsv")
+    wildcard_constraints:
+        base="whippet|annotation"
+    shell:
+        "python3 src/insert_microexons_gtf.py --gtf {input.gtf} --me-db {input.me_db} "
+        "--output {output.gtf} --report {output.report}"
+
+
+rule umbrella_splice_hints:
+    # the configured splice sites plus every intron of the annotation GTF in
+    # use (so inserted microexon junctions are hinted too), HISAT2 format
+    input:
+        sites=UMBRELLA_REFERENCE["splice_sites"],
+        gtf=UMBRELLA_GTF["annotation"]
+    output:
+        protected(UMBRELLA_SPLICE_HINTS)
+    run:
+        from src.summarize_junctions import _gtf_introns, _hint_introns
+        introns = _hint_introns(input.sites) | _gtf_introns(input.gtf)
+        Path(output[0]).write_text("".join(
+            "{}\t{}\t{}\t{}\n".format(chrom, start - 2, end, strand)
+            for chrom, start, end, strand in sorted(introns)))
+
 
 rule umbrella_fixed_universe:
+    # How the fixed microexon universe reached the Whippet annotation:
+    # present already, inserted into a host transcript, or no host found.
     input:
-        fixed_gtf=UMBRELLA_REFERENCE["whippet_gtf"],
+        gtf=UMBRELLA_GTF["whippet"],
         me_db=UMBRELLA_REFERENCE["me_db"]
     output:
         protected(UMBRELLA_FIXED_UNIVERSE)
     run:
-        count = validate_fixed_microexons(input.fixed_gtf, input.me_db)
-        write_immutable(output[0], (json.dumps({"microexons": count}) + "\n").encode())
+        from collections import Counter
+        from src.insert_microexons_gtf import insert, read_me_db
+        _, report = insert(input.gtf, read_me_db(input.me_db))
+        counts = Counter(line.split("\t")[4] for line in report.splitlines()[1:])
+        if not sum(counts.values()):
+            raise WorkflowError("fixed microexon universe is empty")
+        write_immutable(output[0], (json.dumps(
+            {"microexons": sum(counts.values()), "in_whippet_gtf": counts["present"],
+             "without_host": counts["no_host"]}, sort_keys=True) + "\n").encode())
 
 
 if "hisat2_index_prefix" not in UMBRELLA_REFERENCE:
@@ -70,8 +124,7 @@ if "whippet_index" not in UMBRELLA_REFERENCE:
     rule umbrella_whippet_index:
         input:
             genome=UMBRELLA_REFERENCE["genome_fasta"],
-            fixed_gtf=UMBRELLA_REFERENCE["whippet_gtf"],
-            me_db=UMBRELLA_REFERENCE["me_db"],
+            fixed_gtf=UMBRELLA_GTF["whippet"],
             validated=UMBRELLA_FIXED_UNIVERSE
         output:
             UMBRELLA_WHIPPET_MEMBERS

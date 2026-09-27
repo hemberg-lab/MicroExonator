@@ -25,13 +25,25 @@ summed per replicate and they never count as independent replicates.
 
 **Reference bundle** (`umbrella_reference`, mapping). `genome_fasta`,
 `annotation_gtf` (full annotation: featureCounts, rMATS, splice hints),
-`whippet_gtf` (the fixed Whippet annotation, already containing every ME_DB
-microexon), `me_db`, `transcriptome_fasta`, `decoys`, `salmon_gtf`,
+`whippet_gtf` (the fixed Whippet annotation), `me_db`, `transcriptome_fasta`, `decoys`, `salmon_gtf`,
 `splice_sites` (HISAT2 format, full annotation plus any extra junctions).
 Optional prebuilt indexes: `hisat2_index_prefix` (with `hisat2_index_type:
 large` for `.ht2l`), `whippet_index`, `salmon_index`. The workflow hashes the
 whole bundle into `umbrella/reference/<id>/manifest.json` and refuses a
 manifest whose `reference_id` does not match.
+
+**ME_DB microexons in the GTFs.** The configured GTFs are never changed.
+The workflow writes derived copies under `umbrella/reference/<id>/`
+(`src/insert_microexons_gtf.py`): each ME_DB microexon that is not already an
+exon is added to one copy of one host transcript whose intron contains it
+(ranked MANE_Select, Ensembl_canonical, basic, then more exons). One host is
+enough for Whippet, which joins any annotated donor to any annotated acceptor
+of a gene. A report lists each microexon as present, inserted or without host.
+Whippet, the junction labels, the HISAT2 splice hints, featureCounts and rMATS
+use the derived copies; Salmon and SUPPA2 keep `salmon_gtf`, whose transcripts
+must match `transcriptome_fasta`. A prebuilt `whippet_index` must have been
+built from `whippet.microexons.gtf.gz`. Set `umbrella_insert_microexons:
+false` to use the configured GTFs as they are.
 
 **Comparisons** (`umbrella_comparisons`, YAML): a list under `comparisons`
 with `comparison_id`, `project_id`, `group_a`, `group_b` and optional
