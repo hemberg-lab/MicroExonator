@@ -27,6 +27,8 @@ def records(path, run_id):
                 raise ValueError("{} record {}: incomplete four-line FASTQ in {}".format(run_id, number, path))
             if not header.startswith("@") or not separator.startswith("+"):
                 raise ValueError("{} record {}: invalid FASTQ header or separator in {}".format(run_id, number, path))
+            if not header[1:].split():
+                raise ValueError("{} record {}: empty read ID in {}".format(run_id, number, path))
             if len(sequence.rstrip("\r\n")) != len(quality.rstrip("\r\n")):
                 raise ValueError("{} record {}: sequence/quality length mismatch in {}".format(run_id, number, path))
             yield header.rstrip("\r\n")

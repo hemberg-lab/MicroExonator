@@ -1,4 +1,4 @@
-"""Opt-in, mate-preserving intake. Only paths below umbrella/work are outputs."""
+"""Opt-in, mate-preserving intake with a legacy FASTQ compatibility path."""
 
 import bz2
 import gzip
@@ -53,10 +53,11 @@ SE_RUN_PATTERN = "(?:{})".format("|".join(
 
 rule umbrella_stage_reads:
     input:
-        umbrella_sources
+        sources=umbrella_sources,
+        manifest=str(UMBRELLA_MANIFEST.path)
     output:
-        r1=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz"),
-        r2=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R2.fastq.gz")
+        r1="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz",
+        r2="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R2.fastq.gz"
     wildcard_constraints:
         run_id=PE_RUN_PATTERN
     run:
@@ -92,9 +93,10 @@ rule umbrella_stage_reads:
 
 rule umbrella_stage_single:
     input:
-        umbrella_sources
+        sources=umbrella_sources,
+        manifest=str(UMBRELLA_MANIFEST.path)
     output:
-        temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz")
+        "umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz"
     wildcard_constraints:
         run_id=SE_RUN_PATTERN
     run:
@@ -129,12 +131,13 @@ def umbrella_validation_inputs(wildcards):
 
 rule umbrella_validate_reads:
     input:
-        umbrella_validation_inputs
+        reads=umbrella_validation_inputs,
+        manifest=str(UMBRELLA_MANIFEST.path)
     output:
         "umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/reads.valid"
     run:
         record = umbrella_run(wildcards)
-        subprocess.run(["python3", "src/validate_fastq_pairs.py", *[str(path) for path in input],
+        subprocess.run(["python3", "src/validate_fastq_pairs.py", *[str(path) for path in input.reads],
                         "--marker", str(output[0]), "--run-id", record.run_id], check=True)
 
 
@@ -150,6 +153,38 @@ rule umbrella_legacy_fastq:
             raise WorkflowError("single-end runs use native R1 as legacy input")
         subprocess.run(["bash", "src/concat_mates.sh", str(input.reads[0]),
                         str(input.reads[1]), str(output[0])], check=True)
+
+
+def umbrella_legacy_bridge_input(wildcards):
+    run = UMBRELLA_MANIFEST.by_run.get(wildcards.sample)
+    if run is None or not run.include:
+        raise WorkflowError("umbrella sample is absent or excluded: {}".format(wildcards.sample))
+    return UMBRELLA_MANIFEST.legacy_fastq(run.run_id)
+
+
+def umbrella_legacy_bridge_validation(wildcards):
+    run = UMBRELLA_MANIFEST.by_run[wildcards.sample]
+    return run.work_dir + "/reads.valid"
+
+
+rule umbrella_legacy_bridge:
+    input:
+        fastq=umbrella_legacy_bridge_input,
+        valid=umbrella_legacy_bridge_validation
+    output:
+        "FASTQ/{sample}.fastq.gz"
+    run:
+        run = UMBRELLA_MANIFEST.by_run[wildcards.sample]
+        Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
+        if run.layout == "PE":
+            # Keep one inode when the temporary concat is released by Snakemake.
+            try:
+                os.link(input.fastq, output[0])
+            except OSError:
+                shutil.copyfile(input.fastq, output[0])
+        else:
+            # Native R1 is persistent, so a link to the staged path remains valid.
+            os.symlink(str(Path(input.fastq).absolute()), output[0])
 
 
 rule umbrella_intake:

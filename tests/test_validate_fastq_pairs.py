@@ -74,6 +74,16 @@ class FastqPairTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("mate designation mismatch", result.stderr)
 
+    def test_empty_read_id_is_rejected_in_se_and_pe(self):
+        write_reads(self.r1, [""])
+        write_reads(self.r2, [""])
+        for paired in (False, True):
+            with self.subTest(paired=paired):
+                result = self.validate(paired)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("run1 record 1", result.stderr)
+                self.assertIn("empty read ID", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

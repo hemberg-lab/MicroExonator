@@ -2,7 +2,11 @@ from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
 #GS = GSRemoteProvider( project="Brain-NeMO" )
 
 
-if "google_path" in config:
+if "umbrella_manifest" in config:
+    # Canonical umbrella intake supplies FASTQ/{sample}.fastq.gz. Keep the
+    # shared reference and helper rules below without defining download_fastq.
+    pass
+elif "google_path" in config:
     if str2bool(config.get("google_paired", False)):
 
         rule download_fastq:

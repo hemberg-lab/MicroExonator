@@ -87,7 +87,7 @@ csv.field_size_limit(100000000)
 pe_samples = set([])
 paired_dict = dict()
 
-if "paired_samples" in config:
+if "paired_samples" in config and "umbrella_manifest" not in config:
     
     if config["paired_samples"]!="F":
     
@@ -132,16 +132,26 @@ if "umbrella_manifest" in config:
         UMBRELLA_MANIFEST = load_umbrella_manifest(config["umbrella_manifest"])
     except (OSError, ValueError) as error:
         raise WorkflowError("invalid umbrella_manifest: {}".format(error))
+    DATA.update(run.run_id for run in UMBRELLA_MANIFEST.included_runs())
     include : "rules/umbrella_inputs.smk"
 else:
     include : "rules/init.smk"
-    include : "rules/Get_data.smk"
+include : "rules/Get_data.smk"
 
 
-try:
-    filter_groups = load_filter_groups(config, DATA, paired_dict=paired_dict)
-except ValueError as error:
-    raise WorkflowError(str(error))
+if "umbrella_manifest" in config:
+    # MicroExonator receives one validated legacy FASTQ per run. Its paired
+    # sample mode expects separate sample IDs for mates, so these run IDs are
+    # grouped as single FASTQ inputs here. Native mates remain in umbrella/work.
+    umbrella_groups = defaultdict(list)
+    for run in UMBRELLA_MANIFEST.included_runs():
+        umbrella_groups[run.group].append(run.run_id)
+    filter_groups = {"bulk_se": umbrella_groups, "bulk_pe": {}, "single_cell": {}}
+else:
+    try:
+        filter_groups = load_filter_groups(config, DATA, paired_dict=paired_dict)
+    except ValueError as error:
+        raise WorkflowError(str(error))
 
 sample_group_se = defaultdict(list, filter_groups["bulk_se"])
 sample_group_pe = defaultdict(list, filter_groups["bulk_pe"])
