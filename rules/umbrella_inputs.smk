@@ -175,7 +175,9 @@ rule umbrella_legacy_bridge:
         fastq=umbrella_legacy_bridge_input,
         valid=umbrella_legacy_bridge_validation
     output:
-        "FASTQ/{sample}.fastq.gz"
+        # like the legacy download rules: temporary unless Keep_fastq_gz
+        "FASTQ/{sample}.fastq.gz" if str2bool(config.get("Keep_fastq_gz", False))
+        else temp("FASTQ/{sample}.fastq.gz")
     run:
         # PE: the concatenation is temporary; SE: the staged R1 is temporary.
         # Either way MicroExonator gets a path that outlives the staged file.

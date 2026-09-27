@@ -24,7 +24,7 @@ class UmbrellaWorkflowContractTests(unittest.TestCase):
     def test_legacy_fastq_has_a_manifest_backed_bridge(self):
         self.assertIn('rule umbrella_legacy_bridge:', self.intake)
         self.assertIn('UMBRELLA_MANIFEST.legacy_fastq', self.intake)
-        self.assertRegex(self.intake, r'output:\s*"FASTQ/\{sample\}\.fastq\.gz"')
+        self.assertIn('else temp("FASTQ/{sample}.fastq.gz")', self.intake)
         self.assertIn('rule umbrella_legacy_fastq:', self.intake)
 
     def test_native_reads_are_temporary_and_manifest_invalidates_outputs(self):
