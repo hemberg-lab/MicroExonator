@@ -1,0 +1,10 @@
+name: microexonator-umbrella-comparisons
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - r-base=4.3
+  - r-jsonlite
+  - bioconductor-deseq2
+  - suppa=2.3

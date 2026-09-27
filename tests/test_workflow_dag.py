@@ -407,6 +407,36 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("--collapse comparisons/ref/project/case_vs_control/preflight.json", out)
         self.assertIn("comparisons/ref/project/case_vs_control/joined/whippet.tsv.gz", out)
 
+    def test_comparison_tools_synthesis_and_target_scopes(self):
+        rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
+                "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
+                for name, group in (("b", "control"), ("c", "case"), ("d", "case"))]
+        comparisons = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
+                       "    group_a: case\n    group_b: control\n")
+        runs = {}
+        for target in ("quant_microexonator", "quant_whippet", "quant_umbrella"):
+            runs[target] = WorkflowSelectionTests.run_quant_dry_run(
+                self, umbrella=True, print_shell=True, target=target,
+                umbrella_extra_rows=rows, umbrella_comparisons=comparisons)
+            self.assertEqual(runs[target].returncode, 0, runs[target].stdout)
+        full = runs["quant_umbrella"].stdout
+        root = "comparisons/ref/project/case_vs_control/"
+        for path in ("synthesis.tsv", "deseq2_featurecounts.results.tsv.gz",
+                     "deseq2_tximport.results.tsv.gz", "microexonator_delta.tsv",
+                     "whippet_delta.diff.gz", "rmats/SE.MATS.JC.txt",
+                     "leafcutter_cluster_significance.txt", "suppa2/SE.dpsi"):
+            self.assertIn(root + path, full)
+        self.assertIn("src/expression_deseq2.R --route tximport", full)
+        self.assertIn("src/run_comparison_tools.py rmats", full)
+        self.assertIn("suppa.py generateEvents", full)
+        # narrower targets stop before alignment and comparisons
+        self.assertIn("splicing/ref/project/case/batch.microexonator.tsv.gz", runs["quant_microexonator"].stdout)
+        self.assertNotIn("whippet-quant.jl", runs["quant_microexonator"].stdout)
+        self.assertIn("splicing/ref/project/case/batch.whippet.tsv.gz", runs["quant_whippet"].stdout)
+        for narrow in ("quant_microexonator", "quant_whippet"):
+            self.assertNotIn("hisat2 -p", runs[narrow].stdout)
+            self.assertNotIn(root, runs[narrow].stdout)
+
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
             self, umbrella=True, umbrella_layout="SE", print_shell=True,

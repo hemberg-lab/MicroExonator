@@ -123,15 +123,19 @@ for reference_id, project_id, group, batch_id in sorted({
                                    "checksums.json"))
 
 
+# Public targets. quant and get_whippet_psi keep their legacy meaning.
 rule quant_microexonator:
     input:
-        rules.quant.input
+        rules.quant.input,
+        UMBRELLA_SPLICING_SHARDS["microexonator"]
 
 
 rule quant_whippet:
     input:
         rules.quant.input,
-        UMBRELLA_WHIPPET_PSI
+        UMBRELLA_SPLICING_SHARDS["microexonator"],
+        UMBRELLA_WHIPPET_PSI,
+        UMBRELLA_SPLICING_SHARDS["whippet"]
 
 
 rule quant_umbrella:
@@ -143,4 +147,5 @@ rule quant_umbrella:
         UMBRELLA_SPLICING_SHARDS["microexonator"],
         UMBRELLA_SPLICING_SHARDS["whippet"],
         UMBRELLA_COMPARISON_TARGETS,
+        UMBRELLA_SYNTHESIS_TARGETS,
         UMBRELLA_REFERENCE_MANIFEST

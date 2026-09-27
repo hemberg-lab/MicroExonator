@@ -6,9 +6,11 @@ them have run. Durable outputs are group-by-batch shards written through
 shard_guard; nothing per run is kept except the rMATS prep files, which
 `--task post` needs later.
 
-Optional analyses (config `umbrella_optional`, both on by default):
-  rmats     rMATS-turbo prep per run, kept for later per-comparison post
-  coverage  summed CPM coverage per group and batch (bigWig) plus n
+Optional analyses (config `umbrella_optional`, all on by default):
+  rmats       rMATS-turbo prep per run, kept for later per-comparison post
+  coverage    summed CPM coverage per group and batch (bigWig) plus n
+  leafcutter  per-comparison LeafCutter (also needs config leafcutter_dir)
+  suppa2      per-comparison SUPPA2 on Salmon transcript TPM
 """
 
 import json
@@ -17,7 +19,7 @@ from pathlib import Path
 from src.shard_guard import sha256_file
 
 
-UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True}
+UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True}
 UMBRELLA_OPTIONAL.update(config.get("umbrella_optional", {}) or {})
 UMBRELLA_HISAT2_FLAGS = config.get("umbrella_hisat2_flags", "")
 UMBRELLA_INTRON_CATALOG = UMBRELLA_REFERENCE_ROOT + "/introns.tsv.gz"
