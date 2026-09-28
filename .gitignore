@@ -20,7 +20,9 @@ __pycache__/
 # clone. Anchored to the repository root so tracked examples such as
 # Examples/Runs/*/config.yaml are unaffected.
 /config.yaml
+/cluster.PBS.json
 /cluster.json
+/umbrella_pilot_inputs/
 /whippet_delta.yaml
 /NCBI_accession_list.txt
 /local_samples.tsv
@@ -38,3 +40,12 @@ __pycache__/
 /data/
 /Genome/
 /salmon/
+/umbrella/
+/comparisons/
+/coverage/
+/genes/
+/junctions/
+/manifest/
+/qc/
+/rmats/
+/splicing/
