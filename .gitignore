@@ -6,6 +6,13 @@ __pycache__/
 # Snakemake state, including per-run conda environments
 .snakemake/
 
+# Local planning artifacts belong outside this repository.
+/docs/superpowers/
+/.superpowers/
+/.claude/plans/
+/.agents/plans/
+/.codex/plans/
+
 # macOS
 .DS_Store
 
