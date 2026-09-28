@@ -159,7 +159,7 @@ rule umbrella_suppa_events:
     params:
         prefix=UMBRELLA_SUPPA_EVENTS
     conda:
-        "../envs/umbrella-comparisons.yaml"
+        "../envs/umbrella-suppa.yaml"
     shell:
         "suppa.py generateEvents -i {input} -o {params.prefix} -f ioe -e SE SS MX RI FL"
 
@@ -176,7 +176,7 @@ rule umbrella_suppa:
     log:
         UMBRELLA_COMPARISON_ROOT + "/logs/suppa2.log"
     conda:
-        "../envs/umbrella-comparisons.yaml"
+        "../envs/umbrella-suppa.yaml"
     shell:
         "python3 src/run_comparison_tools.py suppa --preflight {input.preflight} --work {params.work} "
         "--log {log} --joined {input.joined} --events {input.events} --outputs {output}"

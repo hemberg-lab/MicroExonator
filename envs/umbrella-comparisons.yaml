@@ -7,4 +7,3 @@ dependencies:
   - r-base=4.3
   - r-jsonlite
   - bioconductor-deseq2
-  - suppa=2.3

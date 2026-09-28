@@ -1,0 +1,13 @@
+name: microexonator-umbrella-suppa
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # SUPPA 2.3 imports multipletests from statsmodels.sandbox.stats.multicomp,
+  # which statsmodels 0.14 removed; keep the stack SUPPA 2.3 was written for.
+  - python=3.10
+  - suppa=2.3
+  - statsmodels=0.13.5
+  - pandas=1.5
+  - numpy=1.23
+  - scipy=1.10
