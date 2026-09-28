@@ -16,9 +16,6 @@ Optional analyses (config `umbrella_optional`, all on by default):
 import json
 from pathlib import Path
 
-from src.shard_guard import sha256_file
-
-
 UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True}
 UMBRELLA_OPTIONAL.update(config.get("umbrella_optional", {}) or {})
 UMBRELLA_HISAT2_FLAGS = config.get("umbrella_hisat2_flags", "")
@@ -231,54 +228,57 @@ def umbrella_run_files(relative):
     return paths
 
 
-def umbrella_manifest_sha():
-    return sha256_file(str(UMBRELLA_MANIFEST.path))
+def umbrella_shard_sha(wildcards):
+    return UMBRELLA_MANIFEST.shard_sha256(
+        wildcards.reference_id, wildcards.project_id,
+        wildcards.group, wildcards.batch_id)
 
 
 rule umbrella_junction_shard:
     input:
         tables=umbrella_run_files("/align/junctions.tsv.gz"),
         catalog=UMBRELLA_INTRON_CATALOG,
-        reference=UMBRELLA_REFERENCE_MANIFEST,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        reference=UMBRELLA_REFERENCE_MANIFEST
     output:
         shard=protected("junctions/" + UMBRELLA_SHARD + ".junctions.tsv.gz"),
         checksums=protected("junctions/" + UMBRELLA_SHARD + ".junctions_checksums.json")
     params:
         tables=lambda w: " ".join("--table {}={}".format(record.run_id, record.work_dir + "/align/junctions.tsv.gz")
                                   for record in umbrella_shard_runs(w)),
-        prefix="junctions/" + UMBRELLA_SHARD
+        prefix="junctions/" + UMBRELLA_SHARD,
+        manifest_sha256=umbrella_shard_sha
     run:
         shell("python3 src/summarize_junctions.py shard --catalog {input.catalog} "
               "--prefix {params.prefix} --reference-id {wildcards.reference_id} "
-              "--manifest-sha256 " + umbrella_manifest_sha() + " {params.tables}")
+              "--manifest-sha256 {params.manifest_sha256} {params.tables}")
 
 
 rule umbrella_capture_shard:
     input:
         shard="junctions/" + UMBRELLA_SHARD + ".junctions.tsv.gz",
-        catalog=UMBRELLA_INTRON_CATALOG,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        catalog=UMBRELLA_INTRON_CATALOG
     output:
         capture=protected("junctions/" + UMBRELLA_SHARD + ".capture.tsv.gz"),
         rates=protected("junctions/" + UMBRELLA_SHARD + ".capture_rates.json"),
         checksums=protected("junctions/" + UMBRELLA_SHARD + ".capture_checksums.json")
     params:
-        prefix="junctions/" + UMBRELLA_SHARD
+        prefix="junctions/" + UMBRELLA_SHARD,
+        manifest_sha256=umbrella_shard_sha
     run:
         shell("python3 src/summarize_junctions.py capture --catalog {input.catalog} "
               "--shard {input.shard} --prefix {params.prefix} "
-              "--reference-id {wildcards.reference_id} --manifest-sha256 " + umbrella_manifest_sha())
+              "--reference-id {wildcards.reference_id} --manifest-sha256 {params.manifest_sha256}")
 
 
 rule umbrella_featurecounts_shard:
     input:
         counts=umbrella_run_files("/align/featurecounts.txt"),
-        reference=UMBRELLA_REFERENCE_MANIFEST,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        reference=UMBRELLA_REFERENCE_MANIFEST
     output:
         counts=protected("genes/" + UMBRELLA_SHARD + ".featurecounts.tsv.gz"),
         checksums=protected("genes/" + UMBRELLA_SHARD + ".featurecounts_checksums.json")
+    params:
+        manifest_sha256=umbrella_shard_sha
     run:
         from src.reduce_featurecounts import reduce_group as reduce_featurecounts
         reduce_featurecounts(
@@ -286,18 +286,19 @@ rule umbrella_featurecounts_shard:
              for record in umbrella_shard_runs(wildcards)},
             "genes/{}/{}/{}/{}".format(wildcards.reference_id, wildcards.project_id,
                                        wildcards.group, wildcards.batch_id),
-            wildcards.reference_id, umbrella_manifest_sha())
+            wildcards.reference_id, params.manifest_sha256)
 
 
 rule umbrella_qc_shard:
     input:
         hisat2=umbrella_run_files("/align/hisat2.summary.txt"),
         junctions=umbrella_run_files("/align/junctions.summary.json"),
-        featurecounts=umbrella_run_files("/align/featurecounts.txt.summary"),
-        manifest=str(UMBRELLA_MANIFEST.path)
+        featurecounts=umbrella_run_files("/align/featurecounts.txt.summary")
     output:
         qc=protected("qc/" + UMBRELLA_SHARD + ".qc.tsv.gz"),
         checksums=protected("qc/" + UMBRELLA_SHARD + ".qc_checksums.json")
+    params:
+        manifest_sha256=umbrella_shard_sha
     run:
         from src.reduce_qc import reduce_group as reduce_qc
         runs = [{"run_id": record.run_id, "layout": record.layout,
@@ -308,36 +309,36 @@ rule umbrella_qc_shard:
                 for record in umbrella_shard_runs(wildcards)]
         reduce_qc(runs, "qc/{}/{}/{}/{}".format(wildcards.reference_id, wildcards.project_id,
                                                  wildcards.group, wildcards.batch_id),
-                  wildcards.reference_id, umbrella_manifest_sha())
+                  wildcards.reference_id, params.manifest_sha256)
 
 
 rule umbrella_rmats_inventory:
     input:
         records=lambda w: ["rmats/{}/{}/{}/{}/{}.rmats.json".format(
             w.reference_id, w.project_id, w.group, w.batch_id, record.run_id)
-            for record in umbrella_shard_runs(w)],
-        manifest=str(UMBRELLA_MANIFEST.path)
+            for record in umbrella_shard_runs(w)]
     output:
         inventory=protected("rmats/" + UMBRELLA_SHARD + ".rmats_inventory.tsv"),
         checksums=protected("rmats/" + UMBRELLA_SHARD + ".rmats_checksums.json")
     params:
-        prefix="rmats/" + UMBRELLA_SHARD
+        prefix="rmats/" + UMBRELLA_SHARD,
+        manifest_sha256=umbrella_shard_sha
     run:
         shell("python3 src/inventory_rmats_prep.py inventory --prefix {params.prefix} "
               "--reference-id {wildcards.reference_id} --manifest-sha256 "
-              + umbrella_manifest_sha() + " {input.records}")
+              "{params.manifest_sha256} {input.records}")
 
 
 rule umbrella_coverage_shard:
     input:
         tracks=umbrella_run_files("/align/coverage.cpm.bedGraph"),
-        sizes=UMBRELLA_CHROM_SIZES,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        sizes=UMBRELLA_CHROM_SIZES
     output:
         bigwig=protected("coverage/" + UMBRELLA_SHARD + ".sum_cpm.bw"),
         tally=protected("coverage/" + UMBRELLA_SHARD + ".sum_cpm.json")
     params:
-        runs=lambda w: json.dumps(sorted(record.run_id for record in umbrella_shard_runs(w)))
+        runs=lambda w: json.dumps(sorted(record.run_id for record in umbrella_shard_runs(w))),
+        manifest_sha256=umbrella_shard_sha
     conda:
         "../envs/umbrella-alignment.yaml"
     shell:

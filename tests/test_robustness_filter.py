@@ -51,6 +51,20 @@ class DetectionThresholdTests(unittest.TestCase):
 
 
 class FinalRobustnessFilterTests(unittest.TestCase):
+    def test_fixed_list_keeps_microexons_without_cohort_detection(self):
+        from src.robustness_filter import write_fixed_microexons
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = os.path.join(temp_dir, "TOTAL.ME_centric.txt")
+            output = os.path.join(temp_dir, "fixed.tsv")
+            with open(source, "w") as handle:
+                handle.write("me_a\ttx1\t10\tsj1\t5\t4\tACGT\t2\t80\t1.5\t0.01\tmatch_a\n")
+                handle.write("me_b\ttx2\t4\tsj2\t2\t5\tAACGT\t1\t60\t0.5\t0.02\tmatch_b\n")
+            write_fixed_microexons(source, output)
+            with open(output) as handle:
+                rows = list(csv.DictReader(handle, delimiter="\t"))
+        self.assertEqual([row["ME"] for row in rows], ["me_a", "me_b"])
+
     def test_min_detected_samples_is_applied_within_each_group(self):
         try:
             from src.robustness_filter import collect_robust_microexons

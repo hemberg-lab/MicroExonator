@@ -145,7 +145,10 @@ if "umbrella_manifest" in config:
     # grouped as single FASTQ inputs here. Native mates remain in umbrella/work.
     umbrella_groups = defaultdict(list)
     for run in UMBRELLA_MANIFEST.included_runs():
-        umbrella_groups[run.group].append(run.run_id)
+        # The optional legacy robustness report must not pool identically
+        # named groups from unrelated projects.
+        group_key = "{}-{}-{}".format(len(run.project_id), run.project_id, run.group)
+        umbrella_groups[group_key].append(run.run_id)
     filter_groups = {"bulk_se": umbrella_groups, "bulk_pe": {}, "single_cell": {}}
 else:
     try:

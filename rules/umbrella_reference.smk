@@ -34,6 +34,7 @@ UMBRELLA_SALMON_INDEX = UMBRELLA_REFERENCE.get(
     "salmon_index", UMBRELLA_REFERENCE_ROOT + "/salmon/index")
 UMBRELLA_TX2GENE = UMBRELLA_REFERENCE_ROOT + "/tx2gene.tsv"
 UMBRELLA_FIXED_UNIVERSE = UMBRELLA_REFERENCE_ROOT + "/fixed_universe.json"
+UMBRELLA_FIXED_MICROEXONS = UMBRELLA_REFERENCE_ROOT + "/fixed_microexons.tsv"
 UMBRELLA_REFERENCE_MANIFEST = UMBRELLA_REFERENCE_ROOT + "/manifest.json"
 UMBRELLA_SALMON_GTF = UMBRELLA_REFERENCE.get("salmon_gtf", UMBRELLA_REFERENCE["annotation_gtf"])
 UMBRELLA_TRANSCRIPTS = UMBRELLA_REFERENCE.get(
@@ -130,6 +131,17 @@ rule umbrella_fixed_universe:
         write_immutable(output[0], (json.dumps(
             {"microexons": sum(counts.values()), "in_whippet_gtf": counts["present"],
              "without_host": counts["no_host"]}, sort_keys=True) + "\n").encode())
+
+
+rule umbrella_fixed_microexons:
+    input:
+        me_centric="Round2/TOTAL.ME_centric.txt",
+        identity=UMBRELLA_IDENTITY
+    output:
+        protected(UMBRELLA_FIXED_MICROEXONS)
+    run:
+        from src.robustness_filter import write_fixed_microexons
+        write_fixed_microexons(input.me_centric, output[0])
 
 
 if "hisat2_index_prefix" not in UMBRELLA_REFERENCE:

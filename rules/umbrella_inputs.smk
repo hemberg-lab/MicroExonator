@@ -32,8 +32,7 @@ SE_RUN_PATTERN = "(?:{})".format("|".join(
 
 rule umbrella_stage_reads:
     input:
-        sources=umbrella_sources,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        sources=umbrella_sources
     output:
         # temporary: removed once every tool that reads them has run
         r1=temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz"),
@@ -43,17 +42,19 @@ rule umbrella_stage_reads:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
+    params:
+        manifest=str(UMBRELLA_MANIFEST.path),
+        run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
-        "python3 src/umbrella_stage_reads.py --manifest {input.manifest:q} "
+        "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
         "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q}"
 
 
 rule umbrella_stage_single:
     input:
-        sources=umbrella_sources,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        sources=umbrella_sources
     output:
         temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/R1.fastq.gz")
     wildcard_constraints:
@@ -61,10 +62,13 @@ rule umbrella_stage_single:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
+    params:
+        manifest=str(UMBRELLA_MANIFEST.path),
+        run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
-        "python3 src/umbrella_stage_reads.py --manifest {input.manifest:q} "
+        "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
         "--run-id {wildcards.run_id:q} --r1 {output:q}"
 
 
@@ -75,10 +79,11 @@ def umbrella_validation_inputs(wildcards):
 
 rule umbrella_validate_reads:
     input:
-        reads=umbrella_validation_inputs,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        reads=umbrella_validation_inputs
     output:
         "umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/reads.valid"
+    params:
+        run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     run:
         record = umbrella_run(wildcards)
         subprocess.run(["python3", "src/validate_fastq_pairs.py", *[str(path) for path in input.reads],

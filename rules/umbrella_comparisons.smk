@@ -64,7 +64,7 @@ rule umbrella_microexonator_delta:
     input:
         preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
         joined=UMBRELLA_COMPARISON_ROOT + "/joined/microexonator.tsv.gz",
-        microexons=FILTERED_ME_OUTPUT
+        microexons=UMBRELLA_FIXED_MICROEXONS
     output:
         UMBRELLA_COMPARISON_ROOT + "/microexonator_delta.tsv"
     params:

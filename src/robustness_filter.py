@@ -86,3 +86,19 @@ def write_robust_microexons(me_centric_file, output_file, robust_microexons):
         for row in reader:
             if row and row[0] in robust_microexons:
                 writer.writerow(row)
+
+
+def write_fixed_microexons(me_centric_file, output_file):
+    """Report the reference-derived ME universe without a cohort filter."""
+    rows_written = 0
+    with open(me_centric_file) as source, open(output_file, "w") as output:
+        reader = csv.reader(source, delimiter="\t")
+        writer = csv.writer(output, delimiter="\t", lineterminator="\n")
+        writer.writerow(ROBUST_OUTPUT_COLUMNS)
+        for row in reader:
+            if len(row) != len(ROBUST_OUTPUT_COLUMNS):
+                raise ValueError("invalid ME-centric row with {} columns".format(len(row)))
+            writer.writerow(row)
+            rows_written += 1
+    if not rows_written:
+        raise ValueError("fixed microexon universe is empty")

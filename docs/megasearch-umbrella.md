@@ -82,11 +82,19 @@ path. The rule-local environments have not yet been solved on the cluster.
 
 | Target | Reaches |
 |---|---|
-| `quant_microexonator` | the legacy `quant` outputs and MicroExonator group shards |
+| `quant_microexonator` | legacy per-run quantification outputs and MicroExonator group shards, without cohort detection filtering |
 | `quant_whippet` | the above, plus native Whippet quantification and Whippet shards |
 | `quant_umbrella` | everything: alignment shards, Salmon shards, joins, comparisons, synthesis |
 
 `quant` and `get_whippet_psi` keep their legacy meaning.
+
+The umbrella delta uses a fixed microexon list generated from
+`Round2/TOTAL.ME_centric.txt`, which comes from the configured annotation and
+ME_DB in the no-discovery run. It does **not** wait for the cohort-wide
+`Report/out.robustly_detected.txt` filter. The latter remains available from
+the legacy `quant` target as an optional, post hoc detection report, but is
+not an umbrella target or delta prerequisite. MicroExonator delta still
+applies its per-comparison read-support thresholds.
 
 ## What is kept
 
@@ -126,8 +134,15 @@ does not vote.
 ## Operation
 
 - **Batches.** Add runs with a new `batch_id` to the manifest and rerun
-  `quant_umbrella`. Existing shards are checked, not rewritten; joins and
-  comparisons rerun from shards.
+  `quant_umbrella`. A run is fingerprinted by its own manifest row and a
+  shard by the rows in its reference/project/group/batch; appending unrelated
+  rows does not invalidate either. Joins and comparisons rerun only when
+  their selected runs change. Keep the reference ID and existing manifest
+  rows unchanged. The per-comparison outputs for a comparison expanded to
+  include the new batch are recomputed, but existing per-batch shards remain
+  reusable. An already materialized shard from a checkout using the older
+  whole-manifest checksum guard needs review before reuse; do not delete or
+  overwrite it blindly.
 - **SRA downloads.** Staging an SRA run takes one `get_data` resource, as
   the legacy download rules do: `--resources get_data=10` allows ten at once.
 - **Checking temporaries.** `snakemake --delete-temp-output --dry-run`

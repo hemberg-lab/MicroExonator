@@ -1,9 +1,6 @@
 """Manifest-routed native quantifiers and guarded group Salmon reduction."""
 
 from src.reduce_salmon import reduce_group
-from src.shard_guard import sha256_file
-
-
 def umbrella_quant_run(wildcards):
     record = UMBRELLA_MANIFEST.by_run.get(wildcards.run_id)
     if record is None or not record.include:
@@ -90,8 +87,7 @@ rule umbrella_salmon_shard:
     input:
         quants=umbrella_group_quants,
         tx2gene=UMBRELLA_TX2GENE,
-        reference=UMBRELLA_REFERENCE_MANIFEST,
-        manifest=str(UMBRELLA_MANIFEST.path)
+        reference=UMBRELLA_REFERENCE_MANIFEST
     output:
         counts=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_counts.tsv.gz"),
         tpm=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tpm.tsv.gz"),
@@ -99,6 +95,8 @@ rule umbrella_salmon_shard:
         tx_counts=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tx_counts.tsv.gz"),
         tx_tpm=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_tx_tpm.tsv.gz"),
         checksums=protected("genes/{reference_id}/{project_id}/{group}/{batch_id}.salmon_checksums.json")
+    params:
+        manifest_sha256=umbrella_shard_sha
     run:
         records = umbrella_group_runs(wildcards)
         quant_by_run = {record.run_id: record.work_dir + "/salmon/quant.sf"
@@ -107,7 +105,7 @@ rule umbrella_salmon_shard:
             wildcards.reference_id, wildcards.project_id,
             wildcards.group, wildcards.batch_id)
         reduce_group(quant_by_run, input.tx2gene, prefix,
-                     wildcards.reference_id, sha256_file(input.manifest))
+                     wildcards.reference_id, params.manifest_sha256)
 
 
 UMBRELLA_WHIPPET_PSI = [record.work_dir + "/whippet/quant.psi.gz"
@@ -124,15 +122,19 @@ for reference_id, project_id, group, batch_id in sorted({
 
 
 # Public targets. quant and get_whippet_psi keep their legacy meaning.
+UMBRELLA_ME_QUANT_INPUTS = [path for path in rules.quant.input
+                           if str(path) != str(FILTERED_ME_OUTPUT)]
+
+
 rule quant_microexonator:
     input:
-        rules.quant.input,
+        UMBRELLA_ME_QUANT_INPUTS,
         UMBRELLA_SPLICING_SHARDS["microexonator"]
 
 
 rule quant_whippet:
     input:
-        rules.quant.input,
+        UMBRELLA_ME_QUANT_INPUTS,
         UMBRELLA_SPLICING_SHARDS["microexonator"],
         UMBRELLA_WHIPPET_PSI,
         UMBRELLA_SPLICING_SHARDS["whippet"]
@@ -140,7 +142,7 @@ rule quant_whippet:
 
 rule quant_umbrella:
     input:
-        rules.quant.input,
+        UMBRELLA_ME_QUANT_INPUTS,
         UMBRELLA_WHIPPET_PSI,
         UMBRELLA_SALMON_SHARDS,
         UMBRELLA_ALIGNMENT_TARGETS,

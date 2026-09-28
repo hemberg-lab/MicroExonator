@@ -11,41 +11,44 @@ comparisons/{reference_id}/{project_id}/{comparison_id}/. Count matrices are
 summed per biological replicate; the others keep one column block per run.
 """
 
+import hashlib
+import json
+
 from src.comparison_preflight import load_comparisons, preflight as comparison_preflight
 
 
 rule umbrella_microexonator_shard:
     input:
-        tables=lambda w: [downstream_PSI(record.run_id) for record in umbrella_shard_runs(w)],
-        manifest=str(UMBRELLA_MANIFEST.path)
+        tables=lambda w: [downstream_PSI(record.run_id) for record in umbrella_shard_runs(w)]
     output:
         shard=protected("splicing/" + UMBRELLA_SHARD + ".microexonator.tsv.gz"),
         checksums=protected("splicing/" + UMBRELLA_SHARD + ".microexonator_checksums.json")
     params:
         inputs=lambda w: " ".join("--input {}={}".format(record.run_id, downstream_PSI(record.run_id))
                                   for record in umbrella_shard_runs(w)),
-        prefix="splicing/" + UMBRELLA_SHARD
+        prefix="splicing/" + UMBRELLA_SHARD,
+        manifest_sha256=umbrella_shard_sha
     run:
         shell("python3 src/reduce_splicing.py microexonator --prefix {params.prefix} "
-              "--reference-id {wildcards.reference_id} --manifest-sha256 "
-              + umbrella_manifest_sha() + " {params.inputs}")
+              "--reference-id {wildcards.reference_id} "
+              "--manifest-sha256 {params.manifest_sha256} {params.inputs}")
 
 
 rule umbrella_whippet_shard:
     input:
-        psi=umbrella_run_files("/whippet/quant.psi.gz"),
-        manifest=str(UMBRELLA_MANIFEST.path)
+        psi=umbrella_run_files("/whippet/quant.psi.gz")
     output:
         shard=protected("splicing/" + UMBRELLA_SHARD + ".whippet.tsv.gz"),
         checksums=protected("splicing/" + UMBRELLA_SHARD + ".whippet_checksums.json")
     params:
         inputs=lambda w: " ".join("--input {}={}/whippet/quant.psi.gz".format(record.run_id, record.work_dir)
                                   for record in umbrella_shard_runs(w)),
-        prefix="splicing/" + UMBRELLA_SHARD
+        prefix="splicing/" + UMBRELLA_SHARD,
+        manifest_sha256=umbrella_shard_sha
     run:
         shell("python3 src/reduce_splicing.py whippet --prefix {params.prefix} "
-              "--reference-id {wildcards.reference_id} --manifest-sha256 "
-              + umbrella_manifest_sha() + " {params.inputs}")
+              "--reference-id {wildcards.reference_id} "
+              "--manifest-sha256 {params.manifest_sha256} {params.inputs}")
 
 
 UMBRELLA_SPLICING_SHARDS = {"microexonator": [], "whippet": []}
@@ -92,11 +95,11 @@ def umbrella_comparison(wildcards):
 
 
 rule umbrella_comparison_preflight:
-    input:
-        manifest=str(UMBRELLA_MANIFEST.path),
-        comparisons=config.get("umbrella_comparisons", [])
     output:
         UMBRELLA_COMPARISON_ROOT + "/preflight.json"
+    params:
+        membership_sha256=lambda w: hashlib.sha256(json.dumps(
+            umbrella_comparison(w), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     run:
         result = umbrella_comparison(wildcards)
         Path(output[0]).parent.mkdir(parents=True, exist_ok=True)

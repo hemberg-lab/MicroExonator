@@ -35,6 +35,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella_derived_reference=False,
         umbrella_extra_rows=(),
         umbrella_comparisons=None,
+        rulegraph=False,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -182,7 +183,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                 command = [os.path.join(os.path.dirname(snakemake), "python"), "-c",
                            "import appdirs, runpy; appdirs.system = 'linux'; runpy.run_module('snakemake', run_name='__main__')"]
             result = subprocess.run(
-                command + ["-s", "MicroExonator.smk", "-n", "-j", "1"]
+                command + ["-s", "MicroExonator.smk"]
+                + (["--rulegraph"] if rulegraph else ["-n", "-j", "1"])
                 + (["-p"] if print_shell else [])
                 + [target],
                 cwd=temp_dir,
@@ -409,6 +411,20 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertNotIn("umbrella", result.stdout)
         self.assertNotIn("hisat2 -p", result.stdout)
+
+    def test_umbrella_delta_uses_fixed_list_without_detection_barrier(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+                                        self, umbrella=True, target="quant_umbrella", rulegraph=True,
+                                        umbrella_comparisons=(
+                                            "comparisons:\n  - comparison_id: case_vs_control\n"
+                                            "    project_id: project\n    group_a: case\n    group_b: control\n"),
+                                        umbrella_extra_rows=[
+                                            "sample_b\trun_b\trep_b\tproject\tbatch\tcase\tfastq\tr1.fastq.gz\t"
+                                            "r2.fastq.gz\tPE\tunstranded\tref\ttrue"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn('label = "umbrella_fixed_microexons"', result.stdout)
+        self.assertIn('label = "umbrella_microexonator_delta"', result.stdout)
+        self.assertNotIn('label = "detection_filter"', result.stdout)
 
     def test_reference_identity_gates_index_builds_and_sra_downloads_are_capped(self):
         rows = ["sample_s\tSRR000001\trep_s\tproject\tbatch\tcontrol\tsra\tSRR000001\t\tPE\tunstranded\tref\ttrue"]

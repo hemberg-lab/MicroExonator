@@ -1,8 +1,10 @@
 """Validated, immutable intake metadata for the opt-in umbrella workflow."""
 
 import csv
+import hashlib
+import json
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
@@ -61,6 +63,21 @@ class UmbrellaManifest:
         return [run for run in self.included_runs() if
                 (run.project_id, run.group, run.batch_id) ==
                 (project_id, group, batch_id)]
+
+    @staticmethod
+    def _digest(runs):
+        """Hash only the records that own an output, not the growing TSV."""
+        payload = [asdict(run) for run in sorted(runs, key=lambda run: run.run_id)]
+        return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+    def run_sha256(self, run_id):
+        return self._digest([self._run(run_id)])
+
+    def shard_sha256(self, reference_id, project_id, group, batch_id):
+        runs = self.runs_for(project_id, group, batch_id)
+        if not runs or any(run.reference_id != reference_id for run in runs):
+            raise ValueError("empty or mismatched umbrella shard")
+        return self._digest(runs)
 
     def _run(self, run_id):
         run = self.by_run[run_id]

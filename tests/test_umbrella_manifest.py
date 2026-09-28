@@ -58,6 +58,22 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(manifest.batches(), ["batch", "later"])
         self.assertEqual(len(manifest.runs_for("project", "case", "later")), 1)
 
+    def test_run_and_shard_identities_ignore_appended_batches(self):
+        first = load_umbrella_manifest(self.write([row()]))
+        run_hash = first.run_sha256("run1")
+        shard_hash = first.shard_sha256("ref", "project", "case", "batch")
+        extended = load_umbrella_manifest(self.write([
+            row(), row(run_id="run2", sample_id="sample2", biological_replicate_id="bio2",
+                       batch_id="later", source_1="reads/X1.fastq.gz", source_2="reads/X2.fastq.gz"),
+        ]))
+        self.assertEqual(extended.run_sha256("run1"), run_hash)
+        self.assertEqual(extended.shard_sha256("ref", "project", "case", "batch"), shard_hash)
+        self.assertNotEqual(extended.shard_sha256("ref", "project", "case", "later"), shard_hash)
+        changed = load_umbrella_manifest(self.write([
+            row(source_1="reads/changed.fastq.gz")]))
+        self.assertNotEqual(changed.run_sha256("run1"), run_hash)
+        self.assertNotEqual(changed.shard_sha256("ref", "project", "case", "batch"), shard_hash)
+
     def test_sra_accession_is_not_resolved_as_path(self):
         manifest = load_umbrella_manifest(self.write([
             row(source_type="sra", source_1="SRR12345", source_2="")]))
