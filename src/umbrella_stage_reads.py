@@ -102,7 +102,11 @@ def stage_run(manifest_path, run_id, r1, r2=None, threads=1, tmpdir=None):
 
     # Uncompressed reads live here only until each is gzipped; point tmpdir at
     # node-local scratch to keep them off the shared file system.
-    scratch = Path(tmpdir) if tmpdir else targets[0].parent
+    # tmpdir may name an environment variable, e.g. "$TMPDIR" for the per-job
+    # node-local disk PBS provides; it is expanded here, on the node. Unset or
+    # unexpanded, the run's work directory is used.
+    tmpdir = os.path.expandvars(tmpdir) if tmpdir else None
+    scratch = Path(tmpdir) if tmpdir and "$" not in tmpdir else targets[0].parent
     scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(scratch), prefix="stage_{}_".format(run_id)) as work_name:
         work = Path(work_name)

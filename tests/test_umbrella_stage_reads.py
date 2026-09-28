@@ -109,6 +109,24 @@ class StageReadsTests(unittest.TestCase):
                 self.assertEqual(stream.read(), b"single")
             self.assertEqual(list(scratch.iterdir()), [])
 
+    def test_scratch_can_name_an_environment_variable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            manifest = manifest_for(directory, "sra", "SRR000005", layout="SE")
+            node = directory / "node_tmp"
+            calls = []
+            fake = self.fake_sra(calls, {"SRR000005.fastq": b"single"})
+            with patch.dict("os.environ", {"TMPDIR": str(node)}), \
+                    patch("umbrella_stage_reads.subprocess.run", side_effect=fake):
+                stage_run(manifest, "run", directory / "work/R1.fastq.gz", tmpdir="$TMPDIR")
+            self.assertTrue(calls[1][calls[1].index("-O") + 1].startswith(str(node)))
+            # an unset variable falls back to the run's work directory
+            calls.clear()
+            with patch.dict("os.environ", {}, clear=True), \
+                    patch("umbrella_stage_reads.subprocess.run", side_effect=fake):
+                stage_run(manifest, "run", directory / "work2/R1.fastq.gz", tmpdir="$NO_SUCH_SCRATCH")
+            self.assertTrue(calls[1][calls[1].index("-O") + 1].startswith(str(directory / "work2")))
+
     def test_paired_manifest_row_for_a_single_end_accession_fails_clearly(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)
