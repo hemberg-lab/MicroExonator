@@ -16,8 +16,7 @@ if len(UMBRELLA_REFERENCE_IDS) != 1:
     raise WorkflowError("umbrella_manifest must use one reference_id per invocation")
 UMBRELLA_REFERENCE_ID = next(iter(UMBRELLA_REFERENCE_IDS))
 UMBRELLA_REFERENCE_ROOT = "umbrella/reference/" + UMBRELLA_REFERENCE_ID
-for field in ("genome_fasta", "annotation_gtf", "whippet_gtf", "me_db",
-              "transcriptome_fasta", "decoys", "salmon_gtf", "splice_sites"):
+for field in ("genome_fasta", "annotation_gtf", "whippet_gtf", "me_db"):
     if not UMBRELLA_REFERENCE.get(field):
         raise WorkflowError("umbrella_reference requires {}".format(field))
 
@@ -36,12 +35,17 @@ UMBRELLA_SALMON_INDEX = UMBRELLA_REFERENCE.get(
 UMBRELLA_TX2GENE = UMBRELLA_REFERENCE_ROOT + "/tx2gene.tsv"
 UMBRELLA_FIXED_UNIVERSE = UMBRELLA_REFERENCE_ROOT + "/fixed_universe.json"
 UMBRELLA_REFERENCE_MANIFEST = UMBRELLA_REFERENCE_ROOT + "/manifest.json"
+UMBRELLA_SALMON_GTF = UMBRELLA_REFERENCE.get("salmon_gtf", UMBRELLA_REFERENCE["annotation_gtf"])
+UMBRELLA_TRANSCRIPTS = UMBRELLA_REFERENCE.get(
+    "transcriptome_fasta", UMBRELLA_REFERENCE_ROOT + "/salmon/transcripts.fa")
+UMBRELLA_DECOYS = UMBRELLA_REFERENCE.get(
+    "decoys", UMBRELLA_REFERENCE_ROOT + "/salmon/decoys.txt")
 
 # ME_DB microexons missing from a GTF are added to a derived copy built here
 # (src/insert_microexons_gtf.py); the configured GTFs are never changed.
 # Whippet, the junction labels, HISAT2 splice hints, featureCounts and rMATS
 # use the derived copies; Salmon and SUPPA2 keep salmon_gtf, whose transcripts
-# must match transcriptome_fasta. `umbrella_insert_microexons: false` uses
+# must match UMBRELLA_TRANSCRIPTS. `umbrella_insert_microexons: false` uses
 # the configured GTFs as they are.
 UMBRELLA_INSERT_MICROEXONS = str(config.get("umbrella_insert_microexons", True)).lower() not in ("false", "f", "0", "no")
 UMBRELLA_BASE_GTF = {"whippet": UMBRELLA_REFERENCE["whippet_gtf"],
@@ -89,19 +93,23 @@ rule umbrella_microexon_gtf:
 
 
 rule umbrella_splice_hints:
-    # the configured splice sites plus every intron of the annotation GTF in
-    # use (so inserted microexon junctions are hinted too), HISAT2 format
+    # All introns of the annotation GTF in use, including inserted microexons;
+    # optionally union a supplied external hint set for backwards compatibility.
     input:
-        sites=UMBRELLA_REFERENCE["splice_sites"],
-        gtf=UMBRELLA_GTF["annotation"]
+        gtf=UMBRELLA_GTF["annotation"],
+        sites=[UMBRELLA_REFERENCE["splice_sites"]] if UMBRELLA_REFERENCE.get("splice_sites") else []
     output:
         protected(UMBRELLA_SPLICE_HINTS)
     run:
-        from src.summarize_junctions import _gtf_introns, _hint_introns
-        introns = _hint_introns(input.sites) | _gtf_introns(input.gtf)
-        Path(output[0]).write_text("".join(
-            "{}\t{}\t{}\t{}\n".format(chrom, start - 2, end, strand)
-            for chrom, start, end, strand in sorted(introns)))
+        from src.derive_umbrella_reference import splice_sites
+        if input.sites:
+            from src.summarize_junctions import _gtf_introns, _hint_introns
+            introns = _gtf_introns(input.gtf) | _hint_introns(input.sites[0])
+            Path(output[0]).write_text("".join(
+                "{}\t{}\t{}\t{}\n".format(chrom, start - 2, end, strand)
+                for chrom, start, end, strand in sorted(introns)))
+        else:
+            Path(output[0]).write_text(splice_sites(input.gtf))
 
 
 rule umbrella_fixed_universe:
@@ -163,7 +171,7 @@ if "whippet_index" not in UMBRELLA_REFERENCE:
 
 rule umbrella_tx2gene:
     input:
-        UMBRELLA_REFERENCE["salmon_gtf"]
+        UMBRELLA_SALMON_GTF
     output:
         protected(UMBRELLA_TX2GENE)
     run:
@@ -191,10 +199,39 @@ rule umbrella_tx2gene:
         write_immutable(output[0], content.encode())
 
 
+if "transcriptome_fasta" not in UMBRELLA_REFERENCE:
+    rule umbrella_transcriptome_fasta:
+        input:
+            gtf=UMBRELLA_SALMON_GTF,
+            genome=UMBRELLA_REFERENCE["genome_fasta"],
+            tx2gene=UMBRELLA_TX2GENE,
+            identity=UMBRELLA_IDENTITY
+        output:
+            protected(UMBRELLA_TRANSCRIPTS)
+        conda:
+            "../envs/umbrella-quant.yaml"
+        shell:
+            "gffread -w {output} -g {input.genome} {input.gtf} && "
+            "python3 src/derive_umbrella_reference.py validate-transcripts "
+            "--fasta {output} --tx2gene {input.tx2gene}"
+
+
+if "decoys" not in UMBRELLA_REFERENCE:
+    rule umbrella_decoy_names:
+        input:
+            genome=UMBRELLA_REFERENCE["genome_fasta"],
+            identity=UMBRELLA_IDENTITY
+        output:
+            protected(UMBRELLA_DECOYS)
+        shell:
+            "python3 src/derive_umbrella_reference.py decoys "
+            "--input {input.genome} --output {output}"
+
+
 if "salmon_index" not in UMBRELLA_REFERENCE:
     rule umbrella_gentrome:
         input:
-            transcripts=UMBRELLA_REFERENCE["transcriptome_fasta"],
+            transcripts=UMBRELLA_TRANSCRIPTS,
             genome=UMBRELLA_REFERENCE["genome_fasta"],
             identity=UMBRELLA_IDENTITY
         output:
@@ -215,7 +252,7 @@ if "salmon_index" not in UMBRELLA_REFERENCE:
     rule umbrella_salmon_index:
         input:
             gentrome=UMBRELLA_REFERENCE_ROOT + "/salmon/gentrome.fa",
-            decoys=UMBRELLA_REFERENCE["decoys"]
+            decoys=UMBRELLA_DECOYS
         output:
             directory(UMBRELLA_SALMON_INDEX)
         threads: 8
@@ -232,10 +269,11 @@ rule umbrella_reference_manifest:
         annotation=UMBRELLA_REFERENCE["annotation_gtf"],
         whippet_annotation=UMBRELLA_REFERENCE["whippet_gtf"],
         me_db=UMBRELLA_REFERENCE["me_db"],
-        salmon_gtf=UMBRELLA_REFERENCE["salmon_gtf"],
-        transcripts=UMBRELLA_REFERENCE["transcriptome_fasta"],
-        decoys=UMBRELLA_REFERENCE["decoys"],
-        splice_sites=UMBRELLA_REFERENCE["splice_sites"],
+        salmon_gtf=UMBRELLA_SALMON_GTF,
+        transcripts=UMBRELLA_TRANSCRIPTS,
+        decoys=UMBRELLA_DECOYS,
+        hisat2_hints=UMBRELLA_SPLICE_HINTS,
+        configured_splice_sites=[UMBRELLA_REFERENCE["splice_sites"]] if UMBRELLA_REFERENCE.get("splice_sites") else [],
         annotation_bed12=[UMBRELLA_REFERENCE["annotation_bed12"]] if UMBRELLA_REFERENCE.get("annotation_bed12") else [],
         tx2gene=UMBRELLA_TX2GENE,
         fixed_universe=UMBRELLA_FIXED_UNIVERSE,
@@ -252,7 +290,9 @@ rule umbrella_reference_manifest:
                  "tx2gene": str(input.tx2gene), "hisat2": list(input.hisat2),
                  "whippet": list(input.whippet), "salmon": str(input.salmon),
                  "fixed_universe": str(input.fixed_universe)}
-        paths["splice_sites"] = str(input.splice_sites)
+        paths["hisat2_hints"] = str(input.hisat2_hints)
+        if input.configured_splice_sites:
+            paths["splice_sites"] = str(input.configured_splice_sites[0])
         if input.annotation_bed12:
             paths["annotation_bed12"] = str(input.annotation_bed12[0])
         # the ID covers configured inputs only, so `python3 src/shard_guard.py

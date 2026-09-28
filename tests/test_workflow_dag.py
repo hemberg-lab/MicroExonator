@@ -32,6 +32,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella=False,
         umbrella_layout="PE",
         umbrella_prebuilt=True,
+        umbrella_derived_reference=False,
         umbrella_extra_rows=(),
         umbrella_comparisons=None,
     ):
@@ -152,16 +153,20 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("whippet_bin_folder: /opt/whippet/bin\n")
                     handle.write("julia: julia\n")
                     handle.write("umbrella_reference:\n")
-                    for key, value in (
+                    reference_files = (
                         ("genome_fasta", "genome.fa"),
                         ("annotation_gtf", "annotation.gtf"),
                         ("whippet_gtf", "fixed.gtf"),
                         ("me_db", "microexons.bed12"),
-                        ("transcriptome_fasta", "transcripts.fa"),
-                        ("decoys", "decoys.txt"),
-                        ("salmon_gtf", "salmon.gtf"),
-                        ("splice_sites", "splice_sites.txt"),
-                    ) + ((
+                    )
+                    if not umbrella_derived_reference:
+                        reference_files += (
+                            ("transcriptome_fasta", "transcripts.fa"),
+                            ("decoys", "decoys.txt"),
+                            ("salmon_gtf", "salmon.gtf"),
+                            ("splice_sites", "splice_sites.txt"),
+                        )
+                    for key, value in reference_files + ((
                         ("hisat2_index_prefix", "hisat"),
                         ("whippet_index", "whippet.jls"),
                         ("salmon_index", "salmon_index"),
@@ -314,6 +319,19 @@ class QuantificationOnlyRouteTests(unittest.TestCase):
 
 
 class UmbrellaNativeQuantificationTests(unittest.TestCase):
+    def test_minimal_reference_derives_transcripts_decoys_and_splice_hints(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_prebuilt=False,
+            umbrella_derived_reference=True, print_shell=True,
+            target="quant_umbrella"
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        for rule in ("umbrella_transcriptome_fasta", "umbrella_decoy_names",
+                     "umbrella_splice_hints", "umbrella_salmon_index"):
+            self.assertIn("rule {}:".format(rule), result.stdout)
+        self.assertIn("gffread -w umbrella/reference/ref/salmon/transcripts.fa", result.stdout)
+        self.assertIn("-d umbrella/reference/ref/salmon/decoys.txt", result.stdout)
+
     def test_built_reference_declares_all_index_outputs(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
             self, umbrella=True, umbrella_prebuilt=False, print_shell=True,
@@ -447,6 +465,8 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
             self.assertIn(root + path, full)
         self.assertIn("src/expression_deseq2.R --route tximport", full)
         self.assertIn("src/run_comparison_tools.py rmats", full)
+        self.assertIn("src/run_leafcutter.py --preflight", full)
+        self.assertNotIn("leafcutter_dir", full)
         self.assertIn("suppa.py generateEvents", full)
         # narrower targets stop before alignment and comparisons
         self.assertIn("splicing/ref/project/case/batch.microexonator.tsv.gz", runs["quant_microexonator"].stdout)

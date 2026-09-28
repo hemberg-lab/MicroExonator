@@ -1,0 +1,7 @@
+name: microexonator-umbrella-leafcutter
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - leafcutter=2.0.3

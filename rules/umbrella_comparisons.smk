@@ -1,8 +1,7 @@
 """Per-comparison differential analyses from joined shards, and one synthesis.
 
 Every tool writes fixed outputs. When a tool cannot run (inference not
-supported by the preflight, rMATS with mixed layouts, LeafCutter not
-configured) its output is a single comment line saying why, and no
+supported by the preflight, rMATS with mixed layouts) its output is a single comment line saying why, and no
 inferential command is run.
 
   deseq2_featurecounts   DESeq2 ~ group on featureCounts gene counts
@@ -10,7 +9,7 @@ inferential command is run.
   microexonator_delta    src/me_delta.py on per-run tables rebuilt from shards
   whippet_delta          whippet-delta.jl on per-run psi files rebuilt from shards
   rmats                  rMATS-turbo inte + post on the kept prep files
-  leafcutter             (pilot) needs config leafcutter_dir, a LeafCutter checkout
+  leafcutter             conda-managed Python LeafCutter clustering and DS
   suppa2                 (pilot) SUPPA2 diffSplice on Salmon transcript TPM
 """
 
@@ -149,33 +148,19 @@ rule umbrella_leafcutter:
         joined=UMBRELLA_COMPARISON_ROOT + "/joined/junctions.tsv.gz"
     output:
         UMBRELLA_COMPARISON_ROOT + "/leafcutter_cluster_significance.txt"
-    params:
-        work=UMBRELLA_COMPARISON_ROOT + "/leafcutter_work",
-        directory=config.get("leafcutter_dir", ""),
-        rscript=config.get("leafcutter_rscript", "Rscript")
     log:
         UMBRELLA_COMPARISON_ROOT + "/logs/leafcutter.log"
     threads: 4
-    run:
-        result = umbrella_comparison(wildcards)
-        if not params.directory:
-            umbrella_write_marker(output, "# not configured: leafcutter_dir is not set")
-        elif not result["inference_supported"]:
-            umbrella_write_marker(output, UMBRELLA_UNSUPPORTED)
-        else:
-            shell("python3 src/umbrella_tool_inputs.py leafcutter --joined {input.joined} "
-                  "--preflight {input.preflight} --directory {params.work}")
-            shell("cd {params.work} && python3 {params.directory}/clustering/leafcutter_cluster.py "
-                  "-j juncfiles.txt -o comparison -s True -l 500000 > ../logs/leafcutter.log 2>&1")
-            shell("cd {params.work} && {params.rscript} {params.directory}/scripts/leafcutter_ds.R "
-                  "--num_threads {threads} -i 2 comparison_perind_numers.counts.gz groups.txt "
-                  ">> ../logs/leafcutter.log 2>&1")
-            shell("cp {params.work}/leafcutter_ds_cluster_significance.txt {output} && rm -rf {params.work}")
+    conda:
+        "../envs/umbrella-leafcutter.yaml"
+    shell:
+        "python3 src/run_leafcutter.py --preflight {input.preflight} "
+        "--joined {input.joined} --output {output} --log {log} --threads {threads}"
 
 
 rule umbrella_suppa_events:
     input:
-        UMBRELLA_REFERENCE["salmon_gtf"]
+        UMBRELLA_SALMON_GTF
     output:
         [UMBRELLA_SUPPA_EVENTS + "_{}_strict.ioe".format(kind) for kind in UMBRELLA_SUPPA_TYPES]
     params:

@@ -23,10 +23,13 @@ in the config, MicroExonator behaves exactly as before.
 Runs of one `biological_replicate_id` are technical runs: count tables are
 summed per replicate and they never count as independent replicates.
 
-**Reference bundle** (`umbrella_reference`, mapping). `genome_fasta`,
+**Reference bundle** (`umbrella_reference`, mapping). Supply `genome_fasta`,
 `annotation_gtf` (full annotation: featureCounts, rMATS, splice hints),
-`whippet_gtf` (the fixed Whippet annotation), `me_db`, `transcriptome_fasta`, `decoys`, `salmon_gtf`,
-`splice_sites` (HISAT2 format, full annotation plus any extra junctions).
+`whippet_gtf` (the fixed Whippet annotation) and `me_db`. The workflow derives
+the transcript FASTA with gffread, the genome-contig decoy list and HISAT2
+splice hints from those inputs. `salmon_gtf` defaults to `annotation_gtf` and
+may be supplied separately. `transcriptome_fasta`, `decoys` and `splice_sites`
+may still be supplied as overrides for an existing reference bundle.
 Optional prebuilt indexes: `hisat2_index_prefix` (with `hisat2_index_type:
 large` for `.ht2l`), `whippet_index`, `salmon_index`. The `reference_id` is a
 hash of the configured files (prebuilt indexes included), `versions`,
@@ -46,7 +49,7 @@ enough for Whippet, which joins any annotated donor to any annotated acceptor
 of a gene. A report lists each microexon as present, inserted or without host.
 Whippet, the junction labels, the HISAT2 splice hints, featureCounts and rMATS
 use the derived copies; Salmon and SUPPA2 keep `salmon_gtf`, whose transcripts
-must match `transcriptome_fasta`. A prebuilt `whippet_index` must have been
+must match the derived transcript FASTA. A prebuilt `whippet_index` must have been
 built from `whippet.microexons.gtf.gz`. Set `umbrella_insert_microexons:
 false` to use the configured GTFs as they are.
 
@@ -55,8 +58,11 @@ with `comparison_id`, `project_id`, `group_a`, `group_b` and optional
 `exclude`. Effects are reported as A - B.
 
 **Optional analyses** (`umbrella_optional`, all `true` by default): `rmats`,
-`coverage`, `leafcutter` (also needs `leafcutter_dir`, a LeafCutter checkout,
-and optionally `leafcutter_rscript`), `suppa2`.
+`coverage`, `leafcutter`, `suppa2`. LeafCutter uses the conda-managed Python
+`leafcutter-cluster` and `leafcutter-ds` commands; it needs no separate source
+checkout, R installation or scheduler submission. It is pinned in
+`envs/umbrella-leafcutter.yaml`. The first real installation and comparison
+remain a cluster validation step.
 
 ## Targets
 

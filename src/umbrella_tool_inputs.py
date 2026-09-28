@@ -8,14 +8,11 @@ Subcommands
   suppa      SUPPA2 TPM tables for group A and B from joined transcript TPM
              (runs averaged per biological replicate)
 
-LeafCutter junction files are six columns: chrom, start, end, '.', count,
-strand, in the convention of clustering/leafcutter_cluster.py, which reads
-(A, B) and keys the intron as (A, B + 1): A is the last base of the upstream
-exon and B the last intron base (1-based). The intron key is then (upstream
-exon end, downstream exon start), matching GTF exons, as leafcutter_ds.R
-expects. Junction shards store the intron itself (first and last intron base),
-so A = intron start - 1. LeafCutter names samples after the junction files,
-so the groups file uses the file names (replicate + '.junc').
+LeafCutter junction files are BED6: chrom, start, end, '.', count, strand.
+The 0-based BED start is the last upstream exon base; the end is the last
+intron base. Junction shards store the intron itself (first and last intron
+base), so BED start = intron start - 1. LeafCutter names samples after the
+junction files, so groups.txt uses the file names (replicate + '.junc').
 """
 
 import argparse

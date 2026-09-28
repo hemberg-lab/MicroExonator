@@ -162,6 +162,26 @@
         "output": "logs/U.tx2gene.out",
         "error": "logs/U.tx2gene.err"
     },
+    "umbrella_transcriptome_fasta": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.transcriptome_fasta",
+        "output": "logs/U.transcriptome_fasta.out",
+        "error": "logs/U.transcriptome_fasta.err"
+    },
+    "umbrella_decoy_names": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.decoy_names",
+        "output": "logs/U.decoy_names.out",
+        "error": "logs/U.decoy_names.err"
+    },
     "umbrella_chrom_sizes": {
         "ppn": "1",
         "threads": "1",
