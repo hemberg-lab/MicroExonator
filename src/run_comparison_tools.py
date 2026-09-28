@@ -1,4 +1,4 @@
-"""Run rMATS-turbo post or SUPPA2 for one comparison (called inside their conda envs).
+"""Run comparison tools inside their rule-local Conda environments.
 
 Both read the comparison preflight. When the tool cannot run, each declared
 output gets one comment line saying why, and no inferential command runs.
@@ -12,15 +12,16 @@ output gets one comment line saying why, and no inferential command runs.
 
 import argparse
 import json
+import shlex
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 if __package__:
-    from src.umbrella_tool_inputs import suppa_tables
+    from src.umbrella_tool_inputs import suppa_tables, write_delta_inputs
 else:
-    from umbrella_tool_inputs import suppa_tables
+    from umbrella_tool_inputs import suppa_tables, write_delta_inputs
 
 
 UNSUPPORTED = "# inference not supported"
@@ -91,10 +92,31 @@ def suppa(args, preflight):
     shutil.rmtree(work)
 
 
+def microexonator(args, preflight):
+    if not preflight["inference_supported"]:
+        marker(args.outputs, UNSUPPORTED)
+        return
+    work = Path(args.work)
+    work.mkdir(parents=True, exist_ok=True)
+    paths = {side: [str(work / (run_id + ".tsv.gz")) for run_id in preflight["runs"][side]]
+             for side in ("a", "b")}
+    try:
+        runs = preflight["runs"]["a"] + preflight["runs"]["b"]
+        outputs = paths["a"] + paths["b"]
+        write_delta_inputs("microexonator", args.joined, runs, outputs)
+        command = ["python3", "src/me_delta.py", "-a", ",".join(paths["a"]),
+                   "-b", ",".join(paths["b"]), "--microexons", args.microexons]
+        command.extend(shlex.split(args.options))
+        with open(args.outputs[0], "w") as stream:
+            subprocess.run(command, check=True, stdout=stream)
+    finally:
+        shutil.rmtree(work)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("tool", choices=("rmats", "suppa"))
+    parser.add_argument("tool", choices=("rmats", "suppa", "microexonator"))
     parser.add_argument("--preflight", required=True)
     parser.add_argument("--work", required=True)
     parser.add_argument("--log", required=True)
@@ -103,11 +125,13 @@ def main(argv=None):
     parser.add_argument("--gtf")
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--joined")
+    parser.add_argument("--microexons")
+    parser.add_argument("--options", default="")
     parser.add_argument("--events", nargs="*", default=[])
     args = parser.parse_args(argv)
     with open(args.preflight) as stream:
         preflight = json.load(stream)
-    (rmats if args.tool == "rmats" else suppa)(args, preflight)
+    {"rmats": rmats, "suppa": suppa, "microexonator": microexonator}[args.tool](args, preflight)
 
 
 if __name__ == "__main__":

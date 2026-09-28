@@ -64,6 +64,20 @@ checkout, R installation or scheduler submission. It is pinned in
 `envs/umbrella-leafcutter.yaml`. The first real installation and comparison
 remain a cluster validation step.
 
+**Software environments.** Run with `--use-conda`. The new umbrella tools are
+declared in rule-local environments: read staging (`sra-tools`, `samtools`),
+alignment and coverage (HISAT2, samtools, featureCounts, rMATS, bedtools,
+bedGraphToBigWig), reference and Salmon quantification (HISAT2, Salmon,
+gffread), DESeq2/SUPPA2, LeafCutter, and NumPy for MicroExonator delta.
+The Snakemake launcher itself remains in the base `snakemake7` environment.
+Whippet is the exception: the umbrella index, quantification and delta rules
+still use the configured `julia` and `whippet_bin_folder` installation. Upstream
+Whippet v1.6 documents Julia 1.6.7 plus `Pkg.instantiate()` rather than a
+Bioconda package, so this checkout is not yet wholly managed by a Snakemake
+Conda environment. Do not remove the working cluster installation for the
+first pilot. Its replacement needs a pinned, tested Julia/Whippet packaging
+path. The rule-local environments have not yet been solved on the cluster.
+
 ## Targets
 
 | Target | Reaches |
@@ -121,7 +135,8 @@ does not vote.
 - **Local smoke test.** `tests/integration/mm10_simulated/run_umbrella_smoke.py`
   stages the mm10 fixture (two groups, two batches, SE and PE) against
   prebuilt full-mm10 indexes; it never builds an index. `--dry-run` needs no
-  tools. The full run uses conda; rMATS and SUPPA2 packages are Linux-first.
+  tools. Most new tools use Conda; Whippet remains the documented exception.
+  rMATS and SUPPA2 packages are Linux-first.
 - **Before a cluster pilot.** Record the real manifest and sample count, pin
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).

@@ -1,0 +1,6 @@
+name: microexonator-umbrella-delta
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy=1.26

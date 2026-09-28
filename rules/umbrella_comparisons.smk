@@ -70,20 +70,13 @@ rule umbrella_microexonator_delta:
     params:
         work=UMBRELLA_COMPARISON_ROOT + "/delta_inputs/microexonator",
         options=config.get("umbrella_me_delta_options", "")
-    run:
-        result = umbrella_comparison(wildcards)
-        if not result["inference_supported"]:
-            umbrella_write_marker(output, UMBRELLA_UNSUPPORTED)
-        else:
-            paths = {side: ["{}/{}.tsv.gz".format(params.work, run) for run in result["runs"][side]]
-                     for side in ("a", "b")}
-            pairs = " ".join("--run {}={}".format(run, path) for side in ("a", "b")
-                             for run, path in zip(result["runs"][side], paths[side]))
-            shell("python3 src/umbrella_tool_inputs.py delta --kind microexonator "
-                  "--joined {input.joined} " + pairs)
-            shell("python3 src/me_delta.py -a " + ",".join(paths["a"]) + " -b " + ",".join(paths["b"])
-                  + " --microexons {input.microexons} {params.options} > {output}")
-            shell("rm -rf {params.work}")
+    conda:
+        "../envs/umbrella-delta.yaml"
+    shell:
+        "python3 src/run_comparison_tools.py microexonator "
+        "--preflight {input.preflight:q} --joined {input.joined:q} "
+        "--microexons {input.microexons:q} --work {params.work:q} "
+        "--options {params.options:q} --outputs {output:q} --log /dev/null"
 
 
 rule umbrella_whippet_delta:
