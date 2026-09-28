@@ -84,6 +84,9 @@ class StageReadsTests(unittest.TestCase):
             self.assertIn("--split-3", dump)
             self.assertEqual(dump[dump.index("--threads") + 1], "6")
             self.assertTrue(dump[-1].endswith("SRR000001/SRR000001.sra"))
+            # fasterq-dump's own scratch (fasterq.tmp.*) goes in the run's work
+            # directory, never the working directory of the whole workflow
+            self.assertTrue(dump[dump.index("--temp") + 1].startswith(str(r1.parent) + "/stage_run_"))
             with gzip.open(r1, "rb") as stream:
                 self.assertEqual(stream.read(), b"mate1")
             with gzip.open(r2, "rb") as stream:
