@@ -52,7 +52,18 @@
     "generate_fasta_from_bed12": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "30000"
+        "mem_mb": "8000"
+    },
+    "Splice_Junction_Library": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000"
+    },
+    "Get_ME_from_annotation": {
+        "ppn": "1",
+        "threads": "1",
+        "walltime": "12:00:00",
+        "runtime": 43200
     },
     "Output": {
         "ppn": "2",
@@ -62,9 +73,9 @@
     "whippet_index": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "64000",
-        "walltime": "48:00:00",
-        "runtime": 172800
+        "mem_mb": "16000",
+        "walltime": "12:00:00",
+        "runtime": 43200
     },
     "whippet_quant": {
         "ppn": "1",
@@ -115,7 +126,7 @@
     "umbrella_microexon_gtf": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "24000",
+        "mem_mb": "12000",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.microexon_gtf",
@@ -125,7 +136,7 @@
     "umbrella_fixed_universe": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "24000",
+        "mem_mb": "12000",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.fixed_universe",
@@ -135,7 +146,7 @@
     "umbrella_splice_hints": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
+        "mem_mb": "4000",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.splice_hints",
@@ -145,7 +156,7 @@
     "umbrella_intron_catalog": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
+        "mem_mb": "4000",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.intron_catalog",
@@ -155,7 +166,7 @@
     "umbrella_tx2gene": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
+        "mem_mb": "4000",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.tx2gene",
@@ -225,9 +236,9 @@
     "umbrella_hisat2_index": {
         "ppn": "8",
         "threads": "8",
-        "mem_mb": "32000",
-        "walltime": "48:00:00",
-        "runtime": 172800,
+        "mem_mb": "16000",
+        "walltime": "12:00:00",
+        "runtime": 43200,
         "name": "U.hisat2_index",
         "output": "logs/U.hisat2_index.out",
         "error": "logs/U.hisat2_index.err"
@@ -235,9 +246,9 @@
     "umbrella_whippet_index": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "64000",
-        "walltime": "48:00:00",
-        "runtime": 172800,
+        "mem_mb": "16000",
+        "walltime": "12:00:00",
+        "runtime": 43200,
         "name": "U.whippet_index",
         "output": "logs/U.whippet_index.out",
         "error": "logs/U.whippet_index.err"
@@ -245,24 +256,24 @@
     "umbrella_salmon_index": {
         "ppn": "8",
         "threads": "8",
-        "mem_mb": "48000",
-        "walltime": "48:00:00",
-        "runtime": 172800,
+        "mem_mb": "32000",
+        "walltime": "12:00:00",
+        "runtime": 43200,
         "name": "U.salmon_index",
         "output": "logs/U.salmon_index.out",
         "error": "logs/U.salmon_index.err"
     },
     "umbrella_stage_reads": {
-        "ppn": "6",
-        "threads": "6",
+        "ppn": "4",
+        "threads": "4",
         "mem_mb": "8000",
         "name": "U.stage_reads.{wildcards.run_id}",
         "output": "logs/U.stage_reads.{wildcards.run_id}.out",
         "error": "logs/U.stage_reads.{wildcards.run_id}.err"
     },
     "umbrella_stage_single": {
-        "ppn": "6",
-        "threads": "6",
+        "ppn": "4",
+        "threads": "4",
         "mem_mb": "8000",
         "name": "U.stage_single.{wildcards.run_id}",
         "output": "logs/U.stage_single.{wildcards.run_id}.out",

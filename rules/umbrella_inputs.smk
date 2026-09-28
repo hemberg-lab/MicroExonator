@@ -50,7 +50,9 @@ rule umbrella_stage_reads:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
-    threads: 6
+    # 4: downloading is network-bound (pilot: 24-59 % of one core); fasterq-dump
+    # and pigz use the cores once the reads are local
+    threads: 4
     # SRA downloads fail now and then; a retry starts the run again from scratch
     retries: 2
     params:
@@ -75,7 +77,9 @@ rule umbrella_stage_single:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
-    threads: 6
+    # 4: downloading is network-bound (pilot: 24-59 % of one core); fasterq-dump
+    # and pigz use the cores once the reads are local
+    threads: 4
     # SRA downloads fail now and then; a retry starts the run again from scratch
     retries: 2
     params:
