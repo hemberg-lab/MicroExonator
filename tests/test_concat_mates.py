@@ -1,6 +1,7 @@
 """Tests for concatenating paired-end mates with distinct read names."""
 
 import gzip
+import os
 import pathlib
 import subprocess
 import tempfile
@@ -55,6 +56,20 @@ class ConcatMatesTests(unittest.TestCase):
         self.assertIn("bash src/concat_mates.sh FASTQ/${srr}_1.fastq.gz FASTQ/${srr}_2.fastq.gz", init)
         self.assertNotIn("then cat FASTQ/${srr}_1.fastq.gz", init)
 
+    def test_pigz_branch_gives_the_same_suffixed_reads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = pathlib.Path(tmp)
+            fake = tmp / "bin" / "pigz"
+            fake.parent.mkdir()
+            fake.write_text("#!/bin/sh\n[ \"$1\" = -p ] || exit 3\nexec gzip -c\n")
+            fake.chmod(0o755)
+            write_fastq(tmp / "r_1.fastq.gz", [("SRR1.1", "ACGT")])
+            write_fastq(tmp / "r_2.fastq.gz", [("SRR1.1", "TTTT")])
+            env = dict(os.environ, PATH=str(fake.parent) + os.pathsep + os.environ["PATH"])
+            subprocess.run(["bash", str(SCRIPT), str(tmp / "r_1.fastq.gz"), str(tmp / "r_2.fastq.gz"),
+                            str(tmp / "r.fastq.gz"), "4"], check=True, env=env)
+            self.assertEqual([record[0] for record in read_fastq(tmp / "r.fastq.gz")],
+                             ["@SRR1.1_1", "@SRR1.1_2"])
 
 if __name__ == "__main__":
     unittest.main()

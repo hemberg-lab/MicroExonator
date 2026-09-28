@@ -1,6 +1,7 @@
 """Opt-in, mate-preserving intake with a legacy FASTQ compatibility path."""
 
 import re
+import shlex
 import subprocess
 
 from src.umbrella_manifest import link_legacy_fastq
@@ -24,6 +25,13 @@ def umbrella_sources(wildcards):
     return [path for path in (run.source_1, run.source_2) if path]
 
 
+# `umbrella_stage_tmpdir`: scratch for uncompressed reads while they are gzipped
+# (node-local disk keeps them off the shared file system); default: the run's
+# work directory.
+UMBRELLA_STAGE_TMPDIR = ("--tmpdir " + shlex.quote(str(config["umbrella_stage_tmpdir"]))
+                         if config.get("umbrella_stage_tmpdir") else "")
+
+
 PE_RUN_PATTERN = "(?:{})".format("|".join(
     re.escape(run.run_id) for run in UMBRELLA_MANIFEST.included_runs() if run.layout == "PE"))
 SE_RUN_PATTERN = "(?:{})".format("|".join(
@@ -42,14 +50,19 @@ rule umbrella_stage_reads:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
+    threads: 6
+    # SRA downloads fail now and then; a retry starts the run again from scratch
+    retries: 2
     params:
+        tmpdir=UMBRELLA_STAGE_TMPDIR,
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
-        "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q}"
+        "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q} "
+        "--threads {threads} {params.tmpdir}"
 
 
 rule umbrella_stage_single:
@@ -62,14 +75,18 @@ rule umbrella_stage_single:
     resources:
         # like the legacy download rules: `--resources get_data=N` caps parallel SRA downloads
         get_data=lambda wildcards: 1 if umbrella_run(wildcards).source_type == "sra" else 0
+    threads: 6
+    # SRA downloads fail now and then; a retry starts the run again from scratch
+    retries: 2
     params:
+        tmpdir=UMBRELLA_STAGE_TMPDIR,
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
-        "--run-id {wildcards.run_id:q} --r1 {output:q}"
+        "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"
 
 
 def umbrella_validation_inputs(wildcards):
@@ -96,12 +113,13 @@ rule umbrella_legacy_fastq:
         valid="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/reads.valid"
     output:
         temp("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/legacy.fastq.gz")
+    threads: 4
     run:
         record = umbrella_run(wildcards)
         if record.layout != "PE":
             raise WorkflowError("single-end runs use native R1 as legacy input")
         subprocess.run(["bash", "src/concat_mates.sh", str(input.reads[0]),
-                        str(input.reads[1]), str(output[0])], check=True)
+                        str(input.reads[1]), str(output[0]), str(threads)], check=True)
 
 
 def umbrella_legacy_bridge_input(wildcards):

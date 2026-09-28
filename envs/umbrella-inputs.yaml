@@ -6,3 +6,4 @@ dependencies:
   - python=3.11
   - sra-tools=3.2.1
   - samtools=1.20
+  - pigz=2.8

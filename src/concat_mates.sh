@@ -6,15 +6,23 @@
 # read: the Round2 genome blacklist then removes a junction read whenever its
 # mate aligns unspliced to the genome.
 #
-# Usage: concat_mates.sh mate_1.fastq.gz mate_2.fastq.gz out.fastq.gz
+# Usage: concat_mates.sh mate_1.fastq.gz mate_2.fastq.gz out.fastq.gz [threads]
+# Compresses with pigz when it is on PATH, otherwise gzip; the output is the same.
 
 set -euo pipefail
 
 mate1=$1
 mate2=$2
 out=$3
+threads=${4:-1}
+
+if command -v pigz > /dev/null; then
+    compress=(pigz -p "$threads" -c)
+else
+    compress=(gzip -c)
+fi
 
 {
     gzip -dc "$mate1" | awk 'NR % 4 == 1 { $1 = $1 "_1" } { print }'
     gzip -dc "$mate2" | awk 'NR % 4 == 1 { $1 = $1 "_2" } { print }'
-} | gzip > "$out"
+} | "${compress[@]}" > "$out"

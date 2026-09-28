@@ -2,6 +2,8 @@
 
 import bz2
 import gzip
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -11,7 +13,7 @@ from unittest.mock import patch
 
 REPOSITORY = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPOSITORY / "src"))
-from umbrella_stage_reads import stage_run  # noqa: E402
+from umbrella_stage_reads import compress_fastq, stage_run  # noqa: E402
 
 
 HEADER = ("sample_id", "run_id", "biological_replicate_id", "project_id",
@@ -53,25 +55,99 @@ class StageReadsTests(unittest.TestCase):
             with gzip.open(r1, "rb") as stream:
                 self.assertEqual(stream.read(), b"@read\nAC\n+\nII\n")
 
-    def test_sra_invocation_produces_two_mates(self):
+    def fake_sra(self, calls, files):
+        """subprocess.run stand-in: prefetch makes <acc>/<acc>.sra, fasterq-dump writes `files`."""
+        def fake_run(command, check):
+            calls.append(command)
+            if command[0] == "prefetch":
+                folder = Path(command[command.index("-O") + 1]) / command[-1]
+                folder.mkdir()
+                (folder / (command[-1] + ".sra")).write_bytes(b"sra")
+            else:
+                work = Path(command[command.index("-O") + 1])
+                for name, content in files.items():
+                    (work / name).write_bytes(content)
+        return fake_run
+
+    def test_sra_run_is_prefetched_then_dumped_with_threads(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)
             manifest = manifest_for(directory, "sra", "SRR000001")
             r1, r2 = directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz"
-
-            def fake_run(command, check):
-                self.assertEqual(command[:3], ["fasterq-dump", "--split-files", "-O"])
-                self.assertEqual(command[-1], "SRR000001")
-                work = Path(command[3])
-                (work / "SRR000001_1.fastq").write_bytes(b"mate1")
-                (work / "SRR000001_2.fastq").write_bytes(b"mate2")
-
-            with patch("umbrella_stage_reads.subprocess.run", side_effect=fake_run):
-                stage_run(manifest, "run", r1, r2)
+            calls = []
+            files = {"SRR000001_1.fastq": b"mate1", "SRR000001_2.fastq": b"mate2",
+                     "SRR000001.fastq": b"unpaired"}
+            with patch("umbrella_stage_reads.subprocess.run", side_effect=self.fake_sra(calls, files)):
+                stage_run(manifest, "run", r1, r2, threads=6)
+            self.assertEqual([call[0] for call in calls], ["prefetch", "fasterq-dump"])
+            dump = calls[1]
+            self.assertIn("--split-3", dump)
+            self.assertEqual(dump[dump.index("--threads") + 1], "6")
+            self.assertTrue(dump[-1].endswith("SRR000001/SRR000001.sra"))
             with gzip.open(r1, "rb") as stream:
                 self.assertEqual(stream.read(), b"mate1")
             with gzip.open(r2, "rb") as stream:
                 self.assertEqual(stream.read(), b"mate2")
+            # only the two gzipped mates remain: no .sra, no uncompressed FASTQ, no scratch
+            self.assertEqual(sorted(path.name for path in r1.parent.iterdir()),
+                             ["R1.fastq.gz", "R2.fastq.gz"])
+
+    def test_single_end_sra_and_scratch_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            manifest = manifest_for(directory, "sra", "SRR000002", layout="SE")
+            r1, scratch = directory / "work/R1.fastq.gz", directory / "scratch"
+            calls = []
+            with patch("umbrella_stage_reads.subprocess.run",
+                       side_effect=self.fake_sra(calls, {"SRR000002.fastq": b"single"})):
+                stage_run(manifest, "run", r1, threads=2, tmpdir=scratch)
+            self.assertTrue(calls[1][calls[1].index("-O") + 1].startswith(str(scratch)))
+            with gzip.open(r1, "rb") as stream:
+                self.assertEqual(stream.read(), b"single")
+            self.assertEqual(list(scratch.iterdir()), [])
+
+    def test_paired_manifest_row_for_a_single_end_accession_fails_clearly(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            manifest = manifest_for(directory, "sra", "SRR000003")
+            with patch("umbrella_stage_reads.subprocess.run",
+                       side_effect=self.fake_sra([], {"SRR000003.fastq": b"single"})):
+                with self.assertRaisesRegex(FileNotFoundError, "paired-end in SRA"):
+                    stage_run(manifest, "run", directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz")
+
+    def test_pigz_is_used_when_available_and_gives_valid_gzip(self):
+        pigz = shutil.which("pigz") or shutil.which("gzip")   # gzip -c stands in for pigz -c
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            fake = directory / "pigz"
+            fake.write_text("#!/bin/sh\nexec {} -c\n".format(pigz))
+            fake.chmod(0o755)
+            source = directory / "reads.fastq"
+            source.write_bytes(b"@read\nAC\n+\nII\n")
+            with patch("umbrella_stage_reads.shutil.which", return_value=str(fake)):
+                compress_fastq(source, directory / "reads.fastq.gz", threads=4)
+            with gzip.open(directory / "reads.fastq.gz", "rb") as stream:
+                self.assertEqual(stream.read(), b"@read\nAC\n+\nII\n")
+            self.assertFalse(source.exists())
+
+    def test_paired_sra_reaches_microexonator_with_mate_suffixes(self):
+        # the mate fix: MicroExonator's single FASTQ must name mates <id>_1 and <id>_2
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            manifest = manifest_for(directory, "sra", "SRR000004")
+            r1, r2 = directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz"
+            files = {"SRR000004_1.fastq": b"@SRR000004.1 1 length=2\nAC\n+\nII\n",
+                     "SRR000004_2.fastq": b"@SRR000004.1 1 length=2\nGT\n+\nII\n"}
+            with patch("umbrella_stage_reads.subprocess.run", side_effect=self.fake_sra([], files)):
+                stage_run(manifest, "run", r1, r2, threads=2)
+            legacy = directory / "legacy.fastq.gz"
+            subprocess.run(["bash", str(REPOSITORY / "src" / "concat_mates.sh"),
+                            str(r1), str(r2), str(legacy), "2"], check=True)
+            with gzip.open(legacy, "rt") as stream:
+                lines = stream.read().splitlines()
+            self.assertEqual([lines[0].split()[0], lines[4].split()[0]],
+                             ["@SRR000004.1_1", "@SRR000004.1_2"])
+            self.assertEqual([lines[1], lines[5]], ["AC", "GT"])
 
     def test_alignment_conversion_uses_samtools(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -84,6 +160,7 @@ class StageReadsTests(unittest.TestCase):
             def fake_run(command, check):
                 calls.append(command)
                 if command[1] == "sort":
+                    self.assertIn("-@", command)
                     Path(command[command.index("-o") + 1]).touch()
                 else:
                     Path(command[command.index("-1") + 1]).write_bytes(b"mate1")

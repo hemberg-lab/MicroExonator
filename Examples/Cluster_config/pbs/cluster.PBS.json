@@ -253,16 +253,16 @@
         "error": "logs/U.salmon_index.err"
     },
     "umbrella_stage_reads": {
-        "ppn": "1",
-        "threads": "1",
+        "ppn": "6",
+        "threads": "6",
         "mem_mb": "8000",
         "name": "U.stage_reads.{wildcards.run_id}",
         "output": "logs/U.stage_reads.{wildcards.run_id}.out",
         "error": "logs/U.stage_reads.{wildcards.run_id}.err"
     },
     "umbrella_stage_single": {
-        "ppn": "1",
-        "threads": "1",
+        "ppn": "6",
+        "threads": "6",
         "mem_mb": "8000",
         "name": "U.stage_single.{wildcards.run_id}",
         "output": "logs/U.stage_single.{wildcards.run_id}.out",
@@ -279,8 +279,8 @@
         "error": "logs/U.validate_reads.{wildcards.run_id}.err"
     },
     "umbrella_legacy_fastq": {
-        "ppn": "1",
-        "threads": "1",
+        "ppn": "4",
+        "threads": "4",
         "mem_mb": "4000",
         "walltime": "04:00:00",
         "runtime": 14400,
