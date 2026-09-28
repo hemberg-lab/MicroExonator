@@ -143,6 +143,7 @@ rule quant_whippet:
 rule quant_umbrella:
     input:
         UMBRELLA_ME_QUANT_INPUTS,
+        "Report/out.robustly_detected.txt",
         UMBRELLA_WHIPPET_PSI,
         UMBRELLA_SALMON_SHARDS,
         UMBRELLA_ALIGNMENT_TARGETS,

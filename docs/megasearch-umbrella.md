@@ -84,16 +84,16 @@ path. The rule-local environments have not yet been solved on the cluster.
 |---|---|
 | `quant_microexonator` | legacy per-run quantification outputs and MicroExonator group shards, without cohort detection filtering |
 | `quant_whippet` | the above, plus native Whippet quantification and Whippet shards |
-| `quant_umbrella` | everything: alignment shards, Salmon shards, joins, comparisons, synthesis |
+| `quant_umbrella` | everything: alignment shards, Salmon shards, joins, comparisons, synthesis, and the robustly detected microexon list |
 
 `quant` and `get_whippet_psi` keep their legacy meaning.
 
 The umbrella delta uses a fixed microexon list generated from
 `Round2/TOTAL.ME_centric.txt`, which comes from the configured annotation and
 ME_DB in the no-discovery run. It does **not** wait for the cohort-wide
-`Report/out.robustly_detected.txt` filter. The latter remains available from
-the legacy `quant` target as an optional, post hoc detection report, but is
-not an umbrella target or delta prerequisite. MicroExonator delta still
+`Report/out.robustly_detected.txt` filter. The latter is requested by
+`quant_umbrella` as a parallel report, but is not a delta prerequisite.
+MicroExonator delta still
 applies its per-comparison read-support thresholds.
 
 ## What is kept
@@ -140,7 +140,10 @@ does not vote.
   their selected runs change. Keep the reference ID and existing manifest
   rows unchanged. The per-comparison outputs for a comparison expanded to
   include the new batch are recomputed, but existing per-batch shards remain
-  reusable. An already materialized shard from a checkout using the older
+  reusable. `Report/out.robustly_detected.txt` is regenerated after its
+  group-detection inputs change, so it reflects all included batches and can
+  be used to assess the fixed-universe delta results afterward. An already
+  materialized shard from a checkout using the older
   whole-manifest checksum guard needs review before reuse; do not delete or
   overwrite it blindly.
 - **SRA downloads.** Staging an SRA run takes one `get_data` resource, as

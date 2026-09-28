@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -412,7 +413,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotIn("umbrella", result.stdout)
         self.assertNotIn("hisat2 -p", result.stdout)
 
-    def test_umbrella_delta_uses_fixed_list_without_detection_barrier(self):
+    def test_umbrella_reports_detection_without_blocking_delta(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
                                         self, umbrella=True, target="quant_umbrella", rulegraph=True,
                                         umbrella_comparisons=(
@@ -424,7 +425,10 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn('label = "umbrella_fixed_microexons"', result.stdout)
         self.assertIn('label = "umbrella_microexonator_delta"', result.stdout)
-        self.assertNotIn('label = "detection_filter"', result.stdout)
+        self.assertIn('label = "detection_filter"', result.stdout)
+        detection = re.search(r'^\s*(\d+)\[label = "detection_filter"', result.stdout, re.M).group(1)
+        target = re.search(r'^\s*(\d+)\[label = "quant_umbrella"', result.stdout, re.M).group(1)
+        self.assertEqual(re.findall(r'^\s*' + detection + r' -> (\d+)$', result.stdout, re.M), [target])
 
     def test_reference_identity_gates_index_builds_and_sra_downloads_are_capped(self):
         rows = ["sample_s\tSRR000001\trep_s\tproject\tbatch\tcontrol\tsra\tSRR000001\t\tPE\tunstranded\tref\ttrue"]
