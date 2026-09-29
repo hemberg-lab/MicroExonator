@@ -71,8 +71,10 @@ def leafcutter_files(joined, preflight, directory):
     # absolute paths: LeafCutter is run from inside the directory
     (directory / "juncfiles.txt").write_text("".join(
         str(Path(path).resolve()) + "\n" for path in written))
+    # sample names as leafcutter-cluster writes them in the count table: the
+    # junction file name without ".junc" (leafcutter_cluster_regtools.py)
     (directory / "groups.txt").write_text("".join(
-        "{}.junc\t{}\n".format(replicate, side) for side in ("a", "b")
+        "{}\t{}\n".format(replicate, side) for side in ("a", "b")
         for replicate in preflight["replicates"][side]))
     return written
 

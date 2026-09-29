@@ -81,7 +81,7 @@ class ToolInputTests(unittest.TestCase):
             a, b = map(int, fields[10].split(","))
             self.assertEqual((int(fields[1]) + a, int(fields[2]) - b + 1), (200, 301))
             self.assertEqual(Path(files[1]).read_text(), "")
-            self.assertEqual((root / "leaf" / "groups.txt").read_text(), "A1.junc\ta\nA2.junc\ta\nB1.junc\tb\n")
+            self.assertEqual((root / "leaf" / "groups.txt").read_text(), "A1\ta\nA2\ta\nB1\tb\n")
 
     def test_suppa_tables_average_technical_runs(self):
         with tempfile.TemporaryDirectory() as directory:

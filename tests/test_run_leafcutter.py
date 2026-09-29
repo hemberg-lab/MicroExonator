@@ -29,7 +29,7 @@ class RunLeafcutterTest(unittest.TestCase):
                     self.assertEqual((Path(cwd) / "A.junc").read_text(),
                                      "chr1\t19\t31\t.\t40\t+\t19\t31\t255,0,0\t2\t1,1\t0,11\n")
                     self.assertEqual((Path(cwd) / "groups.txt").read_text(),
-                                     "A.junc\ta\nB.junc\tb\n")
+                                     "A\ta\nB\tb\n")
                 else:
                     (Path(cwd) / "leafcutter_ds_cluster_significance.txt").write_text(
                         "cluster\tp.adjust\nchr1:clu_1_+\t0.01\n")
