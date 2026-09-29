@@ -12,22 +12,33 @@ from pathlib import Path
 from umbrella_manifest import load_umbrella_manifest
 
 
+# Every staged FASTQ gets a bare "+" separator line. fasterq-dump repeats the
+# read name there ("+SRR1.1 ..."), and Whippet 1.6 then fails on any read that
+# contains N ("Cannot encode 78 to DNAAlphabet{2}"; its author: Whippet only
+# accepts the standard four-line FASTQ). Tested on the hg38 pilot: "+name"
+# with N reads crashes in single- and paired-end mode; a bare "+" with the
+# same N reads runs. Legacy fastq-dump --defline-qual '+' wrote it bare too.
+BARE_PLUS = ["awk", 'NR % 4 == 3 { print "+"; next } { print }']
+
+
 def _gzip_stream(incoming, destination, threads):
-    """Write a binary stream to destination as gzip: pigz when available."""
+    """Write a binary FASTQ stream to destination as gzip, with bare "+" lines.
+
+    awk rewrites the separator lines; pigz compresses when available, gzip otherwise.
+    """
     pigz = shutil.which("pigz")
-    if pigz is None:
-        with gzip.open(destination, "wb") as outgoing:
-            shutil.copyfileobj(incoming, outgoing, 1024 * 1024)
-        return
+    compress = [pigz, "-p", str(max(1, threads)), "-c"] if pigz else ["gzip", "-c"]
     with open(destination, "wb") as outgoing:
-        process = subprocess.Popen([pigz, "-p", str(max(1, threads)), "-c"],
-                                   stdin=subprocess.PIPE, stdout=outgoing)
+        rewrite = subprocess.Popen(BARE_PLUS, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        packer = subprocess.Popen(compress, stdin=rewrite.stdout, stdout=outgoing)
+        rewrite.stdout.close()   # packer owns the read end now
         try:
-            shutil.copyfileobj(incoming, process.stdin, 1024 * 1024)
+            shutil.copyfileobj(incoming, rewrite.stdin, 1024 * 1024)
         finally:
-            process.stdin.close()
-        if process.wait() != 0:
-            raise subprocess.CalledProcessError(process.returncode, "pigz")
+            rewrite.stdin.close()
+        for process, name in ((rewrite, "awk"), (packer, compress[0])):
+            if process.wait() != 0:
+                raise subprocess.CalledProcessError(process.returncode, name)
 
 
 def compress_fastq(source, destination, threads=1):
@@ -37,14 +48,21 @@ def compress_fastq(source, destination, threads=1):
     Path(source).unlink()
 
 
+def _has_bare_plus(path):
+    """True when the first record's separator line is a bare "+"."""
+    with gzip.open(path, "rb") as stream:
+        lines = [stream.readline() for _ in range(3)]
+    return lines[2].rstrip(b"\r\n") == b"+"
+
+
 def stage_local_fastq(source, destination, threads=1):
-    """Link gzip inputs; make a workflow-owned gzip for other FASTQs."""
+    """Link gzip inputs that already have bare "+" lines; rewrite everything else."""
     source = Path(source)
     destination = Path(destination)
-    if source.suffix == ".gz":
+    if source.suffix == ".gz" and _has_bare_plus(source):
         destination.symlink_to(source)
         return
-    opener = bz2.open if source.suffix == ".bz2" else open
+    opener = {".gz": gzip.open, ".bz2": bz2.open}.get(source.suffix, open)
     with opener(source, "rb") as incoming:
         _gzip_stream(incoming, destination, threads)
 

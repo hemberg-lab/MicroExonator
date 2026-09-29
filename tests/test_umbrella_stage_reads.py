@@ -75,7 +75,7 @@ class StageReadsTests(unittest.TestCase):
             manifest = manifest_for(directory, "sra", "SRR000001")
             r1, r2 = directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz"
             calls = []
-            files = {"SRR000001_1.fastq": b"mate1", "SRR000001_2.fastq": b"mate2",
+            files = {"SRR000001_1.fastq": b"mate1\n", "SRR000001_2.fastq": b"mate2\n",
                      "SRR000001.fastq": b"unpaired"}
             with patch("umbrella_stage_reads.subprocess.run", side_effect=self.fake_sra(calls, files)):
                 stage_run(manifest, "run", r1, r2, threads=6)
@@ -88,9 +88,9 @@ class StageReadsTests(unittest.TestCase):
             # directory, never the working directory of the whole workflow
             self.assertTrue(dump[dump.index("--temp") + 1].startswith(str(r1.parent) + "/stage_run_"))
             with gzip.open(r1, "rb") as stream:
-                self.assertEqual(stream.read(), b"mate1")
+                self.assertEqual(stream.read(), b"mate1\n")
             with gzip.open(r2, "rb") as stream:
-                self.assertEqual(stream.read(), b"mate2")
+                self.assertEqual(stream.read(), b"mate2\n")
             # only the two gzipped mates remain: no .sra, no uncompressed FASTQ, no scratch
             self.assertEqual(sorted(path.name for path in r1.parent.iterdir()),
                              ["R1.fastq.gz", "R2.fastq.gz"])
@@ -102,11 +102,11 @@ class StageReadsTests(unittest.TestCase):
             r1, scratch = directory / "work/R1.fastq.gz", directory / "scratch"
             calls = []
             with patch("umbrella_stage_reads.subprocess.run",
-                       side_effect=self.fake_sra(calls, {"SRR000002.fastq": b"single"})):
+                       side_effect=self.fake_sra(calls, {"SRR000002.fastq": b"single\n"})):
                 stage_run(manifest, "run", r1, threads=2, tmpdir=scratch)
             self.assertTrue(calls[1][calls[1].index("-O") + 1].startswith(str(scratch)))
             with gzip.open(r1, "rb") as stream:
-                self.assertEqual(stream.read(), b"single")
+                self.assertEqual(stream.read(), b"single\n")
             self.assertEqual(list(scratch.iterdir()), [])
 
     def test_scratch_can_name_an_environment_variable(self):
@@ -126,6 +126,33 @@ class StageReadsTests(unittest.TestCase):
                     patch("umbrella_stage_reads.subprocess.run", side_effect=fake):
                 stage_run(manifest, "run", directory / "work2/R1.fastq.gz", tmpdir="$NO_SUCH_SCRATCH")
             self.assertTrue(calls[1][calls[1].index("-O") + 1].startswith(str(directory / "work2")))
+
+    def test_separator_lines_are_bare_plus(self):
+        # "+name" with N reads crashes Whippet (hg38 pilot); every staged FASTQ gets a bare "+"
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            manifest = manifest_for(directory, "sra", "SRR000006")
+            r1, r2 = directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz"
+            record = b"@SRR000006.1 A00264:26:H3J2NDRXX length=4\nANGT\n+SRR000006.1 A00264:26:H3J2NDRXX length=4\nFFFF\n"
+            files = {"SRR000006_1.fastq": record, "SRR000006_2.fastq": record}
+            with patch("umbrella_stage_reads.subprocess.run", side_effect=self.fake_sra([], files)):
+                stage_run(manifest, "run", r1, r2)
+            for mate in (r1, r2):
+                with gzip.open(mate, "rb") as stream:
+                    self.assertEqual(stream.read().split(b"\n")[:4],
+                                     [b"@SRR000006.1 A00264:26:H3J2NDRXX length=4", b"ANGT", b"+", b"FFFF"])
+
+    def test_local_gzip_with_named_separator_is_rewritten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            with gzip.open(directory / "named.fastq.gz", "wb") as stream:
+                stream.write(b"@read x\nAN\n+read x\nII\n")
+            manifest = manifest_for(directory, "fastq", "named.fastq.gz", layout="SE")
+            r1 = directory / "work/R1.fastq.gz"
+            stage_run(manifest, "run", r1)
+            self.assertFalse(r1.is_symlink())
+            with gzip.open(r1, "rb") as stream:
+                self.assertEqual(stream.read(), b"@read x\nAN\n+\nII\n")
 
     def test_paired_manifest_row_for_a_single_end_accession_fails_clearly(self):
         with tempfile.TemporaryDirectory() as tmp:
