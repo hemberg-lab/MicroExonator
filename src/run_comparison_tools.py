@@ -88,7 +88,10 @@ def suppa(args, preflight):
         run(["suppa.py", "diffSplice", "-m", "empirical", "-gc", "-i", events,
              "-p", str(work / (kind + "_b.psi")), str(work / (kind + "_a.psi")),
              "-e", str(work / "b.tpm"), str(work / "a.tpm"),
-             "-o", str(Path(output).with_suffix(""))], args.log)
+             # absolute: SUPPA 2.3 merges its .dpsi.temp.* files from the
+             # current directory unless the prefix is absolute, and then writes
+             # no .dpsi at all
+             "-o", str(Path(output).with_suffix("").resolve())], args.log)
     shutil.rmtree(work)
 
 

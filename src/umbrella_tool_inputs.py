@@ -56,8 +56,17 @@ def leafcutter_files(joined, preflight, directory):
             for row in rows:
                 count = int(row[index[replicate]])
                 if count:
-                    stream.write("{}\t{}\t{}\t.\t{}\t{}\n".format(
-                        row[0], int(row[1]) - 1, row[2], count, row[3]))
+                    # regtools-style 12-column BED, which leafcutter-cluster
+                    # (leafcutter_cluster_regtools.py) reads: two 1-nt anchor
+                    # blocks around the intron. It computes A = start + 1 and
+                    # B = end - 1 + 1, i.e. the last upstream exon base (s - 1)
+                    # and the first downstream exon base (e + 1) of the 1-based
+                    # intron [s, e].
+                    first, last = int(row[1]), int(row[2])
+                    start, end = first - 2, last + 1
+                    stream.write("\t".join(map(str, (
+                        row[0], start, end, ".", count, row[3], start, end, "255,0,0",
+                        2, "1,1", "0,{}".format(end - 1 - start)))) + "\n")
         written.append(str(path))
     # absolute paths: LeafCutter is run from inside the directory
     (directory / "juncfiles.txt").write_text("".join(

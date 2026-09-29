@@ -74,7 +74,12 @@ class ToolInputTests(unittest.TestCase):
                         "chrom\tstart\tend\tstrand\tlabel\tmax_anchor\tmulti_total\tshort_anchor_total\tA1\tA2\tB1\n"
                         "chr1\t201\t300\t+\tindex_intron\t40\t0\t0\t5\t0\t2\n")
             files = leafcutter_files(joined, self.PREFLIGHT, root / "leaf")
-            self.assertEqual(Path(files[0]).read_text(), "chr1\t200\t300\t.\t5\t+\n")
+            self.assertEqual(Path(files[0]).read_text(),
+                             "chr1\t199\t301\t.\t5\t+\t199\t301\t255,0,0\t2\t1,1\t0,101\n")
+            # what leafcutter_cluster_regtools.py does with it: A, B = start + a, end - b + 1
+            fields = Path(files[0]).read_text().split()
+            a, b = map(int, fields[10].split(","))
+            self.assertEqual((int(fields[1]) + a, int(fields[2]) - b + 1), (200, 301))
             self.assertEqual(Path(files[1]).read_text(), "")
             self.assertEqual((root / "leaf" / "groups.txt").read_text(), "A1.junc\ta\nA2.junc\ta\nB1.junc\tb\n")
 
