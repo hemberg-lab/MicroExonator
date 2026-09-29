@@ -154,6 +154,34 @@ class StageReadsTests(unittest.TestCase):
             with gzip.open(r1, "rb") as stream:
                 self.assertEqual(stream.read(), b"@read x\nAN\n+\nII\n")
 
+    def test_header_bytes_outside_printable_ascii_become_underscores(self):
+        # non-ASCII read names (e.g. German submitter names) crashed Bowtie; tabs break SAM
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            name = "@SRR7.1 Gr\u00fc\u00dfe_Zelllinie\tlane1".encode("utf-8") + b" \xff\x01end"
+            record = name + b"\nACGN\n+SRR7.1\nFFFF\n"
+            with gzip.open(directory / "odd.fastq.gz", "wb") as stream:
+                stream.write(record + record)
+            manifest = manifest_for(directory, "fastq", "odd.fastq.gz", layout="SE")
+            r1 = directory / "work/R1.fastq.gz"
+            stage_run(manifest, "run", r1)
+            self.assertFalse(r1.is_symlink())
+            with gzip.open(r1, "rb") as stream:
+                lines = stream.read().split(b"\n")
+            self.assertEqual(lines[0], b"@SRR7.1 Gr____e_Zelllinie_lane1 __end")
+            self.assertEqual(lines[1:4], [b"ACGN", b"+", b"FFFF"])
+            self.assertTrue(all(32 <= byte <= 126 for line in lines for byte in line))
+
+    def test_clean_local_gzip_is_still_linked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            with gzip.open(directory / "clean.fastq.gz", "wb") as stream:
+                stream.write(b"@SRR8.1 V300 length=4\nACGT\n+\nFFFF\n" * 3)
+            manifest = manifest_for(directory, "fastq", "clean.fastq.gz", layout="SE")
+            r1 = directory / "work/R1.fastq.gz"
+            stage_run(manifest, "run", r1)
+            self.assertTrue(r1.is_symlink())
+
     def test_paired_manifest_row_for_a_single_end_accession_fails_clearly(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

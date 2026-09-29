@@ -12,24 +12,36 @@ from pathlib import Path
 from umbrella_manifest import load_umbrella_manifest
 
 
-# Every staged FASTQ gets a bare "+" separator line. fasterq-dump repeats the
-# read name there ("+SRR1.1 ..."), and Whippet 1.6 then fails on any read that
-# contains N ("Cannot encode 78 to DNAAlphabet{2}"; its author: Whippet only
-# accepts the standard four-line FASTQ). Tested on the hg38 pilot: "+name"
-# with N reads crashes in single- and paired-end mode; a bare "+" with the
-# same N reads runs. Legacy fastq-dump --defline-qual '+' wrote it bare too.
-BARE_PLUS = ["awk", 'NR % 4 == 3 { print "+"; next } { print }']
+# Every staged FASTQ is cleaned in one streaming pass while it is compressed:
+#
+# - The separator line becomes a bare "+". fasterq-dump repeats the read name
+#   there ("+SRR1.1 ..."), and Whippet 1.6 then fails on any read that
+#   contains N ("Cannot encode 78 to DNAAlphabet{2}"; its author: Whippet only
+#   accepts the standard four-line FASTQ). Tested on the hg38 pilot: "+name"
+#   with N reads crashes in single- and paired-end mode; a bare "+" with the
+#   same N reads runs. Legacy fastq-dump --defline-qual '+' wrote it bare too.
+# - Header lines keep printable ASCII only: any other byte (non-ASCII letters
+#   in submitter read names, tabs, control characters) becomes "_". Such
+#   names have crashed Bowtie and other tools downstream (the reason for the
+#   legacy validate_fastq rule), and a tab breaks SAM files.
+#
+# awk runs in the C locale, so it works on bytes whatever the encoding.
+CLEAN_FASTQ = ["awk", 'NR % 4 == 1 { gsub(/[^ -~]/, "_") } NR % 4 == 3 { print "+"; next } { print }']
+CLEAN_ENV = dict(os.environ, LC_ALL="C")
+# local .gz inputs are linked unless the first records need cleaning
+SAMPLE_RECORDS = 10000
 
 
 def _gzip_stream(incoming, destination, threads):
-    """Write a binary FASTQ stream to destination as gzip, with bare "+" lines.
+    """Write a binary FASTQ stream to destination as gzip, cleaned (CLEAN_FASTQ).
 
-    awk rewrites the separator lines; pigz compresses when available, gzip otherwise.
+    pigz compresses when available, gzip otherwise.
     """
     pigz = shutil.which("pigz")
     compress = [pigz, "-p", str(max(1, threads)), "-c"] if pigz else ["gzip", "-c"]
     with open(destination, "wb") as outgoing:
-        rewrite = subprocess.Popen(BARE_PLUS, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        rewrite = subprocess.Popen(CLEAN_FASTQ, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   env=CLEAN_ENV)
         packer = subprocess.Popen(compress, stdin=rewrite.stdout, stdout=outgoing)
         rewrite.stdout.close()   # packer owns the read end now
         try:
@@ -48,18 +60,28 @@ def compress_fastq(source, destination, threads=1):
     Path(source).unlink()
 
 
-def _has_bare_plus(path):
-    """True when the first record's separator line is a bare "+"."""
+def _is_clean(path, records=SAMPLE_RECORDS):
+    """True when the first `records` records need no cleaning: bare "+" lines
+    and printable-ASCII headers. Read names follow one pattern per run, so a
+    sample is enough to decide; a file that fails is cleaned in full."""
     with gzip.open(path, "rb") as stream:
-        lines = [stream.readline() for _ in range(3)]
-    return lines[2].rstrip(b"\r\n") == b"+"
+        for number in range(records * 4):
+            line = stream.readline()
+            if not line:
+                break
+            line = line.rstrip(b"\r\n")
+            if number % 4 == 0 and any(byte < 0x20 or byte > 0x7E for byte in line):
+                return False
+            if number % 4 == 2 and line != b"+":
+                return False
+    return True
 
 
 def stage_local_fastq(source, destination, threads=1):
-    """Link gzip inputs that already have bare "+" lines; rewrite everything else."""
+    """Link gzip inputs that need no cleaning; clean and rewrite everything else."""
     source = Path(source)
     destination = Path(destination)
-    if source.suffix == ".gz" and _has_bare_plus(source):
+    if source.suffix == ".gz" and _is_clean(source):
         destination.symlink_to(source)
         return
     opener = {".gz": gzip.open, ".bz2": bz2.open}.get(source.suffix, open)
