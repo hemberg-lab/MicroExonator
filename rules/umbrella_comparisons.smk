@@ -120,7 +120,7 @@ rule umbrella_rmats_post:
     input:
         preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
         prep=umbrella_rmats_records,
-        gtf=UMBRELLA_GTF["annotation"]
+        gtf=UMBRELLA_RMATS_GTF
     output:
         [UMBRELLA_COMPARISON_ROOT + "/rmats/{}.MATS.JC.txt".format(kind) for kind in UMBRELLA_RMATS_TYPES]
     params:

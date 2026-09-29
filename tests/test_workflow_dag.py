@@ -444,6 +444,10 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         staging = [block for block in out.split("\n\n") if "rule umbrella_stage_reads:" in block]
         self.assertTrue(any("SRR000001" in block and "get_data=1" in block for block in staging), staging)
         self.assertTrue(any("run_pe" in block and "get_data=0" in block for block in staging), staging)
+        # rMATS reads only an uncompressed GTF
+        self.assertIn("gzip -dcf umbrella/reference/ref/annotation.microexons.gtf.gz > umbrella/reference/ref/annotation.rmats.gtf", out)
+        self.assertIn("--gtf umbrella/reference/ref/annotation.rmats.gtf", out)
+        self.assertNotIn("--gtf umbrella/reference/ref/annotation.microexons.gtf.gz --od", out)
 
     def test_splicing_shards_and_comparison_joins(self):
         rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"

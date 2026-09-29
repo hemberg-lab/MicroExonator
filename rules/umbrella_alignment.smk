@@ -180,7 +180,7 @@ rule umbrella_rmats_prep:
         bam=lambda w: umbrella_align_run(w).work_dir + "/align/aligned.bam",
         bai=lambda w: umbrella_align_run(w).work_dir + "/align/aligned.bam.bai",
         read_length=lambda w: umbrella_align_run(w).work_dir + "/align/read_length.txt",
-        gtf=UMBRELLA_GTF["annotation"]
+        gtf=UMBRELLA_RMATS_GTF
     output:
         prep=protected("rmats/" + UMBRELLA_SHARD + "/{run_id}.rmats"),
         record=protected("rmats/" + UMBRELLA_SHARD + "/{run_id}.rmats.json")

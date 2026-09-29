@@ -680,5 +680,15 @@
         "name": "ME.detection_filter_sp.{wildcards.cluster}",
         "output": "logs/ME.detection_filter_sp.{wildcards.cluster}.out",
         "error": "logs/ME.detection_filter_sp.{wildcards.cluster}.err"
+    },
+    "umbrella_rmats_gtf": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "2000",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.rmats_gtf",
+        "output": "logs/U.rmats_gtf.out",
+        "error": "logs/U.rmats_gtf.err"
     }
 }

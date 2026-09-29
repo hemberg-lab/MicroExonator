@@ -71,5 +71,19 @@ class ConcatMatesTests(unittest.TestCase):
             self.assertEqual([record[0] for record in read_fastq(tmp / "r.fastq.gz")],
                              ["@SRR1.1_1", "@SRR1.1_2"])
 
+    def test_separator_line_is_bare_plus(self):
+        # fasterq-dump writes "+<read name>"; after renaming, it must not disagree with the header
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = pathlib.Path(tmp)
+            for mate in ("1", "2"):
+                with gzip.open(tmp / ("r_" + mate + ".fastq.gz"), "wt") as handle:
+                    handle.write("@SRR1.1 V3001 length=4\nACGT\n+SRR1.1 V3001 length=4\nFFFF\n")
+            subprocess.run(["bash", str(SCRIPT), str(tmp / "r_1.fastq.gz"), str(tmp / "r_2.fastq.gz"),
+                            str(tmp / "r.fastq.gz")], check=True)
+            with gzip.open(tmp / "r.fastq.gz", "rt") as handle:
+                lines = handle.read().splitlines()
+            self.assertEqual([lines[0], lines[2], lines[4], lines[6]],
+                             ["@SRR1.1_1 V3001 length=4", "+", "@SRR1.1_2 V3001 length=4", "+"])
+
 if __name__ == "__main__":
     unittest.main()

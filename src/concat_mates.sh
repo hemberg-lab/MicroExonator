@@ -8,6 +8,11 @@
 #
 # Usage: concat_mates.sh mate_1.fastq.gz mate_2.fastq.gz out.fastq.gz [threads]
 # Compresses with pigz when it is on PATH, otherwise gzip; the output is the same.
+#
+# The separator line is written as a bare "+". fasterq-dump repeats the read
+# name there ("+SRR1.1 ..."); left as it was, it would no longer match the
+# renamed header, and Biopython (Round2 ME_reads) rejects such records with
+# "Sequence and quality captions differ".
 
 set -euo pipefail
 
@@ -23,6 +28,6 @@ else
 fi
 
 {
-    gzip -dc "$mate1" | awk 'NR % 4 == 1 { $1 = $1 "_1" } { print }'
-    gzip -dc "$mate2" | awk 'NR % 4 == 1 { $1 = $1 "_2" } { print }'
+    gzip -dc "$mate1" | awk 'NR % 4 == 1 { $1 = $1 "_1" } NR % 4 == 3 { $0 = "+" } { print }'
+    gzip -dc "$mate2" | awk 'NR % 4 == 1 { $1 = $1 "_2" } NR % 4 == 3 { $0 = "+" } { print }'
 } | "${compress[@]}" > "$out"

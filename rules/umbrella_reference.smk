@@ -57,6 +57,8 @@ if UMBRELLA_INSERT_MICROEXONS:
 else:
     UMBRELLA_GTF = dict(UMBRELLA_BASE_GTF)
 UMBRELLA_SPLICE_HINTS = UMBRELLA_REFERENCE_ROOT + "/hisat2_splice_sites.txt"
+# rMATS cannot read a gzipped GTF ("valid .gtf file that is not compressed")
+UMBRELLA_RMATS_GTF = UMBRELLA_REFERENCE_ROOT + "/annotation.rmats.gtf"
 
 
 UMBRELLA_IDENTITY = UMBRELLA_REFERENCE_ROOT + "/identity.json"
@@ -314,3 +316,13 @@ rule umbrella_reference_manifest:
                                       versions=UMBRELLA_REFERENCE.get("versions", {}),
                                       identity=identity, settings=settings)
         write_immutable(output[0], (json.dumps(manifest, sort_keys=True, indent=2) + "\n").encode())
+
+
+rule umbrella_rmats_gtf:
+    input:
+        UMBRELLA_GTF["annotation"]
+    output:
+        protected(UMBRELLA_RMATS_GTF)
+    shell:
+        # -f passes an uncompressed GTF through unchanged
+        "gzip -dcf {input} > {output}"
