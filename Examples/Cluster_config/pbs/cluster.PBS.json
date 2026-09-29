@@ -4,6 +4,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "10000",
+        "mem": "10000mb",
         "queue": "medium",
         "name": "ME.{rule}",
         "output": "logs/{rule}.{wildcards}.out",
@@ -33,7 +34,8 @@
     "bowtie_genome_index": {
         "ppn": "8",
         "threads": "8",
-        "mem_mb": "30000"
+        "mem_mb": "30000",
+        "mem": "30000mb"
     },
     "bowtie_to_genome": {
         "ppn": "1",
@@ -52,12 +54,14 @@
     "generate_fasta_from_bed12": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "8000"
+        "mem_mb": "8000",
+        "mem": "8000mb"
     },
     "Splice_Junction_Library": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000"
+        "mem_mb": "16000",
+        "mem": "16000mb"
     },
     "Get_ME_from_annotation": {
         "ppn": "1",
@@ -68,12 +72,14 @@
     "Output": {
         "ppn": "2",
         "threads": "2",
-        "mem_mb": "30000"
+        "mem_mb": "30000",
+        "mem": "30000mb"
     },
     "whippet_index": {
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "12:00:00",
         "runtime": 43200
     },
@@ -81,6 +87,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "2000",
+        "mem": "2000mb",
         "name": "ME.whippet_quant.{wildcards.sample}",
         "output": "logs/ME.whippet_quant.{wildcards.sample}.out",
         "error": "logs/ME.whippet_quant.{wildcards.sample}.err"
@@ -88,12 +95,14 @@
     "salmon_index": {
         "ppn": "2",
         "threads": "2",
-        "mem_mb": "32000"
+        "mem_mb": "32000",
+        "mem": "32000mb"
     },
     "salmon_quant_se": {
         "ppn": "2",
         "threads": "2",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "ME.salmon_quant_se.{wildcards.sample}",
         "output": "logs/ME.salmon_quant_se.{wildcards.sample}.out",
         "error": "logs/ME.salmon_quant_se.{wildcards.sample}.err"
@@ -102,6 +111,7 @@
         "ppn": "2",
         "threads": "2",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "ME.salmon_quant_reads_pe.{wildcards.sample}",
         "output": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.out",
         "error": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.err"
@@ -117,6 +127,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.reference_identity",
@@ -127,6 +138,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "12000",
+        "mem": "12000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.microexon_gtf",
@@ -137,6 +149,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "12000",
+        "mem": "12000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.fixed_universe",
@@ -147,6 +160,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.splice_hints",
@@ -157,6 +171,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.intron_catalog",
@@ -167,6 +182,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.tx2gene",
@@ -177,6 +193,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.transcriptome_fasta",
@@ -187,6 +204,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "02:00:00",
         "runtime": 7200,
         "name": "U.decoy_names",
@@ -197,6 +215,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "01:00:00",
         "runtime": 3600,
         "name": "U.chrom_sizes",
@@ -207,6 +226,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.gentrome",
@@ -217,6 +237,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.suppa_events",
@@ -227,6 +248,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.reference_manifest",
@@ -237,6 +259,7 @@
         "ppn": "8",
         "threads": "8",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "12:00:00",
         "runtime": 43200,
         "name": "U.hisat2_index",
@@ -247,6 +270,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "12:00:00",
         "runtime": 43200,
         "name": "U.whippet_index",
@@ -257,6 +281,7 @@
         "ppn": "8",
         "threads": "8",
         "mem_mb": "32000",
+        "mem": "32000mb",
         "walltime": "12:00:00",
         "runtime": 43200,
         "name": "U.salmon_index",
@@ -267,6 +292,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.stage_reads.{wildcards.run_id}",
         "output": "logs/U.stage_reads.{wildcards.run_id}.out",
         "error": "logs/U.stage_reads.{wildcards.run_id}.err"
@@ -275,6 +301,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.stage_single.{wildcards.run_id}",
         "output": "logs/U.stage_single.{wildcards.run_id}.out",
         "error": "logs/U.stage_single.{wildcards.run_id}.err"
@@ -283,6 +310,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.validate_reads.{wildcards.run_id}",
@@ -293,6 +321,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.legacy_fastq.{wildcards.run_id}",
@@ -303,6 +332,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "01:00:00",
         "runtime": 3600,
         "name": "U.read_length.{wildcards.run_id}",
@@ -313,6 +343,7 @@
         "ppn": "8",
         "threads": "8",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.hisat2.{wildcards.run_id}",
         "output": "logs/U.hisat2.{wildcards.run_id}.out",
         "error": "logs/U.hisat2.{wildcards.run_id}.err"
@@ -321,6 +352,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.junctions.{wildcards.run_id}",
         "output": "logs/U.junctions.{wildcards.run_id}.out",
         "error": "logs/U.junctions.{wildcards.run_id}.err"
@@ -329,6 +361,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.featurecounts.{wildcards.run_id}",
@@ -339,6 +372,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.rmats_prep.{wildcards.run_id}",
         "output": "logs/U.rmats_prep.{wildcards.run_id}.out",
         "error": "logs/U.rmats_prep.{wildcards.run_id}.err"
@@ -347,6 +381,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.coverage_run.{wildcards.run_id}",
@@ -357,6 +392,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "32000",
+        "mem": "32000mb",
         "name": "U.salmon_quant.{wildcards.run_id}",
         "output": "logs/U.salmon_quant.{wildcards.run_id}.out",
         "error": "logs/U.salmon_quant.{wildcards.run_id}.err"
@@ -365,6 +401,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "12000",
+        "mem": "12000mb",
         "name": "U.whippet_quant.{wildcards.run_id}",
         "output": "logs/U.whippet_quant.{wildcards.run_id}.out",
         "error": "logs/U.whippet_quant.{wildcards.run_id}.err"
@@ -373,6 +410,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.legacy_bridge.{wildcards.sample}",
@@ -383,6 +421,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.junction_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -393,6 +432,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.capture_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -403,6 +443,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.coverage_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -413,6 +454,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.whippet_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -423,6 +465,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.featurecounts_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -433,6 +476,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.salmon_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -443,6 +487,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.microexonator_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -453,6 +498,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.qc_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -463,6 +509,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.rmats_inventory.{wildcards.group}.{wildcards.batch_id}",
@@ -473,6 +520,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "4000",
+        "mem": "4000mb",
         "name": "U.comparison_preflight.{wildcards.comparison_id}",
         "output": "logs/U.comparison_preflight.{wildcards.comparison_id}.out",
         "error": "logs/U.comparison_preflight.{wildcards.comparison_id}.err"
@@ -481,6 +529,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "32000",
+        "mem": "32000mb",
         "name": "U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}",
         "output": "logs/U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}.out",
         "error": "logs/U.comparison_join.{wildcards.comparison_id}.{wildcards.kind}.err"
@@ -489,6 +538,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "32000",
+        "mem": "32000mb",
         "name": "U.deseq2.{wildcards.comparison_id}.{wildcards.route}",
         "output": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.out",
         "error": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.err"
@@ -497,6 +547,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.microexonator_delta.{wildcards.comparison_id}",
         "output": "logs/U.microexonator_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.microexonator_delta.{wildcards.comparison_id}.err"
@@ -505,6 +556,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.whippet_delta.{wildcards.comparison_id}",
         "output": "logs/U.whippet_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.whippet_delta.{wildcards.comparison_id}.err"
@@ -513,6 +565,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "32000",
+        "mem": "32000mb",
         "name": "U.rmats_post.{wildcards.comparison_id}",
         "output": "logs/U.rmats_post.{wildcards.comparison_id}.out",
         "error": "logs/U.rmats_post.{wildcards.comparison_id}.err"
@@ -521,6 +574,7 @@
         "ppn": "4",
         "threads": "4",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.leafcutter.{wildcards.comparison_id}",
         "output": "logs/U.leafcutter.{wildcards.comparison_id}.out",
         "error": "logs/U.leafcutter.{wildcards.comparison_id}.err"
@@ -529,6 +583,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.suppa.{wildcards.comparison_id}",
         "output": "logs/U.suppa.{wildcards.comparison_id}.out",
         "error": "logs/U.suppa.{wildcards.comparison_id}.err"
@@ -537,6 +592,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.synthesis.{wildcards.comparison_id}",
         "output": "logs/U.synthesis.{wildcards.comparison_id}.out",
         "error": "logs/U.synthesis.{wildcards.comparison_id}.err"
@@ -685,6 +741,7 @@
         "ppn": "1",
         "threads": "1",
         "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "02:00:00",
         "runtime": 7200,
         "name": "U.rmats_gtf",

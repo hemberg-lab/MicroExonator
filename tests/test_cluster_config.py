@@ -36,6 +36,13 @@ class PbsClusterConfigTests(unittest.TestCase):
                    if rule.startswith("umbrella_") and count > 1 and rule not in config]
         self.assertEqual(missing, [])
 
+    def test_memory_is_given_as_mem_for_pbs_submit(self):
+        # pbs-submit.py (the MegaSearch "base" profile) reads cluster["mem"], not
+        # mem_mb; without it every job got the PBS default of 2 GB
+        config = json.load(open(PBS))
+        for rule, entry in config.items():
+            if "mem_mb" in entry:
+                self.assertEqual(entry.get("mem"), "{}mb".format(int(entry["mem_mb"])), rule)
 
 if __name__ == "__main__":
     unittest.main()
