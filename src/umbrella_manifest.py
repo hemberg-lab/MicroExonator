@@ -4,7 +4,7 @@ import csv
 import hashlib
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 
@@ -19,6 +19,8 @@ ALLOWED = {
 }
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 SRA_ID = re.compile(r"^(?:SRR|ERR|DRR)[0-9]+$")
+# reference_id "auto": the workflow computes it from config umbrella_reference
+AUTO_REFERENCE_ID = "auto"
 
 
 @dataclass(frozen=True)
@@ -49,6 +51,15 @@ class UmbrellaManifest:
         self.path = Path(path)
         self.runs = tuple(runs)
         self.by_run = {run.run_id: run for run in runs}
+
+    def with_reference_id(self, reference_id):
+        """The manifest with every reference_id "auto" replaced by `reference_id`."""
+        return UmbrellaManifest(self.path, [
+            replace(run, reference_id=reference_id) if run.reference_id == AUTO_REFERENCE_ID else run
+            for run in self.runs])
+
+    def needs_reference_id(self):
+        return any(run.reference_id == AUTO_REFERENCE_ID for run in self.runs)
 
     def included_runs(self):
         return [run for run in self.runs if run.include]

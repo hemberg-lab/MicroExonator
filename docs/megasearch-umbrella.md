@@ -35,10 +35,14 @@ large` for `.ht2l`), `whippet_index`, `salmon_index`. The `reference_id` is a
 hash of the configured files (prebuilt indexes included), `versions`,
 `hisat2_index_type` and `umbrella_insert_microexons`; files the workflow
 builds are recorded in `umbrella/reference/<id>/manifest.json` but are not
-part of the ID. Get it before the first run with
-`python3 src/shard_guard.py reference-id --configfile config.yaml` and put it
-in the manifest. `umbrella_reference_identity` checks it before any index is
-built, so a wrong ID fails in minutes.
+part of the ID. Write `auto` in the manifest's `reference_id` column and the
+workflow computes it at start-up and prints it (`umbrella reference_id
+(auto): ...`). File digests are cached in
+`umbrella/reference/checksum_cache.json` by path, size and modification time,
+so only the first start hashes the genome (about 3 s per GB); later parses,
+including every cluster job, take milliseconds. An explicit ID also works
+(`python3 src/shard_guard.py reference-id --configfile config.yaml` prints it);
+`umbrella_reference_identity` checks it before any index is built.
 
 **ME_DB microexons in the GTFs.** The configured GTFs are never changed.
 The workflow writes derived copies under `umbrella/reference/<id>/`

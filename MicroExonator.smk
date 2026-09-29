@@ -1,5 +1,6 @@
 #version 0.9.0
 
+import sys
 import yaml
 from collections import defaultdict
 import csv
@@ -132,6 +133,23 @@ if "umbrella_manifest" in config:
         UMBRELLA_MANIFEST = load_umbrella_manifest(config["umbrella_manifest"])
     except (OSError, ValueError) as error:
         raise WorkflowError("invalid umbrella_manifest: {}".format(error))
+    if UMBRELLA_MANIFEST.needs_reference_id():
+        # reference_id "auto": computed from the configured reference files
+        # (digests cached by path, size and mtime, so only the first parse
+        # hashes the genome); an explicit ID is still checked by
+        # umbrella_reference_identity
+        from src.shard_guard import config_reference_id
+        if not isinstance(config.get("umbrella_reference"), dict):
+            raise WorkflowError("reference_id auto needs the umbrella_reference mapping")
+        try:
+            _auto_id = config_reference_id(
+                config["umbrella_reference"],
+                str(config.get("umbrella_insert_microexons", True)).lower() not in ("false", "f", "0", "no"),
+                cache_path="umbrella/reference/checksum_cache.json")
+        except (OSError, ValueError) as error:
+            raise WorkflowError("cannot compute reference_id: {}".format(error))
+        UMBRELLA_MANIFEST = UMBRELLA_MANIFEST.with_reference_id(_auto_id)
+        sys.stderr.write("umbrella reference_id (auto): {}\n".format(_auto_id))
     DATA.update(run.run_id for run in UMBRELLA_MANIFEST.included_runs())
     include : "rules/umbrella_inputs.smk"
 else:

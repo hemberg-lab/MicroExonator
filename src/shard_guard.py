@@ -55,22 +55,38 @@ def validate_fixed_microexons(gtf_path, me_db_path):
     return len(desired)
 
 
-def checksum_path(path):
+def checksum_path(path, cache=None):
+    """sha256 of a file, or {relative path: sha256} for a directory.
+
+    `cache` (a dict) maps "abs path|size|mtime_ns" to a digest, so an
+    unchanged file is not hashed again.
+    """
     path = Path(path)
     if path.is_file():
-        return sha256_file(path)
+        return _cached_sha256(path, cache)
     if not path.is_dir():
         raise ValueError("missing reference input: {}".format(path))
     members = {}
     for member in sorted(path.rglob("*")):
         if member.is_file() and member.name != ".snakemake_timestamp":
-            members[str(member.relative_to(path))] = sha256_file(member)
+            members[str(member.relative_to(path))] = _cached_sha256(member, cache)
     if not members:
         raise ValueError("empty reference directory: {}".format(path))
     return members
 
 
-def reference_manifest(paths, expected_id=None, versions=None, identity=None, settings=None):
+def _cached_sha256(path, cache):
+    if cache is None:
+        return sha256_file(path)
+    stat = path.stat()
+    key = "{}|{}|{}".format(path.resolve(), stat.st_size, stat.st_mtime_ns)
+    if key not in cache:
+        cache[key] = sha256_file(path)
+    return cache[key]
+
+
+def reference_manifest(paths, expected_id=None, versions=None, identity=None, settings=None,
+                       cache=None):
     """Hash every logical input and index member; derive the identity.
 
     `identity` names the entries of `paths` that define the reference_id (all
@@ -83,9 +99,9 @@ def reference_manifest(paths, expected_id=None, versions=None, identity=None, se
     checksums = {}
     for name, value in sorted(paths.items()):
         if isinstance(value, (list, tuple)):
-            checksums[name] = [checksum_path(member) for member in value]
+            checksums[name] = [checksum_path(member, cache) for member in value]
         else:
-            checksums[name] = checksum_path(value)
+            checksums[name] = checksum_path(value, cache)
     keys = sorted(paths) if identity is None else sorted(identity)
     reference_id = _identity_hash({key: checksums[key] for key in keys}, versions, settings)
     if expected_id is not None and expected_id != reference_id:
@@ -126,6 +142,30 @@ def reference_identity(reference, insert_microexons=True):
     settings = {"hisat2_index_type": "large" if large else "small",
                 "insert_microexons": bool(insert_microexons)}
     return paths, settings
+
+
+def config_reference_id(reference, insert_microexons=True, cache_path=None):
+    """The reference_id of config `umbrella_reference`, from configured inputs only.
+
+    With `cache_path` (JSON), file digests are reused while a file's path,
+    size and mtime are unchanged: only the first call hashes the genome.
+    """
+    cache = {}
+    if cache_path and Path(cache_path).is_file():
+        try:
+            cache = json.loads(Path(cache_path).read_text())
+        except ValueError:
+            cache = {}
+    before = dict(cache)
+    paths, settings = reference_identity(reference, insert_microexons)
+    reference_id = reference_manifest(paths, versions=reference.get("versions", {}),
+                                      settings=settings, cache=cache)["reference_id"]
+    if cache_path and cache != before:
+        Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
+        temporary = Path("{}.{}.tmp".format(cache_path, os.getpid()))
+        temporary.write_text(json.dumps(cache, sort_keys=True, indent=1) + "\n")
+        os.replace(temporary, cache_path)   # atomic: parallel parses never see half a file
+    return reference_id
 
 
 def _json_bytes(value):
@@ -180,10 +220,7 @@ def main(argv=None):
         import yaml
         config = yaml.safe_load(text)
     insert = str(config.get("umbrella_insert_microexons", True)).lower() not in ("false", "f", "0", "no")
-    paths, settings = reference_identity(config["umbrella_reference"], insert)
-    manifest = reference_manifest(paths, versions=config["umbrella_reference"].get("versions", {}),
-                                  settings=settings)
-    print(manifest["reference_id"])
+    print(config_reference_id(config["umbrella_reference"], insert))
 
 
 if __name__ == "__main__":

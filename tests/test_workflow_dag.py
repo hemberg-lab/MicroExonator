@@ -37,6 +37,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella_extra_rows=(),
         umbrella_comparisons=None,
         rulegraph=False,
+        umbrella_reference_id="ref",
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -108,8 +109,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                 with open(os.path.join(temp_dir, "umbrella.tsv"), "w") as handle:
                     handle.write("sample_id\trun_id\tbiological_replicate_id\tproject_id\tbatch_id\tgroup\tsource_type\tsource_1\tsource_2\tlayout\tstrandedness\treference_id\tinclude\n")
                     source_2 = "r2.fastq.gz" if umbrella_layout == "PE" else ""
-                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\tref\ttrue\n".format(
-                        umbrella_layout.lower(), source_2, umbrella_layout))
+                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\t{}\ttrue\n".format(
+                        umbrella_layout.lower(), source_2, umbrella_layout, umbrella_reference_id))
                     for row in umbrella_extra_rows:
                         handle.write(row + "\n")
                 if umbrella_comparisons is not None:
@@ -448,6 +449,19 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("gzip -dcf umbrella/reference/ref/annotation.microexons.gtf.gz > umbrella/reference/ref/annotation.rmats.gtf", out)
         self.assertIn("--gtf umbrella/reference/ref/annotation.rmats.gtf", out)
         self.assertNotIn("--gtf umbrella/reference/ref/annotation.microexons.gtf.gz --od", out)
+
+    def test_reference_id_auto_is_computed_by_the_workflow(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, umbrella_prebuilt=False, print_shell=True,
+            target="quant_umbrella", umbrella_reference_id="auto")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        match = re.search(r"umbrella reference_id \(auto\): ([0-9a-f]{16})", out)
+        self.assertIsNotNone(match, out[-3000:])
+        # every umbrella path uses the computed ID, none the placeholder
+        self.assertIn("umbrella/reference/{}/".format(match.group(1)), out)
+        self.assertNotIn("umbrella/reference/auto/", out)
+        self.assertNotIn("umbrella/work/auto/", out)
 
     def test_splicing_shards_and_comparison_joins(self):
         rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"

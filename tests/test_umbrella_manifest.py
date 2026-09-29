@@ -51,6 +51,21 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(manifest.legacy_fastq("run1"),
                          "umbrella/work/ref/project/batch/run1/legacy.fastq.gz")
 
+    def test_reference_id_auto_is_replaced_by_the_computed_id(self):
+        manifest = load_umbrella_manifest(self.write([
+            row(reference_id="auto"),
+            row(run_id="run2", reference_id="auto", source_1="reads/X1.fastq.gz", source_2="reads/X2.fastq.gz")]))
+        self.assertTrue(manifest.needs_reference_id())
+        resolved = manifest.with_reference_id("0123456789abcdef")
+        self.assertFalse(resolved.needs_reference_id())
+        self.assertEqual({run.reference_id for run in resolved.included_runs()}, {"0123456789abcdef"})
+        self.assertEqual(resolved.native_reads("run1")[0],
+                         "umbrella/work/0123456789abcdef/project/batch/run1/R1.fastq.gz")
+        self.assertEqual(resolved.included_runs()[0].metadata["phenotype"], "neural")
+        # the ID is part of each run's identity, so a new reference reruns its outputs
+        self.assertNotEqual(resolved.run_sha256("run1"),
+                            manifest.with_reference_id("fedcba9876543210").run_sha256("run1"))
+
     def test_technical_run_can_arrive_in_another_batch(self):
         manifest = load_umbrella_manifest(self.write([
             row(), row(run_id="run2", batch_id="later", source_1="reads/X1.fastq.gz",

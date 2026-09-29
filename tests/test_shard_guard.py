@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.shard_guard import (hisat2_members, main as shard_guard_main, reference_identity, reference_manifest,
+from src.shard_guard import (config_reference_id, hisat2_members, main as shard_guard_main, reference_identity, reference_manifest,
                              checksum_path, validate_fixed_microexons,
                              write_immutable_bundle)
 
@@ -72,6 +72,22 @@ class ShardGuardTests(unittest.TestCase):
                                      versions=reference["versions"],
                                      settings=reference_identity(reference, False)[1])
             self.assertNotEqual(off["reference_id"], before["reference_id"])
+
+    def test_config_reference_id_reuses_cached_digests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = {}
+            for key in ("genome_fasta", "annotation_gtf", "whippet_gtf", "me_db"):
+                (root / key).write_text(key)
+                reference[key] = str(root / key)
+            cache = root / "cache.json"
+            first = config_reference_id(reference, cache_path=cache)
+            self.assertTrue(cache.is_file())
+            with unittest.mock.patch("src.shard_guard.sha256_file", side_effect=AssertionError("rehashed")):
+                self.assertEqual(config_reference_id(reference, cache_path=cache), first)
+            # a changed file is hashed again and changes the ID
+            (root / "annotation_gtf").write_text("annotation v2, longer")
+            self.assertNotEqual(config_reference_id(reference, cache_path=cache), first)
 
     def test_directory_checksum_ignores_snakemake_timestamp_only(self):
         with tempfile.TemporaryDirectory() as directory:
