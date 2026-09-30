@@ -36,6 +36,15 @@ class ProtectionTests(unittest.TestCase):
         self.assertIn('"--threads {threads} {params.tmpdir}"', text)
         self.assertIn('"--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"', text)
 
+    def test_hisat2_inputs_are_unchanged(self):
+        # Snakemake keeps records of deleted temporary BAMs; a changed input set
+        # would re-align, and so re-download, every existing run
+        text = open(os.path.join(REPOSITORY, "rules", "umbrella_alignment.smk")).read()
+        body = re.search(r"^rule umbrella_hisat2:\n    input:\n(.*?)\n    output:", text, re.S | re.M).group(1)
+        names = re.findall(r"^\s+(\w+)=", body, re.M)
+        self.assertEqual(names, ["reads", "valid", "index", "splice_sites", "reference"])
+        self.assertIn("reference=UMBRELLA_REFERENCE_MANIFEST", body)
+
     def test_comparison_outputs_stay_recomputable(self):
         text = open(os.path.join(REPOSITORY, "rules", "umbrella_comparisons.smk")).read()
         self.assertNotIn("protected(", text)

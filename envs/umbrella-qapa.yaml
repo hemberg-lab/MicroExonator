@@ -1,0 +1,23 @@
+# QAPA v1.4.1 (GPL-3.0) from its tagged source, with the dependency pins of
+# its own environment.yml; bedtools must stay below 2.30 for QAPA.
+name: microexonator-umbrella-qapa
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - pandas=2.1
+  - numpy=1.26
+  - bedtools=2.29.2
+  - pip=22.3
+  - pybedtools=0.9.1
+  - biopython=1.78
+  - r-base=4.3
+  - r-dplyr
+  - r-optparse
+  - r-data.table
+  - r-rlang
+  - r-stringr
+  - ucsc-gtftogenepred=447
+  - pip:
+    - git+https://github.com/morrislab/qapa.git@v1.4.1

@@ -235,6 +235,70 @@ nothing per run or per shard does. Check with a dry run first.
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).
 
+## Optional modules: MAJIQ, DaPars2 and QAPA
+
+Three opt-in tools that can run on their own, in any subset, without
+MicroExonator, Whippet or the other comparison tools:
+
+| Module | Per run (kept) | Per comparison |
+|---|---|---|
+| `majiq` (MAJIQ v3) | SJ file from the HISAT2 BAM | splicegraph from the selected runs, PsiCoverage per biological replicate, HET |
+| `dapars2` (DaPars2) | raw coverage inside merged 3' UTR windows, mapped read count | DaPars2 by chromosome, PDUI per replicate, Welch t-test with BH (exploratory) |
+| `qapa` (QAPA) | Salmon quantification against QAPA's 3' UTR library | PAU with `qapa quant`, DEXSeq site-usage test |
+
+Config:
+
+```yaml
+umbrella_modules: [majiq, dapars2, qapa]   # default: none
+umbrella_modules_mode: ingest              # default: cached_only
+```
+
+- **Targets.** `prepare_<tool>` makes the per-run caches, `quant_<tool>` adds
+  every configured comparison, `quant_umbrella_modules` runs the selected
+  modules plus an inventory, and `quant_umbrella` includes the selected ones.
+  A named target implies its tool even when it is not selected.
+- **Modes.** In `cached_only`, every run a comparison uses must already have
+  its caches: the workflow stops at start-up otherwise, and never stages,
+  aligns or quantifies for a module. Use `ingest` once to make missing caches;
+  runs whose reads are gone also need `umbrella_allow_restage: true`, for
+  that invocation only. `cached_only` together with restaging is refused.
+- **Identities.** Each module has a `module_reference_id` (tool, pinned
+  software, module settings and the base reference ID), each cache a
+  `cache_id` (the run's processing fields plus that ID), and each comparison
+  output an `analysis_id` (its runs, replicates and settings). The base
+  reference ID never changes, so a new module version only invalidates that
+  module. Labels, comparisons and the selection list are in none of them, so
+  regrouping never re-ingests.
+- **Layout.** `umbrella/modules/reference/<reference_id>/<tool>/<module_reference_id>/`,
+  `umbrella/modules/cache/<reference_id>/<project>/<batch>/<run>/<tool>/<cache_id>/`
+  (protected), and `comparisons/<reference_id>/<project>/<comparison>/modules/<tool>/<analysis_id>/`.
+- **Results.** Every comparison writes `results.tsv.gz` with shared columns
+  (effect as A minus B, its definition, native statistic and its type, p and q
+  only where the method gives them, and a status), the tool's native table,
+  `status.json` (`ok`, `unsupported` for designs the preflight rejects, or
+  `native_only`) and a Snakemake benchmark. Effects are not interchangeable:
+  MAJIQ reports junction inclusion within an LSV, DaPars2 distal poly(A)
+  usage of a 3' UTR, QAPA the usage of one poly(A) site within its gene.
+  MAJIQ's HET scores are heuristics, never relabelled as adjusted p-values.
+- **Software.** DaPars2 runs from a pinned upstream commit, unpacked once;
+  QAPA installs from its v1.4.1 tag in `envs/umbrella-qapa.yaml`; DEXSeq is in
+  `envs/umbrella-apa-stats.yaml`. MAJIQ v3 is licensed: download its source
+  after registering with BioCiphers and set `majiq_source` (a directory or
+  archive, installed into a workflow-owned environment), or point
+  `majiq_bin_folder` at an existing installation. MAJIQ and DaPars2 reuse the
+  existing HISAT2 index; QAPA builds its own Salmon 3' UTR index once.
+- **Annotations.** DaPars2 and QAPA use `annotation_gtf`: protein-coding
+  transcripts whose coding end lies in the last exon (3' UTRs with introns are
+  skipped, as in QAPA). QAPA is annotation-only unless `qapa_polya_sites`
+  gives a BED of poly(A) sites; set `qapa_decoys: true` for a genome-decoy
+  index. MAJIQ uses the microexon-inserted Whippet GTF, so microexons are in
+  its splicegraph.
+- **Options.** `dapars2_coverage_threshold` (default 10);
+  `majiq_update_args`, `majiq_psicov_args`, `majiq_heterogen_args` replace
+  the default arguments of those MAJIQ commands (each command's `--help` is
+  written to the comparison log); `majiq_strandness` overrides the manifest's
+  strandedness for MAJIQ.
+
 ## Known limits
 
 - Whippet psi path columns (`Inc_Paths`, `Exc_Paths`, `Edges`) are not kept.
@@ -243,3 +307,8 @@ nothing per run or per shard does. Check with a dry run first.
 - Junction capture uses splice-site sets per chromosome and strand, not per
   gene.
 - The planned Salmon versus Whippet TPM concordance is not implemented.
+- The MAJIQ v3 command options follow its public documentation and have not
+  been run against the licensed binary yet; check the first comparison log.
+- Module-only targets on a brand-new reference also build the Whippet and
+  Salmon indexes, because HISAT2 waits for the full reference manifest; its
+  inputs cannot change without re-aligning existing runs.

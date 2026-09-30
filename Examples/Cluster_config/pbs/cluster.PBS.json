@@ -800,5 +800,159 @@
         "name": "U.leafcutter_exons",
         "output": "logs/U.leafcutter_exons.out",
         "error": "logs/U.leafcutter_exons.err"
+    },
+    "umbrella_dapars2_reference": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.dapars2_reference",
+        "output": "logs/U.dapars2_reference.out",
+        "error": "logs/U.dapars2_reference.err"
+    },
+    "umbrella_dapars2_coverage": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "06:00:00",
+        "runtime": 21600,
+        "name": "U.dapars2_coverage.{wildcards.run_id}",
+        "output": "logs/U.dapars2_coverage.{wildcards.run_id}.out",
+        "error": "logs/U.dapars2_coverage.{wildcards.run_id}.err"
+    },
+    "umbrella_dapars2_compare": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.dapars2_compare.{wildcards.comparison_id}",
+        "output": "logs/U.dapars2_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.dapars2_compare.{wildcards.comparison_id}.err"
+    },
+    "umbrella_qapa_db": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.qapa_db",
+        "output": "logs/U.qapa_db.out",
+        "error": "logs/U.qapa_db.err"
+    },
+    "umbrella_qapa_build": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.qapa_build",
+        "output": "logs/U.qapa_build.out",
+        "error": "logs/U.qapa_build.err"
+    },
+    "umbrella_qapa_fasta": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.qapa_fasta",
+        "output": "logs/U.qapa_fasta.out",
+        "error": "logs/U.qapa_fasta.err"
+    },
+    "umbrella_qapa_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "32000",
+        "mem": "32000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.qapa_index",
+        "output": "logs/U.qapa_index.out",
+        "error": "logs/U.qapa_index.err"
+    },
+    "umbrella_qapa_quant": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.qapa_quant.{wildcards.run_id}",
+        "output": "logs/U.qapa_quant.{wildcards.run_id}.out",
+        "error": "logs/U.qapa_quant.{wildcards.run_id}.err"
+    },
+    "umbrella_qapa_pau": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.qapa_pau.{wildcards.comparison_id}",
+        "output": "logs/U.qapa_pau.{wildcards.comparison_id}.out",
+        "error": "logs/U.qapa_pau.{wildcards.comparison_id}.err"
+    },
+    "umbrella_qapa_usage": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.qapa_usage.{wildcards.comparison_id}",
+        "output": "logs/U.qapa_usage.{wildcards.comparison_id}.out",
+        "error": "logs/U.qapa_usage.{wildcards.comparison_id}.err"
+    },
+    "umbrella_majiq_software": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.majiq_software",
+        "output": "logs/U.majiq_software.out",
+        "error": "logs/U.majiq_software.err"
+    },
+    "umbrella_majiq_reference": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "32000",
+        "mem": "32000mb",
+        "walltime": "08:00:00",
+        "runtime": 28800,
+        "name": "U.majiq_reference",
+        "output": "logs/U.majiq_reference.out",
+        "error": "logs/U.majiq_reference.err"
+    },
+    "umbrella_majiq_sj": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.majiq_sj.{wildcards.run_id}",
+        "output": "logs/U.majiq_sj.{wildcards.run_id}.out",
+        "error": "logs/U.majiq_sj.{wildcards.run_id}.err"
+    },
+    "umbrella_majiq_compare": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "64000",
+        "mem": "64000mb",
+        "walltime": "24:00:00",
+        "runtime": 86400,
+        "name": "U.majiq_compare.{wildcards.comparison_id}",
+        "output": "logs/U.majiq_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.majiq_compare.{wildcards.comparison_id}.err"
     }
 }

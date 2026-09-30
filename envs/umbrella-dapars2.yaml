@@ -1,0 +1,10 @@
+name: microexonator-umbrella-dapars2
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - numpy=1.26
+  - scipy=1.11
+  - samtools=1.20
+  - bedtools=2.31.1

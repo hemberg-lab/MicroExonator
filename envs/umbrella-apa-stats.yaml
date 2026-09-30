@@ -1,0 +1,9 @@
+name: microexonator-umbrella-apa-stats
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - r-base=4.3
+  - bioconductor-dexseq
+  - bioconductor-biocparallel

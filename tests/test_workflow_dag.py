@@ -39,6 +39,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         rulegraph=False,
         umbrella_reference_id="ref",
         pre_existing=(),
+        prepare=None,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -189,6 +190,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                 for line in extra_config:
                     handle.write(line + "\n")
 
+            if prepare is not None:
+                prepare(temp_dir)
             command = [snakemake]
             if sys.platform == "darwin":
                 # appdirs ignores XDG_CACHE_HOME on macOS; keep Snakemake's
@@ -616,6 +619,101 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("run run_c is stored in shard ref/project/control/batch", result.stdout)
         self.assertIn("select on it in the comparisons file", result.stdout)
+
+    MODULE_COMPARISONS = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
+                          "    group_a: case\n    group_b: control\n")
+
+    def module_dry_run(self, target, extra=(), prepare=None):
+        return WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target=target,
+            umbrella_extra_rows=self.UMBRELLA_ROWS, umbrella_comparisons=self.MODULE_COMPARISONS,
+            extra_config=list(extra), prepare=prepare)
+
+    def test_qapa_alone_needs_no_alignment_whippet_or_full_reference(self):
+        result = self.module_dry_run("quant_qapa", ["umbrella_modules_mode: ingest"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        for expected in ("rule umbrella_qapa_quant:", "rule umbrella_qapa_index:", "qapa build -N",
+                         "rule umbrella_qapa_usage:", "src/qapa_dexseq.R"):
+            self.assertIn(expected, out)
+        for absent in ("rule umbrella_hisat2:", "whippet-quant.jl", "rule umbrella_salmon_quant:",
+                       "rule umbrella_reference_manifest:", "rule umbrella_whippet_index:",
+                       "rule umbrella_salmon_index:", "Round2", "rule umbrella_dapars2", "rule umbrella_majiq"):
+            self.assertNotIn(absent, out)
+
+    def test_dapars2_alone_aligns_without_salmon_or_whippet(self):
+        result = self.module_dry_run("quant_dapars2", ["umbrella_modules_mode: ingest"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        for expected in ("rule umbrella_hisat2:", "run_dapars2.py coverage",
+                         "rule umbrella_dapars2_software:", "run_dapars2.py compare"):
+            self.assertIn(expected, out)
+        for absent in ("rule umbrella_salmon_quant:", "whippet-quant.jl", "rule umbrella_salmon_index:",
+                       "rule umbrella_whippet_index:", "rule umbrella_qapa", "rule umbrella_featurecounts:",
+                       "rule umbrella_junctions:"):
+            self.assertNotIn(absent, out)
+
+    def test_majiq_needs_its_licensed_install(self):
+        missing = self.module_dry_run("quant_majiq", ["umbrella_modules_mode: ingest"])
+        self.assertNotEqual(missing.returncode, 0, missing.stdout)
+        self.assertIn("MAJIQ v3 is licensed", missing.stdout)
+        installed = self.module_dry_run("quant_majiq", ["umbrella_modules_mode: ingest",
+                                                        "majiq_bin_folder: /opt/majiq/bin"])
+        self.assertEqual(installed.returncode, 0, installed.stdout)
+        self.assertIn("run_majiq.py sj", installed.stdout)
+        self.assertIn("/opt/majiq/bin/majiq-build gff3", installed.stdout)
+        self.assertNotIn("rule umbrella_salmon_quant:", installed.stdout)
+        built = self.module_dry_run("quant_majiq", ["umbrella_modules_mode: ingest",
+                                                    "majiq_source: /licensed/majiq-v3.tar.gz"])
+        self.assertNotEqual(built.returncode, 0)   # the source path does not exist here
+        self.assertIn("majiq-v3.tar.gz", built.stdout)
+
+    def test_all_modules_share_one_alignment_per_run(self):
+        result = self.module_dry_run("quant_umbrella_modules", [
+            "umbrella_modules: [majiq, dapars2, qapa]", "umbrella_modules_mode: ingest",
+            "majiq_bin_folder: /opt/majiq/bin"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        stats = dict(re.findall(r"^(umbrella_\w+)\s+(\d+)$", result.stdout, re.M))
+        self.assertEqual(stats.get("umbrella_hisat2"), "4")
+        for rule in ("umbrella_majiq_sj", "umbrella_dapars2_coverage", "umbrella_qapa_quant"):
+            self.assertEqual(stats.get(rule), "4", rule)
+        for rule in ("umbrella_majiq_compare", "umbrella_dapars2_compare", "umbrella_qapa_usage"):
+            self.assertEqual(stats.get(rule), "1", rule)
+        self.assertIn("umbrella_module_inventory", result.stdout)
+        self.assertNotIn("umbrella_whippet_quant", result.stdout)
+
+    def test_module_selection_errors_are_actionable(self):
+        for extra, message in (
+                (["umbrella_modules: [majiq, tapas]"], "unknown umbrella_modules tapas"),
+                (["umbrella_modules: [qapa]", "umbrella_allow_restage: true"], "cached_only never stages"),
+                (["umbrella_modules: [qapa]"], "cached_only, but 4 run/tool caches are missing")):
+            result = self.module_dry_run("quant_qapa", extra)
+            self.assertNotEqual(result.returncode, 0, extra)
+            self.assertIn(message, result.stdout)
+        empty = self.module_dry_run("quant_umbrella_modules")
+        self.assertNotEqual(empty.returncode, 0)
+        self.assertIn("quant_umbrella_modules needs umbrella_modules", empty.stdout)
+
+    def test_cached_only_comparisons_never_touch_reads(self):
+        def write_caches(temp_dir):
+            import json as _json
+            sys.path.insert(0, temp_dir)
+            from src.umbrella_manifest import load_umbrella_manifest
+            from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
+            reference = module_reference_id("ref", "dapars2", {})
+            for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():
+                folder = os.path.join(temp_dir, "umbrella/modules/cache/ref/project", record.batch_id,
+                                      record.run_id, "dapars2", cache_id(record, reference))
+                os.makedirs(folder)
+                for name in CACHE_FILES["dapars2"]:
+                    open(os.path.join(folder, name), "w").write(_json.dumps({}))
+            sys.path.remove(temp_dir)
+        result = self.module_dry_run("quant_dapars2", ["umbrella_modules: [dapars2]"], prepare=write_caches)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rule umbrella_dapars2_compare:", result.stdout)
+        for absent in ("rule umbrella_stage", "rule umbrella_hisat2:", "rule umbrella_dapars2_coverage:",
+                       "rule umbrella_validate_reads:"):
+            self.assertNotIn(absent, result.stdout)
 
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
