@@ -7,6 +7,7 @@ import unittest
 
 REPOSITORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PBS = os.path.join(REPOSITORY, "Examples", "Cluster_config", "pbs", "cluster.PBS.json")
+LSF = os.path.join(REPOSITORY, "Examples", "Cluster_config", "lsf", "cluster.json")
 
 
 def rule_threads():
@@ -37,6 +38,18 @@ class PbsClusterConfigTests(unittest.TestCase):
         for rule, entry in config.items():
             if "mem_mb" in entry:
                 self.assertEqual(entry.get("mem"), "{}mb".format(int(entry["mem_mb"])), rule)
+
+
+class LsfClusterConfigTests(unittest.TestCase):
+    def test_file_is_valid_json_and_every_key_is_a_rule(self):
+        config = json.load(open(LSF))
+        threads = rule_threads()
+        for rule, entry in config.items():
+            if rule == "__default__":
+                continue
+            self.assertIn(rule, threads, "cluster key matches no rule")
+            self.assertGreaterEqual(int(entry.get("nCPUs", 1)), threads[rule], rule)
+
 
 if __name__ == "__main__":
     unittest.main()
