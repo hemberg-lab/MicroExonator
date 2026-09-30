@@ -1,14 +1,11 @@
-Here we provide example runs that we have implemented for two different projects:
+# Example runs
 
-# Zebrafish
+These are the configurations of runs from the original publication and related projects. Paths point to the cluster where they were run and must be replaced with your own, and some files use settings from earlier versions (for example, `whippet_delta` given inside `config.yaml`; it is now the path of a separate YAML file, as in `Parada_et_al/whippet_delta.yaml`). Use them as a guide to the input files; the documentation at https://microexonator.readthedocs.io describes the current settings.
 
-Small project that were ran using SRA accession codes as input. These accession codes are inputed inside `NCBI_accession_list.txt` file.
+- `Parada_et_al`: the mouse embryonic development runs of the publication, with SRA accessions, URL inputs and the `whippet_delta.yaml` comparisons.
+- `Autism`, `Zebrafish`: runs from SRA accession codes, listed in `NCBI_accession_list.txt`.
+- `ENCODE`: FASTQ files downloaded from URLs listed in `sample_url.tsv`.
+- `COSMIC`: a large set of cancer cell lines from local FASTQ files, listed with their sample names in `local_samples.tsv`.
+- `C_elegans`: a configuration for *C. elegans*.
 
-# COSMIC
-
-Large cancer cell-lines project, where we used a local copy of the input fastq.gz files as an input. The paths and the name of the samples needs to be provided inside a `desing.tvs` file.
-
-
-# Running under lsf
-
-`snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster "bsub -n {cluster.nCPUs} -R {cluster.resources} -c {cluster.tCPU} -G {cluster.Group} -q {cluster.queue} -o {cluster.output} -e {cluster.error} -M {cluster.memory}" --use-conda -k  -j 1000000`
+Cluster configuration examples for LSF and PBS are in `Examples/Cluster_config/`; the command to submit jobs is described in the documentation.
