@@ -96,12 +96,14 @@ This gives every job one CPU and 10 GB of memory, which is enough for most steps
         "nCPUs"    : 5
     }
 
-A complete file for LSF is in ``Examples/Cluster_config/lsf/cluster.json``. For other schedulers, see the `Snakemake documentation <https://snakemake.readthedocs.io/en/v7.32.4/snakefiles/configuration.html#cluster-configuration-deprecated>`_.
+Complete files are in ``Examples/Cluster_config/lsf/cluster.json`` for LSF and ``Examples/Cluster_config/pbs/cluster.PBS.json`` for PBS/Torque. The PBS file gives each rule's memory both as ``mem_mb`` and as ``mem`` (for example ``"mem": "32000mb"``), because PBS submission scripts usually read ``mem``; a job without a memory request gets the scheduler's default, often 2 GB. For other schedulers, see the `Snakemake documentation <https://snakemake.readthedocs.io/en/v7.32.4/snakefiles/configuration.html#cluster-configuration-deprecated>`_.
 
 .. _cluster_resources:
 
 Recommended resources
 ---------------------
+
+These values come from runs on the human genome (hg38) with 14 to 40 million fragments per sample. Rules not listed run with one CPU and the 10 GB default.
 
 .. list-table::
    :header-rows: 1
@@ -109,27 +111,60 @@ Recommended resources
    * - Rule
      - CPUs
      - Memory (GB)
+     - Notes
    * - Round1_bwa_mem_to_tags
      - 5
      - default
+     -
    * - hisat2_genome_index
      - 5
      - default
+     -
    * - Round2_bowtie_to_tags
      - 5
-     - default
-   * - bowtie_genome_index
-     - default
-     - 30 for the human genome
-   * - bowtie_to_genome
      - 2
-     - default
+     -
    * - total_hisat2_to_genome
      - 5
      - default
+     -
+   * - bowtie_genome_index
+     - default
+     - 30
+     - for the human genome
+   * - bowtie_to_genome
+     - default
+     - 4
+     -
+   * - generate_fasta_from_bed12
+     - default
+     - 8
+     -
+   * - Splice_Junction_Library
+     - default
+     - 16
+     - used 7.3 GB on hg38
+   * - Round2_filter
+     - default
+     - 32
+     - grows with read depth, about 0.19 GB per million fragments (6.8 GB at 36 million); deep samples (100-150 million) need more than the 10 GB default
    * - Output
      - 2
      - 30
+     -
+   * - whippet_index
+     - default
+     - 16
+     - used 5.8 GB and about 2 hours on hg38
    * - whippet_quant
      - default
      - 2
+     -
+   * - salmon_index
+     - 2
+     - 32
+     - for gene expression (the ``gene_count`` target)
+   * - ME_SJ_coverage, coverage_to_PSI_report, correct_quant
+     - default
+     - 2
+     -

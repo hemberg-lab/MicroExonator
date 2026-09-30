@@ -1,0 +1,282 @@
+{
+    "__default__": {
+        "nodes": "1",
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "10000",
+        "mem": "10000mb",
+        "queue": "medium",
+        "name": "ME.{rule}",
+        "output": "logs/{rule}.{wildcards}.out",
+        "error": "logs/{rule}.{wildcards}.err",
+        "extra_flags": "",
+        "walltime": "24:00:00",
+        "runtime": 86400
+    },
+    "Round1_bwa_mem_to_tags": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.Round1_bwa_mem_to_tags.{wildcards.sample}",
+        "output": "logs/ME.Round1_bwa_mem_to_tags.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_bwa_mem_to_tags.{wildcards.sample}.err"
+    },
+    "hisat2_genome_index": {
+        "ppn": "5",
+        "threads": "5"
+    },
+    "hisat2_to_Genome": {
+        "ppn": "1",
+        "threads": "1",
+        "name": "ME.hisat2_to_Genome.{wildcards.sample}",
+        "output": "logs/ME.hisat2_to_Genome.{wildcards.sample}.out",
+        "error": "logs/ME.hisat2_to_Genome.{wildcards.sample}.err"
+    },
+    "bowtie_genome_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "30000",
+        "mem": "30000mb"
+    },
+    "bowtie_to_genome": {
+        "ppn": "1",
+        "threads": "1",
+        "name": "ME.bowtie_to_genome.{wildcards.sample}",
+        "output": "logs/ME.bowtie_to_genome.{wildcards.sample}.out",
+        "error": "logs/ME.bowtie_to_genome.{wildcards.sample}.err",
+        "mem_mb": "4000",
+        "mem": "4000mb"
+    },
+    "Round2_bowtie_to_tags": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.Round2_bowtie_to_tags.{wildcards.sample}",
+        "output": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "generate_fasta_from_bed12": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb"
+    },
+    "Splice_Junction_Library": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb"
+    },
+    "Get_ME_from_annotation": {
+        "ppn": "1",
+        "threads": "1",
+        "walltime": "12:00:00",
+        "runtime": 43200
+    },
+    "Output": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "30000",
+        "mem": "30000mb"
+    },
+    "whippet_index": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200
+    },
+    "whippet_quant": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "2000",
+        "mem": "2000mb",
+        "name": "ME.whippet_quant.{wildcards.sample}",
+        "output": "logs/ME.whippet_quant.{wildcards.sample}.out",
+        "error": "logs/ME.whippet_quant.{wildcards.sample}.err"
+    },
+    "salmon_index": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "32000",
+        "mem": "32000mb"
+    },
+    "salmon_quant_se": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "name": "ME.salmon_quant_se.{wildcards.sample}",
+        "output": "logs/ME.salmon_quant_se.{wildcards.sample}.out",
+        "error": "logs/ME.salmon_quant_se.{wildcards.sample}.err"
+    },
+    "salmon_quant_reads_pe": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "name": "ME.salmon_quant_reads_pe.{wildcards.sample}",
+        "output": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.out",
+        "error": "logs/ME.salmon_quant_reads_pe.{wildcards.sample}.err"
+    },
+    "total_hisat2_to_genome": {
+        "ppn": "5",
+        "threads": "5",
+        "name": "ME.total_hisat2_to_genome.{wildcards.sample}",
+        "output": "logs/ME.total_hisat2_to_genome.{wildcards.sample}.out",
+        "error": "logs/ME.total_hisat2_to_genome.{wildcards.sample}.err"
+    },
+    "download_fastq": {
+        "name": "ME.download_fastq.{wildcards.sample}",
+        "output": "logs/ME.download_fastq.{wildcards.sample}.out",
+        "error": "logs/ME.download_fastq.{wildcards.sample}.err"
+    },
+    "unzip": {
+        "name": "ME.unzip.{wildcards.sample}",
+        "output": "logs/ME.unzip.{wildcards.sample}.out",
+        "error": "logs/ME.unzip.{wildcards.sample}.err"
+    },
+    "validate_fastq": {
+        "name": "ME.validate_fastq.{wildcards.sample}",
+        "output": "logs/ME.validate_fastq.{wildcards.sample}.out",
+        "error": "logs/ME.validate_fastq.{wildcards.sample}.err"
+    },
+    "validate_fastq2": {
+        "name": "ME.validate_fastq2.{wildcards.sample}",
+        "output": "logs/ME.validate_fastq2.{wildcards.sample}.out",
+        "error": "logs/ME.validate_fastq2.{wildcards.sample}.err"
+    },
+    "Round1_alingment_pre_processing": {
+        "name": "ME.Round1_alingment_pre_processing.{wildcards.sample}",
+        "output": "logs/ME.Round1_alingment_pre_processing.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_alingment_pre_processing.{wildcards.sample}.err"
+    },
+    "row_Micro_Exon_reads": {
+        "name": "ME.row_Micro_Exon_reads.{wildcards.sample}",
+        "output": "logs/ME.row_Micro_Exon_reads.{wildcards.sample}.out",
+        "error": "logs/ME.row_Micro_Exon_reads.{wildcards.sample}.err"
+    },
+    "Round1_filter": {
+        "name": "ME.Round1_filter.{wildcards.sample}",
+        "output": "logs/ME.Round1_filter.{wildcards.sample}.out",
+        "error": "logs/ME.Round1_filter.{wildcards.sample}.err"
+    },
+    "download_fastq2": {
+        "name": "ME.download_fastq2.{wildcards.sample}",
+        "output": "logs/ME.download_fastq2.{wildcards.sample}.out",
+        "error": "logs/ME.download_fastq2.{wildcards.sample}.err"
+    },
+    "Round2_alingment_pre_processing": {
+        "name": "ME.Round2_alingment_pre_processing.{wildcards.sample}",
+        "output": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "ME_reads": {
+        "name": "ME.ME_reads.{wildcards.sample}",
+        "output": "logs/ME.ME_reads.{wildcards.sample}.out",
+        "error": "logs/ME.ME_reads.{wildcards.sample}.err"
+    },
+    "Round2_filter": {
+        "name": "ME.Round2_filter.{wildcards.sample}",
+        "output": "logs/ME.Round2_filter.{wildcards.sample}.out",
+        "error": "logs/ME.Round2_filter.{wildcards.sample}.err",
+        "mem_mb": "32000",
+        "mem": "32000mb"
+    },
+    "ME_SJ_coverage": {
+        "name": "ME.ME_SJ_coverage.{wildcards.sample}",
+        "output": "logs/ME.ME_SJ_coverage.{wildcards.sample}.out",
+        "error": "logs/ME.ME_SJ_coverage.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "coverage_to_PSI_report": {
+        "name": "ME.coverage_to_PSI_report.{wildcards.sample}",
+        "output": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.out",
+        "error": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "correct_quant": {
+        "name": "ME.correct_quant.{wildcards.sample}",
+        "output": "logs/ME.correct_quant.{wildcards.sample}.out",
+        "error": "logs/ME.correct_quant.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "get_PSI_sparse_quants_se": {
+        "name": "ME.get_PSI_sparse_quants_se.{wildcards.sample}",
+        "output": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
+    },
+    "get_PSI_sparse_quants_pe": {
+        "name": "ME.get_PSI_sparse_quants_pe.{wildcards.sample}",
+        "output": "logs/ME.get_PSI_sparse_quants_pe.{wildcards.sample}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_pe.{wildcards.sample}.err"
+    },
+    "SamToBam": {
+        "name": "ME.SamToBam.{wildcards.sample}",
+        "output": "logs/ME.SamToBam.{wildcards.sample}.out",
+        "error": "logs/ME.SamToBam.{wildcards.sample}.err"
+    },
+    "BamIndex": {
+        "name": "ME.BamIndex.{wildcards.sample}",
+        "output": "logs/ME.BamIndex.{wildcards.sample}.out",
+        "error": "logs/ME.BamIndex.{wildcards.sample}.err"
+    },
+    "ME_psi_to_quant": {
+        "name": "ME.ME_psi_to_quant.{wildcards.sample}",
+        "output": "logs/ME.ME_psi_to_quant.{wildcards.sample}.out",
+        "error": "logs/ME.ME_psi_to_quant.{wildcards.sample}.err"
+    },
+    "detection_filter_se": {
+        "name": "ME.detection_filter_se.{wildcards.sample_group}",
+        "output": "logs/ME.detection_filter_se.{wildcards.sample_group}.out",
+        "error": "logs/ME.detection_filter_se.{wildcards.sample_group}.err"
+    },
+    "detection_filter_pe": {
+        "name": "ME.detection_filter_pe.{wildcards.sample_group}",
+        "output": "logs/ME.detection_filter_pe.{wildcards.sample_group}.out",
+        "error": "logs/ME.detection_filter_pe.{wildcards.sample_group}.err"
+    },
+    "microexonator_delta": {
+        "name": "ME.microexonator_delta.{wildcards.comparison_name}",
+        "output": "logs/ME.microexonator_delta.{wildcards.comparison_name}.out",
+        "error": "logs/ME.microexonator_delta.{wildcards.comparison_name}.err"
+    },
+    "whippet_delta": {
+        "name": "ME.whippet_delta.{wildcards.comparison_name}",
+        "output": "logs/ME.whippet_delta.{wildcards.comparison_name}.out",
+        "error": "logs/ME.whippet_delta.{wildcards.comparison_name}.err"
+    },
+    "whippet_delta_ME": {
+        "name": "ME.whippet_delta_ME.{wildcards.comparison_name}",
+        "output": "logs/ME.whippet_delta_ME.{wildcards.comparison_name}.out",
+        "error": "logs/ME.whippet_delta_ME.{wildcards.comparison_name}.err"
+    },
+    "delta_ME_from_whippet": {
+        "name": "ME.delta_ME_from_whippet.{wildcards.comparison_name}",
+        "output": "logs/ME.delta_ME_from_whippet.{wildcards.comparison_name}.out",
+        "error": "logs/ME.delta_ME_from_whippet.{wildcards.comparison_name}.err"
+    },
+    "delta_ME_from_MicroExonator": {
+        "name": "ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}",
+        "output": "logs/ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}.out",
+        "error": "logs/ME.delta_ME_from_MicroExonator.{wildcards.comparison_name}.err"
+    },
+    "get_PSI_sparse_quants_sp": {
+        "name": "ME.get_PSI_sparse_quants_sp.{wildcards.cluster}",
+        "output": "logs/ME.get_PSI_sparse_quants_sp.{wildcards.cluster}.out",
+        "error": "logs/ME.get_PSI_sparse_quants_sp.{wildcards.cluster}.err"
+    },
+    "detection_filter_sp": {
+        "name": "ME.detection_filter_sp.{wildcards.cluster}",
+        "output": "logs/ME.detection_filter_sp.{wildcards.cluster}.out",
+        "error": "logs/ME.detection_filter_sp.{wildcards.cluster}.err"
+    }
+}
