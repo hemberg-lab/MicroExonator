@@ -25,6 +25,8 @@ A tab-separated file with a header and the columns ``path`` and ``sample``. ``pa
     /data/condition_B.rep2.fastq.gz	B2
     /data/condition_B.rep3.fastq.gz	B3
 
+Local files are copied into ``FASTQ/`` with two fixes that some tools need: the separator line is written as a bare ``+`` (Whippet fails on reads with N when the ``+`` line repeats the read name), and characters in read names outside printable ASCII, such as tabs or accented letters, become ``_`` (they crash Bowtie). A ``.fastq.gz`` file that needs neither fix is copied as it is. The copy script for each sample is written to ``download/`` once; delete it to have it written again.
+
 **Files at a URL: sample_url.tsv**
 
 The same structure, with a column named ``url`` instead of ``path``. Each URL must point directly to a gzip-compressed FASTQ file.
