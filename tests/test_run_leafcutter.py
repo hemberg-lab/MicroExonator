@@ -40,8 +40,36 @@ class RunLeafcutterTest(unittest.TestCase):
             self.assertEqual([command[0] for command in commands],
                              ["leafcutter-cluster", "leafcutter-ds"])
             self.assertIn("--baseline_group", commands[1])
+            ds = commands[1]
+            self.assertEqual(ds[ds.index("--min_samples_per_intron") + 1], "1")
+            self.assertEqual(ds[ds.index("--min_samples_per_group") + 1], "1")
             self.assertIn("p.adjust", result.read_text())
             self.assertFalse(list(root.glob("leafcutter-*")))
+
+    def test_sample_limits_follow_smallest_group(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            joined = root / "junctions.tsv.gz"
+            names = ["A1", "A2", "A3", "B1", "B2", "B3", "B4", "B5", "B6"]
+            with gzip.open(joined, "wt") as output:
+                output.write("chrom\tstart\tend\tstrand\t" + "\t".join(names) + "\n")
+                output.write("chr1\t21\t30\t+\t" + "\t".join(["5"] * len(names)) + "\n")
+            preflight = root / "preflight.json"
+            preflight.write_text(json.dumps({"inference_supported": True,
+                                             "replicates": {"a": names[:3], "b": names[3:]}}))
+            commands = []
+
+            def fake_command(command, cwd, **kwargs):
+                commands.append(command)
+                if command[0] == "leafcutter-ds":
+                    (Path(cwd) / "leafcutter_ds_cluster_significance.txt").write_text("cluster\n")
+
+            with patch("src.run_leafcutter.subprocess.run", side_effect=fake_command):
+                run(preflight, joined, root / "out.txt", root / "leafcutter.log")
+            ds = commands[1]
+            self.assertEqual(ds[ds.index("--min_samples_per_intron") + 1], "3")
+            self.assertEqual(ds[ds.index("--min_samples_per_group") + 1], "3")
+            self.assertIn("calibrated down to 4", (root / "leafcutter.log").read_text())
 
     def test_unsupported_comparison_does_not_invoke_tools(self):
         with tempfile.TemporaryDirectory() as directory:

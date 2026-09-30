@@ -7,6 +7,12 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+# leafcutter-ds defaults. Its Python port refuses to run unless both groups
+# have at least -i and -g samples, so small designs (3 vs 3) lower them to the
+# smaller group size. LeafCutter's p-values are calibrated down to n=4 per group.
+MIN_SAMPLES_PER_INTRON = 5
+MIN_SAMPLES_PER_GROUP = 3
+
 if __package__:
     from src.umbrella_tool_inputs import leafcutter_files
 else:
@@ -27,15 +33,23 @@ def run(preflight_path, joined, output, log, threads=1):
     with tempfile.TemporaryDirectory(prefix="leafcutter-", dir=output.parent) as directory:
         work = Path(directory)
         leafcutter_files(joined, preflight, work)
+        smallest = min(len(preflight["replicates"][side]) for side in ("a", "b"))
+        per_intron = min(MIN_SAMPLES_PER_INTRON, smallest)
+        per_group = min(MIN_SAMPLES_PER_GROUP, smallest)
         commands = [
             ["leafcutter-cluster", "--juncfiles", "juncfiles.txt",
              "--outprefix", "comparison", "--maxintronlen", "500000",
              "--rundir", "."],
             ["leafcutter-ds", "comparison_perind_numers.counts.gz", "groups.txt",
              "--baseline_group", "a", "--num_threads", str(threads),
+             "--min_samples_per_intron", str(per_intron),
+             "--min_samples_per_group", str(per_group),
              "--output_prefix", "leafcutter_ds"],
         ]
         with log.open("w") as report:
+            if smallest < 4:
+                report.write("Note: smallest group has {} replicates; LeafCutter p-values are "
+                             "calibrated down to 4 per group\n".format(smallest))
             for command in commands:
                 report.write("$ {}\n".format(" ".join(command)))
                 report.flush()
