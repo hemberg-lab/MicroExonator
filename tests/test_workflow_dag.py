@@ -695,25 +695,43 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("quant_umbrella_modules needs umbrella_modules", empty.stdout)
 
     def test_cached_only_comparisons_never_touch_reads(self):
+        # caches as an earlier ingest left them: files plus Snakemake records
+        # holding the producer's ingest-time input set (GPT-6.1 review, #1)
         def write_caches(temp_dir):
+            import base64
             import json as _json
             sys.path.insert(0, temp_dir)
             from src.umbrella_manifest import load_umbrella_manifest
             from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
-            reference = module_reference_id("ref", "dapars2", {})
-            for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():
-                folder = os.path.join(temp_dir, "umbrella/modules/cache/ref/project", record.batch_id,
-                                      record.run_id, "dapars2", cache_id(record, reference))
-                os.makedirs(folder)
-                for name in CACHE_FILES["dapars2"]:
-                    open(os.path.join(folder, name), "w").write(_json.dumps({}))
+            producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant"}
+            for tool, rule in producers.items():
+                reference = module_reference_id("ref", tool, {})
+                for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():
+                    work = "umbrella/work/ref/project/{}/{}".format(record.batch_id, record.run_id)
+                    folder = "umbrella/modules/cache/ref/project/{}/{}/{}/{}".format(
+                        record.batch_id, record.run_id, tool, cache_id(record, reference))
+                    os.makedirs(os.path.join(temp_dir, folder))
+                    for name in CACHE_FILES[tool]:
+                        path = folder + "/" + name
+                        open(os.path.join(temp_dir, path), "w").write(_json.dumps({}))
+                        meta = os.path.join(temp_dir, ".snakemake", "metadata",
+                                            base64.urlsafe_b64encode(path.encode()).decode())
+                        os.makedirs(os.path.dirname(meta), exist_ok=True)
+                        open(meta, "w").write(_json.dumps({
+                            "rule": rule, "incomplete": False, "starttime": 1.0, "endtime": 2.0,
+                            "input": [work + "/align/aligned.bam", work + "/R1.fastq.gz"],
+                            "params": ["x"], "code": "c", "shellcmd": "s"}))
             sys.path.remove(temp_dir)
-        result = self.module_dry_run("quant_dapars2", ["umbrella_modules: [dapars2]"], prepare=write_caches)
-        self.assertEqual(result.returncode, 0, result.stdout)
+        for target, tools in (("quant_dapars2", "[dapars2]"), ("quant_qapa", "[qapa]"),
+                              ("quant_umbrella_modules", "[dapars2, qapa]")):
+            result = self.module_dry_run(target, ["umbrella_modules: " + tools], prepare=write_caches)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            for absent in ("rule umbrella_stage", "rule umbrella_hisat2:", "rule umbrella_dapars2_coverage:",
+                           "rule umbrella_qapa_quant:", "rule umbrella_validate_reads:",
+                           "Set of input files has changed"):
+                self.assertNotIn(absent, result.stdout, target)
+        self.assertIn("rule umbrella_qapa_pau:", result.stdout)
         self.assertIn("rule umbrella_dapars2_compare:", result.stdout)
-        for absent in ("rule umbrella_stage", "rule umbrella_hisat2:", "rule umbrella_dapars2_coverage:",
-                       "rule umbrella_validate_reads:"):
-            self.assertNotIn(absent, result.stdout)
 
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(

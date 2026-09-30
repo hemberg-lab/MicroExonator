@@ -49,6 +49,11 @@ MODULE_SETTINGS = {
     "dapars2": {"coverage_threshold": int(config.get("dapars2_coverage_threshold", 10))},
     "qapa": {"test": "DEXSeq ~ sample + exon + condition:exon, genes with >= 2 sites"},
 }
+# Per-run cache producers are defined only in ingest mode. In cached_only the
+# kept caches are plain inputs with no rule that could remake them, so neither
+# Snakemake's records (an earlier ingest's input set) nor a rebuilt reference
+# can ever schedule a download, alignment or re-quantification.
+MODULE_PRODUCERS = UMBRELLA_MODULES_MODE == "ingest"
 MODULE_WILDCARDS = dict(reference_id="[^/]+", project_id="[^/]+", batch_id="[^/]+",
                         run_id="[^/]+", cache_id="[0-9a-f]{16}", analysis_id="[0-9a-f]{16}")
 
@@ -70,22 +75,17 @@ def module_run(wildcards, tool):
     if wildcards.cache_id != expected:
         raise WorkflowError("{} cache {} of run {} is not the current one ({})".format(
             tool, wildcards.cache_id, record.run_id, expected))
-    done = module_cache_dir(record, tool) + "/cache.json"
-    if UMBRELLA_MODULES_MODE == "cached_only" and not _os.path.exists(done):
-        raise WorkflowError(
-            "umbrella_modules_mode is cached_only but run {} has no {} cache; run once with "
-            "umbrella_modules_mode: ingest (and umbrella_allow_restage: true if its reads "
-            "are gone)".format(record.run_id, tool))
     return record
 
 
 def module_ingest(tool, inputs):
-    """Per-run inputs, or none in cached_only: a kept cache is then never re-derived
-    (a rebuilt reference or index must not make it look out of date)."""
+    """A per-run producer's inputs, after checking its cache ID is the current one.
+
+    Producers exist only in ingest mode (see MODULE_PRODUCERS), so this never
+    changes a producer's input set between modes: Snakemake would otherwise
+    rerun it with "Set of input files has changed"."""
     def function(wildcards):
         module_run(wildcards, tool)
-        if UMBRELLA_MODULES_MODE == "cached_only":
-            return []
         return inputs(wildcards) if callable(inputs) else inputs
     return function
 
@@ -168,26 +168,27 @@ rule umbrella_dapars2_reference:
         "--windows {output.windows} --report {output.report}"
 
 
-rule umbrella_dapars2_coverage:
-    input:
-        bam=module_ingest("dapars2", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam"),
-        bai=module_ingest("dapars2", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam.bai"),
-        windows=module_ingest("dapars2", DAPARS2_WINDOWS)
-    output:
-        [protected(MODULE_CACHE.replace("{tool}", "dapars2") + "/" + name)
-         for name in CACHE_FILES["dapars2"]]
-    wildcard_constraints:
-        **MODULE_WILDCARDS
-    params:
-        out=MODULE_CACHE.replace("{tool}", "dapars2"),
-        identity=lambda w: module_identity(w, "dapars2")
-    benchmark:
-        "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.dapars2.{cache_id}.tsv"
-    conda:
-        "../envs/umbrella-dapars2.yaml"
-    shell:
-        "python3 src/run_dapars2.py coverage --bam {input.bam} --windows {input.windows} "
-        "--out-dir {params.out} --run-id {wildcards.run_id} --identity {params.identity:q}"
+if MODULE_PRODUCERS:
+    rule umbrella_dapars2_coverage:
+        input:
+            bam=module_ingest("dapars2", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam"),
+            bai=module_ingest("dapars2", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam.bai"),
+            windows=module_ingest("dapars2", DAPARS2_WINDOWS)
+        output:
+            [protected(MODULE_CACHE.replace("{tool}", "dapars2") + "/" + name)
+             for name in CACHE_FILES["dapars2"]]
+        wildcard_constraints:
+            **MODULE_WILDCARDS
+        params:
+            out=MODULE_CACHE.replace("{tool}", "dapars2"),
+            identity=lambda w: module_identity(w, "dapars2")
+        benchmark:
+            "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.dapars2.{cache_id}.tsv"
+        conda:
+            "../envs/umbrella-dapars2.yaml"
+        shell:
+            "python3 src/run_dapars2.py coverage --bam {input.bam} --windows {input.windows} "
+            "--out-dir {params.out} --run-id {wildcards.run_id} --identity {params.identity:q}"
 
 
 rule umbrella_dapars2_compare:
@@ -288,32 +289,33 @@ rule umbrella_qapa_index:
         "salmon index -t {input} -i {output} {params.decoys} -p {threads} > {log} 2>&1"
 
 
-rule umbrella_qapa_quant:
-    input:
-        reads=module_ingest("qapa", lambda w: umbrella_quant_reads(w)),
-        valid=module_ingest("qapa", lambda w: umbrella_quant_run(w).work_dir + "/reads.valid"),
-        index=module_ingest("qapa", QAPA_INDEX)
-    output:
-        [protected(MODULE_CACHE.replace("{tool}", "qapa") + "/" + name) for name in CACHE_FILES["qapa"]]
-    wildcard_constraints:
-        **MODULE_WILDCARDS
-    params:
-        out=MODULE_CACHE.replace("{tool}", "qapa"),
-        reads=lambda w: umbrella_read_arguments(w, "salmon"),
-        library=config.get("qapa_library_type", "A"),
-        identity=lambda w: module_identity(w, "qapa")
-    threads: 4
-    log:
-        "umbrella/logs/{reference_id}/{project_id}/{batch_id}/{run_id}.qapa.{cache_id}.salmon.log"
-    benchmark:
-        "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.qapa.{cache_id}.tsv"
-    conda:
-        "../envs/umbrella-quant.yaml"
-    shell:
-        "rm -rf {params.out}/salmon && salmon quant -i {input.index} -l {params.library} {params.reads} "
-        "--validateMappings -p {threads} -o {params.out}/salmon 2> {log} "
-        "&& python3 src/run_qapa.py keep --salmon {params.out}/salmon --out-dir {params.out} "
-        "--run-id {wildcards.run_id} --identity {params.identity:q} && rm -rf {params.out}/salmon"
+if MODULE_PRODUCERS:
+    rule umbrella_qapa_quant:
+        input:
+            reads=module_ingest("qapa", lambda w: umbrella_quant_reads(w)),
+            valid=module_ingest("qapa", lambda w: umbrella_quant_run(w).work_dir + "/reads.valid"),
+            index=module_ingest("qapa", QAPA_INDEX)
+        output:
+            [protected(MODULE_CACHE.replace("{tool}", "qapa") + "/" + name) for name in CACHE_FILES["qapa"]]
+        wildcard_constraints:
+            **MODULE_WILDCARDS
+        params:
+            out=MODULE_CACHE.replace("{tool}", "qapa"),
+            reads=lambda w: umbrella_read_arguments(w, "salmon"),
+            library=config.get("qapa_library_type", "A"),
+            identity=lambda w: module_identity(w, "qapa")
+        threads: 4
+        log:
+            "umbrella/logs/{reference_id}/{project_id}/{batch_id}/{run_id}.qapa.{cache_id}.salmon.log"
+        benchmark:
+            "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.qapa.{cache_id}.tsv"
+        conda:
+            "../envs/umbrella-quant.yaml"
+        shell:
+            "rm -rf {params.out}/salmon && salmon quant -i {input.index} -l {params.library} {params.reads} "
+            "--validateMappings -p {threads} -o {params.out}/salmon 2> {log} "
+            "&& python3 src/run_qapa.py keep --salmon {params.out}/salmon --out-dir {params.out} "
+            "--run-id {wildcards.run_id} --identity {params.identity:q} && rm -rf {params.out}/salmon"
 
 
 rule umbrella_qapa_pau:
@@ -418,29 +420,30 @@ rule umbrella_majiq_reference:
         "&& {params.majiq_build} gff3 {output.gff3} {output.splicegraph} > {log} 2>&1"
 
 
-rule umbrella_majiq_sj:
-    input:
-        bam=module_ingest("majiq", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam"),
-        bai=module_ingest("majiq", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam.bai"),
-        splicegraph=module_ingest("majiq", MAJIQ_SPLICEGRAPH),
-        software=module_ingest("majiq", MAJIQ_INSTALLED)
-    output:
-        # run.sj next to it is MAJIQ's own format (file or directory)
-        protected(MODULE_CACHE.replace("{tool}", "majiq") + "/cache.json")
-    wildcard_constraints:
-        **MODULE_WILDCARDS
-    params:
-        out=MODULE_CACHE.replace("{tool}", "majiq"),
-        strandedness=lambda w: config.get("majiq_strandness") or umbrella_quant_run(w).strandedness,
-        bin=MAJIQ_BIN,
-        identity=lambda w: module_identity(w, "majiq")
-    threads: 4
-    benchmark:
-        "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.majiq.{cache_id}.tsv"
-    shell:
-        "python3 src/run_majiq.py sj --bam {input.bam} --splicegraph {input.splicegraph} "
-        "--out-dir {params.out} --run-id {wildcards.run_id} --strandedness {params.strandedness} "
-        "--threads {threads} --bin-dir {params.bin} --identity {params.identity:q}"
+if MODULE_PRODUCERS:
+    rule umbrella_majiq_sj:
+        input:
+            bam=module_ingest("majiq", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam"),
+            bai=module_ingest("majiq", lambda w: UMBRELLA_WORK.format(**w) + "/align/aligned.bam.bai"),
+            splicegraph=module_ingest("majiq", MAJIQ_SPLICEGRAPH),
+            software=module_ingest("majiq", MAJIQ_INSTALLED)
+        output:
+            # run.sj next to it is MAJIQ's own format (file or directory)
+            protected(MODULE_CACHE.replace("{tool}", "majiq") + "/cache.json")
+        wildcard_constraints:
+            **MODULE_WILDCARDS
+        params:
+            out=MODULE_CACHE.replace("{tool}", "majiq"),
+            strandedness=lambda w: config.get("majiq_strandness") or umbrella_quant_run(w).strandedness,
+            bin=MAJIQ_BIN,
+            identity=lambda w: module_identity(w, "majiq")
+        threads: 4
+        benchmark:
+            "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.majiq.{cache_id}.tsv"
+        shell:
+            "python3 src/run_majiq.py sj --bam {input.bam} --splicegraph {input.splicegraph} "
+            "--out-dir {params.out} --run-id {wildcards.run_id} --strandedness {params.strandedness} "
+            "--threads {threads} --bin-dir {params.bin} --identity {params.identity:q}"
 
 
 rule umbrella_majiq_compare:
