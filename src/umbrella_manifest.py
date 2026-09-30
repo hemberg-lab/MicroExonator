@@ -4,7 +4,7 @@ import csv
 import hashlib
 import json
 import re
-from dataclasses import asdict, dataclass, replace
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 
@@ -21,6 +21,12 @@ SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 SRA_ID = re.compile(r"^(?:SRR|ERR|DRR)[0-9]+$")
 # reference_id "auto": the workflow computes it from config umbrella_reference
 AUTO_REFERENCE_ID = "auto"
+# The fields that change what is computed for a run. Everything else in a
+# manifest row (group, sample_id, biological_replicate_id, include, extra
+# metadata columns) only says how runs are selected and combined later, so
+# editing it must never restage, realign or requantify a run.
+RUN_IDENTITY = ("run_id", "source_type", "source_1", "source_2", "layout",
+                "strandedness", "reference_id", "project_id", "batch_id")
 
 
 @dataclass(frozen=True)
@@ -77,8 +83,13 @@ class UmbrellaManifest:
 
     @staticmethod
     def _digest(runs):
-        """Hash only the records that own an output, not the growing TSV."""
-        payload = [asdict(run) for run in sorted(runs, key=lambda run: run.run_id)]
+        """Hash the processing identity of the runs that own an output.
+
+        Only RUN_IDENTITY counts: relabelling a run or adding metadata columns
+        leaves every per-run and per-shard output untouched.
+        """
+        payload = [{field: getattr(run, field) for field in RUN_IDENTITY}
+                   for run in sorted(runs, key=lambda run: run.run_id)]
         return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
     def run_sha256(self, run_id):

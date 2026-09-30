@@ -55,6 +55,25 @@ class JoinTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "checksum guard"):
                 join([one], "featurecounts", "ref")
 
+    def test_select_keeps_only_the_chosen_runs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            counts = write_shard(root, "b1.featurecounts.tsv.gz",
+                                 "gene_id\tlength\tr1\tr2\tr3\ngA\t10\t4\t5\t6\n")
+            text, _ = join([counts], "featurecounts", "ref", runs=["r1", "r3"])
+            self.assertEqual(text.splitlines(), ["gene_id\tlength\tr1\tr3", "gA\t10\t4\t6"])
+            fields = ("ME_coverages", "excluding_covs", "PSI", "CI_Lo", "CI_Hi")
+            header = "ME\t" + "\t".join("{}.{}".format(run, f) for run in ("r1.x", "r2") for f in fields)
+            me = write_shard(root, "b1.microexonator.tsv.gz", header + "\n"
+                             "me1\t1\t2\t0.3\t0.1\t0.5\t\t\t\t\t\n"
+                             "me2\t\t\t\t\t\t3\t4\t0.4\t0.2\t0.6\n")
+            text, _ = join([me], "microexonator", "ref", runs=["r1.x"])
+            # run IDs may contain dots; rows empty in every kept run are dropped
+            self.assertEqual(text.splitlines(), [
+                "ME\t" + "\t".join("r1.x." + f for f in fields), "me1\t1\t2\t0.3\t0.1\t0.5"])
+            with self.assertRaisesRegex(ValueError, "none of the selected runs"):
+                join([counts], "featurecounts", "ref", runs=["r9"])
+
     def test_salmon_matrices_share_one_guard(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

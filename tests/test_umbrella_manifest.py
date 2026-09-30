@@ -33,6 +33,20 @@ class ManifestTests(unittest.TestCase):
             for record in rows))
         return self.path
 
+    def test_run_identity_ignores_labels_and_metadata(self):
+        base = load_umbrella_manifest(self.write([row()])).run_sha256("run1")
+        for change in (dict(group="ctrl"), dict(sample_id="other", biological_replicate_id="bio9"),
+                       dict(phenotype="glia")):
+            self.assertEqual(load_umbrella_manifest(self.write([row(**change)])).run_sha256("run1"),
+                             base, change)
+        for change in (dict(batch_id="batch2"), dict(strandedness="firststrand"),
+                       dict(source_1="reads/other_R1.fastq.gz")):
+            self.assertNotEqual(load_umbrella_manifest(self.write([row(**change)])).run_sha256("run1"),
+                                base, change)
+        shard = load_umbrella_manifest(self.write([row()])).shard_sha256("ref", "project", "case", "batch")
+        self.assertEqual(load_umbrella_manifest(self.write([row(phenotype="glia")])).shard_sha256(
+            "ref", "project", "case", "batch"), shard)
+
     def test_paths_metadata_and_queries(self):
         manifest = load_umbrella_manifest(self.write([
             row(), row(run_id="run2", source_1="reads/X1.fastq.gz", source_2="reads/X2.fastq.gz"),

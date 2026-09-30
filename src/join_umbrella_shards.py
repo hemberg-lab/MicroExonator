@@ -14,6 +14,12 @@ Kinds, their key columns and how rows missing from a shard are filled:
   whippet        Gene Node Coord Strand Type, in row order; shards must have
                  identical rows (same index), else the join is refused
 
+With `runs` (from a comparison preflight, `--select`), only those runs'
+columns are kept: a comparison can take some of a shard's runs, so selections
+on metadata work without rebuilding shards. Sparse rows (MicroExonator) empty
+in every kept run are dropped; junction summary columns still describe all
+runs of the shard.
+
 collapse_technical_runs() sums count columns of runs that belong to one
 biological replicate, so technical runs never become independent replicates.
 """
@@ -75,13 +81,36 @@ def _read(path):
     return header, rows
 
 
-def join(shards, kind, reference_id):
+def _run_of(column, width):
+    # multi-column kinds name columns <run>.<field>; field names have no dots
+    return column if width == 1 else column.rsplit(".", 1)[0]
+
+
+def _select(header, rows, fixed, width, runs):
+    """Keep the fixed columns and the column blocks of `runs`."""
+    columns = header[fixed:]
+    if len(columns) % width:
+        raise ValueError("shard columns do not divide into runs")
+    keep = list(range(fixed))
+    for start in range(fixed, len(header), width):
+        if _run_of(header[start], width) in runs:
+            keep.extend(range(start, start + width))
+    return [header[i] for i in keep], [[row[i] for i in keep] for row in rows]
+
+
+def join(shards, kind, reference_id, runs=None):
     spec = KINDS[kind]
     fixed = spec["key"] + spec["summary"]
     headers, tables, digests = [], [], {}
     for shard in sorted(shards):
         digests[str(shard)] = verify_shard(shard, reference_id)
         header, rows = _read(shard)
+        if runs is not None:
+            header, rows = _select(header, rows, fixed, spec["width"], set(runs))
+            if len(header) == fixed:
+                raise ValueError("shard {} holds none of the selected runs".format(shard))
+            if spec["fill"] == "":
+                rows = [row for row in rows if any(row[fixed:])]
         headers.append(header)
         tables.append(rows)
     if len({tuple(header[:fixed]) for header in headers}) != 1:
@@ -162,9 +191,14 @@ def main(argv=None):
     parser.add_argument("--provenance", required=True)
     parser.add_argument("--collapse", help="JSON {run_id: biological_replicate_id}, or a "
                         "comparison preflight JSON, whose 'collapse' map is used")
+    parser.add_argument("--select", help="comparison preflight JSON: keep only its runs")
     parser.add_argument("shards", nargs="+")
     args = parser.parse_args(argv)
-    text, digests = join(args.shards, args.kind, args.reference_id)
+    runs = None
+    if args.select:
+        with open(args.select) as stream:
+            runs = sorted(json.load(stream)["collapse"])
+    text, digests = join(args.shards, args.kind, args.reference_id, runs)
     if args.collapse:
         with open(args.collapse) as stream:
             mapping = json.load(stream)
@@ -173,7 +207,7 @@ def main(argv=None):
         stream.write(gzip.compress(text.encode(), mtime=0))
     with open(args.provenance, "w") as stream:
         json.dump({"kind": args.kind, "reference_id": args.reference_id,
-                   "shards": digests, "output_sha256": hashlib.sha256(text.encode()).hexdigest()},
+                   "shards": digests, "runs": runs, "output_sha256": hashlib.sha256(text.encode()).hexdigest()},
                   stream, sort_keys=True, indent=2)
         stream.write("\n")
 

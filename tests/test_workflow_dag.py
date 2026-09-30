@@ -38,6 +38,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella_comparisons=None,
         rulegraph=False,
         umbrella_reference_id="ref",
+        pre_existing=(),
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -125,6 +126,16 @@ class WorkflowSelectionTests(unittest.TestCase):
                         open(os.path.join(temp_dir, name), "w").close()
                     for number in range(1, 9):
                         open(os.path.join(temp_dir, "hisat.{}.ht2".format(number)), "w").close()
+            for relative_path, text in pre_existing:
+                absolute_path = os.path.join(temp_dir, relative_path)
+                os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+                if relative_path.endswith(".gz"):
+                    import gzip
+                    with gzip.open(absolute_path, "wt") as handle:
+                        handle.write(text)
+                else:
+                    with open(absolute_path, "w") as handle:
+                        handle.write(text)
             with open(os.path.join(temp_dir, "config.yaml"), "w") as handle:
                 handle.write("Genome_fasta: genome.fa\n")
                 handle.write("Gene_anontation_bed12: annotation.bed12\n")
@@ -544,6 +555,61 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         for narrow in ("quant_microexonator", "quant_whippet"):
             self.assertNotIn("hisat2 -p", runs[narrow].stdout)
             self.assertNotIn(root, runs[narrow].stdout)
+
+    UMBRELLA_ROWS = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
+                     "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
+                     for name, group in (("b", "control"), ("c", "case"), ("d", "case"))]
+
+    def test_new_runs_get_fastqc_kept_summaries_and_a_project_report(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella",
+            umbrella_extra_rows=self.UMBRELLA_ROWS)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("qc/ref/project/case/batch/runs/run_c/fastqc", out)
+        self.assertIn("src/umbrella_fastqc.py fastqc --run-id run_c", out)
+        self.assertIn("--reads-per-file 2000000", out)
+        self.assertIn("qc/ref/project/case/batch/runs/run_c/salmon/run_c/aux_info/meta_info.json", out)
+        self.assertIn("multiqc/ref/project/multiqc_report.html", out)
+
+    def test_runs_processed_before_qc_was_kept_never_trigger_fastqc(self):
+        # every shard of the project is already written: its reads are gone
+        existing = [("qc/ref/project/{}/batch.qc.tsv.gz".format(group), "run_id\n")
+                    for group in ("control", "case")]
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella",
+            umbrella_extra_rows=self.UMBRELLA_ROWS, pre_existing=existing)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("umbrella_fastqc", result.stdout)
+        self.assertNotIn("umbrella_multiqc", result.stdout)
+        # QC can be switched off altogether
+        off = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, target="quant_umbrella", umbrella_extra_rows=self.UMBRELLA_ROWS,
+            extra_config=["umbrella_optional:", "  multiqc: false"])
+        self.assertEqual(off.returncode, 0, off.stdout)
+        self.assertNotIn("umbrella_fastqc", off.stdout)
+
+    def test_selection_comparison_joins_only_selected_runs(self):
+        comparisons = ("comparisons:\n  - comparison_id: c_vs_rest\n    project_id: project\n"
+                       "    a: {label: only_c, samples: [sample_c, sample_d]}\n"
+                       "    b: {label: ctrl, groups: [control]}\n")
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella",
+            umbrella_extra_rows=self.UMBRELLA_ROWS, umbrella_comparisons=comparisons)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("--select comparisons/ref/project/c_vs_rest/preflight.json", result.stdout)
+
+    def test_relabelling_a_run_with_written_shards_is_refused(self):
+        # run_c was stored under control; the manifest now says case
+        existing = [("junctions/ref/project/control/batch.junctions.tsv.gz",
+                     "chrom\tstart\tend\tstrand\tlabel\tmax_anchor\tmulti_total\t"
+                     "short_anchor_total\trun_b\trun_c\n")]
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, target="quant_umbrella",
+            umbrella_extra_rows=self.UMBRELLA_ROWS, pre_existing=existing)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("run run_c is stored in shard ref/project/control/batch", result.stdout)
+        self.assertIn("select on it in the comparisons file", result.stdout)
 
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(

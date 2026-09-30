@@ -1,0 +1,6 @@
+# MultiQC settings for the umbrella QC report (rules/umbrella_qc.smk)
+title: "MicroExonator umbrella QC"
+report_comment: "FastQC runs on the first reads of each file (umbrella_fastqc_reads). HISAT2, featureCounts and Salmon summaries come from the umbrella's own runs."
+# kept files are named <run>.hisat2.summary.txt, <run>_R1.fastq, ...
+extra_fn_clean_exts:
+  - ".hisat2"

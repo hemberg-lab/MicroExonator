@@ -11,13 +11,16 @@ Optional analyses (config `umbrella_optional`, all on by default):
   coverage    summed CPM coverage per group and batch (bigWig) plus n
   leafcutter  per-comparison LeafCutter (also needs config leafcutter_dir)
   suppa2      per-comparison SUPPA2 on Salmon transcript TPM
+  multiqc     FastQC plus kept summaries per run, one MultiQC report per
+              project; new batches only (rules/umbrella_qc.smk)
+  microexonator_whippet_delta  (off by default) legacy ME-in-Whippet delta
 """
 
 import json
 from pathlib import Path
 
 UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True,
-                     "microexonator_whippet_delta": False}
+                     "multiqc": True, "microexonator_whippet_delta": False}
 UMBRELLA_OPTIONAL.update(config.get("umbrella_optional", {}) or {})
 UMBRELLA_HISAT2_FLAGS = config.get("umbrella_hisat2_flags", "")
 UMBRELLA_INTRON_CATALOG = UMBRELLA_REFERENCE_ROOT + "/introns.tsv.gz"

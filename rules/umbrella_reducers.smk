@@ -123,7 +123,8 @@ rule umbrella_comparison_join:
     shell:
         "python3 src/join_umbrella_shards.py --kind {params.joiner} "
         "--reference-id {wildcards.reference_id} --output {output.joined} "
-        "--provenance {output.provenance} {params.collapse} {input.shards}"
+        "--provenance {output.provenance} --select {input.preflight} "
+        "{params.collapse} {input.shards}"
 
 
 UMBRELLA_COMPARISON_TARGETS = []

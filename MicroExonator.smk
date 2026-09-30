@@ -156,6 +156,17 @@ if "umbrella_manifest" in config:
             raise WorkflowError("cannot compute reference_id: {}".format(error))
         UMBRELLA_MANIFEST = UMBRELLA_MANIFEST.with_reference_id(_auto_id)
         sys.stderr.write("Umbrella reference_id: {} (computed from umbrella_reference)\n".format(_auto_id))
+    from src.umbrella_identity import check_existing_shards, migrate_identity_params
+    # shards already written are immutable: refuse regrouping that would need
+    # their reads again, and say how to express it instead
+    _shard_problems = check_existing_shards(UMBRELLA_MANIFEST)
+    if _shard_problems:
+        raise WorkflowError("the umbrella manifest contradicts existing shards:\n  "
+                            + "\n  ".join(_shard_problems))
+    _migrated = migrate_identity_params()
+    if _migrated:
+        sys.stderr.write("Note: run identity updated; {} existing outputs keep their results "
+                         "(one-time step, nothing is recomputed)\n".format(_migrated))
     DATA.update(run.run_id for run in UMBRELLA_MANIFEST.included_runs())
     include : "rules/umbrella_inputs.smk"
 else:
@@ -311,6 +322,7 @@ if "umbrella_manifest" in config:
    include : "rules/umbrella_alignment.smk"
    include : "rules/umbrella_reducers.smk"
    include : "rules/umbrella_comparisons.smk"
+   include : "rules/umbrella_qc.smk"
    include : "rules/umbrella_quantifiers.smk"
 
 DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()

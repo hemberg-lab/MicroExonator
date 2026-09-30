@@ -58,11 +58,30 @@ built from `whippet.microexons.gtf.gz`. Set `umbrella_insert_microexons:
 false` to use the configured GTFs as they are.
 
 **Comparisons** (`umbrella_comparisons`, YAML): a list under `comparisons`
-with `comparison_id`, `project_id`, `group_a`, `group_b` and optional
-`exclude`. Effects are reported as A - B.
+with `comparison_id`, `project_id`, two sides and optional `exclude` (run or
+biological replicate IDs). Effects are reported as A - B. A side is either a
+manifest group (`group_a: case`) or a selection of runs with a label:
 
-**Optional analyses** (`umbrella_optional`, all `true` by default): `rmats`,
-`coverage`, `leafcutter`, `suppa2`. LeafCutter uses the conda-managed Python
+```yaml
+comparisons:
+  - comparison_id: asd_vs_ctrl
+    project_id: PRJNA1120182
+    group_a: cerebellum_asd
+    group_b: cerebellum_unaffected
+  - comparison_id: asd_vs_ctrl_female
+    project_id: PRJNA1120182
+    a: {label: asd_female, where: {phenotype: ASD, sex: F}}
+    b: {label: ctrl_female, groups: [cerebellum_unaffected], where: {sex: F}}
+```
+
+A selection keeps the runs matching every key it gives: `groups`, `samples`
+(sample IDs), `runs` (run IDs) and `where` (any manifest column, including
+extra metadata columns; a value or a list of values).
+
+**Optional analyses** (`umbrella_optional`): `rmats`, `coverage`,
+`leafcutter`, `suppa2` and `multiqc` are on by default;
+`microexonator_whippet_delta` (the legacy ME-in-Whippet delta, run next to
+the Whippet-free one for validation) is off. LeafCutter uses the conda-managed Python
 `leafcutter-cluster` and `leafcutter-ds` commands; it needs no separate source
 checkout, R installation or scheduler submission. It is pinned in
 `envs/umbrella-leafcutter.yaml`. The first real installation and comparison
@@ -114,6 +133,12 @@ rMATS prep files that `--task post` needs later. Kept per
 | `splicing/` | MicroExonator corrected PSI and Whippet PSI, every column the delta tools read |
 | `rmats/` | one prep file per run and an inventory |
 | `coverage/` | summed CPM coverage (bigWig) and the number of runs, so group means stay exact across batches |
+| `qc/{...}/runs/{run_id}/` | (`multiqc`) FastQC `fastqc_data.txt` for the first `umbrella_fastqc_reads` reads per file (default 2,000,000), HISAT2, featureCounts, Salmon and Whippet summaries: about 50 KB per run |
+
+With `multiqc`, `multiqc/{reference_id}/{project_id}/` holds one MultiQC
+report per project, built from the kept summaries, plus `runs_without_qc.txt`.
+Only runs processed after this was added get summaries: a run whose QC shard
+already exists has no reads left, and never triggers FastQC.
 
 Every kept file is written once, read-only, next to a checksum guard. Writing
 different content to an existing shard fails instead of overwriting it. Per
@@ -135,12 +160,45 @@ per tool, its status, calls, direction, calling rule and shared upstream data,
 plus per-run index capture and QC outliers computed across each group. It
 does not vote.
 
+## Regrouping
+
+`group` is the storage label a run's shards are filed under, and `batch_id`
+the unit of addition; both are fixed once a run's shards exist. A run's
+identity, which decides whether it is staged, aligned or quantified again, is
+only its processing fields (`run_id`, sources, `layout`, `strandedness`,
+`reference_id`, `project_id`, `batch_id`). So these edits reprocess nothing:
+
+- adding metadata columns or changing their values;
+- changing `sample_id` or `biological_replicate_id`;
+- adding comparisons, including selections that mix groups or pick runs by
+  metadata. Only the preflight, joins, comparison tools and synthesis run.
+
+These are refused at start-up with a message saying what to do instead,
+because the shard could only be rebuilt by downloading the reads again:
+
+- moving a run to another `group` or `batch_id` (add a metadata column and
+  select on it);
+- adding a run to a `group`/`batch_id` whose shards exist (use a new
+  `batch_id`);
+- excluding (`include: false`) a run whose shards exist (use the comparison's
+  `exclude`).
+
+Coverage tracks are sums per group and batch, so they exist only for the
+original groups.
+
+**Updating a workflow started before this change.** The first start after
+updating drops Snakemake's recorded params of the existing staging and shard
+outputs, once (`umbrella/.run_identity_v2` marks it done), because those
+params held the old whole-row hashes. Start and end times are kept. Every
+preflight is rewritten, so joins, comparison tools and syntheses rerun once;
+nothing per run or per shard does. Check with a dry run first.
+
 ## Operation
 
 - **Batches.** Add runs with a new `batch_id` to the manifest and rerun
-  `quant_umbrella`. A run is fingerprinted by its own manifest row and a
-  shard by the rows in its reference/project/group/batch; appending unrelated
-  rows does not invalidate either. Joins and comparisons rerun only when
+  `quant_umbrella`. A run is fingerprinted by its processing fields and a
+  shard by those of the runs in its reference/project/group/batch; appending
+  unrelated rows or editing labels and metadata invalidates neither. Joins and comparisons rerun only when
   their selected runs change. Keep the reference ID and existing manifest
   rows unchanged. The per-comparison outputs for a comparison expanded to
   include the new batch are recomputed, but existing per-batch shards remain

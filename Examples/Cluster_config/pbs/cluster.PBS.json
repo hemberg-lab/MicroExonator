@@ -756,5 +756,38 @@
         "name": "U.microexonator_whippet_delta.{wildcards.comparison_id}",
         "output": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.err"
+    },
+    "umbrella_fastqc": {
+        "ppn": "2",
+        "threads": "2",
+        "mem_mb": "4000",
+        "mem": "4000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.fastqc.{wildcards.run_id}",
+        "output": "logs/U.fastqc.{wildcards.run_id}.out",
+        "error": "logs/U.fastqc.{wildcards.run_id}.err"
+    },
+    "umbrella_qc_keep": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "2000",
+        "mem": "2000mb",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.qc_keep.{wildcards.run_id}",
+        "output": "logs/U.qc_keep.{wildcards.run_id}.out",
+        "error": "logs/U.qc_keep.{wildcards.run_id}.err"
+    },
+    "umbrella_multiqc": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.multiqc.{wildcards.project_id}",
+        "output": "logs/U.multiqc.{wildcards.project_id}.out",
+        "error": "logs/U.multiqc.{wildcards.project_id}.err"
     }
 }
