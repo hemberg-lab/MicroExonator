@@ -571,6 +571,9 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("--reads-per-file 2000000", out)
         self.assertIn("qc/ref/project/case/batch/runs/run_c/salmon/run_c/aux_info/meta_info.json", out)
         self.assertIn("multiqc/ref/project/multiqc_report.html", out)
+        # MultiQC writes its data folder as <report name>_data
+        self.assertIn("-n multiqc_report.html", out)
+        self.assertIn("multiqc/ref/project/multiqc_report_data", out)
 
     def test_runs_processed_before_qc_was_kept_never_trigger_fastqc(self):
         # every shard of the project is already written: its reads are gone

@@ -105,7 +105,8 @@ rule umbrella_multiqc:
         config="src/umbrella_multiqc_config.yaml"
     output:
         report=UMBRELLA_MULTIQC + "/multiqc_report.html",
-        data=directory(UMBRELLA_MULTIQC + "/multiqc_data"),
+        # MultiQC names its data folder after the report: <name>_data
+        data=directory(UMBRELLA_MULTIQC + "/multiqc_report_data"),
         missing=UMBRELLA_MULTIQC + "/runs_without_qc.txt"
     wildcard_constraints:
         reference_id="[^/]+", project_id="[^/]+"
