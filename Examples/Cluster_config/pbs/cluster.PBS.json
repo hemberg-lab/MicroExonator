@@ -42,14 +42,18 @@
         "threads": "1",
         "name": "ME.bowtie_to_genome.{wildcards.sample}",
         "output": "logs/ME.bowtie_to_genome.{wildcards.sample}.out",
-        "error": "logs/ME.bowtie_to_genome.{wildcards.sample}.err"
+        "error": "logs/ME.bowtie_to_genome.{wildcards.sample}.err",
+        "mem_mb": "4000",
+        "mem": "4000mb"
     },
     "Round2_bowtie_to_tags": {
         "ppn": "5",
         "threads": "5",
         "name": "ME.Round2_bowtie_to_tags.{wildcards.sample}",
         "output": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.out",
-        "error": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.err"
+        "error": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "generate_fasta_from_bed12": {
         "ppn": "1",
@@ -291,8 +295,8 @@
     "umbrella_stage_reads": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "3000",
+        "mem": "3000mb",
         "name": "U.stage_reads.{wildcards.run_id}",
         "output": "logs/U.stage_reads.{wildcards.run_id}.out",
         "error": "logs/U.stage_reads.{wildcards.run_id}.err"
@@ -309,8 +313,8 @@
     "umbrella_validate_reads": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "4000",
-        "mem": "4000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.validate_reads.{wildcards.run_id}",
@@ -320,8 +324,8 @@
     "umbrella_legacy_fastq": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "4000",
-        "mem": "4000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.legacy_fastq.{wildcards.run_id}",
@@ -331,8 +335,8 @@
     "umbrella_read_length": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "4000",
-        "mem": "4000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "01:00:00",
         "runtime": 3600,
         "name": "U.read_length.{wildcards.run_id}",
@@ -351,8 +355,8 @@
     "umbrella_junctions": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "name": "U.junctions.{wildcards.run_id}",
         "output": "logs/U.junctions.{wildcards.run_id}.out",
         "error": "logs/U.junctions.{wildcards.run_id}.err"
@@ -360,8 +364,8 @@
     "umbrella_featurecounts": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "3000",
+        "mem": "3000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.featurecounts.{wildcards.run_id}",
@@ -371,8 +375,8 @@
     "umbrella_rmats_prep": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "6000",
+        "mem": "6000mb",
         "name": "U.rmats_prep.{wildcards.run_id}",
         "output": "logs/U.rmats_prep.{wildcards.run_id}.out",
         "error": "logs/U.rmats_prep.{wildcards.run_id}.err"
@@ -380,8 +384,8 @@
     "umbrella_coverage_run": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "6000",
+        "mem": "6000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.coverage_run.{wildcards.run_id}",
@@ -391,8 +395,8 @@
     "umbrella_salmon_quant": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "32000",
-        "mem": "32000mb",
+        "mem_mb": "24000",
+        "mem": "24000mb",
         "name": "U.salmon_quant.{wildcards.run_id}",
         "output": "logs/U.salmon_quant.{wildcards.run_id}.out",
         "error": "logs/U.salmon_quant.{wildcards.run_id}.err"
@@ -409,8 +413,8 @@
     "umbrella_legacy_bridge": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "4000",
-        "mem": "4000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "04:00:00",
         "runtime": 14400,
         "name": "U.legacy_bridge.{wildcards.sample}",
@@ -420,8 +424,8 @@
     "umbrella_junction_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "6000",
+        "mem": "6000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.junction_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -431,8 +435,8 @@
     "umbrella_capture_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.capture_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -442,8 +446,8 @@
     "umbrella_coverage_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.coverage_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -464,8 +468,8 @@
     "umbrella_featurecounts_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.featurecounts_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -475,8 +479,8 @@
     "umbrella_salmon_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "4000",
+        "mem": "4000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.salmon_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -486,8 +490,8 @@
     "umbrella_microexonator_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.microexonator_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -497,8 +501,8 @@
     "umbrella_qc_shard": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "4000",
-        "mem": "4000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "walltime": "08:00:00",
         "runtime": 28800,
         "name": "U.qc_shard.{wildcards.group}.{wildcards.batch_id}",
@@ -537,8 +541,8 @@
     "umbrella_deseq2": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "32000",
-        "mem": "32000mb",
+        "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.deseq2.{wildcards.comparison_id}.{wildcards.route}",
         "output": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.out",
         "error": "logs/U.deseq2.{wildcards.comparison_id}.{wildcards.route}.err"
@@ -546,8 +550,8 @@
     "umbrella_microexonator_delta": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "name": "U.microexonator_delta.{wildcards.comparison_id}",
         "output": "logs/U.microexonator_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.microexonator_delta.{wildcards.comparison_id}.err"
@@ -555,8 +559,8 @@
     "umbrella_whippet_delta": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.whippet_delta.{wildcards.comparison_id}",
         "output": "logs/U.whippet_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.whippet_delta.{wildcards.comparison_id}.err"
@@ -564,8 +568,8 @@
     "umbrella_rmats_post": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "32000",
-        "mem": "32000mb",
+        "mem_mb": "16000",
+        "mem": "16000mb",
         "name": "U.rmats_post.{wildcards.comparison_id}",
         "output": "logs/U.rmats_post.{wildcards.comparison_id}.out",
         "error": "logs/U.rmats_post.{wildcards.comparison_id}.err"
@@ -573,8 +577,8 @@
     "umbrella_leafcutter": {
         "ppn": "4",
         "threads": "4",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.leafcutter.{wildcards.comparison_id}",
         "output": "logs/U.leafcutter.{wildcards.comparison_id}.out",
         "error": "logs/U.leafcutter.{wildcards.comparison_id}.err"
@@ -582,8 +586,8 @@
     "umbrella_suppa": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.suppa.{wildcards.comparison_id}",
         "output": "logs/U.suppa.{wildcards.comparison_id}.out",
         "error": "logs/U.suppa.{wildcards.comparison_id}.err"
@@ -591,8 +595,8 @@
     "umbrella_synthesis": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "8000",
-        "mem": "8000mb",
+        "mem_mb": "2000",
+        "mem": "2000mb",
         "name": "U.synthesis.{wildcards.comparison_id}",
         "output": "logs/U.synthesis.{wildcards.comparison_id}.out",
         "error": "logs/U.synthesis.{wildcards.comparison_id}.err"
@@ -640,7 +644,9 @@
     "Round2_alingment_pre_processing": {
         "name": "ME.Round2_alingment_pre_processing.{wildcards.sample}",
         "output": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.out",
-        "error": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.err"
+        "error": "logs/ME.Round2_alingment_pre_processing.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "ME_reads": {
         "name": "ME.ME_reads.{wildcards.sample}",
@@ -650,27 +656,37 @@
     "Round2_filter": {
         "name": "ME.Round2_filter.{wildcards.sample}",
         "output": "logs/ME.Round2_filter.{wildcards.sample}.out",
-        "error": "logs/ME.Round2_filter.{wildcards.sample}.err"
+        "error": "logs/ME.Round2_filter.{wildcards.sample}.err",
+        "mem_mb": "32000",
+        "mem": "32000mb"
     },
     "ME_SJ_coverage": {
         "name": "ME.ME_SJ_coverage.{wildcards.sample}",
         "output": "logs/ME.ME_SJ_coverage.{wildcards.sample}.out",
-        "error": "logs/ME.ME_SJ_coverage.{wildcards.sample}.err"
+        "error": "logs/ME.ME_SJ_coverage.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "coverage_to_PSI_report": {
         "name": "ME.coverage_to_PSI_report.{wildcards.sample}",
         "output": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.out",
-        "error": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.err"
+        "error": "logs/ME.coverage_to_PSI_report.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "correct_quant": {
         "name": "ME.correct_quant.{wildcards.sample}",
         "output": "logs/ME.correct_quant.{wildcards.sample}.out",
-        "error": "logs/ME.correct_quant.{wildcards.sample}.err"
+        "error": "logs/ME.correct_quant.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "get_PSI_sparse_quants_se": {
         "name": "ME.get_PSI_sparse_quants_se.{wildcards.sample}",
         "output": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.out",
-        "error": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.err"
+        "error": "logs/ME.get_PSI_sparse_quants_se.{wildcards.sample}.err",
+        "mem_mb": "2000",
+        "mem": "2000mb"
     },
     "get_PSI_sparse_quants_pe": {
         "name": "ME.get_PSI_sparse_quants_pe.{wildcards.sample}",
@@ -751,8 +767,8 @@
     "umbrella_microexonator_whippet_delta": {
         "ppn": "1",
         "threads": "1",
-        "mem_mb": "16000",
-        "mem": "16000mb",
+        "mem_mb": "8000",
+        "mem": "8000mb",
         "name": "U.microexonator_whippet_delta.{wildcards.comparison_id}",
         "output": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.out",
         "error": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.err"
