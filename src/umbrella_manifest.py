@@ -45,6 +45,9 @@ class UmbrellaRun:
     reference_id: str
     include: bool
     metadata: dict
+    # a library of several runs (column library_id): ((run_id, source_1,
+    # source_2), ...) in run order, merged at staging; empty for a single run
+    members: tuple = ()
 
     @property
     def work_dir(self):
@@ -53,10 +56,17 @@ class UmbrellaRun:
 
 
 class UmbrellaManifest:
+    """Processing units: one per run, or one per library (column library_id).
+
+    `run_id` of a unit is the library ID when several runs share one; every
+    downstream path, shard column and comparison uses it.
+    """
+
     def __init__(self, path, runs):
         self.path = Path(path)
         self.runs = tuple(runs)
         self.by_run = {run.run_id: run for run in runs}
+        self.by_member = {member[0]: run for run in runs for member in run.members}
 
     def with_reference_id(self, reference_id):
         """The manifest with every reference_id "auto" replaced by `reference_id`."""
@@ -121,6 +131,72 @@ class UmbrellaManifest:
         return run.work_dir + "/legacy.fastq.gz"
 
 
+# members of one library must agree on these; they define how it is processed
+LIBRARY_AGREE = ("project_id", "batch_id", "group", "layout", "strandedness", "reference_id",
+                 "source_type", "biological_replicate_id")
+
+
+def group_libraries(runs, libraries):
+    """Merge rows sharing a library_id into one processing unit (see UmbrellaRun.members).
+
+    Rows without library_id stay as they are, so manifests without the column
+    keep every run ID and hash. Excluded rows are dropped from their library.
+    """
+    if not any(libraries):
+        return runs
+    groups = {}
+    for run, library in zip(runs, libraries):
+        # a run without library_id is never pulled into a library of the same name
+        groups.setdefault(("library", library) if library else ("run", run.run_id), []).append((run, library))
+    row_ids = {run.run_id for run in runs}
+    units = []
+    for (kind, key), rows in groups.items():
+        members = [run for run, _ in rows]
+        if kind == "run":
+            units.append(members[0])
+            continue
+        if key in row_ids and key not in {run.run_id for run in members}:
+            raise ValueError("library_id {} is also another row's run_id".format(key))
+        if len(rows) == 1 and key == members[0].run_id:
+            units.append(members[0])            # a library of one run, named after it
+            continue
+        included = sorted((run for run in members if run.include), key=lambda run: run.run_id)
+        chosen = included or sorted(members, key=lambda run: run.run_id)
+        for field in LIBRARY_AGREE:
+            values = {getattr(run, field) for run in chosen}
+            if len(values) > 1:
+                raise ValueError("library {}: its runs disagree on {} ({})".format(
+                    key, field, ", ".join(sorted(values))))
+        if chosen[0].source_type in ("bam", "cram") and len(chosen) > 1:
+            raise ValueError("library {}: merging several BAM/CRAM runs is not supported".format(key))
+        metadata = {}
+        for name in sorted(set().union(*(run.metadata for run in chosen))):
+            values = []
+            for run in chosen:
+                value = run.metadata.get(name, "")
+                if value not in values:
+                    values.append(value)
+            metadata[name] = values[0] if len(values) == 1 else ";".join(sorted(values))
+        metadata["library_id"] = key
+        metadata["library_members"] = ";".join(run.run_id for run in chosen)
+        samples = []
+        for run in chosen:
+            if run.sample_id not in samples:
+                samples.append(run.sample_id)
+        first = chosen[0]
+        units.append(replace(
+            first, sample_id=";".join(samples), run_id=key,
+            source_1=";".join(run.source_1 for run in chosen),
+            source_2=";".join(run.source_2 for run in chosen) if any(run.source_2 for run in chosen) else "",
+            include=bool(included), metadata=metadata,
+            members=tuple((run.run_id, run.source_1, run.source_2) for run in chosen)))
+    ids = [unit.run_id for unit in units]
+    if len(ids) != len(set(ids)):
+        raise ValueError("library and run IDs collide: {}".format(
+            ", ".join(sorted({i for i in ids if ids.count(i) > 1}))))
+    return units
+
+
 def link_legacy_fastq(staged, destination):
     """Give MicroExonator its FASTQ without tying it to the temporary staged file.
 
@@ -152,7 +228,7 @@ def load_umbrella_manifest(path):
             raise ValueError("manifest missing required columns: {}".format(", ".join(sorted(missing))))
         if len(columns) != len(set(columns)):
             raise ValueError("manifest contains duplicate column names")
-        runs = []
+        runs, libraries = [], []
         seen_runs = set()
         samples = {}
         for line_number, raw in enumerate(reader, start=2):
@@ -200,6 +276,10 @@ def load_umbrella_manifest(path):
                         values[key] = str((path.parent / values[key]).resolve())
             if values["source_type"] == "sra":
                 original_values = dict(values)
+            library = values.get("library_id", "")
+            if library and not SAFE_ID.fullmatch(library):
+                raise ValueError("manifest line {}: unsafe library_id: {}".format(line_number, library))
             runs.append(UmbrellaRun(*(values[key] for key in REQUIRED[:-1]),
                                     values["include"] == "true", original_values))
-    return UmbrellaManifest(path, runs)
+            libraries.append(library)
+    return UmbrellaManifest(path, group_libraries(runs, libraries))

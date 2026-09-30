@@ -19,8 +19,8 @@ or a selection of runs, with a `label` used in reports:
 
 A selection keeps the runs that match every key it gives:
   groups   manifest group(s)
-  samples  sample_id(s)
-  runs     run_id(s)
+  samples  sample_id(s); a library matches through any of its runs
+  runs     run_id(s): a library_id or any run merged into it
   where    {column: value or [values]} on any manifest column, including
            extra metadata columns
 New conditions are therefore new metadata columns plus new comparisons: the
@@ -134,9 +134,11 @@ def load_comparisons(path):
 def _matches(run, selection):
     if "groups" in selection and run.group not in selection["groups"]:
         return False
-    if "samples" in selection and run.sample_id not in selection["samples"]:
+    # a library matches through any of its runs' sample or run accessions
+    if "samples" in selection and not set(run.sample_id.split(";")) & set(selection["samples"]):
         return False
-    if "runs" in selection and run.run_id not in selection["runs"]:
+    runs = {run.run_id} | {member[0] for member in run.members}
+    if "runs" in selection and not runs & set(selection["runs"]):
         return False
     for column, values in selection.get("where", {}).items():
         if run.metadata.get(column, "").strip() not in values:
@@ -200,7 +202,7 @@ def preflight(manifest, comparison):
         rmats_reasons.append("mixed layouts ({}); rMATS needs one".format(",".join(sorted(layouts))))
     # the shards that store the selected runs (their original group and batch)
     shards = sorted({(run.reference_id, run.project_id, run.group, run.batch_id) for run in everything})
-    return {
+    result = {
         "comparison_id": comparison_id,
         "project_id": comparison["project_id"],
         "reference_id": references.pop(),
@@ -221,6 +223,13 @@ def preflight(manifest, comparison):
         "reasons": reasons,
         "tools": {"rmats": {"supported": not rmats_reasons, "reasons": rmats_reasons}},
     }
+    # sequencing runs merged into each library before quantification; only when
+    # there are any, so preflights of run-level comparisons stay byte-identical
+    members = {run.run_id: [member[0] for member in run.members]
+               for run in sorted(everything, key=lambda r: r.run_id) if run.members}
+    if members:
+        result["library_members"] = members
+    return result
 
 
 def main(argv=None):

@@ -22,6 +22,8 @@ def umbrella_sources(wildcards):
     run = umbrella_run(wildcards)
     if run.source_type == "sra":
         return []
+    if run.members:   # a library: every run's local files (same list as before for one run)
+        return [path for member in run.members for path in member[1:] if path]
     return [path for path in (run.source_1, run.source_2) if path]
 
 

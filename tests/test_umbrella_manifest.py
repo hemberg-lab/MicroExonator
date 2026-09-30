@@ -153,3 +153,99 @@ class LegacyFastqLinkTests(unittest.TestCase):
             owned.unlink()
             self.assertEqual((root / "FASTQ" / "b.fastq.gz").read_bytes(), b"downloaded")
             self.assertFalse(os.path.islink(root / "FASTQ" / "b.fastq.gz"))
+
+
+LIBRARY_COLUMNS = COLUMNS + ["library_id", "lane"]
+
+
+class LibraryTests(unittest.TestCase):
+    """Runs sharing library_id become one processing unit (technical-replicate audit cases)."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = pathlib.Path(self.temp.name) / "manifest.tsv"
+
+    def load(self, rows):
+        self.path.write_text("\t".join(LIBRARY_COLUMNS) + "\n" + "".join(
+            "\t".join(str(record.get(column, "")) for column in LIBRARY_COLUMNS) + "\n" for record in rows))
+        return load_umbrella_manifest(self.path)
+
+    @staticmethod
+    def sra(run, library="", **changes):
+        return row(run_id=run, sample_id=changes.pop("sample_id", "GSM_" + run), source_type="sra",
+                   source_1=run, source_2="", library_id=library, **changes)
+
+    def test_lanes_of_one_experiment_become_one_unit(self):
+        # PRJNA552045: four runs of SRX6385921
+        manifest = self.load([self.sra(run, "SRX6385921") for run in
+                              ("SRR9623442", "SRR9623439", "SRR9623441", "SRR9623440")]
+                             + [self.sra("SRR9", sample_id="GSM2", biological_replicate_id="bio2")])
+        self.assertEqual(sorted(manifest.by_run), ["SRR9", "SRX6385921"])
+        unit = manifest.by_run["SRX6385921"]
+        self.assertEqual([member[0] for member in unit.members],
+                         ["SRR9623439", "SRR9623440", "SRR9623441", "SRR9623442"])
+        self.assertEqual(unit.source_1, "SRR9623439;SRR9623440;SRR9623441;SRR9623442")
+        self.assertEqual(unit.metadata["library_members"], unit.source_1)
+        self.assertIs(manifest.by_member["SRR9623441"], unit)
+        self.assertEqual(manifest.native_reads("SRX6385921"),
+                         ("umbrella/work/ref/project/batch/SRX6385921/R1.fastq.gz",
+                          "umbrella/work/ref/project/batch/SRX6385921/R2.fastq.gz"))
+        self.assertEqual(manifest.by_run["SRR9"].members, ())
+
+    def test_lanes_with_their_own_gsm_keep_every_sample_id(self):
+        # MYT1L: the two lanes of one culture have different GSMs
+        manifest = self.load([self.sra("SRR14130233", "iN_31_dcre_d7", sample_id="GSM5222893", lane="1"),
+                              self.sra("SRR14130234", "iN_31_dcre_d7", sample_id="GSM5222894", lane="2")])
+        unit = manifest.by_run["iN_31_dcre_d7"]
+        self.assertEqual(unit.sample_id, "GSM5222893;GSM5222894")
+        self.assertEqual(unit.metadata["lane"], "1;2")
+        self.assertEqual(unit.metadata["phenotype"], "neural")
+
+    def test_hashes_unchanged_without_library_id_and_follow_members(self):
+        plain = self.load([self.sra("SRR1"), self.sra("SRR2", sample_id="GSM2", biological_replicate_id="b2")])
+        with_empty = load_umbrella_manifest(self.path)
+        self.assertEqual(plain.run_sha256("SRR1"), with_empty.run_sha256("SRR1"))
+        two = self.load([self.sra("SRR1", "LIB"), self.sra("SRR2", "LIB")]).run_sha256("LIB")
+        three = self.load([self.sra("SRR1", "LIB"), self.sra("SRR2", "LIB"), self.sra("SRR3", "LIB")])
+        self.assertNotEqual(three.run_sha256("LIB"), two)
+
+    def test_excluded_lanes_are_dropped_from_their_library(self):
+        manifest = self.load([self.sra("SRR1", "LIB"),
+                              self.sra("SRR2", "LIB", include="false", exclusion_reason="low quality")])
+        self.assertEqual([member[0] for member in manifest.by_run["LIB"].members], ["SRR1"])
+        self.assertTrue(manifest.by_run["LIB"].include)
+
+    def test_inconsistent_libraries_are_refused(self):
+        for rows, message in (
+                ([self.sra("SRR1", "LIB"), self.sra("SRR2", "LIB", group="ctrl")], "disagree on group"),
+                ([self.sra("SRR1", "LIB"), self.sra("SRR2", "LIB", biological_replicate_id="b2")],
+                 "disagree on biological_replicate_id"),
+                ([self.sra("SRR1", "LIB"), self.sra("SRR2", "LIB", layout="SE")], "disagree on layout"),
+                ([self.sra("SRR1", "SRR3"), self.sra("SRR2", "SRR3"), self.sra("SRR3", sample_id="GSM3")],
+                 "also another row's run_id"),
+                ([self.sra("SRR1", "bad id")], "unsafe library_id")):
+            with self.assertRaisesRegex(ValueError, message):
+                self.load(rows)
+
+    def test_selections_match_a_library_through_its_members(self):
+        from src.comparison_preflight import preflight
+        manifest = self.load(
+            [self.sra("SRR1", "L1", sample_id="GSM1a", group="case", biological_replicate_id="c1"),
+             self.sra("SRR2", "L1", sample_id="GSM1b", group="case", biological_replicate_id="c1"),
+             self.sra("SRR3", sample_id="GSM3", group="case", biological_replicate_id="c3"),
+             self.sra("SRR4", sample_id="GSM4", group="ctrl", biological_replicate_id="k4"),
+             self.sra("SRR5", sample_id="GSM5", group="ctrl", biological_replicate_id="k5")])
+        result = preflight(manifest, {"comparison_id": "c", "project_id": "project",
+                                      "a": {"label": "picked", "samples": ["GSM1b", "GSM3"]},
+                                      "b": {"label": "ctrl", "runs": ["SRR4", "SRR5"]}})
+        self.assertEqual(result["runs"]["a"], ["L1", "SRR3"])
+        self.assertEqual(result["library_members"], {"L1": ["SRR1", "SRR2"]})
+        self.assertEqual(result["technical_run_replicates"], [])
+        plain = preflight(manifest, {"comparison_id": "c2", "project_id": "project",
+                                     "a": {"label": "one", "runs": ["SRR3", "SRR1"]},
+                                     "b": {"label": "ctrl", "groups": ["ctrl"]}})
+        self.assertEqual(plain["runs"]["a"], ["L1", "SRR3"])
+        self.assertNotIn("library_members", preflight(manifest, {
+            "comparison_id": "c4", "project_id": "project",
+            "a": {"label": "k", "runs": ["SRR4", "SRR5"]}, "b": {"label": "c", "runs": ["SRR3"]}}))
