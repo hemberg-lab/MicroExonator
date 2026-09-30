@@ -117,7 +117,14 @@ class RealDaPars2Tests(unittest.TestCase):
                 "project_id": "p", "comparison_id": "c", "inference_supported": True, "reasons": [],
                 "replicates": {"a": ["A1", "A2"], "b": ["B1", "B2"]},
                 "collapse": {s: s for s in samples}}))
-            compare(preflight, caches, bed, dapars2, root / "module", threads=1, coverage_threshold=10)
+            # as the workflow calls it: from the project root, every path relative
+            import shutil
+            shutil.copytree(dapars2, root / "software")
+            previous = os.getcwd()
+            os.chdir(root)
+            self.addCleanup(os.chdir, previous)
+            compare("preflight.json", {s: os.path.relpath(p, root) for s, p in caches.items()},
+                    "utr.bed", "software", "module", threads=1, coverage_threshold=10)
             with gzip.open(root / "module" / "native.tsv.gz", "rt") as stream:
                 module = stream.read().splitlines()
             self.assertEqual(sorted(module[1:]), sorted(reference[1:]))

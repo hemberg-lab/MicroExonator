@@ -210,8 +210,9 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
             "Output_result_file=dapars2\nsequencing_depth_file=depth.txt\nNum_Threads={}\n"
             "Coverage_threshold={}\n".format(",".join(names), threads, coverage_threshold))
         with open(out_dir / "dapars2.log", "w") as log:
+            # absolute: DaPars2 runs inside the private folder, the workflow passes a relative path
             subprocess.run([sys.executable, "-c", FORK_RUNNER,
-                            str(Path(dapars2_dir) / "DaPars2_Multi_Sample_Multi_Chr.py"),
+                            str(Path(dapars2_dir).resolve() / "DaPars2_Multi_Sample_Multi_Chr.py"),
                             "config.txt", "chroms.txt"], cwd=work, stdout=log, stderr=subprocess.STDOUT,
                            check=True)
         header, rows = None, []

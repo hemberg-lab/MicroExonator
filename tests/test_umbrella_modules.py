@@ -152,13 +152,22 @@ class QapaTests(unittest.TestCase):
             pau_header = ("APA_ID\tTranscript\tGene\tGene_Name\tChr\tLastExon.Start\tLastExon.End\tStrand\t"
                           "UTR3.Start\tUTR3.End\tLength\tNum_Events\tr1.PAU\tr2.PAU\tr3.PAU\tr4.PAU\n")
 
+            (root / "db.txt").write_text("db\n")
+
             def fake_qapa(command, stdout, stderr, check, cwd):
-                self.assertEqual(command[:4], ["qapa", "quant", "--db", "db.txt"])
+                self.assertEqual(command[:3], ["qapa", "quant", "--db"])
+                # every input must resolve from the subprocess's own working directory
+                for path in command[3:]:
+                    self.assertTrue(os.path.exists(os.path.join(cwd, path)), path)
                 self.assertEqual([Path(p).parent.name for p in command[4:]], ["r1", "r2", "r3", "r4"])
                 stdout.write(pau_header + "ENSG1_1_P\tENST1\tENSG1\tAAA\tchr1\t100\t1000\t+\t600\t800\t200\t2\t25\t30\t75\t70\n")
 
+            previous = os.getcwd()
+            os.chdir(root)
+            self.addCleanup(os.chdir, previous)
+            relative = {run: os.path.relpath(path, root) for run, path in caches.items()}
             with patch("src.run_qapa.subprocess.run", side_effect=fake_qapa):
-                run_qapa.pau(preflight, caches, "db.txt", root / "out")
+                run_qapa.pau("preflight.json", relative, "db.txt", "out")
             counts = gzip.open(root / "out" / "site_counts.tsv.gz", "rt").read().splitlines()
             self.assertEqual(counts[1], "ENSG1_600_1300\tENSG1\t30\t28\t10\t12")
             with gzip.open(root / "out" / "dexseq.tsv.gz", "wt") as stream:

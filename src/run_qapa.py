@@ -108,10 +108,11 @@ def pau(preflight_path, caches, db, out_dir):
                 for name, length, effective, tpm, reads in rows:
                     stream.write("{}\t{}\t{:.3f}\t{:.6f}\t{:.3f}\n".format(name, length, effective, tpm, reads))
                     counts[site_key(name)][replicate] += reads
-            paths.append(str(work / replicate / "quant.sf"))
+            # absolute: qapa runs inside the private folder, the workflow passes relative paths
+            paths.append(str((work / replicate / "quant.sf").resolve()))
         with open(out_dir / "pau.tsv", "w") as stream, open(out_dir / "qapa.log", "w") as log:
-            subprocess.run(["qapa", "quant", "--db", str(db)] + paths, stdout=stream, stderr=log,
-                           check=True, cwd=str(work))
+            subprocess.run(["qapa", "quant", "--db", str(Path(db).resolve())] + paths, stdout=stream,
+                           stderr=log, check=True, cwd=str(work))
     with gzip.open(out_dir / "site_counts.tsv.gz", "wt") as stream:
         stream.write("site_id\tgene_id\t" + "\t".join(replicates) + "\n")
         for (gene, start, end), by_replicate in sorted(counts.items()):
