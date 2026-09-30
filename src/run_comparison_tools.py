@@ -116,10 +116,55 @@ def microexonator(args, preflight):
         shutil.rmtree(work)
 
 
+def microexonator_whippet(args, preflight):
+    """The legacy MegaSearch route: Whippet delta on Whippet PSI files whose
+    microexon nodes carry MicroExonator's corrected PSI and CI.
+
+    Per run, src/Replace_PSI_whippet2.py swaps MicroExonator's PSI into the
+    rebuilt Whippet table (the legacy ME_psi_to_quant rule), whippet-delta.jl
+    compares the swapped tables (whippet_delta_ME), and
+    src/whippet_delta_to_ME.py keeps the microexon nodes
+    (delta_ME_from_MicroExonator). Outputs: the full delta, then the
+    microexon rows.
+    """
+    if not preflight["inference_supported"]:
+        marker(args.outputs, UNSUPPORTED)
+        return
+    work = Path(args.work)
+    shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True)
+    try:
+        runs = preflight["runs"]["a"] + preflight["runs"]["b"]
+        whippet = [str(work / (run + ".psi.gz")) for run in runs]
+        me = [str(work / (run + ".me.tsv.gz")) for run in runs]
+        swapped = {run: str(work / (run + ".psi.ME.gz")) for run in runs}
+        write_delta_inputs("whippet", args.joined_whippet, runs, whippet)
+        write_delta_inputs("microexonator", args.joined, runs, me)
+        for run, me_path, whippet_path in zip(runs, me, whippet):
+            run_command(["python3", "src/Replace_PSI_whippet2.py", me_path, whippet_path,
+                         swapped[run]], args.log)
+        prefix = str(work / "delta")
+        run_command([args.julia, str(Path(args.whippet_bin) / "whippet-delta.jl"),
+                     "-a", ",".join(swapped[run] for run in preflight["runs"]["a"]),
+                     "-b", ",".join(swapped[run] for run in preflight["runs"]["b"]),
+                     "-o", prefix], args.log)
+        full, microexons = args.outputs
+        shutil.copyfile(prefix + ".diff.gz", full)
+        with open(microexons, "w") as stream:
+            subprocess.run(["python3", "src/whippet_delta_to_ME.py", args.whippet_exons, full,
+                            args.microexons], check=True, stdout=stream)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def run_command(command, log):
+    run(command, log)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("tool", choices=("rmats", "suppa", "microexonator"))
+    parser.add_argument("tool", choices=("rmats", "suppa", "microexonator", "microexonator_whippet"))
     parser.add_argument("--preflight", required=True)
     parser.add_argument("--work", required=True)
     parser.add_argument("--log", required=True)
@@ -131,10 +176,15 @@ def main(argv=None):
     parser.add_argument("--microexons")
     parser.add_argument("--options", default="")
     parser.add_argument("--events", nargs="*", default=[])
+    parser.add_argument("--joined-whippet")
+    parser.add_argument("--whippet-exons", help="the Whippet index's .exons.tab.gz")
+    parser.add_argument("--julia", default="julia")
+    parser.add_argument("--whippet-bin", default="")
     args = parser.parse_args(argv)
     with open(args.preflight) as stream:
         preflight = json.load(stream)
-    {"rmats": rmats, "suppa": suppa, "microexonator": microexonator}[args.tool](args, preflight)
+    {"rmats": rmats, "suppa": suppa, "microexonator": microexonator,
+     "microexonator_whippet": microexonator_whippet}[args.tool](args, preflight)
 
 
 if __name__ == "__main__":

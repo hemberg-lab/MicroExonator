@@ -70,13 +70,46 @@ rule umbrella_microexonator_delta:
     params:
         work=UMBRELLA_COMPARISON_ROOT + "/delta_inputs/microexonator",
         options=config.get("umbrella_me_delta_options", "")
+    log:
+        UMBRELLA_COMPARISON_ROOT + "/logs/microexonator_delta.log"
     conda:
         "../envs/umbrella-delta.yaml"
     shell:
+        # --options=: an empty value must stay attached to its flag (Snakemake
+        # writes nothing for an empty {params.options:q})
         "python3 src/run_comparison_tools.py microexonator "
         "--preflight {input.preflight:q} --joined {input.joined:q} "
         "--microexons {input.microexons:q} --work {params.work:q} "
-        "--options {params.options:q} --outputs {output:q} --log /dev/null"
+        "--options={params.options:q} --outputs {output:q} --log {log:q} 2> {log:q}"
+
+
+# Legacy MegaSearch route, optional (umbrella_optional: microexonator_whippet_delta):
+# Whippet delta on Whippet PSI with MicroExonator's corrected PSI swapped into
+# the microexon nodes. Runs next to the Whippet-free microexonator_delta, to
+# validate it.
+rule umbrella_microexonator_whippet_delta:
+    input:
+        preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
+        joined=UMBRELLA_COMPARISON_ROOT + "/joined/microexonator.tsv.gz",
+        joined_whippet=UMBRELLA_COMPARISON_ROOT + "/joined/whippet.tsv.gz",
+        exons=UMBRELLA_WHIPPET_MEMBERS[1],
+        microexons=UMBRELLA_FIXED_MICROEXONS
+    output:
+        full=UMBRELLA_COMPARISON_ROOT + "/microexonator_whippet_delta.diff.gz",
+        microexons=UMBRELLA_COMPARISON_ROOT + "/microexonator_whippet_delta.microexons.tsv"
+    params:
+        work=UMBRELLA_COMPARISON_ROOT + "/delta_inputs/microexonator_whippet",
+        julia=config.get("julia", "julia"),
+        whippet_bin=config.get("whippet_bin_folder", "")
+    log:
+        UMBRELLA_COMPARISON_ROOT + "/logs/microexonator_whippet_delta.log"
+    shell:
+        "python3 src/run_comparison_tools.py microexonator_whippet "
+        "--preflight {input.preflight:q} --joined {input.joined:q} "
+        "--joined-whippet {input.joined_whippet:q} --whippet-exons {input.exons:q} "
+        "--microexons {input.microexons:q} --work {params.work:q} "
+        "--julia {params.julia:q} --whippet-bin={params.whippet_bin:q} "
+        "--outputs {output.full:q} {output.microexons:q} --log {log:q} 2>> {log:q}"
 
 
 rule umbrella_whippet_delta:
@@ -196,6 +229,10 @@ def umbrella_tool_table(wildcards):
         ("rmats", "splicing", "annotation_based", "hisat2", "rmats",
          [root + "/rmats/{}.MATS.JC.txt".format(kind) for kind in UMBRELLA_RMATS_TYPES]),
     ]
+    if UMBRELLA_OPTIONAL.get("microexonator_whippet_delta", False):
+        tools.append(("microexonator_whippet_delta", "splicing", "annotation_based",
+                      "microexonator+whippet", "delta",
+                      [root + "/microexonator_whippet_delta.microexons.tsv"]))
     if UMBRELLA_OPTIONAL.get("leafcutter", True):
         tools.append(("leafcutter", "splicing", "annotation_free", "hisat2", "leafcutter",
                       [root + "/leafcutter_cluster_significance.txt"]))

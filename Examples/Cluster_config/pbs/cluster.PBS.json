@@ -747,5 +747,14 @@
         "name": "U.rmats_gtf",
         "output": "logs/U.rmats_gtf.out",
         "error": "logs/U.rmats_gtf.err"
+    },
+    "umbrella_microexonator_whippet_delta": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "name": "U.microexonator_whippet_delta.{wildcards.comparison_id}",
+        "output": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.out",
+        "error": "logs/U.microexonator_whippet_delta.{wildcards.comparison_id}.err"
     }
 }

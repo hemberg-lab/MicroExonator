@@ -16,7 +16,8 @@ Optional analyses (config `umbrella_optional`, all on by default):
 import json
 from pathlib import Path
 
-UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True}
+UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True,
+                     "microexonator_whippet_delta": False}
 UMBRELLA_OPTIONAL.update(config.get("umbrella_optional", {}) or {})
 UMBRELLA_HISAT2_FLAGS = config.get("umbrella_hisat2_flags", "")
 UMBRELLA_INTRON_CATALOG = UMBRELLA_REFERENCE_ROOT + "/introns.tsv.gz"

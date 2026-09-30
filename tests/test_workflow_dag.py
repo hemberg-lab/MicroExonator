@@ -463,6 +463,27 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotIn("umbrella/reference/auto/", out)
         self.assertNotIn("umbrella/work/auto/", out)
 
+    def test_microexonator_whippet_delta_is_optional_and_feeds_the_synthesis(self):
+        rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
+                "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
+                for name, group in (("b", "control"), ("c", "case"), ("d", "case"))]
+        comparisons = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
+                       "    group_a: case\n    group_b: control\n")
+        runs = {}
+        for enabled in (False, True):
+            extra = ["umbrella_optional:", "  microexonator_whippet_delta: true"] if enabled else []
+            runs[enabled] = WorkflowSelectionTests.run_quant_dry_run(
+                self, umbrella=True, print_shell=True, target="quant_umbrella",
+                umbrella_extra_rows=rows, umbrella_comparisons=comparisons, extra_config=extra)
+            self.assertEqual(runs[enabled].returncode, 0, runs[enabled].stdout)
+        self.assertNotIn("rule umbrella_microexonator_whippet_delta:", runs[False].stdout)
+        out = runs[True].stdout
+        self.assertIn("rule umbrella_microexonator_whippet_delta:", out)
+        self.assertIn("run_comparison_tools.py microexonator_whippet", out)
+        # the Whippet-free delta still runs, with the empty options kept attached to the flag
+        self.assertIn("--options= --outputs", out)
+        self.assertIn("logs/microexonator_delta.log", out)
+
     def test_splicing_shards_and_comparison_joins(self):
         rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
                 "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
