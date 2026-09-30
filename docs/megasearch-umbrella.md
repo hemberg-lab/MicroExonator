@@ -23,6 +23,29 @@ in the config, MicroExonator behaves exactly as before.
 Runs of one `biological_replicate_id` are technical runs: count tables are
 summed per replicate and they never count as independent replicates.
 
+**Libraries** (optional column `library_id`). Runs sharing a `library_id`,
+such as the lanes or resequencing runs of one library, are merged into one
+unit before any tool runs:
+- **Staging** appends them in run order, both mates of a run together. The
+  unit is named by the `library_id` everywhere: work folder, shard columns,
+  MicroExonator sample, comparisons.
+- **Leave it empty** for a run that is its own library; manifests without the
+  column behave as before.
+- **Members must agree** on project, batch, group, layout, strandedness,
+  reference, source type and `biological_replicate_id`. Excluded runs are left
+  out of their library. A `library_id` may not equal another run's `run_id`.
+  Several BAM/CRAM runs cannot be merged. Runs whose first reads are
+  identical are refused as a duplicate submission.
+- **Members may differ** in `sample_id` (lanes can have their own GEO
+  samples) and other metadata: those values are kept joined with `;`, and
+  `samples:`/`runs:` in a comparison match a library through any of its runs.
+  Preflights list each library's runs under `library_members`.
+- **Decide the grouping upstream.** The workflow merges exactly what the
+  column says. Group runs of one SRA experiment, or curated lane pairs; a
+  shared BioSample or donor alone is not evidence of lanes. Set `library_id`
+  before a run is processed: a processed run cannot be merged into a library
+  afterwards without downloading it again, and the shard guard refuses it.
+
 **Reference bundle** (`umbrella_reference`, mapping). Supply `genome_fasta`,
 `annotation_gtf` (full annotation: featureCounts, rMATS, splice hints),
 `whippet_gtf` (the fixed Whippet annotation) and `me_db`. The workflow derives

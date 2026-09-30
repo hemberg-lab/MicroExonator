@@ -40,6 +40,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         umbrella_reference_id="ref",
         pre_existing=(),
         prepare=None,
+        umbrella_extra_column=None,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -109,10 +110,12 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write(delta_comparisons)
             if umbrella:
                 with open(os.path.join(temp_dir, "umbrella.tsv"), "w") as handle:
-                    handle.write("sample_id\trun_id\tbiological_replicate_id\tproject_id\tbatch_id\tgroup\tsource_type\tsource_1\tsource_2\tlayout\tstrandedness\treference_id\tinclude\n")
+                    extra = "\t" + umbrella_extra_column if umbrella_extra_column else ""
+                    handle.write("sample_id\trun_id\tbiological_replicate_id\tproject_id\tbatch_id\tgroup\tsource_type\tsource_1\tsource_2\tlayout\tstrandedness\treference_id\tinclude" + extra + "\n")
                     source_2 = "r2.fastq.gz" if umbrella_layout == "PE" else ""
-                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\t{}\ttrue\n".format(
-                        umbrella_layout.lower(), source_2, umbrella_layout, umbrella_reference_id))
+                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\t{}\ttrue{}\n".format(
+                        umbrella_layout.lower(), source_2, umbrella_layout, umbrella_reference_id,
+                        "\t" if umbrella_extra_column else ""))
                     for row in umbrella_extra_rows:
                         handle.write(row + "\n")
                 if umbrella_comparisons is not None:
@@ -768,6 +771,26 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
                 self.assertNotIn(absent, result.stdout, target)
         self.assertIn("rule umbrella_qapa_pau:", result.stdout)
         self.assertIn("rule umbrella_dapars2_compare:", result.stdout)
+
+    def test_a_library_of_two_runs_is_processed_once(self):
+        rows = ["sample_b\trun_b\trep_b\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\t",
+                "GSM_c1\tSRR_c1\trep_c\tproject\tbatch\tcase\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\tLIB_c",
+                "GSM_c2\tSRR_c2\trep_c\tproject\tbatch\tcase\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\tLIB_c",
+                "sample_d\trun_d\trep_d\tproject\tbatch\tcase\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\t"]
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target="quant_umbrella", umbrella_extra_rows=rows,
+            umbrella_comparisons=self.MODULE_COMPARISONS, umbrella_extra_column="library_id")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        stats = dict(re.findall(r"^(\w+)\s+(\d+)$", out, re.M))
+        # 4 units from 5 rows: the two runs of LIB_c are one sample everywhere
+        for rule in ("umbrella_stage_reads", "umbrella_hisat2", "umbrella_whippet_quant",
+                     "umbrella_salmon_quant", "umbrella_fastqc"):
+            self.assertEqual(stats.get(rule), "4", rule)
+        self.assertIn("umbrella/work/ref/project/batch/LIB_c/R1.fastq.gz", out)
+        self.assertIn("FASTQ/LIB_c.fastq.gz", out)
+        self.assertNotIn("SRR_c1/", out)
+        self.assertNotIn("FASTQ/SRR_c1", out)
 
     def test_se_salmon_uses_single_read_argument(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
