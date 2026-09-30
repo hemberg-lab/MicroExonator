@@ -21,6 +21,10 @@ project = 'MicroExonator'
 copyright = '2020, Guillermo E. Parada'
 author = 'Guillermo E. Parada'
 
+# The short X.Y version and the full version, including alpha/beta/rc tags
+version = '2.0'
+release = '2.0.0-beta.1'
+
 
 # -- General configuration ---------------------------------------------------
 
