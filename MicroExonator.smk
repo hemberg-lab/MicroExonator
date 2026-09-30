@@ -27,11 +27,17 @@ EBWT = [
     "rev.2.ebwt",
 ]
 
-warnings.simplefilter("default", DeprecationWarning)
+# Deprecated config keys are reported as one plain "Note:" line. A global
+# warnings filter here would also surface other libraries' DeprecationWarnings,
+# which look like errors to users.
 try:
-    FILTER_METHOD = resolve_filter_method(config)
+    with warnings.catch_warnings(record=True) as _config_notes:
+        warnings.simplefilter("always", DeprecationWarning)
+        FILTER_METHOD = resolve_filter_method(config)
 except ValueError as error:
     raise WorkflowError(str(error))
+for _note in _config_notes:
+    sys.stderr.write("Note: {}\n".format(_note.message))
 FILTERED_ME_OUTPUT = selected_microexon_output(FILTER_METHOD)
 
 if "validate_fastq_list" in config:
@@ -149,7 +155,7 @@ if "umbrella_manifest" in config:
         except (OSError, ValueError) as error:
             raise WorkflowError("cannot compute reference_id: {}".format(error))
         UMBRELLA_MANIFEST = UMBRELLA_MANIFEST.with_reference_id(_auto_id)
-        sys.stderr.write("umbrella reference_id (auto): {}\n".format(_auto_id))
+        sys.stderr.write("Umbrella reference_id: {} (computed from umbrella_reference)\n".format(_auto_id))
     DATA.update(run.run_id for run in UMBRELLA_MANIFEST.included_runs())
     include : "rules/umbrella_inputs.smk"
 else:

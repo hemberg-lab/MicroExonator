@@ -456,7 +456,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
             target="quant_umbrella", umbrella_reference_id="auto")
         self.assertEqual(result.returncode, 0, result.stdout)
         out = result.stdout
-        match = re.search(r"umbrella reference_id \(auto\): ([0-9a-f]{16})", out)
+        match = re.search(r"Umbrella reference_id: ([0-9a-f]{16}) \(computed from umbrella_reference\)", out)
         self.assertIsNotNone(match, out[-3000:])
         # every umbrella path uses the computed ID, none the placeholder
         self.assertIn("umbrella/reference/{}/".format(match.group(1)), out)
@@ -483,6 +483,16 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         # the Whippet-free delta still runs, with the empty options kept attached to the flag
         self.assertIn("--options= --outputs", out)
         self.assertIn("logs/microexonator_delta.log", out)
+
+    def test_start_up_prints_no_deprecation_noise(self):
+        # a deprecated config key gives one plain note; nothing that looks like an error
+        result = WorkflowSelectionTests.run_quant_dry_run(self, extra_config=["filter_mode: unbiased"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertEqual(out.count("Note: filter_mode is deprecated; use filter_method: robustness"), 1, out[:2000])
+        self.assertNotIn("DeprecationWarning", out, out[:2000])
+        self.assertNotIn("invalid escape sequence", out, out[:2000])
+        self.assertNotIn("raise WorkflowError", out, out[:2000])
 
     def test_splicing_shards_and_comparison_joins(self):
         rows = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
