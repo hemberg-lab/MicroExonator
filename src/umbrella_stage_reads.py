@@ -3,6 +3,7 @@
 import argparse
 import bz2
 import gzip
+import hashlib
 import os
 import shutil
 import subprocess
@@ -32,25 +33,42 @@ CLEAN_ENV = dict(os.environ, LC_ALL="C")
 SAMPLE_RECORDS = 10000
 
 
-def _gzip_stream(incoming, destination, threads):
-    """Write a binary FASTQ stream to destination as gzip, cleaned (CLEAN_FASTQ).
+class CleanGzipWriter:
+    """One cleaned (CLEAN_FASTQ), gzip-compressed FASTQ file fed from one or more streams.
 
-    pigz compresses when available, gzip otherwise.
+    pigz compresses when available, gzip otherwise. Several inputs (the runs of
+    a library) become one ordinary single-member gzip file.
     """
-    pigz = shutil.which("pigz")
-    compress = [pigz, "-p", str(max(1, threads)), "-c"] if pigz else ["gzip", "-c"]
-    with open(destination, "wb") as outgoing:
-        rewrite = subprocess.Popen(CLEAN_FASTQ, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   env=CLEAN_ENV)
-        packer = subprocess.Popen(compress, stdin=rewrite.stdout, stdout=outgoing)
-        rewrite.stdout.close()   # packer owns the read end now
+
+    def __init__(self, destination, threads=1):
+        pigz = shutil.which("pigz")
+        self.compress = [pigz, "-p", str(max(1, threads)), "-c"] if pigz else ["gzip", "-c"]
+        self.outgoing = open(destination, "wb")
+        self.rewrite = subprocess.Popen(CLEAN_FASTQ, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                        env=CLEAN_ENV)
+        self.packer = subprocess.Popen(self.compress, stdin=self.rewrite.stdout, stdout=self.outgoing)
+        self.rewrite.stdout.close()   # packer owns the read end now
+
+    def add(self, incoming):
+        shutil.copyfileobj(incoming, self.rewrite.stdin, 1024 * 1024)
+
+    def close(self):
         try:
-            shutil.copyfileobj(incoming, rewrite.stdin, 1024 * 1024)
+            self.rewrite.stdin.close()
+            for process, name in ((self.rewrite, "awk"), (self.packer, self.compress[0])):
+                if process.wait() != 0:
+                    raise subprocess.CalledProcessError(process.returncode, name)
         finally:
-            rewrite.stdin.close()
-        for process, name in ((rewrite, "awk"), (packer, compress[0])):
-            if process.wait() != 0:
-                raise subprocess.CalledProcessError(process.returncode, name)
+            self.outgoing.close()
+
+
+def _gzip_stream(incoming, destination, threads):
+    """Write a binary FASTQ stream to destination as gzip, cleaned (CLEAN_FASTQ)."""
+    writer = CleanGzipWriter(destination, threads)
+    try:
+        writer.add(incoming)
+    finally:
+        writer.close()
 
 
 def compress_fastq(source, destination, threads=1):
@@ -124,6 +142,58 @@ def stage_sra(accession, work, paired, threads=1):
     return _sra_reads(work, accession, paired)
 
 
+# reads compared to spot a duplicate submission (the same reads under another
+# run accession): the first records' sequences, names ignored
+FINGERPRINT_RECORDS = 100000
+
+
+def _open_fastq(path):
+    path = Path(path)
+    return {".gz": gzip.open, ".bz2": bz2.open}.get(path.suffix, open)(path, "rb")
+
+
+def fingerprint(path, records=FINGERPRINT_RECORDS):
+    digest = hashlib.sha256()
+    with _open_fastq(path) as stream:
+        for number in range(records * 4):
+            line = stream.readline()
+            if not line:
+                break
+            if number % 4 == 1:
+                digest.update(line.rstrip(b"\r\n") + b"\n")
+    return digest.hexdigest()
+
+
+def stage_library(record, targets, threads=1, scratch=None):
+    """Merge a library's runs (record.members) into one R1 and, for PE, one R2.
+
+    Runs are appended in run order, both mates of a run together, so pairs stay
+    in step; SRA runs are dumped one at a time (disk peak: one run). Two runs
+    whose first reads are identical are refused as a duplicate submission.
+    """
+    writers = [CleanGzipWriter(target, threads) for target in targets]
+    seen = {}
+    try:
+        for run_id, source_1, source_2 in record.members:
+            with tempfile.TemporaryDirectory(dir=str(scratch or targets[0].parent),
+                                             prefix="stage_{}_".format(run_id)) as work_name:
+                if record.source_type == "sra":
+                    sources = stage_sra(source_1, Path(work_name), len(targets) == 2, threads)
+                else:
+                    sources = [source_1] + ([source_2] if len(targets) == 2 else [])
+                print_ = fingerprint(sources[0])
+                if print_ in seen:
+                    raise ValueError("library {}: runs {} and {} have identical reads, a duplicate "
+                                     "submission rather than lanes".format(record.run_id, seen[print_], run_id))
+                seen[print_] = run_id
+                for source, writer in zip(sources, writers):
+                    with _open_fastq(source) as incoming:
+                        writer.add(incoming)
+    finally:
+        for writer in writers:
+            writer.close()
+
+
 def processed_outputs(record):
     """Kept outputs that exist once a run is fully processed (paths from the workflow root)."""
     shard = "{}/{}/{}/{}".format(record.reference_id, record.project_id, record.group, record.batch_id)
@@ -151,6 +221,12 @@ def stage_run(manifest_path, run_id, r1, r2=None, threads=1, tmpdir=None, allow_
 
     targets = [Path(r1)] + ([Path(r2)] if r2 is not None else [])
     targets[0].parent.mkdir(parents=True, exist_ok=True)
+    tmpdir = os.path.expandvars(tmpdir) if tmpdir else None
+    if record.members:
+        scratch = Path(tmpdir) if tmpdir and "$" not in tmpdir else targets[0].parent
+        scratch.mkdir(parents=True, exist_ok=True)
+        stage_library(record, targets, threads, scratch)
+        return
     if record.source_type == "fastq":
         sources = [record.source_1] + ([record.source_2] if r2 is not None else [])
         for source, target in zip(sources, targets):
@@ -162,7 +238,6 @@ def stage_run(manifest_path, run_id, r1, r2=None, threads=1, tmpdir=None, allow_
     # tmpdir may name an environment variable, e.g. "$TMPDIR" for the per-job
     # node-local disk PBS provides; it is expanded here, on the node. Unset or
     # unexpanded, the run's work directory is used.
-    tmpdir = os.path.expandvars(tmpdir) if tmpdir else None
     scratch = Path(tmpdir) if tmpdir and "$" not in tmpdir else targets[0].parent
     scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(scratch), prefix="stage_{}_".format(run_id)) as work_name:

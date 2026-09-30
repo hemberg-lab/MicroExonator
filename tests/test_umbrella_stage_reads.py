@@ -21,6 +21,17 @@ HEADER = ("sample_id", "run_id", "biological_replicate_id", "project_id",
           "layout", "strandedness", "reference_id", "include")
 
 
+def library_manifest(directory, rows, source_type="fastq", layout="PE"):
+    """rows: (run, source_1, source_2); all in library LIB."""
+    manifest = directory / "umbrella.tsv"
+    lines = ["\t".join(HEADER + ("library_id",)) + "\n"]
+    for run, source_1, source_2 in rows:
+        lines.append("\t".join(("GSM_" + run, run, "rep", "project", "batch", "group", source_type,
+                                source_1, source_2, layout, "unstranded", "ref", "true", "LIB")) + "\n")
+    manifest.write_text("".join(lines))
+    return manifest
+
+
 def manifest_for(directory, source_type, source_1, source_2="", layout="PE"):
     manifest = directory / "umbrella.tsv"
     row = ("sample", "run", "rep", "project", "batch", "group", source_type,
@@ -71,6 +82,57 @@ class StageReadsTests(unittest.TestCase):
             Path(outputs[-1]).unlink()
             stage_run(manifest, "run", r1)
             self.assertTrue(r1.exists())
+
+    def test_library_runs_merge_in_run_order_with_mates_in_step(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            with gzip.open(directory / "b_1.fastq.gz", "wb") as stream:
+                stream.write(b"@b1/1\nGG\n+b1\nII\n")
+            with gzip.open(directory / "b_2.fastq.gz", "wb") as stream:
+                stream.write(b"@b1/2\nTT\n+\nII\n")
+            (directory / "a_1.fastq").write_text("@a1/1\nAC\n+\nII\n@a2/1\nCA\n+\nII\n")
+            (directory / "a_2.fastq").write_text("@a1/2\nGT\n+\nII\n@a2/2\nTG\n+\nII\n")
+            # rows out of order: runs are merged in run order (A before B)
+            manifest = library_manifest(directory, [("SRRB", "b_1.fastq.gz", "b_2.fastq.gz"),
+                                                    ("SRRA", "a_1.fastq", "a_2.fastq")])
+            r1, r2 = directory / "work/R1.fastq.gz", directory / "work/R2.fastq.gz"
+            stage_run(manifest, "LIB", r1, r2)
+            self.assertFalse(r1.is_symlink())
+            with gzip.open(r1, "rt") as stream:
+                self.assertEqual(stream.read(), "@a1/1\nAC\n+\nII\n@a2/1\nCA\n+\nII\n@b1/1\nGG\n+\nII\n")
+            with gzip.open(r2, "rt") as stream:
+                self.assertEqual([line for line in stream.read().split("\n")[0::4] if line],
+                                 ["@a1/2", "@a2/2", "@b1/2"])
+            self.assertFalse(list((directory / "work").glob("stage_*")))
+
+    def test_sra_library_dumps_each_run_and_refuses_duplicates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            calls = []
+            reads = {"SRR1": b"@SRR1.1\nACGT\n+SRR1.1\nIIII\n", "SRR2": b"@SRR2.1\nTTTT\n+SRR2.1\nIIII\n",
+                     "SRR3": b"@SRR3.1\nACGT\n+SRR3.1\nIIII\n"}
+
+            def fake_run(command, check):
+                calls.append(command[0])
+                if command[0] == "prefetch":
+                    return
+                accession = command[-1]
+                (Path(command[command.index("-O") + 1]) / (accession + ".fastq")).write_bytes(reads[accession])
+
+            manifest = library_manifest(directory, [("SRR2", "SRR2", ""), ("SRR1", "SRR1", "")],
+                                        source_type="sra", layout="SE")
+            r1 = directory / "work/R1.fastq.gz"
+            with patch("umbrella_stage_reads.subprocess.run", side_effect=fake_run):
+                stage_run(manifest, "LIB", r1)
+            self.assertEqual(calls, ["prefetch", "fasterq-dump", "prefetch", "fasterq-dump"])
+            with gzip.open(r1, "rt") as stream:
+                self.assertEqual(stream.read(), "@SRR1.1\nACGT\n+\nIIII\n@SRR2.1\nTTTT\n+\nIIII\n")
+            # SRR3 has SRR1's reads under another accession: not a lane
+            manifest = library_manifest(directory, [("SRR1", "SRR1", ""), ("SRR3", "SRR3", "")],
+                                        source_type="sra", layout="SE")
+            with patch("umbrella_stage_reads.subprocess.run", side_effect=fake_run):
+                with self.assertRaisesRegex(ValueError, "identical reads, a duplicate submission"):
+                    stage_run(manifest, "LIB", directory / "work2/R1.fastq.gz")
 
     def test_single_bzip2_is_converted_to_gzip(self):
         with tempfile.TemporaryDirectory() as tmp:
