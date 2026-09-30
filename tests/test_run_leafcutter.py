@@ -33,10 +33,15 @@ class RunLeafcutterTest(unittest.TestCase):
                 else:
                     (Path(cwd) / "leafcutter_ds_cluster_significance.txt").write_text(
                         "cluster\tp.adjust\nchr1:clu_1_+\t0.01\n")
+                    (Path(cwd) / "leafcutter_ds_effect_sizes.txt").write_text("intron\tdeltapsi_b\n")
+                    (Path(cwd) / "comparison_perind_numers.counts.gz").write_bytes(b"introns")
 
             result = root / "leafcutter_cluster_significance.txt"
+            exons = root / "exons.txt.gz"
+            exons.write_bytes(b"")
             with patch("src.run_leafcutter.subprocess.run", side_effect=fake_command):
-                run(preflight, joined, result, root / "leafcutter.log", threads=4)
+                run(preflight, joined, result, root / "leafcutter.log", threads=4,
+                    effect_sizes=root / "effects.txt", introns=root / "introns.counts.gz", exons=exons)
             self.assertEqual([command[0] for command in commands],
                              ["leafcutter-cluster", "leafcutter-ds"])
             self.assertIn("--baseline_group", commands[1])
@@ -44,6 +49,9 @@ class RunLeafcutterTest(unittest.TestCase):
             self.assertEqual(ds[ds.index("--min_samples_per_intron") + 1], "1")
             self.assertEqual(ds[ds.index("--min_samples_per_group") + 1], "1")
             self.assertIn("p.adjust", result.read_text())
+            self.assertEqual(ds[ds.index("--exon_file") + 1], str(exons.resolve()))
+            self.assertEqual((root / "effects.txt").read_text(), "intron\tdeltapsi_b\n")
+            self.assertEqual((root / "introns.counts.gz").read_bytes(), b"introns")
             self.assertFalse(list(root.glob("leafcutter-*")))
 
     def test_sample_limits_follow_smallest_group(self):
@@ -78,9 +86,11 @@ class RunLeafcutterTest(unittest.TestCase):
             preflight.write_text('{"inference_supported": false}')
             result = root / "result.txt"
             with patch("src.run_leafcutter.subprocess.run") as command:
-                run(preflight, root / "missing.tsv.gz", result, root / "leafcutter.log")
+                run(preflight, root / "missing.tsv.gz", result, root / "leafcutter.log",
+                    effect_sizes=root / "effects.txt", introns=root / "introns.counts.gz")
             command.assert_not_called()
             self.assertEqual(result.read_text(), "# inference not supported\n")
+            self.assertEqual((root / "effects.txt").read_text(), "# inference not supported\n")
 
 
 if __name__ == "__main__":

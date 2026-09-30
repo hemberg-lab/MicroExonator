@@ -789,5 +789,16 @@
         "name": "U.multiqc.{wildcards.project_id}",
         "output": "logs/U.multiqc.{wildcards.project_id}.out",
         "error": "logs/U.multiqc.{wildcards.project_id}.err"
+    },
+    "umbrella_leafcutter_exons": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.leafcutter_exons",
+        "output": "logs/U.leafcutter_exons.out",
+        "error": "logs/U.leafcutter_exons.err"
     }
 }

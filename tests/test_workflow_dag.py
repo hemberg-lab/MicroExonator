@@ -546,6 +546,9 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("src/expression_deseq2.R --route tximport", full)
         self.assertIn("src/run_comparison_tools.py rmats", full)
         self.assertIn("src/run_leafcutter.py --preflight", full)
+        self.assertIn("leafcutter-gtf-to-exons", full)
+        self.assertIn(root + "leafcutter_effect_sizes.txt", full)
+        self.assertIn(root + "leafcutter_introns.counts.gz", full)
         self.assertNotIn("leafcutter_dir", full)
         self.assertIn("suppa.py generateEvents", full)
         # narrower targets stop before alignment and comparisons

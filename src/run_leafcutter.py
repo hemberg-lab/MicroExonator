@@ -1,4 +1,13 @@
-"""Run the conda-managed Python LeafCutter commands for one comparison."""
+"""Run the conda-managed Python LeafCutter commands for one comparison.
+
+Kept next to the cluster table (the rest of the working folder is deleted):
+  --effect-sizes  leafcutter_ds_effect_sizes.txt: per intron, PSI in each group
+                  and deltapsi (B relative to the baseline group A)
+  --introns       comparison_perind_numers.counts.gz: the introns of every
+                  cluster (chrom:start:end:clu_N_strand) with counts per
+                  replicate, which maps cluster IDs to coordinates
+With --exons (leafcutter-gtf-to-exons output) clusters are labelled with genes.
+"""
 
 import argparse
 import json
@@ -19,15 +28,18 @@ else:
     from umbrella_tool_inputs import leafcutter_files
 
 
-def run(preflight_path, joined, output, log, threads=1):
+def run(preflight_path, joined, output, log, threads=1, effect_sizes=None, introns=None, exons=None):
     output = Path(output)
     log = Path(log)
+    kept = [Path(path) for path in (effect_sizes, introns) if path]
     output.parent.mkdir(parents=True, exist_ok=True)
     log.parent.mkdir(parents=True, exist_ok=True)
     with open(preflight_path) as stream:
         preflight = json.load(stream)
     if not preflight["inference_supported"]:
         output.write_text("# inference not supported\n")
+        for path in kept:
+            path.write_text("# inference not supported\n")
         log.write_text("LeafCutter skipped: comparison preflight does not support inference\n")
         return
     with tempfile.TemporaryDirectory(prefix="leafcutter-", dir=output.parent) as directory:
@@ -44,7 +56,8 @@ def run(preflight_path, joined, output, log, threads=1):
              "--baseline_group", "a", "--num_threads", str(threads),
              "--min_samples_per_intron", str(per_intron),
              "--min_samples_per_group", str(per_group),
-             "--output_prefix", "leafcutter_ds"],
+             "--output_prefix", "leafcutter_ds"]
+            + (["--exon_file", str(Path(exons).resolve())] if exons else []),
         ]
         with log.open("w") as report:
             if smallest < 4:
@@ -59,6 +72,10 @@ def run(preflight_path, joined, output, log, threads=1):
         if not result.is_file():
             raise RuntimeError("leafcutter-ds did not produce {}".format(result.name))
         shutil.copyfile(result, output)
+        if effect_sizes:
+            shutil.copyfile(work / "leafcutter_ds_effect_sizes.txt", effect_sizes)
+        if introns:
+            shutil.copyfile(work / "comparison_perind_numers.counts.gz", introns)
 
 
 def main(argv=None):
@@ -68,8 +85,12 @@ def main(argv=None):
     parser.add_argument("--output", required=True)
     parser.add_argument("--log", required=True)
     parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--effect-sizes", help="where to keep leafcutter_ds_effect_sizes.txt")
+    parser.add_argument("--introns", help="where to keep the cluster intron counts (.counts.gz)")
+    parser.add_argument("--exons", help="exon table from leafcutter-gtf-to-exons, to name genes")
     args = parser.parse_args(argv)
-    run(args.preflight, args.joined, args.output, args.log, args.threads)
+    run(args.preflight, args.joined, args.output, args.log, args.threads,
+        args.effect_sizes, args.introns, args.exons)
 
 
 if __name__ == "__main__":

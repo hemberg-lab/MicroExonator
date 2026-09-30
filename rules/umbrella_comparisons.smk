@@ -168,12 +168,31 @@ rule umbrella_rmats_post:
         "--log {log} --gtf {input.gtf} --threads {threads} --prep {input.prep} --outputs {output}"
 
 
+UMBRELLA_LEAFCUTTER_EXONS = UMBRELLA_REFERENCE_ROOT + "/leafcutter_exons.txt.gz"
+
+
+rule umbrella_leafcutter_exons:
+    # chr, start, end, strand, gene_name per exon: LeafCutter names cluster genes with it
+    input:
+        UMBRELLA_GTF["annotation"]
+    output:
+        UMBRELLA_LEAFCUTTER_EXONS
+    conda:
+        "../envs/umbrella-leafcutter.yaml"
+    shell:
+        "leafcutter-gtf-to-exons {input} {output}"
+
+
 rule umbrella_leafcutter:
     input:
         preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
-        joined=UMBRELLA_COMPARISON_ROOT + "/joined/junctions.tsv.gz"
+        joined=UMBRELLA_COMPARISON_ROOT + "/joined/junctions.tsv.gz",
+        exons=UMBRELLA_LEAFCUTTER_EXONS
     output:
-        UMBRELLA_COMPARISON_ROOT + "/leafcutter_cluster_significance.txt"
+        clusters=UMBRELLA_COMPARISON_ROOT + "/leafcutter_cluster_significance.txt",
+        # per-intron PSI and deltapsi, and cluster -> intron coordinates with counts
+        effect_sizes=UMBRELLA_COMPARISON_ROOT + "/leafcutter_effect_sizes.txt",
+        introns=UMBRELLA_COMPARISON_ROOT + "/leafcutter_introns.counts.gz"
     log:
         UMBRELLA_COMPARISON_ROOT + "/logs/leafcutter.log"
     threads: 4
@@ -181,7 +200,9 @@ rule umbrella_leafcutter:
         "../envs/umbrella-leafcutter.yaml"
     shell:
         "python3 src/run_leafcutter.py --preflight {input.preflight} "
-        "--joined {input.joined} --output {output} --log {log} --threads {threads}"
+        "--joined {input.joined} --exons {input.exons} --output {output.clusters} "
+        "--effect-sizes {output.effect_sizes} --introns {output.introns} "
+        "--log {log} --threads {threads}"
 
 
 rule umbrella_suppa_events:
