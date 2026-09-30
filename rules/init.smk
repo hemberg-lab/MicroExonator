@@ -72,26 +72,14 @@ if os.path.isfile("./local_samples.tsv"):
 
             if len(glob.glob(file_name))==0: #Check if the file is there, as if this file is overwriten everything will start from scratch
 
-                if row["path"].split(".")[-1] == "gz":
+                if row["path"].split(".")[-1] in ("gz", "bz2", "fastq"):
 
+                    # Copies the reads with bare '+' lines and printable-ASCII headers
+                    # (see src/stage_local_fastq.sh); clean .gz files are copied as they are.
                     download_file =  open(file_name, "w")
 
                     download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("cp " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
-                
-                
-                elif row["path"].split(".")[-1] == "bz2":
-                    download_file =  open(file_name, "w")
-
-                    download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("bzcat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
-
-                elif row["path"].split(".")[-1] == "fastq":
-                
-                    download_file =  open(file_name, "w")
-
-                    download_file.write("#!/bin/bash" + "\n")
-                    download_file.write("cat " + row["path"] +  " | gzip > FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
+                    download_file.write("bash src/stage_local_fastq.sh " + row["path"] +  " FASTQ/" + row["sample"]  + ".fastq.gz" + "\n")
 
                 else:
                     print("Error: only fastq, fastq.gz or fastq.bz2 are suported!")

@@ -183,6 +183,16 @@ class WorkflowSelectionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("bulk_samples.tsv", result.stdout)
 
+    def test_start_up_prints_no_deprecation_noise(self):
+        # a deprecated config key gives one plain note; nothing that looks like an error
+        result = self.run_quant_dry_run(extra_config=["filter_mode: unbiased"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertEqual(out.count("Note: filter_mode is deprecated; use filter_method: robustness"), 1, out[:2000])
+        self.assertNotIn("DeprecationWarning", out, out[:2000])
+        self.assertNotIn("invalid escape sequence", out, out[:2000])
+        self.assertNotIn("raise WorkflowError", out, out[:2000])
+
     def test_existing_quantifications_can_use_default_robustness_filter(self):
         result = self.run_quant_dry_run(skip_discovery_and_quant=True)
 

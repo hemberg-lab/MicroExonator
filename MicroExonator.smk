@@ -1,5 +1,6 @@
-#version 0.9.0
+#version 2.0.0-beta.1
 
+import sys
 import yaml
 from collections import defaultdict
 import csv
@@ -26,11 +27,17 @@ EBWT = [
     "rev.2.ebwt",
 ]
 
-warnings.simplefilter("default", DeprecationWarning)
+# Deprecated config keys are reported as one plain "Note:" line. A global
+# warnings filter here would also surface other libraries' DeprecationWarnings,
+# which look like errors to users.
 try:
-    FILTER_METHOD = resolve_filter_method(config)
+    with warnings.catch_warnings(record=True) as _config_notes:
+        warnings.simplefilter("always", DeprecationWarning)
+        FILTER_METHOD = resolve_filter_method(config)
 except ValueError as error:
     raise WorkflowError(str(error))
+for _note in _config_notes:
+    sys.stderr.write("Note: {}\n".format(_note.message))
 FILTERED_ME_OUTPUT = selected_microexon_output(FILTER_METHOD)
 
 if "validate_fastq_list" in config:

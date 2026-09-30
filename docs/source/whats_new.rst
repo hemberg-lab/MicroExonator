@@ -4,17 +4,20 @@
 What's new
 ==========
 
+MicroExonator 2.0.0-beta.1
+==========================
+
 This version ports MicroExonator to Python 3 and fixes several quantification problems that affected a sizeable share of microexons. Every change is covered by tests, including an end-to-end test on simulated reads with known PSI. The ``MiMB`` branch, which accompanies the *Methods in Molecular Biology* chapter, is unchanged.
 
 Python 3 and defaults
-=====================
+---------------------
 
 * All pipeline scripts run under Python 3, with pinned conda environments.
 * The robustness filter is the default confidence filter; the original Gaussian mixture filter is available as ``filter_method : legacy_mixture``.
 * Whippet receives corrected MicroExonator PSI values by default.
 
 Quantification fixes
-====================
+--------------------
 
 Each fix can be switched off to reproduce the counts of earlier versions. See :doc:`how_it_works` for details.
 
@@ -26,20 +29,28 @@ Each fix can be switched off to reproduce the counts of earlier versions. See :d
 * **Mixed** ``ME_DB`` **files.** BED6 rows are read correctly, and single-column rows no longer change the length limit for the rows after them.
 
 Differential inclusion without Whippet
-======================================
+--------------------------------------
 
 * ``delta_method : microexonator`` tests differential inclusion of microexons with MicroExonator's own PSI and read counts, using Whippet's statistical model, so Julia and Whippet do not need to be installed. With the same inputs it reproduces Whippet's ``DeltaPsi`` to within 0.02. See :doc:`differential_inclusion_analysis`.
 
 New reports
-===========
+-----------
 
 * ``Report/read_lengths.tsv``: read lengths per sample, with warnings for samples that look like another library type.
 * ``Report/ME_junction_genomic_copies.txt``: microexons whose junctions have an unspliced copy in the genome.
 * ``Report/ME_ambiguous_positions.txt``: short microexons whose position in the intron cannot be resolved from reads.
 * ``Report/ME_consecutive_runs.txt``: microexons adjacent to other microexons.
 
+Input and cluster setup
+-----------------------
+
+* Local FASTQ files are copied with a bare ``+`` separator line and read names limited to printable ASCII, which Whippet and Bowtie need; clean ``.fastq.gz`` files are copied as they are. See :doc:`setup`.
+* Paired-end mates joined from SRA downloads also get a bare ``+`` separator line.
+* A PBS cluster example (``Examples/Cluster_config/pbs/cluster.PBS.json``) with resources measured on hg38 runs, and a fixed LSF example. ``Round2_filter`` memory grows with read depth; see :ref:`cluster_resources`.
+* Start-up no longer prints Python ``DeprecationWarning`` messages from other packages; deprecated configuration keys are reported as one ``Note:`` line.
+
 Testing
-=======
+-------
 
 * Unit tests cover the counting rules, tag generation and configuration handling.
 * An mm10 smoke test runs the whole workflow on simulated reads with known PSI, including loci with two and three consecutive microexons, and checks that the mean PSI of every event in every sample group is within 0.15 of its simulated value.

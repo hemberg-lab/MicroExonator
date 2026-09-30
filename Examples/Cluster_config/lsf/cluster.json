@@ -58,6 +58,6 @@
     "total_hisat2_to_genome" :
     {
         "nCPUs"    : 5
-    },
+    }
 
 }
