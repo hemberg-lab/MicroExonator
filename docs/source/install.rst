@@ -51,4 +51,11 @@ This creates a folder called ``MicroExonator``. The workflow runs inside this fo
 
 .. note::
 
-    The commands in the *Methods in Molecular Biology* chapter correspond to the ``MiMB`` branch, which is kept unchanged for reproducibility. To follow the chapter exactly, run ``git checkout MiMB`` inside the cloned folder. The default branch contains the current version described in these pages.
+    These pages describe MicroExonator 2.0.0, currently in beta on the ``refurbishment/legacy-fixes`` branch. Until it is released, check out that branch inside the cloned folder:
+
+    .. code-block:: bash
+
+      cd MicroExonator
+      git checkout refurbishment/legacy-fixes
+
+    The commands in the *Methods in Molecular Biology* chapter correspond to the ``MiMB`` branch, which is kept unchanged for reproducibility. To follow the chapter exactly, run ``git checkout MiMB`` instead.

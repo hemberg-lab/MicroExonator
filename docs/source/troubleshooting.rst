@@ -24,12 +24,23 @@ Some final outputs, such as the per-sample discovery results (``Round1/*.sam.row
 Start again with different settings
 ====================================
 
-To rerun with a different genome, annotation or parameters that change the tags, start from a fresh clone of the repository, or delete the folders created by the previous run: ``data/``, ``Round1/``, ``Round2/``, ``Report/``, ``Whippet/`` and ``download/``.
+To rerun with a different genome, annotation or parameters that change the tags, start from a fresh clone of the repository, or delete the folders created by the previous run: ``data/``, ``Round1/``, ``Round2/``, ``Report/``, ``Whippet/``, ``Delta/`` and ``download/``.
 
 The mixture-model filter fails
 ==============================
 
 The ``legacy_mixture`` confidence filter fits a Gaussian mixture to the U2 scores of the quantified microexons. With few microexons the fit can fail, and the pipeline stops with a message recommending ``filter_method: robustness``, which is the default and does not need a model fit. See :doc:`discovery_and_quantification`.
+
+Malformed FASTQ files
+=====================
+
+Some FASTQ files break individual tools. Local files listed in ``local_samples.tsv`` are copied with a bare ``+`` separator line and printable-ASCII read names, which avoids the most common cases (see :doc:`setup`):
+
+* Whippet fails with ``Cannot encode 78 to DNAAlphabet{2}`` when the ``+`` line repeats the read name and reads contain N.
+* Bowtie crashes, or SAM files are broken, when read names contain tabs or characters outside ASCII.
+* Biopython stops with ``Sequence and quality captions differ`` when the ``+`` line repeats a read name that does not match the header.
+
+Files copied by an older version keep their ``download/{sample}.download.sh`` script; delete the script and the sample's file in ``FASTQ/`` to copy it again with these fixes. For files where some reads have a quality string of a different length than their sequence, list the samples in ``validate_fastq_list`` (see :doc:`parameters`) so that those reads are dropped.
 
 Unexpected read lengths
 =======================

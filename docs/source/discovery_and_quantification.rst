@@ -137,7 +137,7 @@ A target at the end of the command selects what to produce. Without one, MicroEx
    * - ``Report/out.robustly_detected.gtf``
      - The annotation with the detected microexons added, for use in other splicing tools such as DEXSeq, rMATS or Whippet (``Report/out.high_quality.gtf`` with ``filter_method: legacy_mixture``).
    * - ``differential_inclusion``
-     - Differential inclusion between sample groups with Whippet (see :doc:`differential_inclusion_analysis`).
+     - Differential inclusion between sample groups, with MicroExonator's own test (``delta_method : microexonator``) or with Whippet (see :doc:`differential_inclusion_analysis`).
    * - ``snakepool``, ``quant_unpool_single_cell``, ``collapse_pseudo_pools``, ``cluster_bams``
      - Single-cell modules (see :doc:`single_cell_analysis`).
 
@@ -223,9 +223,12 @@ The legacy mixture filter adds the columns ``ME_P_value`` (value used by the fin
 Quantification
 --------------
 
-PSI values per sample are in ``Report/quant/``. The files in ``Report/quant/corrected/PSI_sparse/`` use corrected counts, in which reads spanning the whole microexon count as one and reads crossing only one of its junctions count as half (see :doc:`how_it_works`). These are the values used by the confidence filter and by the Whippet modules. The per-sample quantification tables have these columns:
+PSI values per sample are in ``Report/quant/``, in two versions:
 
-.. list-table:: **Quantification output**
+* ``Report/quant/{sample}.out_filtered_ME.PSI.uncorrected.gz``: raw junction counts and PSI, with every junction read counted as one.
+* ``Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz`` (``bulk/pe/`` for pooled paired-end samples, ``single_cell/`` for single cells): corrected counts, in which reads spanning the whole microexon count as one and reads crossing only one of its junctions count as half (see :doc:`how_it_works`). These are the values used by the confidence filter, by the differential inclusion tests and by the Whippet modules, and the ones to use for most analyses.
+
+.. list-table:: **Uncorrected quantification** (``*.out_filtered_ME.PSI.uncorrected.gz``)
    :header-rows: 1
 
    * - Column
@@ -260,6 +263,30 @@ PSI values per sample are in ``Report/quant/``. The files in ``Report/quant/corr
      - Reads covering the upstream splice junction of the microexon
    * - sum_ME_SJ_coverage_down
      - Reads covering the downstream splice junction of the microexon
+   * - Shared_site_half_reads
+     - For microexons that share a splice site with a longer exon, the single-junction reads of the unshared side used as inclusion (see :ref:`shared_site`); ``NA`` otherwise
+
+.. list-table:: **Corrected quantification** (``*.corrected.PSI.gz``)
+   :header-rows: 1
+
+   * - Column
+     - Description
+   * - sample
+     - Sample name
+   * - ME
+     - Microexon coordinates
+   * - ME_coverages
+     - Corrected inclusion reads
+   * - excluding_covs
+     - Exclusion reads, including those on alternative 5' and 3' splice sites
+   * - PSI
+     - Percent spliced-in
+   * - CI_Lo
+     - Lower bound of the 95% confidence interval of PSI
+   * - CI_Hi
+     - Upper bound of the 95% confidence interval of PSI
+
+Only microexons with at least 5 corrected reads (inclusion plus exclusion) in a sample are listed in its corrected file. The corrected counts of every microexon, before this cut-off, are in ``Report/quant/corrected/counts/{sample}.ME.adj_counts.gz`` (columns sample, microexon, corrected inclusion and exclusion reads, without a header).
 
 Diagnostic reports
 ------------------

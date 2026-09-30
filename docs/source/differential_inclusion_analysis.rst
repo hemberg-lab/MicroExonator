@@ -84,11 +84,16 @@ where ``sample1`` to ``sample6`` are sample names as defined in the input files 
 Optional parameters
 -------------------
 
-To skip discovery and quantification and analyse only the splicing events in the GTF annotation, add:
+To skip discovery and quantification and analyse only the splicing events in the GTF annotation, add both:
 
 .. code-block:: bash
 
     downstream_only : T
+    Only_whippet : T
+
+``downstream_only`` leaves out the discovery and quantification rules, and ``Only_whippet`` builds the Whippet index from ``Gene_anontation_GTF`` alone instead of the annotation with the detected microexons added. Setting only ``downstream_only`` stops with a missing ``Report/out.robustly_detected.txt``.
+
+Extra options for ``whippet-quant`` can be given as one string with ``whippet_flags``, for example ``whippet_flags : "--biascorrect"``.
 
 Run
 ===
@@ -107,4 +112,4 @@ Output
 Results are in the ``Whippet/`` folder.
 
 * ``Whippet/Quant/``: Whippet quantification of every sample. ``.psi.gz`` files contain PSI for all splicing nodes of the annotation (see the `Whippet documentation <https://github.com/timbitz/Whippet.jl#output-formats>`_), and ``.psi.ME.gz`` files the same table with MicroExonator's PSI for microexon nodes.
-* ``Whippet/Delta/``: differential inclusion for each comparison, in Whippet's ``.diff.gz`` format. For easier reading, the nodes that correspond to microexons are also written to ``.microexons`` files: ``.diff.ME.microexons`` uses MicroExonator's PSI and should be preferred for microexons; ``.diff.microexons`` uses Whippet's own PSI. The ``.diff.ME.microexons`` files are not produced when ``downstream_only`` is ``T``.
+* ``Whippet/Delta/``: differential inclusion for each comparison, in Whippet's ``.diff.gz`` format. For easier reading, the nodes that correspond to microexons are also written to ``.microexons`` files: ``.diff.ME.microexons`` uses MicroExonator's PSI and should be preferred for microexons; ``.diff.microexons`` uses Whippet's own PSI. With ``downstream_only`` and ``Only_whippet``, only the ``.diff.gz`` files are produced.

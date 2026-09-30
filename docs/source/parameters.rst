@@ -45,6 +45,9 @@ Splice sites, conservation and microexon length
    * - ``conservation_bigwig``
      - NA
      - BigWig file of genome-wide conservation scores (phyloP or PhastCons, for example from the UCSC Genome Browser). Highly conserved candidate microexons are protected from being discarded. With ``NA``, conservation is not used.
+   * - ``deletion_penalty``, ``insertion_penalty``
+     - 6, 2
+     - BWA-MEM gap-open penalties (``-O``) for deletions and insertions during discovery. A novel microexon appears as an insertion in a junction tag, so the insertion penalty is kept low.
    * - ``min_conservation``
      - 2
      - Mean conservation score above which a candidate microexon is considered conserved, when ``conservation_bigwig`` is given.
@@ -68,6 +71,9 @@ Input data and disk use
    * - ``Optimize_hard_drive``
      - F
      - Keep separate temporary FASTQ copies for discovery and for quantification and delete each as soon as it is used. This minimises disk use at the cost of downloading or copying each file twice. See "Running large datasets" in :doc:`discovery_and_quantification`.
+   * - ``validate_fastq_list``
+     - none
+     - File listing sample names (one per line, first column) whose FASTQ files are rewritten before use: reads whose sequence and quality lengths differ are dropped, and read names are cut at the first space. Use it for files that make a step fail with a malformed-FASTQ error (see :doc:`troubleshooting`).
    * - ``max_read_len``
      - 150
      - Length of exon sequence on each side of every splice-junction tag, and the length reads are trimmed to before they are aligned to the tags. Any read up to ``max_read_len`` + 8 nt is counted without bias, so one value serves all shorter read lengths. See :ref:`read_length`.
@@ -109,6 +115,9 @@ Quantification
    * - ``split_DB``
      - F
      - With ``only_db``, split ``ME_DB`` into chunks that are processed in parallel. Useful for very large microexon databases.
+   * - ``skip_discovery_and_quant``
+     - F
+     - Do not run discovery or quantification; rerun only the confidence filter and the reports on the quantification files already in ``Report/quant/`` and ``Round2/``, for example after changing ``filter_method``.
    * - ``skip_genome_alignment``
      - F
      - Do not remove reads that align to the genome without splicing. Not recommended except for testing.
@@ -151,7 +160,13 @@ Differential inclusion (Whippet)
      - YAML file listing the comparisons between sample groups (see :doc:`differential_inclusion_analysis`).
    * - ``downstream_only``
      - F
-     - Skip discovery and quantification and run Whippet only on the annotation.
+     - Skip discovery and quantification. Use together with ``Only_whippet : T`` to run Whippet on the annotation alone.
+   * - ``Only_whippet``
+     - F
+     - Build the Whippet index from ``Gene_anontation_GTF`` without the detected microexons, and produce only Whippet's ``.diff.gz`` results.
+   * - ``whippet_flags``
+     - none
+     - Extra command-line options passed to ``whippet-quant``, as one string.
    * - ``use_uncorrected_PSI``
      - F
      - Give Whippet the uncorrected MicroExonator PSI values instead of the corrected ones (for reproducing older analyses).
@@ -209,10 +224,10 @@ Single-cell analysis
      - Fixed number of pseudo-bulks per cluster, overriding ``cells_pseudobulks``.
    * - ``min_number_of_reads_single_cell``
      - none
-     - Minimum number of reads to compute PSI in pseudo-bulk comparisons (the single-cell counterpart of ``min_reads_PSI``).
+     - Minimum number of reads for a node to be used in a pseudo-bulk comparison (``whippet-delta -r``). Required for ``snakepool``.
    * - ``min_number_of_samples_single_cell``
      - none
-     - Minimum number of pseudo-bulks per group in which a node must be quantified.
+     - Minimum number of pseudo-bulks per group in which a node must be quantified (``whippet-delta -s``). Required for ``snakepool``.
    * - ``run_metadata``
      - none
      - Tab-separated file describing the comparisons between cell types (see :doc:`single_cell_analysis`).

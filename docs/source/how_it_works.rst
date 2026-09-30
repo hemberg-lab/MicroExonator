@@ -17,7 +17,7 @@ Genome aligners often fail to map reads over microexons, because a microexon lea
 
 For each microexon and sample, reads crossing an inclusion junction with at least 8 nt on each side count as inclusion, and reads on the skipping junctions of its containing introns count as exclusion. Reads on alternative 5' or 3' splice sites of the microexon count as exclusion too. PSI is inclusion / (inclusion + exclusion), with an exact binomial 95% confidence interval, and is reported only when at least ``min_reads_PSI`` reads are available.
 
-**Corrected PSI.** An inclusion read can cross one or both junctions of a microexon, while a skipping read crosses one junction. To keep the two comparable, reads that span the whole microexon count as one, and reads that cross only one of its junctions count as half. These corrected values (``Report/quant/corrected/``) are the ones used by the confidence filter and passed to Whippet.
+**Corrected PSI.** An inclusion read can cross one or both junctions of a microexon, while a skipping read crosses one junction. To keep the two comparable, reads that span the whole microexon count as one, and reads that cross only one of its junctions count as half. These corrected values (``Report/quant/corrected/``) are the ones used by the confidence filter, by the Whippet-free differential inclusion test and, by default, passed to Whippet.
 
 .. _read_length:
 
@@ -55,8 +55,6 @@ With ``consecutive_microexons : T`` (default), a read that crosses a junction of
 
 Only the junction the read actually crosses is used, so runs of any length are handled. In runs of three or more, reads that reach a microexon two positions away are not credited to it, and its PSI can be slightly underestimated. ``Report/ME_consecutive_runs.txt`` lists every microexon that is adjacent to another one, with the members of its run.
 
-.. _blacklist:
-
 .. _shared_site:
 
 Microexons that share a splice site with a longer exon
@@ -70,6 +68,8 @@ With ``shared_splice_site_correction : T`` (default):
 * the longer exon counts as exclusion once, through the junction at its far end, which the microexon never uses. Each junction is counted once, however many annotated exons share it. If none of the longer exons has a far junction in the tag library, their shared-side junction is used instead.
 
 In simulations with 20 mouse microexons of this kind, PSI came out on average 0.12 too low (up to 0.37) with the previous rule and within 0.035 of the target with this one. Microexons that do not share a splice site with a longer exon are not affected. When a microexon is not really used and its reads come from the longer exon, the unshared side has no reads and inclusion is close to 0.
+
+.. _blacklist:
 
 Reads that also fit the genome
 ==============================
