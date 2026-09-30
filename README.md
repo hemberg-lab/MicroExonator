@@ -36,4 +36,4 @@ explicit `legacy_mixture` compatibility option.
 
 # Contact
 
-For questions, ideas, feature requests and potential bug reports please contact gp7@sanger.ac.uk.
+For questions, ideas, feature requests and potential bug reports please contact guillermo_parada@kcl.ac.uk.
