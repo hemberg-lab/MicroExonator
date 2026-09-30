@@ -479,6 +479,7 @@ MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": 
 
 
 def module_prepare_targets(tool):
+    # MAJIQ's run.sj (file or directory) is checked by module_check, not declared
     return [path for record in UMBRELLA_MANIFEST.included_runs()
             for path in (module_cache_outputs(record, tool) if tool != "majiq"
                          else [module_cache_dir(record, tool) + "/cache.json"])]
@@ -490,39 +491,65 @@ def module_quant_targets(tool):
         for _, result in sorted(UMBRELLA_COMPARISONS.items())]
 
 
-if UMBRELLA_MODULES_MODE == "cached_only" and UMBRELLA_MODULES:
-    # every run a configured comparison uses must already have its caches
-    _needed = sorted({run for result in UMBRELLA_COMPARISONS.values() for run in result["collapse"]}) \
-        or [record.run_id for record in UMBRELLA_MANIFEST.included_runs()]
-    _missing = missing_caches([UMBRELLA_MANIFEST.by_run[run] for run in _needed],
-                              module_cache_dir, UMBRELLA_MODULES)
-    if _missing:
-        raise WorkflowError(
-            "umbrella_modules_mode is cached_only, but {} run/tool caches are missing (first: run {}, "
-            "{}). Ingest them once with umbrella_modules_mode: ingest, plus umbrella_allow_restage: "
-            "true if their reads are gone.".format(len(_missing), _missing[0][0], _missing[0][1]))
+def module_check(tool):
+    """Target-scoped cache checks, run only when a target asks for this tool.
+
+    A cache whose marker (cache.json) exists must have every other file too;
+    in cached_only, every run must have a cache. Other tools' caches are never
+    looked at, so a missing MAJIQ cache cannot block a QAPA target."""
+    runs = UMBRELLA_MANIFEST.included_runs()
+    incomplete = [module_cache_dir(record, tool) for record in runs
+                  if _os.path.exists(module_cache_dir(record, tool) + "/cache.json")
+                  and not all(_os.path.exists(module_cache_dir(record, tool) + "/" + name)
+                              for name in CACHE_FILES[tool])]
+    if incomplete:
+        raise WorkflowError("{} {} cache(s) have their marker but not all their files (first: {}); "
+                            "delete those folders and ingest them again".format(
+                                len(incomplete), tool, incomplete[0]))
+    if UMBRELLA_MODULES_MODE == "cached_only":
+        missing = missing_caches(runs, module_cache_dir, [tool])
+        if missing:
+            raise WorkflowError(
+                "umbrella_modules_mode is cached_only, but {} run/tool caches are missing (first: run {}, "
+                "{}). Ingest them once with umbrella_modules_mode: ingest, plus umbrella_allow_restage: "
+                "true if their reads are gone.".format(len(missing), missing[0][0], missing[0][1]))
+
+
+def module_target(tool, targets):
+    def function(wildcards):
+        module_check(tool)
+        return targets(tool)
+    return function
+
+
+def umbrella_module_targets(wildcards=None):
+    """The selected modules' targets (for quant_umbrella and quant_umbrella_modules)."""
+    paths = []
+    for tool in UMBRELLA_MODULES:
+        module_check(tool)
+        paths += module_quant_targets(tool)
+    return paths
 
 
 rule prepare_majiq:
-    input: module_prepare_targets("majiq")
+    input: module_target("majiq", module_prepare_targets)
 
 rule prepare_dapars2:
-    input: module_prepare_targets("dapars2")
+    input: module_target("dapars2", module_prepare_targets)
 
 rule prepare_qapa:
-    input: module_prepare_targets("qapa")
+    input: module_target("qapa", module_prepare_targets)
 
 rule quant_majiq:
-    input: module_quant_targets("majiq")
+    input: module_target("majiq", module_quant_targets)
 
 rule quant_dapars2:
-    input: module_quant_targets("dapars2")
+    input: module_target("dapars2", module_quant_targets)
 
 rule quant_qapa:
-    input: module_quant_targets("qapa")
+    input: module_target("qapa", module_quant_targets)
 
 
-UMBRELLA_MODULE_TARGETS = [path for tool in UMBRELLA_MODULES for path in module_quant_targets(tool)]
 UMBRELLA_MODULE_INVENTORY = "umbrella/modules/inventory/{}.{}.json".format(
     UMBRELLA_REFERENCE_ID, "_".join(UMBRELLA_MODULES) or "none")
 
@@ -532,7 +559,7 @@ def module_inventory_inputs(wildcards):
         raise WorkflowError("quant_umbrella_modules needs umbrella_modules, e.g. "
                             "umbrella_modules: [majiq, dapars2, qapa]; or use quant_majiq, "
                             "quant_dapars2 or quant_qapa")
-    return UMBRELLA_MODULE_TARGETS
+    return umbrella_module_targets(wildcards)
 
 
 localrules: umbrella_module_inventory

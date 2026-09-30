@@ -75,10 +75,13 @@ def sj(bam, splicegraph, out_dir, run_id, strandedness, threads=1, bin_dir="", e
     with open(out_dir / "sj.log", "w") as log:
         _run([_tool(bin_dir, "majiq-build"), "sj", bam, splicegraph, temporary,
               "--strandness", strand, "--nthreads", threads], log)
+    final = out_dir / "run.sj"
+    if final.is_dir():          # left by an interrupted earlier attempt (no marker)
+        shutil.rmtree(final)
     if temporary.is_dir():
-        shutil.move(str(temporary), str(out_dir / "run.sj"))
+        shutil.move(str(temporary), str(final))
     else:
-        os.replace(temporary, out_dir / "run.sj")
+        os.replace(temporary, final)
     (out_dir / "cache.json").write_text(json.dumps(dict(
         extra or {}, run_id=run_id, tool="majiq", strandness=strand), sort_keys=True, indent=2) + "\n")
 

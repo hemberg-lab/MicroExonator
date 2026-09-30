@@ -154,5 +154,5 @@ rule quant_umbrella:
         UMBRELLA_COMPARISON_TARGETS,
         UMBRELLA_SYNTHESIS_TARGETS,
         UMBRELLA_QC_TARGETS,
-        UMBRELLA_MODULE_TARGETS,
+        umbrella_module_targets,
         UMBRELLA_REFERENCE_MANIFEST

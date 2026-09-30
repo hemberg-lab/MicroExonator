@@ -694,34 +694,70 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotEqual(empty.returncode, 0)
         self.assertIn("quant_umbrella_modules needs umbrella_modules", empty.stdout)
 
-    def test_cached_only_comparisons_never_touch_reads(self):
-        # caches as an earlier ingest left them: files plus Snakemake records
-        # holding the producer's ingest-time input set (GPT-6.1 review, #1)
-        def write_caches(temp_dir):
-            import base64
-            import json as _json
-            sys.path.insert(0, temp_dir)
-            from src.umbrella_manifest import load_umbrella_manifest
-            from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
-            producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant"}
-            for tool, rule in producers.items():
-                reference = module_reference_id("ref", tool, {})
-                for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():
-                    work = "umbrella/work/ref/project/{}/{}".format(record.batch_id, record.run_id)
-                    folder = "umbrella/modules/cache/ref/project/{}/{}/{}/{}".format(
-                        record.batch_id, record.run_id, tool, cache_id(record, reference))
-                    os.makedirs(os.path.join(temp_dir, folder))
-                    for name in CACHE_FILES[tool]:
-                        path = folder + "/" + name
-                        open(os.path.join(temp_dir, path), "w").write(_json.dumps({}))
+    @staticmethod
+    def write_module_caches(temp_dir, tools, names=None, metadata=True):
+        """Caches as an ingest leaves them: files plus Snakemake records holding
+        the producer's ingest-time input set."""
+        import base64
+        import json as _json
+        sys.path.insert(0, temp_dir)
+        from src.umbrella_manifest import load_umbrella_manifest
+        from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
+        producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant",
+                     "majiq": "umbrella_majiq_sj"}
+        settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}
+        for tool in tools:
+            reference = module_reference_id("ref", tool, settings.get(tool, {}))
+            for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():
+                work = "umbrella/work/ref/project/{}/{}".format(record.batch_id, record.run_id)
+                folder = "umbrella/modules/cache/ref/project/{}/{}/{}/{}".format(
+                    record.batch_id, record.run_id, tool, cache_id(record, reference))
+                os.makedirs(os.path.join(temp_dir, folder))
+                for name in (names or {}).get(tool, CACHE_FILES[tool]):
+                    path = folder + "/" + name
+                    open(os.path.join(temp_dir, path), "w").write(_json.dumps({}))
+                    if metadata:
                         meta = os.path.join(temp_dir, ".snakemake", "metadata",
                                             base64.urlsafe_b64encode(path.encode()).decode())
                         os.makedirs(os.path.dirname(meta), exist_ok=True)
                         open(meta, "w").write(_json.dumps({
-                            "rule": rule, "incomplete": False, "starttime": 1.0, "endtime": 2.0,
-                            "input": [work + "/align/aligned.bam", work + "/R1.fastq.gz"],
+                            "rule": producers[tool], "incomplete": False, "starttime": 1.0,
+                            "endtime": 2.0, "input": [work + "/align/aligned.bam", work + "/R1.fastq.gz"],
                             "params": ["x"], "code": "c", "shellcmd": "s"}))
-            sys.path.remove(temp_dir)
+        sys.path.remove(temp_dir)
+
+    def test_named_targets_ignore_other_tools_caches(self):
+        # GPT-6.1 review #5: a missing MAJIQ cache must not block QAPA targets
+        result = self.module_dry_run(
+            "quant_qapa", ["umbrella_modules: [majiq, qapa]", "majiq_bin_folder: /opt/majiq/bin"],
+            prepare=lambda d: self.write_module_caches(d, ["qapa"]))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rule umbrella_qapa_pau:", result.stdout)
+        self.assertNotIn("rule umbrella_majiq", result.stdout)
+        # ...while the full module target still refuses the missing MAJIQ caches
+        both = self.module_dry_run(
+            "quant_umbrella_modules", ["umbrella_modules: [majiq, qapa]", "majiq_bin_folder: /opt/majiq/bin"],
+            prepare=lambda d: self.write_module_caches(d, ["qapa"]))
+        self.assertNotEqual(both.returncode, 0)
+        self.assertIn("run/tool caches are missing (first: run", both.stdout)
+        self.assertIn("majiq", both.stdout)
+
+    def test_majiq_marker_without_its_sj_is_not_a_cache(self):
+        result = self.module_dry_run(
+            "prepare_majiq", ["umbrella_modules_mode: ingest", "majiq_bin_folder: /opt/majiq/bin"],
+            prepare=lambda d: self.write_module_caches(d, ["majiq"], names={"majiq": ["cache.json"]}))
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("have their marker but not all their files", result.stdout)
+        complete = self.module_dry_run(
+            "prepare_majiq", ["majiq_bin_folder: /opt/majiq/bin"],
+            prepare=lambda d: self.write_module_caches(d, ["majiq"]))
+        self.assertEqual(complete.returncode, 0, complete.stdout)
+        self.assertNotIn("rule umbrella_majiq_sj:", complete.stdout)
+
+    def test_cached_only_comparisons_never_touch_reads(self):
+        # caches with ingest-time Snakemake records (GPT-6.1 review, #1)
+        def write_caches(temp_dir):
+            self.write_module_caches(temp_dir, ["dapars2", "qapa"])
         for target, tools in (("quant_dapars2", "[dapars2]"), ("quant_qapa", "[qapa]"),
                               ("quant_umbrella_modules", "[dapars2, qapa]")):
             result = self.module_dry_run(target, ["umbrella_modules: " + tools], prepare=write_caches)
