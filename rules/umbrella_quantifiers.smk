@@ -23,6 +23,8 @@ def umbrella_read_arguments(wildcards, tool):
     return " ".join(reads)
 
 
+# Whippet's per-run outputs are kept and protected: junction counts and gene
+# and isoform TPM exist nowhere else, and remaking any of them needs the reads.
 rule umbrella_whippet_quant:
     input:
         reads=umbrella_quant_reads,
@@ -30,11 +32,11 @@ rule umbrella_whippet_quant:
         index=UMBRELLA_WHIPPET_MEMBERS[0],
         reference=UMBRELLA_REFERENCE_MANIFEST
     output:
-        gene="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.gene.tpm.gz",
-        isoform="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.isoform.tpm.gz",
-        jnc="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.jnc.gz",
-        mapping="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.map.gz",
-        psi="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.psi.gz"
+        gene=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.gene.tpm.gz"),
+        isoform=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.isoform.tpm.gz"),
+        jnc=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.jnc.gz"),
+        mapping=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.map.gz"),
+        psi=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.psi.gz")
     params:
         julia=config.get("julia", "julia"),
         whippet_bin=config.get("whippet_bin_folder", ""),

@@ -43,6 +43,35 @@ class StageReadsTests(unittest.TestCase):
             self.assertEqual(r2.resolve(), (directory / "mate2.fastq.gz").resolve())
             self.assertTrue(r1.is_symlink() and r2.is_symlink())
 
+    def test_fully_processed_run_is_not_staged_again_unless_allowed(self):
+        import os
+        from umbrella_stage_reads import processed_outputs
+        from umbrella_manifest import load_umbrella_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            with gzip.open(directory / "reads.fastq.gz", "wb") as stream:
+                stream.write(b"@read\nAC\n+\nII\n")
+            manifest = manifest_for(directory, "fastq", "reads.fastq.gz", layout="SE")
+            record = load_umbrella_manifest(manifest).by_run["run"]
+            previous = os.getcwd()
+            os.chdir(directory)
+            self.addCleanup(os.chdir, previous)
+            outputs = processed_outputs(record)
+            for path in outputs:
+                Path(path).parent.mkdir(parents=True, exist_ok=True)
+                Path(path).write_text("")
+            r1 = directory / "work/R1.fastq.gz"
+            with self.assertRaisesRegex(RuntimeError, "already fully processed.*umbrella_allow_restage"):
+                stage_run(manifest, "run", r1)
+            self.assertFalse(r1.exists())
+            stage_run(manifest, "run", r1, allow_restage=True)
+            self.assertTrue(r1.exists())
+            # an unfinished run (a shard missing) is staged normally
+            r1.unlink()
+            Path(outputs[-1]).unlink()
+            stage_run(manifest, "run", r1)
+            self.assertTrue(r1.exists())
+
     def test_single_bzip2_is_converted_to_gzip(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

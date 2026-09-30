@@ -140,6 +140,20 @@ report per project, built from the kept summaries, plus `runs_without_qc.txt`.
 Only runs processed after this was added get summaries: a run whose QC shard
 already exists has no reads left, and never triggers FastQC.
 
+**Protected (write-protected once written)**, besides the shards above: the
+per-run Whippet outputs (`umbrella/work/.../whippet/quant.{psi,jnc,gene.tpm,isoform.tpm,map}.gz`;
+junction counts and gene/isoform TPM exist nowhere else), the per-run
+`reads.valid` markers, the reference identity and the built HISAT2, Whippet and
+Salmon indexes, and the kept QC summaries. Do not delete them: the Whippet
+outputs are targets, so a missing one is remade from downloaded reads.
+Comparison outputs are not protected and are recomputed freely.
+
+**Restaging guard.** Staging refuses a run whose outputs are all kept already
+(`reads.valid`, Whippet PSI, and its QC, MicroExonator and Whippet shards),
+because nothing should need its reads again: something upstream changed, and
+`snakemake -n -r quant_umbrella` shows what. Set `umbrella_allow_restage: true`
+to reprocess on purpose. Unfinished runs are staged normally.
+
 Every kept file is written once, read-only, next to a checksum guard. Writing
 different content to an existing shard fails instead of overwriting it. Per
 comparison, `comparisons/{reference_id}/{project_id}/{comparison_id}/` holds

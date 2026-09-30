@@ -30,6 +30,10 @@ def umbrella_sources(wildcards):
 # work directory.
 UMBRELLA_STAGE_TMPDIR = ("--tmpdir " + shlex.quote(str(config["umbrella_stage_tmpdir"]))
                          if config.get("umbrella_stage_tmpdir") else "")
+# Staging refuses a run whose outputs are all kept already (it would download
+# it again for nothing); `umbrella_allow_restage: true` reprocesses on purpose.
+UMBRELLA_ALLOW_RESTAGE = ("--allow-restage" if str2bool(config.get("umbrella_allow_restage", False))
+                          else "")
 
 
 PE_RUN_PATTERN = "(?:{})".format("|".join(
@@ -57,6 +61,7 @@ rule umbrella_stage_reads:
     retries: 2
     params:
         tmpdir=UMBRELLA_STAGE_TMPDIR,
+        restage=UMBRELLA_ALLOW_RESTAGE,
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
@@ -64,7 +69,7 @@ rule umbrella_stage_reads:
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
         "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q} "
-        "--threads {threads} {params.tmpdir}"
+        "--threads {threads} {params.tmpdir} {params.restage}"
 
 
 rule umbrella_stage_single:
@@ -84,13 +89,15 @@ rule umbrella_stage_single:
     retries: 2
     params:
         tmpdir=UMBRELLA_STAGE_TMPDIR,
+        restage=UMBRELLA_ALLOW_RESTAGE,
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
-        "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"
+        "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir} "
+        "{params.restage}"
 
 
 def umbrella_validation_inputs(wildcards):
@@ -102,7 +109,8 @@ rule umbrella_validate_reads:
     input:
         reads=umbrella_validation_inputs
     output:
-        "umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/reads.valid"
+        # protected: every per-run tool depends on it, and remaking it needs the reads
+        protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/reads.valid")
     params:
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     run:

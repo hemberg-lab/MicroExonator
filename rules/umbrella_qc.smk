@@ -46,7 +46,7 @@ rule umbrella_fastqc:
         reads=lambda w: UMBRELLA_MANIFEST.native_reads(umbrella_align_run(w).run_id),
         valid=lambda w: umbrella_align_run(w).work_dir + "/reads.valid"
     output:
-        directory(UMBRELLA_QC_RUN + "/fastqc")
+        protected(directory(UMBRELLA_QC_RUN + "/fastqc"))
     wildcard_constraints:
         reference_id="[^/]+", project_id="[^/]+", group="[^/]+", batch_id="[^/]+", run_id="[^/]+"
     params:
@@ -67,7 +67,7 @@ rule umbrella_qc_keep:
         salmon=lambda w: umbrella_align_run(w).work_dir + "/salmon",
         whippet_map=lambda w: umbrella_align_run(w).work_dir + "/whippet/quant.map.gz"
     output:
-        [UMBRELLA_QC_RUN + "/" + name for name in UMBRELLA_QC_KEPT]
+        [protected(UMBRELLA_QC_RUN + "/" + name) for name in UMBRELLA_QC_KEPT]
     wildcard_constraints:
         reference_id="[^/]+", project_id="[^/]+", group="[^/]+", batch_id="[^/]+", run_id="[^/]+"
     params:

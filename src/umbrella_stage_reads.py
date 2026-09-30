@@ -124,11 +124,28 @@ def stage_sra(accession, work, paired, threads=1):
     return _sra_reads(work, accession, paired)
 
 
-def stage_run(manifest_path, run_id, r1, r2=None, threads=1, tmpdir=None):
+def processed_outputs(record):
+    """Kept outputs that exist once a run is fully processed (paths from the workflow root)."""
+    shard = "{}/{}/{}/{}".format(record.reference_id, record.project_id, record.group, record.batch_id)
+    return [record.work_dir + "/reads.valid", record.work_dir + "/whippet/quant.psi.gz",
+            "qc/{}.qc.tsv.gz".format(shard), "splicing/{}.microexonator.tsv.gz".format(shard),
+            "splicing/{}.whippet.tsv.gz".format(shard)]
+
+
+def stage_run(manifest_path, run_id, r1, r2=None, threads=1, tmpdir=None, allow_restage=False):
     manifest = load_umbrella_manifest(manifest_path)
     record = manifest.by_run[run_id]
     if not record.include:
         raise ValueError("umbrella run_id is excluded: {}".format(run_id))
+    if not allow_restage and all(Path(path).exists() for path in processed_outputs(record)):
+        # Every umbrella output of this run is kept, so nothing should need its
+        # reads again: something upstream changed. Refuse before downloading.
+        raise RuntimeError(
+            "run {} is already fully processed, but a job asked for its reads again, which "
+            "would {} it. Usually a rule, parameter or input upstream changed; "
+            "`snakemake -n -r quant_umbrella` shows why. To reprocess on purpose, set "
+            "umbrella_allow_restage: true".format(
+                run_id, "download" if record.source_type == "sra" else "restage"))
     if (record.layout == "PE") != (r2 is not None):
         raise ValueError("output mate count does not match {} layout".format(record.layout))
 
@@ -182,8 +199,11 @@ def main(argv=None):
     parser.add_argument("--r2")
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--tmpdir", help="scratch for uncompressed reads (default: next to the outputs)")
+    parser.add_argument("--allow-restage", action="store_true",
+                        help="stage a run even when all its outputs are kept already")
     args = parser.parse_args(argv)
-    stage_run(args.manifest, args.run_id, args.r1, args.r2, args.threads, args.tmpdir)
+    stage_run(args.manifest, args.run_id, args.r1, args.r2, args.threads, args.tmpdir,
+              args.allow_restage)
 
 
 if __name__ == "__main__":

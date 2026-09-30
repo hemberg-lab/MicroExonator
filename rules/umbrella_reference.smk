@@ -72,7 +72,9 @@ rule umbrella_reference_identity:
         [member for value in _IDENTITY_PATHS.values()
          for member in (value if isinstance(value, list) else [value])]
     output:
-        UMBRELLA_IDENTITY
+        # protected: rebuilding it would make every index, and so every
+        # per-run quantification, look out of date
+        protected(UMBRELLA_IDENTITY)
     run:
         manifest = reference_manifest(_IDENTITY_PATHS, expected_id=UMBRELLA_REFERENCE_ID,
                                       versions=UMBRELLA_REFERENCE.get("versions", {}),
@@ -152,7 +154,7 @@ if "hisat2_index_prefix" not in UMBRELLA_REFERENCE:
             genome=UMBRELLA_REFERENCE["genome_fasta"],
             identity=UMBRELLA_IDENTITY
         output:
-            UMBRELLA_HISAT_MEMBERS
+            protected(UMBRELLA_HISAT_MEMBERS)
         params:
             prefix=UMBRELLA_HISAT_PREFIX,
             large="--large-index" if UMBRELLA_HISAT_LARGE else ""
@@ -171,7 +173,7 @@ if "whippet_index" not in UMBRELLA_REFERENCE:
             validated=UMBRELLA_FIXED_UNIVERSE,
             identity=UMBRELLA_IDENTITY
         output:
-            UMBRELLA_WHIPPET_MEMBERS
+            protected(UMBRELLA_WHIPPET_MEMBERS)
         params:
             julia=config.get("julia", "julia"),
             whippet_bin=config.get("whippet_bin_folder", "")
@@ -268,7 +270,7 @@ if "salmon_index" not in UMBRELLA_REFERENCE:
             gentrome=UMBRELLA_REFERENCE_ROOT + "/salmon/gentrome.fa",
             decoys=UMBRELLA_DECOYS
         output:
-            directory(UMBRELLA_SALMON_INDEX)
+            protected(directory(UMBRELLA_SALMON_INDEX))
         threads: 8
         conda:
             "../envs/umbrella-quant.yaml"
