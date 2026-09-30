@@ -5,17 +5,17 @@
 Single cell analysis
 ====================
 
-On this secction we describe how to perform analysis of single-cell RNA-seq data to quantify microexons across populations of cells and alternative splicing events across them. Since single cell experiments usually provides a shallow sequencing depth for each cell, we have developed a pseudo-pooling strategy to assess differential inclusion of microexons and other types of alternative splicing events across defined groups of cells (normally corresponding to cell-types previously defined by gene expresion profiles). We named this single cell analysis module ``snakepool`` an on this secction we describe how to use it.
+This section describes how to analyse single-cell RNA-seq data: how to quantify microexons across populations of cells and test alternative splicing between them. Single-cell experiments usually sequence each cell shallowly, so we developed a pseudo-pooling strategy to assess differential inclusion of microexons and other alternative splicing events between defined groups of cells (normally cell types defined beforehand from gene expression profiles). This module is called ``snakepool``.
 
 .. note::
 
-    Before using this module you must follow the same installation instructions decrived in :doc:`differential_inclusion_analysis` secction.
+    This module uses Whippet. Before using it, follow the installation instructions in :doc:`differential_inclusion_analysis`.
 
 
 Configuration
 =============
 
-To run this secction the following parameters needs to be incorporated at ``config.yaml``.
+To run this module, add the following parameters to ``config.yaml``:
 
 .. code-block:: bash
 
@@ -27,18 +27,21 @@ To run this secction the following parameters needs to be incorporated at ``conf
     min_p_mean : 0.9
     min_delta : 0.1
     min_rep : 25
+    min_number_of_reads_single_cell : 10
+    min_number_of_samples_single_cell : 3
     run_metadata : /path/to/run_metadata.tsv
 
 
-* ``Single_Cell`` correspond to an optiona parameter that needs to be set as ``T`` in order to run ``snakepool``.
-* ``cluster_metadata`` must indicate the path of a tabular separated file that contain at least two colums to indicate the cluster and file base names. This file must have the first row as header.
-* ``cluster_name`` indicate the name of the column, inside ``cluster_metadata``, which has cluster name information.
-* ``file_basename`` indicate the name of the column, inside ``cluster_metadata``, which has the sample names. These needs to match with sample names defined on the input files (See :doc:`setup`)
-* ``cdf_t`` parameter set a theshold to run a `Cumulative distribution function <https://en.wikipedia.org/wiki/Cumulative_distribution_function>`_ over the resultant Probability values obtained for each node across comutational replicates, asuming these fit a `beta distribution <https://en.wikipedia.org/wiki/Beta_distribution>`_. Which in practical terms can be considered as a user-defined threshold (between 0.5 and 1) to calculate a p-value assosiated to node's probability of differential inclusion across computational replicates.
-* ``min_p_mean`` corresponds to a threshold of mean probability values across computational samples to define a node as differentially included across the comparing cell-types.
-* ``min_delta`` corresponds to a threshold of mean delta PSI values across computational samples to define a node as differentially included across the comparing cell-types.
-* ``min_rep`` minimun set of computational replicates that can be considered to define a node as differentially included across the comparing cell-types. This parameter is relevant because when nodes have limmited read coverage across cells, only some few computational replictates could enable quantitative alternative splicing analyses, leading to unreliable assesment of its alternative inclusion. The number of compuational repeats is defined for each sample inside `run_metadata`. We recomend to set this value to at least the half of the compuational replicates that are scheduled to run by the user.
-* ``run_metadata`` indicates the path of a tabulat separated file which contain information about user-defined comparisons across cell-types. Additional information about this file can be found bellow.
+* ``Single_Cell``: set to ``T`` to enable the single-cell modules.
+* ``cluster_metadata``: path of a tab-separated file with a header row and at least two columns, giving the cluster and the sample name of each cell.
+* ``cluster_name``: name of the column of ``cluster_metadata`` that holds the cluster names.
+* ``file_basename``: name of the column of ``cluster_metadata`` that holds the sample names. These must match the sample names in the input files (see :doc:`setup`).
+* ``cdf_t``: probability threshold, between 0.5 and 1. The probabilities of differential inclusion that a node gets across computational replicates are fitted with a `Beta distribution <https://en.wikipedia.org/wiki/Beta_distribution>`_, and its `cumulative distribution function <https://en.wikipedia.org/wiki/Cumulative_distribution_function>`_ at ``cdf_t`` gives a p-value for the node being above this threshold.
+* ``min_p_mean``: minimum mean probability of differential inclusion across computational replicates for a node to be called differentially included.
+* ``min_delta``: minimum mean ΔPSI across computational replicates for a node to be called differentially included.
+* ``min_rep``: minimum number of computational replicates in which a node could be tested. Nodes with little coverage can only be tested in a few replicates, which makes their result unreliable. The number of replicates of each comparison is set in ``run_metadata``; we recommend setting ``min_rep`` to at least half of it.
+* ``min_number_of_reads_single_cell`` and ``min_number_of_samples_single_cell``: minimum number of reads for a node to be used in a pseudo-bulk, and minimum number of pseudo-bulks per group in which it must be quantified. They are passed to ``whippet-delta`` as ``-r`` and ``-s``.
+* ``run_metadata``: path of a tab-separated file describing the comparisons between cell types (see below).
 
 
 Grouping for confidence filtering
@@ -73,7 +76,7 @@ input can be assigned unambiguously.
 run_metadata
 ------------
 
-The file indicated by ``run_metadata`` must be a tabular separated file containing the following columns:
+``run_metadata`` is a tab-separated file with these columns:
 
 .. list-table:: **run_metadata.tsv**
    :header-rows: 1
@@ -82,35 +85,35 @@ The file indicated by ``run_metadata`` must be a tabular separated file containi
      - Description
 
    * - Compare_ID
-     - User-defined name for scheduled comparions
+     - Name of the comparison
 
    * - A.cluster_names
-     - Comma-separated list of cell-types to be concider as part of `sample group A`
+     - Comma-separated list of the cell types in group A
 
    * - A.number_of_pools
-     - Number of pseudo-bulk to be generated for `sample group A`
+     - Number of pseudo-bulks to generate for group A
 
    * - B.cluster_names
-     - Comma-separated list of cell-types to be concider as part of `sample group B`
+     - Comma-separated list of the cell types in group B
 
    * - B.number_of_pools
-     - Number of pseudo-bulk to be generated for `sample group B`
+     - Number of pseudo-bulks to generate for group B
 
    * - Repeat
-     - Node type. For more information visit `Whippet's GitHub page <https://github.com/timbitz/Whippet.jl#output-formats>`_.
+     - Number of computational replicates: how many times cells are randomly assigned to pseudo-bulks and the comparison is run
 
 .. warning::
 
-    The order of the columns is not relevant, however the column names must correspond to the ones indicated above. Additional columns with other names will be ignored.
+    The order of the columns does not matter, but their names must be exactly as above. Other columns are ignored.
 
 .. note::
 
-    We recomend to consider ``A.number_of_pools`` and ``B.number_of_pools`` values that ensure that at least five cells are merged within each pseudo-bulk pool. We also suggest 10 as a minimun value of ``Repeat``, higher values will enable better estimation of parameters to fit the resultant probabilities into beta distribution models. 
+    We recommend values of ``A.number_of_pools`` and ``B.number_of_pools`` that put at least five cells in each pseudo-bulk, and a ``Repeat`` of at least 10; more replicates give a better fit of the Beta distribution to the probabilities.
 
-Optional Configuration
+Optional configuration
 ----------------------
 
-The following parameter are optionals to be defined inside ``config.yaml`` file:
+These parameters are optional:
 
 .. code-block:: bash
 
@@ -118,14 +121,14 @@ The following parameter are optionals to be defined inside ``config.yaml`` file:
     Only_snakepool : T
     Get_Bamfiles : T
 
-* ``seed`` define a specific seed for pseudo number geration. This number influence the arrangement cells into the corresponding pseudo-bulks. Mataining the same seed ensures reproducibility of the results and prevent snakemake of overwrite completed results.
-* ``Only_snakepool`` is a bolean variable that if its defined as ``T`` it will force MicroExonator to skip Disovery and Quantification modules. This mode is useful for users who are only interested to find alterantive splicing events from splicing nodes that can be extracted from the annotation.
-* ``Get_Bamfiles`` correspond to a bolean variable that if its defined as ``T`` enable the generation of BAM files that can be used for visualization purposes.
+* ``seed``: seed for the random assignment of cells to pseudo-bulks (default 123). Keeping the same seed makes results reproducible and stops Snakemake from recomputing finished results.
+* ``Only_snakepool``: with ``T``, discovery and quantification are skipped and only the splicing nodes of the annotation are tested. Useful when only alternative splicing events from the annotation are of interest.
+* ``Get_Bamfiles``: with ``T``, BAM files are generated for visualisation (see below).
 
 Run
 ===
 
-After setting up all the files described above, this single cell analysis module can be run by adding `snakepool` as target for snakemake:
+With the files above in place, run the module with ``snakepool`` as the target:
 
 .. code-block:: bash
 
@@ -133,7 +136,7 @@ After setting up all the files described above, this single cell analysis module
 
 .. note::
 
-    It is allways a good idea to use ``-np`` to execute an snakemake ``dry-run`` before submiting a large set of jobs.
+    Run a dry-run with ``-n`` before submitting a large set of jobs.
 
 Pseudo-bulk quantification (optional)
 -------------------------------------
@@ -149,7 +152,7 @@ The number of pseudo-bulks per cluster is the number of cells divided by ``cells
 Unpooled quantification (optional)
 ----------------------------------
 
-In order to generate PSI quantification files at the single cell level (as opposed to pseudo-bulks), you can run MicroExonator with ``quant_unpool_single_cell`` as a target for snakemake. By doing this `.psi.gz` files will be generated at ``Whippet/Quant/Single_Cell/Unpooled/`` folder:
+To quantify each cell on its own instead of pseudo-bulks, use the ``quant_unpool_single_cell`` target. It writes one ``.psi.gz`` file per cell to ``Whippet/Quant/Single_Cell/Unpooled/``:
 
 .. code-block:: bash
 
@@ -159,13 +162,13 @@ This allows custom downstream analyses on the quantification of each cell. To av
 
 .. warning::
 
-    Only FASTQ files from cells annotated on ``cluster_metadata`` file will be processed.
+    Only cells listed in ``cluster_metadata`` are processed.
 
 
 Output
 ======
 
-Direct results from `whippet-delta` for every comparison across each computational replicate can be found at `Whippet/Delta/Single_Cell/`. Integrated results for each comparion can be found at ``Whippet/Delta/Single_Cell/Sig_nodes``, these resuls are structured as follow:
+The ``whippet-delta`` results of every comparison in each computational replicate are in ``Whippet/Delta/Single_Cell/``. The combined results of each comparison are in ``Whippet/Delta/Single_Cell/Sig_nodes/``, with these columns:
 
 .. list-table:: **all_nodes.microexons.txt**
    :header-rows: 1
@@ -189,49 +192,49 @@ Direct results from `whippet-delta` for every comparison across each computation
      - Node type. For more information visit `Whippet's GitHub page <https://github.com/timbitz/Whippet.jl#output-formats>`_.
 
    * - Psi_A.mean
-     - Mean PSI values for group ``cluster A`` across computational replicates.
+     - Mean PSI of group A across computational replicates.
 
    * - Psi_B.mean
-     - Mean PSI values for group ``cluster B`` across computational replicates.
+     - Mean PSI of group B across computational replicates.
 
    * - DeltaPsi.mean
-     - Mean DeltaPsi values obtained across computationa replicates.
+     - Mean ΔPSI across computational replicates.
 
    * - DeltaPsi.sd
-     - Standar deviation of DeltaPsi values obtained across computationa replicates.
+     - Standard deviation of ΔPSI across computational replicates.
 
    * - Probability.mean
-     - Mean probability of differential inclusion obtained across computationa replicates.
+     - Mean probability of differential inclusion across computational replicates.
 
    * - Probability.var
-     - Variance of probability across computationa replicates.
+     - Variance of the probability across computational replicates.
 
    * - N.detected.reps
-     - Number of replicates in which the differential inclusion could be assessed.
+     - Number of replicates in which the node could be tested.
 
    * - cdf.beta
-     - p-value of being above the used defined probability threshold ``cdf_t``
+     - p-value of the probability being above ``cdf_t``
 
    * - is.diff
-     - Bolean variable defining wheather the node was differentially included accoding to the user-defined criteria (``min_rep``, ``min_p_mean`` and ``min_delta``)
+     - Whether the node is differentially included according to ``min_rep``, ``min_p_mean`` and ``min_delta``
 
    * - microexon_ID
-     - Microexon ID based on its genomic coodinates.
+     - Microexon ID (genomic coordinates)
 
 
 Visualization
 =============
 
-In order to visualize the results, you need to instruct ``whippet-quant`` to generate SAM files by incorporating the following parameter with a ``True`` value inside ``config.yaml``: 
+To visualise the results, ``whippet-quant`` must write alignments. Add to ``config.yaml``:
 
 .. code-block:: bash
 
     Get_Bamfiles : T
 
-Samfiles are further converted to BAM files and corresponding index files are genrated to enable their visualization. To generate these BAMs ``cluster_bams`` needs to be defined as an snakemake target:
+The alignments are converted to indexed BAM files with the ``cluster_bams`` target:
 
 .. code-block:: bash
 
     snakemake -s MicroExonator.smk  --cluster-config cluster.json --cluster {cluster system params} --use-conda -k  -j {number of parallel jobs} cluster_bams
 
-A BAM file will be generated for every cell-type defined at ``cluster_metadata`` file. Given the coodinates of differentially included splicing nodes and the correspondig BAM files, sashimi plots can be generated by using tools such as `ggsashimi <https://github.com/guigolab/ggsashimi>`_ or `IGV <http://software.broadinstitute.org/software/igv/>`_.
+One BAM file is generated for each cell type in ``cluster_metadata``. With the coordinates of differentially included nodes and these BAM files, sashimi plots can be drawn with tools such as `ggsashimi <https://github.com/guigolab/ggsashimi>`_ or `IGV <http://software.broadinstitute.org/software/igv/>`_.
