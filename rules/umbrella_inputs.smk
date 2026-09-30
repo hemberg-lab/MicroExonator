@@ -60,8 +60,9 @@ rule umbrella_stage_reads:
     # SRA downloads fail now and then; a retry starts the run again from scratch
     retries: 2
     params:
-        tmpdir=UMBRELLA_STAGE_TMPDIR,
-        restage=UMBRELLA_ALLOW_RESTAGE,
+        # the restage flag rides in this param: changing the shell text would
+        # make Snakemake rerun staging for any staged reads still on disk
+        tmpdir=" ".join(filter(None, (UMBRELLA_STAGE_TMPDIR, UMBRELLA_ALLOW_RESTAGE))),
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
@@ -69,7 +70,7 @@ rule umbrella_stage_reads:
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
         "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q} "
-        "--threads {threads} {params.tmpdir} {params.restage}"
+        "--threads {threads} {params.tmpdir}"
 
 
 rule umbrella_stage_single:
@@ -88,16 +89,16 @@ rule umbrella_stage_single:
     # SRA downloads fail now and then; a retry starts the run again from scratch
     retries: 2
     params:
-        tmpdir=UMBRELLA_STAGE_TMPDIR,
-        restage=UMBRELLA_ALLOW_RESTAGE,
+        # the restage flag rides in this param: changing the shell text would
+        # make Snakemake rerun staging for any staged reads still on disk
+        tmpdir=" ".join(filter(None, (UMBRELLA_STAGE_TMPDIR, UMBRELLA_ALLOW_RESTAGE))),
         manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
         "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
-        "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir} "
-        "{params.restage}"
+        "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"
 
 
 def umbrella_validation_inputs(wildcards):

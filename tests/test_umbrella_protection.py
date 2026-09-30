@@ -29,6 +29,13 @@ class ProtectionTests(unittest.TestCase):
             outputs = rule_outputs(path, rule)
             self.assertEqual(outputs.count("protected("), count, rule)
 
+    def test_staging_command_text_is_unchanged(self):
+        # staged reads left on disk keep Snakemake's record of this command;
+        # editing its text would restage (download) every such run
+        text = open(os.path.join(REPOSITORY, "rules", "umbrella_inputs.smk")).read()
+        self.assertIn('"--threads {threads} {params.tmpdir}"', text)
+        self.assertIn('"--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"', text)
+
     def test_comparison_outputs_stay_recomputable(self):
         text = open(os.path.join(REPOSITORY, "rules", "umbrella_comparisons.smk")).read()
         self.assertNotIn("protected(", text)
