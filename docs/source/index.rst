@@ -23,7 +23,7 @@ See :doc:`how_it_works` for a description of how reads are counted, and :doc:`wh
 
 **Support**
 
-    For questions, ideas, feature requests and bug reports, please open an issue on our `GitHub page <https://github.com/hemberg-lab/MicroExonator/issues>`_ or write to gp7@sanger.ac.uk (see :doc:`support`).
+    For questions, ideas, feature requests and bug reports, please open an issue on our `GitHub page <https://github.com/hemberg-lab/MicroExonator/issues>`_ or write to guillermo_parada@kcl.ac.uk (see :doc:`support`).
 
 .. toctree::
     :name: MicroExonator-install

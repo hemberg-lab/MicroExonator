@@ -4,7 +4,7 @@
 Support
 ========
 
-For questions, ideas, feature requests and bug reports, please open an issue on the `MicroExonator GitHub page <https://github.com/hemberg-lab/MicroExonator/issues>`_. Issues are public, so answers help other users too. You can also write to gp7@sanger.ac.uk.
+For questions, ideas, feature requests and bug reports, please open an issue on the `MicroExonator GitHub page <https://github.com/hemberg-lab/MicroExonator/issues>`_. Issues are public, so answers help other users too. You can also write to guillermo_parada@kcl.ac.uk.
 
 When reporting a problem, please include:
 
