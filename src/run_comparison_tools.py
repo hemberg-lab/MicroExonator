@@ -82,17 +82,35 @@ def suppa(args, preflight):
         (work / (side + ".tpm")).write_text(tables[side])
     for events, output in zip(args.events, args.outputs):
         kind = Path(output).stem
+        # one private folder per event type: SUPPA 2.3 merges every
+        # *.dpsi.temp.* in the prefix's folder (the current directory when the
+        # prefix is relative), whatever their prefix, so a shared folder lets
+        # one type's .dpsi swallow other types' temp files (SE.dpsi held all
+        # seven types on the hg38 pilot)
+        private = (work / kind).resolve()
+        private.mkdir()
         for side in ("a", "b"):
             run(["suppa.py", "psiPerEvent", "-i", events, "-e", str(work / (side + ".tpm")),
-                 "-o", str(work / "{}_{}".format(kind, side))], args.log)
+                 "-o", str(private / "{}_{}".format(kind, side))], args.log)
         run(["suppa.py", "diffSplice", "-m", "empirical", "-gc", "-i", events,
-             "-p", str(work / (kind + "_b.psi")), str(work / (kind + "_a.psi")),
+             "-p", str(private / (kind + "_b.psi")), str(private / (kind + "_a.psi")),
              "-e", str(work / "b.tpm"), str(work / "a.tpm"),
-             # absolute: SUPPA 2.3 merges its .dpsi.temp.* files from the
-             # current directory unless the prefix is absolute, and then writes
-             # no .dpsi at all
-             "-o", str(Path(output).with_suffix("").resolve())], args.log)
+             "-o", str(private / "out")], args.log)
+        dpsi = private / "out.dpsi"
+        check_dpsi_header(dpsi, kind)
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(dpsi, output)
     shutil.rmtree(work)
+
+
+def check_dpsi_header(path, kind):
+    if not path.exists():
+        sys.exit("SUPPA2 diffSplice wrote no {} for {}".format(path, kind))
+    with open(path) as stream:
+        header = stream.readline().rstrip("\n").split("\t")
+    expected = ["{0}_b-{0}_a_dPSI".format(kind), "{0}_b-{0}_a_p-val".format(kind)]
+    if header != expected:
+        sys.exit("SUPPA2 {} for {} has header {}, expected {}".format(path, kind, header, expected))
 
 
 def microexonator(args, preflight):
