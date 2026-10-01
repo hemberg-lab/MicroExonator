@@ -56,7 +56,8 @@ MODULE_CACHE = ("umbrella/modules/cache/{reference_id}/{project_id}/{batch_id}/{
                 "{tool}/{cache_id}")
 MODULE_ANALYSIS = UMBRELLA_COMPARISON_ROOT + "/modules/{tool}/{analysis_id}"
 MODULE_SETTINGS = {
-    "majiq": {key: config.get("majiq_" + key + "_args") for key in ("update", "psicov", "heterogen")},
+    "majiq": dict({key: config.get("majiq_" + key + "_args") for key in ("update", "psicov", "heterogen")},
+                  statistic=str(config.get("majiq_het_statistic", "ttest"))),
     "dapars2": {"coverage_threshold": int(config.get("dapars2_coverage_threshold", 10))},
     "qapa": {"test": "DEXSeq ~ sample + exon + condition:exon, genes with >= 2 sites"},
 }
@@ -507,7 +508,9 @@ rule umbrella_majiq_compare:
         out=MODULE_ANALYSIS.replace("{tool}", "majiq"),
         caches=lambda w: module_cache_arguments(w, "majiq"),
         bin=MAJIQ_BIN,
-        args=_json.dumps({key: value for key, value in MODULE_SETTINGS["majiq"].items() if value}),
+        args=_json.dumps({key: value for key, value in MODULE_SETTINGS["majiq"].items()
+                          if value and key in ("update", "psicov", "heterogen")}),
+        statistic=MODULE_SETTINGS["majiq"]["statistic"],
         ids=lambda w: module_ids(w, "majiq", SOFTWARE["majiq"])
     threads: 4
     benchmark:
@@ -515,7 +518,7 @@ rule umbrella_majiq_compare:
     shell:
         "python3 src/run_majiq.py compare --preflight {input.preflight} {params.caches} "
         "--splicegraph {input.splicegraph} --out-dir {params.out} --threads {threads} "
-        "--bin-dir {params.bin} --args {params.args:q} --ids {params.ids:q}"
+        "--bin-dir {params.bin} --args {params.args:q} --statistic {params.statistic} --ids {params.ids:q}"
 
 
 # ------------------------------------------------------------ targets

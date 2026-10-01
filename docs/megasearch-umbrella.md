@@ -303,13 +303,19 @@ umbrella_modules_mode: ingest              # default: cached_only
   when nothing could be tested) and a Snakemake benchmark. Effects are not interchangeable:
   MAJIQ reports junction inclusion within an LSV, DaPars2 distal poly(A)
   usage of a 3' UTR, QAPA the usage of one poly(A) site within its gene.
-  MAJIQ's HET scores are heuristics, never relabelled as adjusted p-values.
+  MAJIQ's effect is median PSI(A) minus median PSI(B) of one LSV connection
+  over the per-replicate posterior means; p is the raw p-value of the HET test
+  chosen with `majiq_het_statistic` (`ttest`, the default, `mannwhitneyu`,
+  `tnom` or `infoscore`), q is Benjamini-Hochberg over the tested connections,
+  and the TNOM score is kept as the native statistic.
 - **Software.** DaPars2 runs from a pinned upstream commit, unpacked once;
   QAPA installs from its v1.4.1 tag in `envs/umbrella-qapa.yaml`; DEXSeq is in
-  `envs/umbrella-apa-stats.yaml`. MAJIQ v3 is licensed: download its source
-  after registering with BioCiphers and set `majiq_source` (a directory or
-  archive, installed into a workflow-owned environment), or point
-  `majiq_bin_folder` at an existing installation. MAJIQ and DaPars2 reuse the
+  `envs/umbrella-apa-stats.yaml`. MAJIQ v3 (`rna_majiq`) is licensed: after
+  registering with BioCiphers, either install it yourself (a Python 3.12
+  environment with HTSlib, then `pip install ./moccasin ./majiq` from a clone
+  of `majiq_academic`) and point `majiq_bin_folder` at that environment's
+  `bin`, or set `majiq_source` to the clone (or a `.tar.gz` of it) to have the
+  workflow build the environment. MAJIQ and DaPars2 reuse the
   existing HISAT2 index; QAPA builds its own Salmon 3' UTR index once.
 - **Annotations.** DaPars2 and QAPA locate 3' UTRs from coding ends, so they
   read `apa_annotation_gtf` (default: `annotation_gtf`), which must have CDS
@@ -331,7 +337,10 @@ umbrella_modules_mode: ingest              # default: cached_only
   `majiq_update_args`, `majiq_psicov_args`, `majiq_heterogen_args` replace
   the default arguments of those MAJIQ commands (each command's `--help` is
   written to the comparison log); `majiq_strandness` overrides the manifest's
-  strandedness for MAJIQ.
+  strandedness for MAJIQ; `majiq_het_statistic` picks the HET test for p and q.
+  Each run's SJ file is named by run (`--prefix`), and the technical runs of
+  a biological replicate are summed into one PsiCoverage with rna_majiq's
+  `PsiCoverage.sum`, run with the `python` of the MAJIQ installation.
 
 ## Known limits
 
@@ -341,8 +350,9 @@ umbrella_modules_mode: ingest              # default: cached_only
 - Junction capture uses splice-site sets per chromosome and strand, not per
   gene.
 - The planned Salmon versus Whippet TPM concordance is not implemented.
-- The MAJIQ v3 command options follow its public documentation and have not
-  been run against the licensed binary yet; check the first comparison log.
+- The MAJIQ v3 commands were checked against the `rna_majiq` source
+  (majiq_academic main, 2026-10-01) and tested with argument-checking fakes,
+  but not yet run on real data; check the first comparison log.
 - Module-only targets on a brand-new reference also build the Whippet and
   Salmon indexes, because HISAT2 waits for the full reference manifest; its
   inputs cannot change without re-aligning existing runs.
