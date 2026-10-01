@@ -315,7 +315,10 @@ umbrella_modules_mode: ingest              # default: cached_only
   environment with HTSlib, then `pip install ./moccasin ./majiq` from a clone
   of `majiq_academic`) and point `majiq_bin_folder` at that environment's
   `bin`, or set `majiq_source` to the clone (or a `.tar.gz` of it) to have the
-  workflow build the environment. MAJIQ and DaPars2 reuse the
+  workflow build the environment. MAJIQ also needs its licence file, free for
+  academic use (`https://majiq.biociphers.org/app_download/majiq_license_academic_official.lic`):
+  set `majiq_license` to its path, or leave a `majiq_license*` file in `$HOME`.
+  MAJIQ targets stop before any job when no licence is found. MAJIQ and DaPars2 reuse the
   existing HISAT2 index; QAPA builds its own Salmon 3' UTR index once.
 - **Annotations.** DaPars2 and QAPA locate 3' UTRs from coding ends, so they
   read `apa_annotation_gtf` (default: `annotation_gtf`), which must have CDS

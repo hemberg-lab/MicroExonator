@@ -444,6 +444,28 @@ MAJIQ_BIN_FOLDER = config.get("majiq_bin_folder", "")
 MAJIQ_SOFTWARE_ROOT = "umbrella/modules/software/majiq/" + MODULE_REFERENCE_ID["majiq"]
 MAJIQ_INSTALLED = [] if MAJIQ_BIN_FOLDER else [MAJIQ_SOFTWARE_ROOT + "/installed.json"]
 MAJIQ_BIN = MAJIQ_BIN_FOLDER or MAJIQ_SOFTWARE_ROOT + "/env/bin"
+# MAJIQ v3 refuses to run without its licence file (free for academic use:
+# https://majiq.biociphers.org/app_download/majiq_license_academic_official.lic).
+# majiq_license is exported as MAJIQ_LICENSE_FILE to every MAJIQ command; without
+# it MAJIQ searches $MAJIQ_LICENSE_FILE, the working directory and $HOME for a
+# file named majiq_license*.
+MAJIQ_LICENSE = str(config.get("majiq_license", "") or "")
+MAJIQ_LICENSE_ENV = ("export MAJIQ_LICENSE_FILE={}; ".format(_os.path.abspath(MAJIQ_LICENSE))
+                     if MAJIQ_LICENSE else "")
+
+
+def majiq_license_found():
+    """The licence MAJIQ would use, by its own search order, or None."""
+    if MAJIQ_LICENSE:
+        return MAJIQ_LICENSE if _os.path.isfile(MAJIQ_LICENSE) else None
+    from_env = _os.environ.get("MAJIQ_LICENSE_FILE")
+    if from_env and _os.path.isfile(from_env):
+        return from_env
+    for folder in (".", _os.path.expanduser("~")):
+        for name in sorted(_os.listdir(folder)):
+            if name.startswith("majiq_license") and _os.path.isfile(_os.path.join(folder, name)):
+                return _os.path.join(folder, name)
+    return None
 MAJIQ_GFF3 = MODULE_REFERENCE["majiq"] + "/annotation.gff3"
 MAJIQ_SPLICEGRAPH = MODULE_REFERENCE["majiq"] + "/splicegraph.zarr"
 
@@ -480,14 +502,15 @@ rule umbrella_majiq_reference:
         gff3=protected(MAJIQ_GFF3),
         splicegraph=protected(directory(MAJIQ_SPLICEGRAPH))
     params:
-        majiq_build=MAJIQ_BIN + "/majiq-build"
+        majiq_build=MAJIQ_BIN + "/majiq-build",
+        license=MAJIQ_LICENSE_ENV
     log:
         MODULE_REFERENCE["majiq"] + "/splicegraph.log"
     conda:
         "../envs/umbrella-quant.yaml"
     shell:
         # the microexon-inserted Whippet GTF, so microexons are in the graph
-        "gzip -dcf {input.gtf} | gffread - --keep-genes -o {output.gff3} "
+        "{params.license}gzip -dcf {input.gtf} | gffread - --keep-genes -o {output.gff3} "
         "&& {params.majiq_build} gff3 {output.gff3} {output.splicegraph} > {log} 2>&1"
 
 
@@ -507,12 +530,13 @@ if MODULE_PRODUCERS:
             out=MODULE_CACHE.replace("{tool}", "majiq"),
             strandedness=lambda w: config.get("majiq_strandness") or umbrella_quant_run(w).strandedness,
             bin=MAJIQ_BIN,
+            license=MAJIQ_LICENSE_ENV,
             identity=lambda w: module_identity(w, "majiq")
         threads: 4
         benchmark:
             "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.majiq.{cache_id}.tsv"
         shell:
-            "python3 src/run_majiq.py sj --bam {input.bam} --splicegraph {input.splicegraph} "
+            "{params.license}python3 src/run_majiq.py sj --bam {input.bam} --splicegraph {input.splicegraph} "
             "--out-dir {params.out} --run-id {wildcards.run_id} --strandedness {params.strandedness} "
             "--threads {threads} --bin-dir {params.bin} --identity {params.identity:q}"
 
@@ -533,6 +557,7 @@ rule umbrella_majiq_compare:
         out=MODULE_ANALYSIS.replace("{tool}", "majiq"),
         caches=lambda w: module_cache_arguments(w, "majiq"),
         bin=MAJIQ_BIN,
+        license=MAJIQ_LICENSE_ENV,
         args=_json.dumps({key: value for key, value in MODULE_SETTINGS["majiq"].items()
                           if value and key in ("update", "psicov", "heterogen")}),
         statistic=MODULE_SETTINGS["majiq"]["statistic"],
@@ -541,7 +566,7 @@ rule umbrella_majiq_compare:
     benchmark:
         MODULE_ANALYSIS.replace("{tool}", "majiq") + "/benchmark.tsv"
     shell:
-        "python3 src/run_majiq.py compare --preflight {input.preflight} {params.caches} "
+        "{params.license}python3 src/run_majiq.py compare --preflight {input.preflight} {params.caches} "
         "--splicegraph {input.splicegraph} --out-dir {params.out} --threads {threads} "
         "--bin-dir {params.bin} --args {params.args:q} --statistic {params.statistic} --ids {params.ids:q}"
 
@@ -570,6 +595,13 @@ def module_check(tool):
     A cache whose marker (cache.json) exists must have every other file too;
     in cached_only, every run must have a cache. Other tools' caches are never
     looked at, so a missing MAJIQ cache cannot block a QAPA target."""
+    if tool == "majiq" and not majiq_license_found():
+        raise WorkflowError(
+            "MAJIQ v3 needs its licence file to run (free for academic use): download "
+            "https://majiq.biociphers.org/app_download/majiq_license_academic_official.lic and set "
+            "majiq_license to its path{}".format(
+                " (majiq_license {} does not exist)".format(MAJIQ_LICENSE) if MAJIQ_LICENSE else
+                ", or put it in $HOME as majiq_license*"))
     runs = UMBRELLA_MANIFEST.included_runs()
     incomplete = [module_cache_dir(record, tool) for record in runs
                   if _os.path.exists(module_cache_dir(record, tool) + "/cache.json")

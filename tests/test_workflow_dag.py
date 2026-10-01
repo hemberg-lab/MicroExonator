@@ -626,11 +626,39 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
     MODULE_COMPARISONS = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
                           "    group_a: case\n    group_b: control\n")
 
-    def module_dry_run(self, target, extra=(), prepare=None):
+    def module_dry_run(self, target, extra=(), prepare=None, majiq_license=True):
+        def setup(temp_dir):
+            # MAJIQ finds a majiq_license* file in the working directory
+            if majiq_license:
+                open(os.path.join(temp_dir, "majiq_license_test.lic"), "w").close()
+            if prepare:
+                prepare(temp_dir)
         return WorkflowSelectionTests.run_quant_dry_run(
             self, umbrella=True, print_shell=True, target=target,
             umbrella_extra_rows=self.UMBRELLA_ROWS, umbrella_comparisons=self.MODULE_COMPARISONS,
-            extra_config=list(extra), prepare=prepare)
+            extra_config=list(extra), prepare=setup)
+
+    def test_majiq_licence_is_checked_before_any_job_and_can_be_named(self):
+        missing = self.module_dry_run("quant_majiq", [
+            "umbrella_modules_mode: ingest", "majiq_bin_folder: /opt/majiq/bin",
+            "majiq_license: licences/none.lic"], majiq_license=False)
+        self.assertNotEqual(missing.returncode, 0, missing.stdout)
+        self.assertIn("MAJIQ v3 needs its licence file", missing.stdout)
+        self.assertIn("licences/none.lic does not exist", missing.stdout)
+
+        def licence(temp_dir):
+            os.makedirs(os.path.join(temp_dir, "licences"))
+            open(os.path.join(temp_dir, "licences", "academic.lic"), "w").close()
+
+        named = self.module_dry_run("quant_majiq", [
+            "umbrella_modules_mode: ingest", "majiq_bin_folder: /opt/majiq/bin",
+            "majiq_license: licences/academic.lic"], prepare=licence, majiq_license=False)
+        self.assertEqual(named.returncode, 0, named.stdout)
+        exported = re.findall(r"export MAJIQ_LICENSE_FILE=(\S+)/licences/academic.lic; ", named.stdout)
+        self.assertGreaterEqual(len(exported), 3, named.stdout)   # reference, sj and compare
+        # QAPA alone never asks for it
+        qapa = self.module_dry_run("quant_qapa", ["umbrella_modules_mode: ingest"], majiq_license=False)
+        self.assertEqual(qapa.returncode, 0, qapa.stdout)
 
     def test_qapa_alone_needs_no_alignment_whippet_or_full_reference(self):
         result = self.module_dry_run("quant_qapa", ["umbrella_modules_mode: ingest"])
