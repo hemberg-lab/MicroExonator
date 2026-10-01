@@ -1,7 +1,9 @@
 # Build environment for MAJIQ v3 (licensed; its source, a majiq_academic
 # checkout, is supplied by the user as `majiq_source` and installed into this
-# environment by src/install_majiq.py). Holds compilers, CMake, HTSlib and zlib
-# so nothing comes from the system. Python 3.12 is the version MAJIQ supports.
+# environment by src/install_majiq.py). Holds compilers, CMake, HTSlib and the
+# compression libraries with headers (zlib, xz, bzip2, zstd; MAJIQ's bundled
+# bxzstr needs lzma.h, missing on hosts without xz-devel), so nothing comes
+# from the system. Python 3.12 is the version MAJIQ supports.
 name: microexonator-umbrella-majiq
 channels:
   - conda-forge
@@ -15,3 +17,6 @@ dependencies:
   - cxx-compiler
   - htslib=1.20
   - zlib
+  - xz
+  - bzip2
+  - zstd

@@ -27,8 +27,9 @@ def install(source, env_file, prefix, record, conda="conda"):
                          "and set majiq_source to the source directory or archive".format(source))
     if not prefix.exists():
         subprocess.run([conda, "env", "create", "-p", str(prefix), "-f", str(env_file)], check=True)
+    # CMAKE_PREFIX_PATH: take compression libraries from the env, not a host without headers
     env = dict(os.environ, HTSLIB_LIBRARY_DIR=str(prefix / "lib"),
-               HTSLIB_INCLUDE_DIR=str(prefix / "include"))
+               HTSLIB_INCLUDE_DIR=str(prefix / "include"), CMAKE_PREFIX_PATH=str(prefix))
     pip = [str(prefix / "bin" / "python"), "-m", "pip", "install", "--no-cache-dir"]
     with tempfile.TemporaryDirectory() as directory:
         tree = source
