@@ -286,7 +286,7 @@ PSI values per sample are in ``Report/quant/``, in two versions:
    * - CI_Hi
      - Upper bound of the 95% confidence interval of PSI
 
-Only microexons with at least 5 corrected reads (inclusion plus exclusion) in a sample are listed in its corrected file. The corrected counts of every microexon, before this cut-off, are in ``Report/quant/corrected/counts/{sample}.ME.adj_counts.gz`` (columns sample, microexon, corrected inclusion and exclusion reads, without a header).
+Only microexons with at least ``min_reads_PSI`` corrected reads (inclusion plus exclusion; default 5) in a sample are listed in its corrected file. The corrected counts of every microexon, before this cut-off, are in ``Report/quant/corrected/counts/{sample}.ME.adj_counts.gz`` (columns sample, microexon, corrected inclusion and exclusion reads, without a header).
 
 Diagnostic reports
 ------------------

@@ -77,6 +77,9 @@ def calcBin(vx, vN, vCL = 95):
     return (dl, ul)
 
 
+# PSI is reported only with at least min_reads_PSI corrected reads
+min_reads = float(snakemake.params["min_reads"])
+
 paired_sum = defaultdict(int)
 with gzip.open( snakemake.input["corrected_quant"] , "rt") as f, gzip.open(snakemake.output["corrected_sparse"] , "wt") as out:
 
@@ -92,7 +95,7 @@ with gzip.open( snakemake.input["corrected_quant"] , "rt") as f, gzip.open(snake
         ME_coverages = float(ME_coverages)
         excluding_covs = float(excluding_covs)
 
-        if ME_coverages + excluding_covs >=5:
+        if ME_coverages + excluding_covs >= min_reads and ME_coverages + excluding_covs > 0:
 
             PSI = ME_coverages/(excluding_covs+ME_coverages)
             CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)

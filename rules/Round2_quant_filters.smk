@@ -164,6 +164,8 @@ rule get_PSI_sparse_quants_se:
         corrected_quant = "Report/quant/corrected/counts/{sample}.ME.adj_counts.gz"
     output:
         corrected_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/se/{sample}.corrected.PSI.gz")
+    params:
+        min_reads = config["min_reads_PSI"]
     priority: 10
     script:
         "../src/get_sparse_quants_se.py"
@@ -178,6 +180,8 @@ rule get_PSI_sparse_quants_pe:
         corrected_quant_rd2 = lambda w : expand( "Report/quant/corrected/counts/{rd2}.ME.adj_counts.gz", rd2=paired_dict[w.sample])
     output:
         corrected_sparse = protected("Report/quant/corrected/PSI_sparse/bulk/pe/{sample}.corrected.PSI.gz")
+    params:
+        min_reads = config["min_reads_PSI"]
     priority: 10
     script:
         "../src/get_sparse_quants_pe.py"

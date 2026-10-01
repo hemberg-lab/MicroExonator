@@ -89,6 +89,9 @@ with open(snakemake.config["paired_samples"]) as file:
         paired_dic[row[1]] = row[1]
         
 
+# PSI is reported only with at least min_reads_PSI corrected reads
+min_reads = float(snakemake.params["min_reads"])
+
 paired_sum = defaultdict(int)
 
 with gzip.open(snakemake.output["corrected_sparse"], "wt") as out, gzip.open(snakemake.input["corrected_quant_rd1"], "rt") as rd1, gzip.open(snakemake.input["corrected_quant_rd2"][0], "rt") as rd2:
@@ -130,7 +133,7 @@ with gzip.open(snakemake.output["corrected_sparse"], "wt") as out, gzip.open(sna
             ME_coverages = count
             excluding_covs = paired_sum[(sample, ME, "excluding_covs")]
 
-            if ME_coverages + excluding_covs >=5:
+            if ME_coverages + excluding_covs >= min_reads and ME_coverages + excluding_covs > 0:
 
                 PSI = ME_coverages/(excluding_covs+ME_coverages)
                 CI_Lo, CI_Hi = calcBin(ME_coverages,  ME_coverages+excluding_covs)

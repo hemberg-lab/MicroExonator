@@ -93,7 +93,7 @@ Quantification
      - File of known microexons to quantify in addition to the annotated and discovered ones, for example from `VastDB <https://vastdb.crg.eu/>`_. BED12 rows, BED6 rows and single-column ``chrom_strand_start_end`` IDs can be mixed in one file (see :doc:`discovery_and_quantification`).
    * - ``min_reads_PSI``
      - 5
-     - Minimum number of junction reads (inclusion plus exclusion) needed to report a PSI value; below it PSI is ``NA``.
+     - Minimum number of junction reads (inclusion plus exclusion) needed to report a PSI value. Below it, PSI is ``NA`` in the uncorrected files and the microexon is left out of the corrected files of that sample.
    * - ``synthetic_skip_tags``
      - T
      - Add a skipping tag for every intron that contains a microexon but has no annotated exon-exon junction. Without it, microexons that are only annotated as included have no exclusion evidence and PSI stays at 1. See :ref:`skipping_tags`.
