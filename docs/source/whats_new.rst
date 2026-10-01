@@ -49,6 +49,7 @@ Input and cluster setup
 * A PBS cluster example (``Examples/Cluster_config/pbs/cluster.PBS.json``) with resources measured on hg38 runs, and a fixed LSF example. ``Round2_filter`` memory grows with read depth; see :ref:`cluster_resources`.
 * Start-up no longer prints Python ``DeprecationWarning`` messages from other packages; deprecated configuration keys are reported as one ``Note:`` line.
 * The corrected PSI files use ``min_reads_PSI`` as their read cut-off; it was fixed at 5 before.
+* The single-cell targets of the *Methods in Molecular Biology* chapter (``snakepool``, ``quant_unpool_single_cell``, ``collapse_whippet`` and ``cluster_bams``) work again; they had been switched off by mistake. Each comparison now keeps its own number of pseudo-bulks and repeats, and differentially included nodes are matched against the microexons of the configured confidence filter.
 * The experimental Google Cloud Storage input (``google_path``) has been removed, so the Google Cloud packages are no longer needed.
 
 Testing

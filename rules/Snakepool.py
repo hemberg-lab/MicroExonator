@@ -43,28 +43,32 @@ compare_all_clusters = defaultdict(list) # dict to connect BAM creation and sass
 
 
 
-with open(config["run_metadata"]) as run:   #Populating the dictionaries
+# run_metadata lists the comparisons between cell types; it is only needed for
+# the snakepool target, not for quant_unpool_single_cell, collapse_whippet or
+# cluster_bams.
+run_metadata_rows = []
+if "run_metadata" in config:
+    with open(config["run_metadata"]) as run:
+        run_metadata_rows = list(csv.DictReader(run, delimiter="\t"))
 
-    run_metadata = csv.DictReader(run, delimiter="\t")
+for row in run_metadata_rows:   #Populating the dictionaries
 
-    for row in run_metadata:
+    A_cluster_names = []
+    B_cluster_names = []
 
-        A_cluster_names = []
-        B_cluster_names = []
+    for c in row["A.cluster_names"].split(","):
 
-        for c in row["A.cluster_names"].split(","):
+        A_cluster_names.append(c.replace(" ", "_"))
+        compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
 
-            A_cluster_names.append(c.replace(" ", "_"))
-            compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
+    for c in row["B.cluster_names"].split(","):
 
-        for c in row["B.cluster_names"].split(","):
+        B_cluster_names.append(c.replace(" ", "_"))
+        compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
 
-            B_cluster_names.append(c.replace(" ", "_"))
-            compare_all_clusters[row["Compare_ID"]].append(c.replace(" ", "_"))
-
-        cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
-        cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
-        compare_repeats[row["Compare_ID"]] = int(row["Repeat"])
+    cluster_compare[row["Compare_ID"]] = (A_cluster_names, B_cluster_names)
+    cluster_compare_np[row["Compare_ID"]] = (int(row["A.number_of_pools"]), int(row["B.number_of_pools"]))
+    compare_repeats[row["Compare_ID"]] = int(row["Repeat"])
 
 
 ##### Moved to MicroExonator main ####        
@@ -223,11 +227,12 @@ rule delta_unpool:
         "Whippet/Delta/Single_Cell/Unpooled/{compare_name}.run.sh"
     params:
         bin = config["whippet_bin_folder"],
-        a = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(compare_name, "A")])),
-        b = ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(compare_name, "B")])),
+        julia = config["julia"],
+        a = lambda w: ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "A")])),
+        b = lambda w: ",".join(expand("Whippet/Quant/{sample}.psi.gz", sample=delta_unpooled_dict[(w.compare_name, "B")])),
         o = "Whippet/Delta/Single_Cell/Unpooled/{compare_name}"
     shell:
-        "echo julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
+        "echo {params.julia} {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} > {output}"
 
 
 rule run_delta_unpool:  #to avoid overload shell comandline
@@ -247,7 +252,9 @@ pool_dict_quant = dict()
 pool_dict_delta = dict()
 
 for compare_name, c in cluster_compare.items():
-    
+
+    np_A, np_B = cluster_compare_np[compare_name]  # pools per group for this comparison
+
     for r in range(compare_repeats[compare_name]):
         
         g1, g2 = c
@@ -325,10 +332,11 @@ rule quant_pool:
         "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}.psi.gz"
     params:
         bin = config["whippet_bin_folder"],
+        julia = config["julia"],
         output = "Whippet/Quant/Single_Cell/{compare_name}_{cond}_{pool_ID}"
     priority: 10
     shell:
-        "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
+        "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output}"
         
 
         
@@ -340,13 +348,14 @@ rule delta_pool:
         "{delta_name}.diff.gz"
     params:
         bin = config["whippet_bin_folder"],
+        julia = config["julia"],
         a = lambda w, input: ",".join( input.A ),
         b = lambda w, input: ",".join( input.B ),
         o = "{delta_name}",
-        r = config["min_number_of_reads_single_cell"],
-        s = config["min_number_of_samples_single_cell"] 
+        r = config.get("min_number_of_reads_single_cell", 5),
+        s = config.get("min_number_of_samples_single_cell", 3)
     shell:
-        "julia {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
+        "{params.julia} {params.bin}/whippet-delta.jl -a {params.a} -b {params.b} -o {params.o} -r {params.r} -s {params.s}"
  
 
 rule unizip_delta:
@@ -360,18 +369,22 @@ rule unizip_delta:
 
 
         
+# one whippet-delta table per comparison and repeat
+repeat_diffs = ["Whippet/Delta/Single_Cell/{}_rep_{}.diff".format(name, r + 1)
+                for name in compare_names for r in range(compare_repeats[name])]
+
 if str2bool(config.get("Only_snakepool", False)):
         
     rule CDF_betaDist:
         input:
-            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(1,int(compare_repeats[compare_name])+1))
+            repeat_diffs
         params:
             wd = config["working_directory"],
-            ct = config["cdf_t"], 
-            mr = config["min_rep"], 
-            mm = config["min_p_mean"], 
-            pm = config["run_metadata"],
-            min_delta = config["min_delta"],
+            ct = config.get("cdf_t", 0.8), 
+            mr = config.get("min_rep", 25), 
+            mm = config.get("min_p_mean", 0.9), 
+            pm = config.get("run_metadata", ""),
+            min_delta = config.get("min_delta", 0.1),
             path_delta = "Whippet/Delta/Single_Cell/", 
             path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
         output:
@@ -386,14 +399,14 @@ else:
     
     rule CDF_betaDist:
         input:
-            expand("Whippet/Delta/Single_Cell/{comparison_name}_rep_{rep}.diff", comparison_name=compare_names, rep=range(1,int(compare_repeats[compare_name])+1))
+            repeat_diffs
         params:
             wd = config["working_directory"],
-            ct = config["cdf_t"], 
-            mr = config["min_rep"], 
-            mm = config["min_p_mean"], 
-            pm = config["run_metadata"],
-            min_delta = config["min_delta"],
+            ct = config.get("cdf_t", 0.8), 
+            mr = config.get("min_rep", 25), 
+            mm = config.get("min_p_mean", 0.9), 
+            pm = config.get("run_metadata", ""),
+            min_delta = config.get("min_delta", 0.1),
             path_delta = "Whippet/Delta/Single_Cell/", 
             path_out = "Whippet/Delta/Single_Cell/Sig_nodes/"    
         output:
@@ -411,17 +424,15 @@ rule diff_ME_single_cell:
     input:
         "Whippet/Index/whippet.jls.exons.tab.gz",
         "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.txt",
-        "Report/out.high_quality.txt"
+        FILTERED_ME_OUTPUT
     output:
         "Whippet/Delta/Single_Cell/Sig_nodes/{comparison_name}.all_nodes.microexons.txt"
+    conda:
+        "../envs/core.yaml"
     shell:
-        "python src/get_diff_ME_single_cell.py {input} > {output}"
+        "python3 src/get_diff_ME_single_cell.py {input} > {output}"
 
 #### these rules gereate a single indexed bam per condition which can be used for visualization
-#print(cluster_files_metadata)
-for c, files in cluster_files_metadata.items():
-    print(c, len(files))
-        
 #rule merge_bam:
 #    input:
 #        lambda w: expand('Whippet/BAM/{sample}.bam', sample=cluster_files_metadata[w.cluster])
@@ -455,6 +466,7 @@ rule  get_sam_by_cluster:
       index = "Whippet/Index/whippet.jls"
     params:
       bin = config["whippet_bin_folder"],
+      julia = config["julia"],
       output = "Whippet/Quant/Merge/{cluster}",
       script = "Whippet/Quant/Merge/{cluster}.sh" 
     output:
@@ -466,7 +478,7 @@ rule  get_sam_by_cluster:
       sam = temp("Whippet/BAM/Merge/{cluster}.sam.merge")
     priority: 100
     shell:
-      "julia {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output} --sam > {output.sam}"     
+      "{params.julia} {params.bin}/whippet-quant.jl <( cat {input.fastq} ) --force-gz -x {input.index}  -o {params.output} --sam > {output.sam}"     
 
 rule sam_to_sorted_bam_index:
     input:
@@ -597,7 +609,7 @@ if str2bool(config.get("cluster_sashimi", False)):
         output:
             "Whippet/ggsashimi/{compare_name}/{gene}_{node}_{strand}.pdf"
         shell:
-            "python src/sashimi-plot.py -b {input.tsv} -c {params.region} -g {input.gtf} -o {params.out}"
+            "python3 src/sashimi-plot.py -b {input.tsv} -c {params.region} -g {input.gtf} -o {params.out}"
             
     rule get_sashimis:
         input:

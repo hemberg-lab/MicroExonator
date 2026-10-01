@@ -223,25 +223,25 @@ Single-cell analysis
      - from ``cells_pseudobulks``
      - Fixed number of pseudo-bulks per cluster, overriding ``cells_pseudobulks``.
    * - ``min_number_of_reads_single_cell``
-     - none
-     - Minimum number of reads for a node to be used in a pseudo-bulk comparison (``whippet-delta -r``). Required for ``snakepool``.
+     - 5
+     - Minimum number of reads for a node to be used in a pseudo-bulk comparison (``whippet-delta -r``).
    * - ``min_number_of_samples_single_cell``
-     - none
-     - Minimum number of pseudo-bulks per group in which a node must be quantified (``whippet-delta -s``). Required for ``snakepool``.
+     - 3
+     - Minimum number of pseudo-bulks per group in which a node must be quantified (``whippet-delta -s``).
    * - ``run_metadata``
      - none
-     - Tab-separated file describing the comparisons between cell types (see :doc:`single_cell_analysis`).
+     - Tab-separated file describing the comparisons between cell types (see :doc:`single_cell_analysis`). Needed only for the ``snakepool`` target.
    * - ``cdf_t``
-     - none (0.8 recommended)
+     - 0.8
      - Probability threshold for the Beta-distribution test of differential inclusion across computational replicates.
    * - ``min_p_mean``
-     - none (0.9 recommended)
+     - 0.9
      - Minimum mean probability of differential inclusion.
    * - ``min_delta``
-     - none (0.1 recommended)
+     - 0.1
      - Minimum mean ΔPSI.
    * - ``min_rep``
-     - none (25 recommended)
+     - 25
      - Minimum number of computational replicates in which a node could be tested.
    * - ``seed``
      - 123

@@ -28,6 +28,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         print_shell=False,
         target="quant",
         delta_comparisons=None,
+        run_metadata=None,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -39,7 +40,10 @@ class WorkflowSelectionTests(unittest.TestCase):
             for name in ("rules", "src", "envs"):
                 shutil.copytree(os.path.join(REPOSITORY, name), os.path.join(temp_dir, name))
 
-            sample_names = ["cell_a", "cell_b"] if single_cell else ["sample_a"]
+            if single_cell and clusters is not None:
+                sample_names = list(clusters)
+            else:
+                sample_names = ["cell_a", "cell_b"] if single_cell else ["sample_a"]
 
             for name in (
                 "genome.fa",
@@ -92,6 +96,9 @@ class WorkflowSelectionTests(unittest.TestCase):
                     absolute_path = os.path.join(temp_dir, relative_path)
                     os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
                     open(absolute_path, "w").close()
+            if run_metadata is not None:
+                with open(os.path.join(temp_dir, "run_metadata.tsv"), "w") as handle:
+                    handle.write(run_metadata)
             if delta_comparisons is not None:
                 with open(os.path.join(temp_dir, "whippet.delta.yaml"), "w") as handle:
                     handle.write(delta_comparisons)
@@ -119,6 +126,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                     handle.write("filter_method: {}\n".format(filter_method))
                 if delta_comparisons is not None:
                     handle.write("whippet_delta: whippet.delta.yaml\n")
+                if run_metadata is not None:
+                    handle.write("run_metadata: run_metadata.tsv\n")
                 for line in extra_config:
                     handle.write(line + "\n")
 
@@ -267,6 +276,67 @@ class QuantificationOnlyRouteTests(unittest.TestCase):
         self.assertEqual(
             self.annotation_command("synthetic_skip_tags: F")[9], "NA"
         )
+
+
+class SingleCellModuleTests(unittest.TestCase):
+    """Snakepool.py and pseudo_pool.smk: the single-cell targets of the MiMB chapter."""
+
+    CELLS = {"n1": "Neuron", "n2": "Neuron", "g1": "Glia", "g2": "Glia"}
+    WHIPPET = ("whippet_bin_folder: /opt/whippet/bin", "julia: /opt/julia/bin/julia")
+    # C1: two pools per group, one repeat; C2: one pool per group, two repeats
+    RUN_METADATA = (
+        "Compare_ID\tA.cluster_names\tA.number_of_pools\tB.cluster_names\tB.number_of_pools\tRepeat\n"
+        "C1\tNeuron\t2\tGlia\t2\t1\n"
+        "C2\tNeuron\t1\tGlia\t1\t2\n"
+    )
+
+    def dry_run(self, target, run_metadata=RUN_METADATA, extra_config=()):
+        return WorkflowSelectionTests.run_quant_dry_run(
+            self,
+            single_cell=True,
+            clusters=self.CELLS,
+            extra_config=self.WHIPPET + tuple(extra_config),
+            print_shell=True,
+            target=target,
+            run_metadata=run_metadata,
+        )
+
+    def test_every_chapter_target_builds(self):
+        for target in ("snakepool", "quant_unpool_single_cell", "collapse_whippet",
+                       "cluster_bams", "collapse_pseudo_pools"):
+            with self.subTest(target=target):
+                result = self.dry_run(target)
+                self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+
+    def test_snakepool_uses_configured_julia_and_filter_output(self):
+        out = self.dry_run("snakepool").stdout
+        self.assertIn("/opt/julia/bin/julia /opt/whippet/bin/whippet-delta.jl", out)
+        self.assertIn("/opt/julia/bin/julia /opt/whippet/bin/whippet-quant.jl", out)
+        self.assertNotRegex(out, r"(?m)^\s*julia ")
+        self.assertIn("python3 src/get_diff_ME_single_cell.py", out)
+        self.assertIn("Report/out.robustly_detected.txt", out)
+        self.assertNotIn("Report/out.high_quality.txt", out)
+
+    def test_each_comparison_keeps_its_own_pools_and_repeats(self):
+        out = self.dry_run("snakepool").stdout
+        delta = [line for line in out.splitlines() if "whippet-delta.jl" in line]
+        c1 = [line for line in delta if "-o Whippet/Delta/Single_Cell/C1_rep_" in line]
+        c2 = [line for line in delta if "-o Whippet/Delta/Single_Cell/C2_rep_" in line]
+        self.assertEqual(len(c1), 1, delta)
+        self.assertEqual(len(c2), 2, delta)
+        # two pools per group in C1, one in C2
+        self.assertEqual(c1[0].split(" -a ")[1].split()[0].count(","), 1, c1[0])
+        for line in c2:
+            self.assertEqual(line.split(" -a ")[1].split()[0].count(","), 0, line)
+        self.assertNotIn("C1_rep_2", out)
+
+    def test_run_metadata_is_only_needed_for_snakepool(self):
+        result = self.dry_run("quant_unpool_single_cell", run_metadata=None)
+        self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+
+    def test_start_up_does_not_print_cluster_sizes(self):
+        out = self.dry_run("snakepool").stdout
+        self.assertNotRegex(out, r"(?m)^(Neuron|Glia) 2$")
 
 
 if __name__ == "__main__":

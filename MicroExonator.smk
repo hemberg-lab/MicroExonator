@@ -285,8 +285,12 @@ if "whippet_delta" in config:
 #### Single Cell ###
 
 if str2bool(config["Single_Cell"]) and "whippet_bin_folder" in config:
-#   include : "rules/Snakepool.py"
+    # pseudo_pool.smk: fixed pseudo-bulks per cell type (collapse_pseudo_pools).
+    # Snakepool.py: per-cell quantification, cell-type comparisons (snakepool)
+    # and per-cluster BAMs. Snakepool reseeds the random generator, so it is
+    # included second to keep the pseudo-bulk membership unchanged.
     include : "rules/pseudo_pool.smk"
+    include : "rules/Snakepool.py"
     ruleorder: quant_pool_pb > whippet_quant
 #### Benchmark ####
 

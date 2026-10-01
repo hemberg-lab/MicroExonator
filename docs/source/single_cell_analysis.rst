@@ -27,7 +27,7 @@ To run this module, add the following parameters to ``config.yaml``:
     min_p_mean : 0.9
     min_delta : 0.1
     min_rep : 25
-    min_number_of_reads_single_cell : 10
+    min_number_of_reads_single_cell : 5
     min_number_of_samples_single_cell : 3
     run_metadata : /path/to/run_metadata.tsv
 
@@ -66,11 +66,11 @@ inputs must provide both ``bulk_samples`` and ``cluster_metadata`` so every
 input can be assigned unambiguously.
 
 
-.. warning::
+.. note::
 
-    The additional ``snakepool`` parameters listed above are compulsory when
-    running the ``snakepool`` target, even though cluster metadata is optional
-    for single-cell discovery and quantification alone.
+    ``run_metadata`` is needed only for the ``snakepool`` target. The values of
+    ``cdf_t``, ``min_p_mean``, ``min_delta``, ``min_rep`` and the two
+    ``*_single_cell`` thresholds shown above are their defaults.
 
 
 run_metadata
