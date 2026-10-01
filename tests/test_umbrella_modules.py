@@ -254,6 +254,8 @@ FAKE_MAJIQ_BUILD = r"""
 import argparse, csv, json, os, sys
 if "--help" in sys.argv:
     print("usage"); sys.exit(0)
+if sys.argv[1:] == ["--version"]:
+    print("majiq-build 3.0.23.test"); sys.exit(0)
 parser = argparse.ArgumentParser()
 sub = parser.add_subparsers(dest="command", required=True)
 sj = sub.add_parser("sj")
@@ -358,7 +360,8 @@ class MajiqTests(unittest.TestCase):
                          2, str(bin_dir))
             stored = json.loads((root / "cache" / "run.sj" / "fake.json").read_text())
             self.assertEqual(stored["prefixes"], ["SRR1"])
-            self.assertEqual(json.loads((root / "cache" / "cache.json").read_text())["strandness"], "REVERSE")
+            marker = json.loads((root / "cache" / "cache.json").read_text())
+            self.assertEqual((marker["strandness"], marker["majiq_version"]), ("REVERSE", "3.0.23.test"))
 
     def test_compare_runs_update_psicoverage_heterogen_and_normalizes(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -368,6 +371,7 @@ class MajiqTests(unittest.TestCase):
             caches = {}
             for run in ("r1", "r1b", "r2", "r3", "r4"):
                 (root / run / "run.sj").mkdir(parents=True)
+                (root / run / "cache.json").write_text(json.dumps({"majiq_version": "3.0.23.test"}))
                 caches[run] = run            # relative, as the workflow passes them
             preflight = root / "preflight.json"
             preflight.write_text(json.dumps({
@@ -397,7 +401,32 @@ class MajiqTests(unittest.TestCase):
             self.assertIn("ttest", first["statistic_type"])
             status = json.loads((root / "out" / "status.json").read_text())
             self.assertEqual((status["status"], status["tested"], status["connections"]), ("ok", 1, 2))
+            self.assertEqual(status["tool_version"], "rna_majiq 3.0.23.test")
+            self.assertEqual(first["tool_version"], "rna_majiq 3.0.23.test")
             self.assertTrue((root / "out" / "splicegraph.tar.gz").exists())
+
+    def test_sj_files_of_another_majiq_version_are_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bin_dir = fake_majiq_bin(root)
+            caches = {}
+            for run, version in (("r1", "3.0.23.test"), ("r2", "3.0.20"), ("r3", None)):
+                (root / run / "run.sj").mkdir(parents=True)
+                if version:
+                    (root / run / "cache.json").write_text(json.dumps({"majiq_version": version}))
+                caches[run] = str(root / run)
+            preflight = root / "preflight.json"
+            preflight.write_text(json.dumps({
+                "project_id": "p", "comparison_id": "c", "inference_supported": True, "reasons": [],
+                "replicates": {"a": ["A1"], "b": ["B1", "B2"]},
+                "collapse": {"r1": "A1", "r2": "B1", "r3": "B2"}}))
+            with self.assertRaises(SystemExit) as refused:
+                run_majiq.compare(preflight, caches, root / "sg.zarr", root / "out", bin_dir=str(bin_dir))
+            message = str(refused.exception)
+            self.assertIn("MAJIQ 3.0.23.test is installed", message)
+            self.assertIn("r2, r3", message)
+            self.assertIn("3.0.20, unrecorded", message)
+            self.assertFalse((root / "out" / "majiq.log").exists())   # refused before running anything
 
     def test_unknown_columns_are_native_only(self):
         with tempfile.TemporaryDirectory() as directory:

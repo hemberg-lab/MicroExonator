@@ -340,7 +340,10 @@ umbrella_modules_mode: ingest              # default: cached_only
   strandedness for MAJIQ; `majiq_het_statistic` picks the HET test for p and q.
   Each run's SJ file is named by run (`--prefix`), and the technical runs of
   a biological replicate are summed into one PsiCoverage with rna_majiq's
-  `PsiCoverage.sum`, run with the `python` of the MAJIQ installation.
+  `PsiCoverage.sum`, run with the `python` of the MAJIQ installation. Each SJ
+  cache records the MAJIQ version that wrote it; a comparison refuses SJ files
+  from another version than the installed one, and reports the version in its
+  results and `status.json`.
 
 ## Known limits
 

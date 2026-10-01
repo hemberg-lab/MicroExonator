@@ -10,7 +10,7 @@ redistributes it. Command syntax checked against the rna_majiq source
 sj        Per run, from the temporary HISAT2 BAM:
             majiq-build sj BAM SPLICEGRAPH OUT.sj --prefix RUN --strandness S --nthreads N
           The SJ file (a zarr folder) is MAJIQ's reusable per-run input; it is
-          kept. --prefix names the experiment by run: every BAM is called
+          kept, with the MAJIQ version that wrote it in cache.json. --prefix names the experiment by run: every BAM is called
           aligned.bam, and MAJIQ would otherwise name them all "aligned".
 compare   Per comparison, from the kept SJ files only:
             majiq-build update  splicegraph from the selected runs only, one
@@ -24,6 +24,9 @@ compare   Per comparison, from the kept SJ files only:
           Each step's extra arguments can be replaced from the config
           (majiq_update_args, majiq_psicov_args, majiq_heterogen_args); the
           `--help` of every command used is written to the log.
+          SJ files written by another MAJIQ version than the installed one are
+          refused: MAJIQ is installed from its development branch, and its
+          formats are not promised to stay compatible.
           Outputs: native.tsv.gz (HET table as written, with splicegraph
           annotation), results.tsv.gz (one row per LSV connection: effect =
           median PSI(A) - median PSI(B) of the per-replicate posterior means;
@@ -77,6 +80,17 @@ def _run(command, log, cwd=None):
                    check=True, cwd=cwd)
 
 
+def majiq_version(bin_dir=""):
+    """The installed MAJIQ version ("majiq-build 3.0.23..." -> "3.0.23..."), or "unknown"."""
+    try:
+        result = subprocess.run([_tool(bin_dir, "majiq-build"), "--version"], capture_output=True,
+                                text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    words = (result.stdout or result.stderr).split()
+    return words[-1] if words else "unknown"
+
+
 def _help(command, log):
     log.write("--- {} --help\n".format(" ".join(command)))
     log.flush()
@@ -100,7 +114,8 @@ def sj(bam, splicegraph, out_dir, run_id, strandedness, threads=1, bin_dir="", e
     else:
         os.replace(temporary, final)
     (out_dir / "cache.json").write_text(json.dumps(dict(
-        extra or {}, run_id=run_id, tool="majiq", strandness=strand), sort_keys=True, indent=2) + "\n")
+        extra or {}, run_id=run_id, tool="majiq", strandness=strand, majiq_version=majiq_version(bin_dir)),
+        sort_keys=True, indent=2) + "\n")
 
 
 def compare(preflight_path, caches, splicegraph, out_dir, threads=1, bin_dir="", args=None, ids=None,
@@ -123,6 +138,18 @@ def compare(preflight_path, caches, splicegraph, out_dir, threads=1, bin_dir="",
     for run, replicate in preflight["collapse"].items():
         members[replicate].append(run)
     majiq, build = _tool(bin_dir, "majiq"), _tool(bin_dir, "majiq-build")
+    version = majiq_version(bin_dir)
+    written = {}
+    for run in sorted(preflight["collapse"]):
+        marker = Path(caches[run]) / "cache.json"
+        recorded = json.loads(marker.read_text()) if marker.exists() else {}
+        written[run] = recorded.get("majiq_version", "unrecorded")
+    stale = sorted(run for run, value in written.items() if value != version)
+    if stale:
+        raise SystemExit("MAJIQ {} is installed, but the SJ files of {} were written by {}; ingest "
+                         "them again or use the MAJIQ that wrote them".format(
+                             version, ", ".join(stale), ", ".join(sorted({written[r] for r in stale}))))
+    base["tool_version"] = "rna_majiq {}".format(version)
     # absolute: every path is used from inside the private folder's commands
     sj_of = {run: (Path(caches[run]) / "run.sj").resolve() for run in caches}
     with tempfile.TemporaryDirectory(prefix="majiq-", dir=str(out_dir)) as directory, \
