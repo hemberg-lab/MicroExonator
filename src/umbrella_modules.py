@@ -70,11 +70,16 @@ def module_settings(config, module):
     if module == "majiq":
         return {"strandness": config.get("majiq_strandness", "manifest"),
                 "source": str(config.get("majiq_source", config.get("majiq_bin_folder", "")))}
+    # the APA annotation ("" = the umbrella annotation_gtf, already in reference_id)
+    annotation = {"annotation": str(config.get("apa_annotation_gtf", "") or ""),
+                  "transcripts": str(config.get("apa_transcripts", "basic"))}
     if module == "dapars2":
-        return {"coverage": "bedtools genomecov -split -bg, UTR windows, primary mapped reads"}
-    return {"library": config.get("qapa_library_type", "A"),
-            "polya_sites": str(config.get("qapa_polya_sites", "")),
-            "decoys": bool(config.get("qapa_decoys", False))}
+        return dict(annotation, coverage="bedtools genomecov -split -bg, UTR windows, primary mapped reads")
+    return dict(annotation, library=config.get("qapa_library_type", "A"),
+                polya_sites=str(config.get("qapa_polya_sites", "")),
+                gencode_polya=str(config.get("qapa_gencode_polya", "")),
+                polyasite=str(config.get("qapa_polyasite", "")),
+                decoys=bool(config.get("qapa_decoys", False)))
 
 
 def module_reference_id(reference_id, module, config):

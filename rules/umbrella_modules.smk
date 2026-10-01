@@ -39,6 +39,17 @@ except ValueError as error:
     raise WorkflowError(str(error))
 
 MODULE_REFERENCE_ID = {tool: module_reference_id(UMBRELLA_REFERENCE_ID, tool, config) for tool in MODULES}
+# DaPars2 and QAPA locate 3' UTRs from coding ends, so they may need a different
+# GTF than the splicing tools (e.g. GENCODE comprehensive next to an exon-only
+# Whippet build). It changes only their module_reference_id.
+APA_GTF = config.get("apa_annotation_gtf") or UMBRELLA_REFERENCE["annotation_gtf"]
+APA_TRANSCRIPTS = str(config.get("apa_transcripts", "basic"))
+APA_MIN_UTRS = int(config.get("apa_min_utrs", 5000))
+if APA_TRANSCRIPTS not in ("basic", "all"):
+    raise WorkflowError("apa_transcripts must be basic or all, not {}".format(APA_TRANSCRIPTS))
+if bool(config.get("qapa_gencode_polya")) != bool(config.get("qapa_polyasite")):
+    raise WorkflowError("qapa_gencode_polya and qapa_polyasite go together (QAPA's -g and -p); "
+                        "use qapa_polya_sites alone for a custom BED")
 MODULE_REFERENCE = {tool: "umbrella/modules/reference/{}/{}/{}".format(
     UMBRELLA_REFERENCE_ID, tool, MODULE_REFERENCE_ID[tool]) for tool in MODULES}
 MODULE_CACHE = ("umbrella/modules/cache/{reference_id}/{project_id}/{batch_id}/{run_id}/"
@@ -158,14 +169,18 @@ rule umbrella_dapars2_software:
 
 rule umbrella_dapars2_reference:
     input:
-        UMBRELLA_REFERENCE["annotation_gtf"]
+        APA_GTF
     output:
         bed=protected(DAPARS2_UTR),
         windows=protected(DAPARS2_WINDOWS),
         report=MODULE_REFERENCE["dapars2"] + "/utr_report.json"
+    params:
+        transcripts=APA_TRANSCRIPTS,
+        min_utrs=APA_MIN_UTRS
     shell:
         "python3 src/apa_annotation.py dapars-utr --gtf {input} --bed {output.bed} "
-        "--windows {output.windows} --report {output.report}"
+        "--windows {output.windows} --report {output.report} --transcripts {params.transcripts} "
+        "--min-utrs {params.min_utrs}"
 
 
 if MODULE_PRODUCERS:
@@ -227,11 +242,37 @@ QAPA_UTRS = MODULE_REFERENCE["qapa"] + "/qapa_3utrs.bed"
 QAPA_FASTA = MODULE_REFERENCE["qapa"] + "/qapa_3utrs.fa"
 QAPA_INDEX = MODULE_REFERENCE["qapa"] + "/salmon_index"
 QAPA_DECOYS = bool(config.get("qapa_decoys", False))
+QAPA_GENCODE_POLYA = MODULE_REFERENCE["qapa"] + "/gencode_polya_sites.bed"
+
+
+def qapa_site_inputs(wildcards):
+    if config.get("qapa_polya_sites"):
+        return {"custom": config["qapa_polya_sites"]}
+    if config.get("qapa_gencode_polya"):
+        return {"gencode": QAPA_GENCODE_POLYA, "polyasite": config["qapa_polyasite"]}
+    return {}
+
+
+def qapa_site_arguments(wildcards, input):
+    if hasattr(input, "custom"):
+        return "-o {}".format(input.custom)
+    if hasattr(input, "gencode"):
+        return "-g {} -p {}".format(input.gencode, input.polyasite)
+    return "-N"        # annotation-only: no poly(A) database
+
+
+rule umbrella_qapa_polya:
+    input:
+        lambda w: config["qapa_gencode_polya"]
+    output:
+        protected(QAPA_GENCODE_POLYA)
+    shell:
+        "python3 src/apa_annotation.py polya-bed --gtf {input} --output {output}"
 
 
 rule umbrella_qapa_db:
     input:
-        UMBRELLA_REFERENCE["annotation_gtf"]
+        APA_GTF
     output:
         protected(QAPA_DB)
     shell:
@@ -240,23 +281,27 @@ rule umbrella_qapa_db:
 
 rule umbrella_qapa_build:
     input:
-        gtf=UMBRELLA_REFERENCE["annotation_gtf"],
-        db=QAPA_DB,
-        sites=[config["qapa_polya_sites"]] if config.get("qapa_polya_sites") else []
+        unpack(lambda w: dict(qapa_site_inputs(w), gtf=APA_GTF, db=QAPA_DB))
     output:
         protected(QAPA_UTRS)
     params:
+        selected=MODULE_REFERENCE["qapa"] + "/selected_transcripts.gtf",
         genepred=MODULE_REFERENCE["qapa"] + "/genes.genePred",
-        # annotation-only by default: no poly(A) database is downloaded
-        sites=lambda w, input: "-o {}".format(input.sites[0]) if input.sites else "-N"
+        transcripts=APA_TRANSCRIPTS,
+        min_utrs=APA_MIN_UTRS,
+        sites=qapa_site_arguments
     log:
         MODULE_REFERENCE["qapa"] + "/qapa_build.log"
     conda:
         "../envs/umbrella-qapa.yaml"
     shell:
-        "gzip -dcf {input.gtf} | gtfToGenePred -genePredExt stdin {params.genepred} "
+        "python3 src/apa_annotation.py qapa-gtf --gtf {input.gtf} --output {params.selected} "
+        "--transcripts {params.transcripts} "
+        "&& gtfToGenePred -genePredExt {params.selected} {params.genepred} "
         "&& qapa build {params.sites} --db {input.db} {params.genepred} > {output} 2> {log} "
-        "&& rm -f {params.genepred}"
+        "&& rm -f {params.selected} {params.genepred} "
+        "&& python3 src/apa_annotation.py check-bed --bed {output} --min {params.min_utrs} "
+        "--label 'QAPA 3 prime UTR library'"
 
 
 rule umbrella_qapa_fasta:

@@ -310,12 +310,22 @@ umbrella_modules_mode: ingest              # default: cached_only
   archive, installed into a workflow-owned environment), or point
   `majiq_bin_folder` at an existing installation. MAJIQ and DaPars2 reuse the
   existing HISAT2 index; QAPA builds its own Salmon 3' UTR index once.
-- **Annotations.** DaPars2 and QAPA use `annotation_gtf`: protein-coding
-  transcripts whose coding end lies in the last exon (3' UTRs with introns are
-  skipped, as in QAPA). QAPA is annotation-only unless `qapa_polya_sites`
-  gives a BED of poly(A) sites; set `qapa_decoys: true` for a genome-decoy
-  index. MAJIQ uses the microexon-inserted Whippet GTF, so microexons are in
-  its splicegraph.
+- **Annotations.** DaPars2 and QAPA locate 3' UTRs from coding ends, so they
+  read `apa_annotation_gtf` (default: `annotation_gtf`), which must have CDS
+  lines. An exon-only GTF, such as a Whippet-oriented build, is refused, and a
+  reference with fewer than `apa_min_utrs` 3' UTRs (default 5000) fails
+  instead of giving an empty or tiny library. Changing it changes only the
+  DaPars2 and QAPA module references (and their per-run caches), never the
+  umbrella `reference_id`. `apa_transcripts: basic` (default) keeps transcripts
+  tagged `basic`, QAPA's documented GENCODE input; `all` keeps every
+  transcript. DaPars2 uses protein-coding transcripts whose coding end lies in
+  the last exon (3' UTRs with introns are skipped, as in QAPA). QAPA is
+  annotation-only (`qapa build -N`) unless poly(A) sites are given: either
+  `qapa_gencode_polya` (GENCODE's `polyAs` GTF, converted to QAPA's BED) with
+  `qapa_polyasite` (a PolyASite atlas BED), QAPA's standard `-g`/`-p` route,
+  or `qapa_polya_sites` for a custom BED (`-o`). Set `qapa_decoys: true` for a
+  genome-decoy index. MAJIQ uses the microexon-inserted Whippet GTF, so
+  microexons are in its splicegraph.
 - **Options.** `dapars2_coverage_threshold` (default 10);
   `majiq_update_args`, `majiq_psicov_args`, `majiq_heterogen_args` replace
   the default arguments of those MAJIQ commands (each command's `--help` is

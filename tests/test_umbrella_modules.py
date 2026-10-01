@@ -109,6 +109,51 @@ class AnnotationTests(unittest.TestCase):
                 "chr1\t600\t1000\tENST1|AAA|chr1|+\t0\t+", "chr2\t1000\t1300\tENST2|BBB|chr2|-\t0\t-"])
             self.assertEqual(skipped, {"utr_with_intron": 1, "not_protein_coding": 2})
             self.assertEqual((root / "win.bed").read_text().splitlines(), ["chr1\t600\t1000", "chr2\t1000\t1300"])
+            with self.assertRaisesRegex(ValueError, "only 2 DaPars2"):
+                apa_annotation.dapars_utr(transcripts, root / "utr.bed", root / "win.bed", min_utrs=3)
+
+    def test_basic_selection(self):
+        tagged = GTF.replace('gene_name "AAA";', 'gene_name "AAA"; tag "basic"; tag "CCDS";')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.gtf").write_text(tagged)
+            transcripts = apa_annotation.read_transcripts(root / "a.gtf")
+            self.assertEqual(transcripts["ENST1.2"]["tags"], {"basic", "CCDS"})
+            kept, skipped = apa_annotation.dapars_utr(transcripts, root / "utr.bed", root / "win.bed", "basic")
+            self.assertEqual(kept, 1)
+            self.assertEqual(skipped["not_basic"], 2)           # ENST2 and ENST3 are not basic
+            self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "basic"), 1)
+            self.assertTrue(all("ENST1.2" in line for line in (root / "q.gtf").read_text().splitlines()))
+            self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "all"), 5)
+
+    def test_an_exon_only_annotation_is_refused(self):
+        exon_only = "\n".join(line for line in GTF.splitlines() if "\tCDS\t" not in line) + "\n"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.gtf").write_text(exon_only)
+            transcripts = apa_annotation.read_transcripts(root / "a.gtf")
+            with self.assertRaisesRegex(ValueError, "no CDS"):
+                apa_annotation.dapars_utr(transcripts, root / "utr.bed", root / "win.bed")
+            with self.assertRaisesRegex(ValueError, "no CDS"):
+                apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "all")
+            with self.assertRaises(SystemExit):
+                apa_annotation.main(["dapars-utr", "--gtf", str(root / "a.gtf"), "--bed", str(root / "u.bed"),
+                                     "--windows", str(root / "w.bed"), "--report", str(root / "r.json")])
+
+    def test_polya_bed_and_library_size_check(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with gzip.open(root / "polyAs.gtf.gz", "wt") as stream:
+                stream.write("##description: test\n"
+                             'chr1\tENSEMBL\tpolyA_site\t1000\t1000\t.\t+\t.\tgene_id "1";\n'
+                             'chr1\tENSEMBL\tpolyA_signal\t980\t985\t.\t+\t.\tgene_id "1";\n'
+                             'chr2\tENSEMBL\tpolyA_site\t50\t51\t.\t-\t.\tgene_id "2";\n')
+            self.assertEqual(apa_annotation.polya_bed(root / "polyAs.gtf.gz", root / "sites.bed"), 2)
+            self.assertEqual((root / "sites.bed").read_text().splitlines(), [
+                "chr1\t999\t1000\tpolyA_site\t0\t+", "chr2\t49\t51\tpolyA_site\t0\t-"])
+            self.assertEqual(apa_annotation.check_bed(root / "sites.bed", 2, "x"), 2)
+            with self.assertRaisesRegex(ValueError, "only 2 entries"):
+                apa_annotation.check_bed(root / "sites.bed", 3, "x")
 
 
 def write_quant(path, rows):

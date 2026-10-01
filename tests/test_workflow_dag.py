@@ -644,6 +644,34 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
                        "rule umbrella_salmon_index:", "Round2", "rule umbrella_dapars2", "rule umbrella_majiq"):
             self.assertNotIn(absent, out)
 
+    def test_apa_references_can_use_their_own_annotation_and_polya_sites(self):
+        def apa_inputs(temp_dir):
+            os.makedirs(os.path.join(temp_dir, "apa"), exist_ok=True)
+            for name in ("gencode.gtf.gz", "polyAs.gtf.gz", "polyasite.bed.gz"):
+                open(os.path.join(temp_dir, "apa", name), "w").close()
+
+        result = self.module_dry_run("quant_umbrella_modules", [
+            "umbrella_modules: [dapars2, qapa]", "umbrella_modules_mode: ingest",
+            "apa_annotation_gtf: apa/gencode.gtf.gz", "qapa_gencode_polya: apa/polyAs.gtf.gz",
+            "qapa_polyasite: apa/polyasite.bed.gz"], prepare=apa_inputs)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        for expected in ("apa_annotation.py dapars-utr --gtf apa/gencode.gtf.gz",
+                         "apa_annotation.py qapa-db --gtf apa/gencode.gtf.gz",
+                         "apa_annotation.py qapa-gtf --gtf apa/gencode.gtf.gz",
+                         "--transcripts basic", "apa_annotation.py polya-bed --gtf apa/polyAs.gtf.gz",
+                         "/gencode_polya_sites.bed -p apa/polyasite.bed.gz", "check-bed"):
+            self.assertIn(expected, out)
+        self.assertNotIn("qapa build -N", out)
+        # the splicing reference (and its identity) is untouched
+        self.assertIn("rule umbrella_hisat2:", out)
+
+    def test_qapa_polya_tracks_go_together(self):
+        result = self.module_dry_run("quant_qapa", [
+            "umbrella_modules_mode: ingest", "qapa_gencode_polya: apa/polyAs.gtf.gz"])
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("qapa_gencode_polya and qapa_polyasite go together", result.stdout)
+
     def test_dapars2_alone_aligns_without_salmon_or_whippet(self):
         result = self.module_dry_run("quant_dapars2", ["umbrella_modules_mode: ingest"])
         self.assertEqual(result.returncode, 0, result.stdout)

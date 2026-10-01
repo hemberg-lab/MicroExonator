@@ -861,6 +861,17 @@
         "output": "logs/U.qapa_db.out",
         "error": "logs/U.qapa_db.err"
     },
+    "umbrella_qapa_polya": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "2000",
+        "mem": "2000mb",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.qapa_polya",
+        "output": "logs/U.qapa_polya.out",
+        "error": "logs/U.qapa_polya.err"
+    },
     "umbrella_qapa_build": {
         "ppn": "1",
         "threads": "1",
