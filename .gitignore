@@ -31,3 +31,6 @@ __pycache__/
 /data/
 /Genome/
 /salmon/
+
+# Sphinx output (Read the Docs builds from docs/source)
+/docs/build/

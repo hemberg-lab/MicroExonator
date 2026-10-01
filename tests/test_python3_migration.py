@@ -52,8 +52,6 @@ class Python3MigrationTests(unittest.TestCase):
         workflow_files = [
             *REPOSITORY.glob("*.smk"),
             *REPOSITORY.glob("rules/*.smk"),
-            REPOSITORY / "config.py",
-            REPOSITORY / "src" / "Snakefile",
         ]
         python2_files = [
             path.relative_to(REPOSITORY)

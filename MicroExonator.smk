@@ -121,6 +121,7 @@ if ("insertion_penalty" in config)==False:
 config["indel_penalty"] = ",".join([str(config["deletion_penalty"]), str(config["insertion_penalty"])])
 
 if ("ME_DB" in config)==False:
+    # an empty file: no known microexons besides the annotated ones
     config["ME_DB"]="touch/VastDb.bed12"
 
 if ("paired_samples" in config)==False:
