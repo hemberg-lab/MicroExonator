@@ -31,6 +31,7 @@ import json as _json
 import os as _os
 
 from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, MODULES, SOFTWARE, analysis_id,
+                                  apa_set_id,
                                   cache_id, missing_caches, module_reference_id, parse_selection)
 
 try:
@@ -45,13 +46,22 @@ MODULE_REFERENCE_ID = {tool: module_reference_id(UMBRELLA_REFERENCE_ID, tool, co
 APA_GTF = config.get("apa_annotation_gtf") or UMBRELLA_REFERENCE["annotation_gtf"]
 APA_TRANSCRIPTS = str(config.get("apa_transcripts", "basic"))
 APA_MIN_UTRS = int(config.get("apa_min_utrs", 5000))
-if APA_TRANSCRIPTS not in ("basic", "all"):
-    raise WorkflowError("apa_transcripts must be basic or all, not {}".format(APA_TRANSCRIPTS))
+if APA_TRANSCRIPTS not in ("basic", "all", "megasearch"):
+    raise WorkflowError("apa_transcripts must be basic, all or megasearch, not {}".format(APA_TRANSCRIPTS))
+if APA_TRANSCRIPTS == "megasearch" and not (config.get("qapa_gencode_polya") and config.get("qapa_polyasite")):
+    raise WorkflowError("apa_transcripts: megasearch selects 3' ends with poly(A) evidence; set "
+                        "qapa_gencode_polya (GENCODE polyAs GTF) and qapa_polyasite (PolyASite 2.0 atlas)")
 if bool(config.get("qapa_gencode_polya")) != bool(config.get("qapa_polyasite")):
     raise WorkflowError("qapa_gencode_polya and qapa_polyasite go together (QAPA's -g and -p); "
                         "use qapa_polya_sites alone for a custom BED")
 MODULE_REFERENCE = {tool: "umbrella/modules/reference/{}/{}/{}".format(
     UMBRELLA_REFERENCE_ID, tool, MODULE_REFERENCE_ID[tool]) for tool in MODULES}
+# apa_transcripts: megasearch builds the MegaSearch APA set once from the APA GTF and
+# the poly(A) evidence; DaPars2 and QAPA then read every transcript of that set
+APA_SET_DIR = "umbrella/modules/reference/{}/apa_set/{}".format(UMBRELLA_REFERENCE_ID,
+                                                                apa_set_id(UMBRELLA_REFERENCE_ID, config))
+APA_INPUT = APA_SET_DIR + "/apa_set.gtf.gz" if APA_TRANSCRIPTS == "megasearch" else APA_GTF
+APA_SELECT = "all" if APA_TRANSCRIPTS == "megasearch" else APA_TRANSCRIPTS
 MODULE_CACHE = ("umbrella/modules/cache/{reference_id}/{project_id}/{batch_id}/{run_id}/"
                 "{tool}/{cache_id}")
 MODULE_ANALYSIS = UMBRELLA_COMPARISON_ROOT + "/modules/{tool}/{analysis_id}"
@@ -168,15 +178,30 @@ rule umbrella_dapars2_software:
         "mkdir -p {params.root} && curl -fsSL {params.url} | tar xz --strip-components 1 -C {params.root}"
 
 
+rule umbrella_apa_set:
+    input:
+        gtf=APA_GTF,
+        gencode=lambda w: config["qapa_gencode_polya"],
+        polyasite=lambda w: config["qapa_polyasite"]
+    output:
+        gtf=protected(APA_SET_DIR + "/apa_set.gtf.gz"),
+        report=APA_SET_DIR + "/apa_set_report.json"
+    params:
+        slop=int(config.get("apa_set_slop", 50))
+    shell:
+        "python3 src/apa_annotation.py apa-set --gtf {input.gtf} --gencode-polya {input.gencode} "
+        "--polyasite {input.polyasite} --slop {params.slop} --out {output.gtf} --report {output.report}"
+
+
 rule umbrella_dapars2_reference:
     input:
-        APA_GTF
+        APA_INPUT
     output:
         bed=protected(DAPARS2_UTR),
         windows=protected(DAPARS2_WINDOWS),
         report=MODULE_REFERENCE["dapars2"] + "/utr_report.json"
     params:
-        transcripts=APA_TRANSCRIPTS,
+        transcripts=APA_SELECT,
         min_utrs=APA_MIN_UTRS
     shell:
         "python3 src/apa_annotation.py dapars-utr --gtf {input} --bed {output.bed} "
@@ -273,7 +298,7 @@ rule umbrella_qapa_polya:
 
 rule umbrella_qapa_db:
     input:
-        APA_GTF
+        APA_INPUT
     output:
         protected(QAPA_DB)
     shell:
@@ -282,13 +307,13 @@ rule umbrella_qapa_db:
 
 rule umbrella_qapa_build:
     input:
-        unpack(lambda w: dict(qapa_site_inputs(w), gtf=APA_GTF, db=QAPA_DB))
+        unpack(lambda w: dict(qapa_site_inputs(w), gtf=APA_INPUT, db=QAPA_DB))
     output:
         protected(QAPA_UTRS)
     params:
         selected=MODULE_REFERENCE["qapa"] + "/selected_transcripts.gtf",
         genepred=MODULE_REFERENCE["qapa"] + "/genes.genePred",
-        transcripts=APA_TRANSCRIPTS,
+        transcripts=APA_SELECT,
         min_utrs=APA_MIN_UTRS,
         sites=qapa_site_arguments
     log:

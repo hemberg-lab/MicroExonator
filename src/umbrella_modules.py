@@ -72,7 +72,10 @@ def module_settings(config, module):
                 "source": str(config.get("majiq_source", config.get("majiq_bin_folder", "")))}
     # the APA annotation ("" = the umbrella annotation_gtf, already in reference_id)
     annotation = {"annotation": str(config.get("apa_annotation_gtf", "") or ""),
-                  "transcripts": str(config.get("apa_transcripts", "basic"))}
+                  "transcripts": str(config.get("apa_transcripts", "basic")),
+                  "utr_rules": "no CDS or incomplete 3' end (cds_end_NF, mRNA_end_NF) dropped"}
+    if annotation["transcripts"] == "megasearch":
+        annotation["apa_set"] = apa_set_settings(config)
     if module == "dapars2":
         return dict(annotation, coverage="bedtools genomecov -split -bg, UTR windows, primary mapped reads")
     return dict(annotation, library=config.get("qapa_library_type", "A"),
@@ -80,6 +83,22 @@ def module_settings(config, module):
                 gencode_polya=str(config.get("qapa_gencode_polya", "")),
                 polyasite=str(config.get("qapa_polyasite", "")),
                 decoys=bool(config.get("qapa_decoys", False)))
+
+
+APA_SET_RULE = ("protein-coding, CDS end in last exon, no *_NF tag, not readthrough, 3' end "
+                "Tier-1 or within slop of PolyASite (>= 2 protocols) or GENCODE polyA_site")
+
+
+def apa_set_settings(config):
+    """What the MegaSearch APA set is made from (apa_transcripts: megasearch)."""
+    return {"rule": APA_SET_RULE, "slop": int(config.get("apa_set_slop", 50)),
+            "gencode_polya": str(config.get("qapa_gencode_polya", "")),
+            "polyasite": str(config.get("qapa_polyasite", ""))}
+
+
+def apa_set_id(reference_id, config):
+    return _digest({"reference_id": reference_id, "annotation": str(config.get("apa_annotation_gtf", "") or ""),
+                    "settings": apa_set_settings(config)})
 
 
 def module_reference_id(reference_id, module, config):

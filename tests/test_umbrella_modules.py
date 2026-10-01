@@ -3,6 +3,7 @@
 import gzip
 import json
 import os
+import re
 import stat
 import tempfile
 import unittest
@@ -124,7 +125,8 @@ class AnnotationTests(unittest.TestCase):
             self.assertEqual(skipped["not_basic"], 2)           # ENST2 and ENST3 are not basic
             self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "basic"), 1)
             self.assertTrue(all("ENST1.2" in line for line in (root / "q.gtf").read_text().splitlines()))
-            self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "all"), 5)
+            # all: every transcript with CDS lines (ENST4 and ME1.t have none)
+            self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "all"), 3)
 
     def test_an_exon_only_annotation_is_refused(self):
         exon_only = "\n".join(line for line in GTF.splitlines() if "\tCDS\t" not in line) + "\n"
@@ -154,6 +156,96 @@ class AnnotationTests(unittest.TestCase):
             self.assertEqual(apa_annotation.check_bed(root / "sites.bed", 2, "x"), 2)
             with self.assertRaisesRegex(ValueError, "only 2 entries"):
                 apa_annotation.check_bed(root / "sites.bed", 3, "x")
+
+
+def model(chrom, strand, tid, gene, exons, coding, attrs="", ttype="protein_coding"):
+    """GTF lines of one transcript: transcript, exons and coding (CDS) lines."""
+    common = 'gene_id "{}"; transcript_id "{}"; gene_type "{}"; transcript_type "{}"; {}'.format(
+        gene, tid, ttype, ttype, attrs)
+    rows = [(chrom, "transcript", min(s for s, _ in exons), max(e for _, e in exons))]
+    rows += [(chrom, "exon", s, e) for s, e in exons] + [(chrom, "CDS", s, e) for s, e in coding]
+    return ["{}\tHAVANA\t{}\t{}\t{}\t.\t{}\t.\t{}".format(c, f, s, e, strand, common) for c, f, s, e in rows]
+
+
+APA_SET_GTF = "\n".join(["##format: gtf"] + [
+    'chr1\tHAVANA\tgene\t100\t9000\t.\t+\t.\tgene_id "G1"; gene_type "protein_coding";',
+    'chr1\tHAVANA\tgene\t20000\t21000\t.\t+\t.\tgene_id "G9"; gene_type "lncRNA";',
+    'chr2\tHAVANA\tgene\t100\t1000\t.\t-\t.\tgene_id "G2"; gene_type "protein_coding";']
+    # Tier-1 (MANE): kept without poly(A) evidence
+    + model("chr1", "+", "T1", "G1", [(100, 200), (500, 1000)], [(150, 200), (500, 600)], 'tag "MANE_Select";')
+    # basic, TSL 3, 3' end 30 nt from a PolyASite cluster with 3 protocols: kept
+    + model("chr1", "+", "T2", "G1", [(100, 200), (2000, 3000)], [(150, 200), (2000, 2100)],
+            'tag "basic"; transcript_support_level "3";')
+    # same, but the only cluster nearby has 1 protocol: unsupported 3' end
+    + model("chr1", "+", "T3", "G1", [(100, 200), (4000, 5000)], [(150, 200), (4000, 4100)], 'tag "basic";')
+    # partial model
+    + model("chr1", "+", "T4", "G1", [(100, 200), (500, 1000)], [(150, 200), (500, 600)],
+            'tag "MANE_Select"; tag "cds_end_NF";')
+    # readthrough, even with a Tier-1 tag
+    + model("chr1", "+", "T5", "G1", [(100, 200), (500, 1000)], [(150, 200), (500, 600)],
+            'tag "Ensembl_canonical"; tag "readthrough_transcript";')
+    # coding end before the last exon
+    + model("chr1", "+", "T6", "G1", [(100, 200), (8000, 9000)], [(120, 180)], 'tag "MANE_Select";')
+    # non-coding
+    + model("chr1", "+", "T7", "G9", [(20000, 21000)], [], 'tag "basic";', ttype="lncRNA")
+    # minus strand, 3' end (leftmost base 100) within 50 nt of a GENCODE polyA_site
+    + model("chr2", "-", "T8", "G2", [(100, 400), (800, 1000)], [(300, 400), (800, 900)], 'tag "basic";')
+) + "\n"
+
+
+class ApaSetTests(unittest.TestCase):
+    def write_inputs(self, root):
+        (root / "a.gtf").write_text(APA_SET_GTF)
+        with gzip.open(root / "polyAs.gtf.gz", "wt") as stream:
+            stream.write('chr2\tENSEMBL\tpolyA_site\t140\t140\t.\t-\t.\tgene_id "x";\n'
+                         'chr2\tENSEMBL\tpolyA_signal\t100\t105\t.\t-\t.\tgene_id "x";\n')
+        with gzip.open(root / "atlas.bed.gz", "wt") as stream:
+            # chrom start end id score strand percent protocols (PolyASite 2.0 columns)
+            stream.write("1\t3029\t3031\tc1\t5\t+\t1.0\t3\n"
+                         "1\t5019\t5021\tc2\t5\t+\t1.0\t1\n")
+
+    def test_rules_select_like_the_annotation_script(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_inputs(root)
+            report = apa_annotation.apa_set(root / "a.gtf", root / "polyAs.gtf.gz", root / "atlas.bed.gz",
+                                            root / "set.gtf.gz")
+            lines = gzip.open(root / "set.gtf.gz", "rt").read().splitlines()
+            tids = {re.search(r'transcript_id "([^"]+)"', line).group(1) for line in lines
+                    if "transcript_id" in line}
+            self.assertEqual(tids, {"T1", "T2", "T8"})
+            genes = [line for line in lines if "\tgene\t" in line]
+            self.assertEqual([re.search(r'gene_id "([^"]+)"', g).group(1) for g in genes], ["G1", "G2"])
+            self.assertTrue(any("\tCDS\t" in line for line in lines))
+            self.assertEqual(report["first_failed_rule"], {
+                "protein_coding": 1, "has_cds": 0, "coding_end_in_last_exon": 1, "complete_model": 1,
+                "supported_3prime_end": 1, "not_readthrough": 1})
+            self.assertEqual((report["selected_transcripts"], report["selected_tier1"]), (3, 1))
+            # reproducible bytes
+            first = (root / "set.gtf.gz").read_bytes()
+            apa_annotation.apa_set(root / "a.gtf", root / "polyAs.gtf.gz", root / "atlas.bed.gz",
+                                   root / "set.gtf.gz")
+            self.assertEqual((root / "set.gtf.gz").read_bytes(), first)
+
+    def test_slop_decides_poly_a_support(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_inputs(root)
+            report = apa_annotation.apa_set(root / "a.gtf", root / "polyAs.gtf.gz", root / "atlas.bed.gz",
+                                            root / "set.gtf.gz", slop=20)
+            self.assertEqual(report["selected_transcripts"], 1)       # only the MANE model
+
+    def test_incomplete_3prime_and_no_cds_are_dropped_from_any_input(self):
+        partial = GTF.replace('gene_name "AAA";', 'gene_name "AAA"; tag "cds_end_NF";')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.gtf").write_text(partial)
+            transcripts = apa_annotation.read_transcripts(root / "a.gtf")
+            kept, skipped = apa_annotation.dapars_utr(transcripts, root / "utr.bed", root / "win.bed")
+            self.assertEqual((kept, skipped["incomplete_3prime"]), (1, 1))     # only ENST2 left
+            self.assertEqual(apa_annotation.qapa_gtf(root / "a.gtf", root / "q.gtf", "all"), 2)
+            self.assertFalse("ENST1.2" in (root / "q.gtf").read_text())
+
 
 
 def write_quant(path, rows):

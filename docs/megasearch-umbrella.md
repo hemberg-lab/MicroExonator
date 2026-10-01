@@ -325,7 +325,19 @@ umbrella_modules_mode: ingest              # default: cached_only
   DaPars2 and QAPA module references (and their per-run caches), never the
   umbrella `reference_id`. `apa_transcripts: basic` (default) keeps transcripts
   tagged `basic`, QAPA's documented GENCODE input; `all` keeps every
-  transcript. DaPars2 uses protein-coding transcripts whose coding end lies in
+  transcript; `megasearch` (recommended with GENCODE) first builds the
+  MegaSearch APA set, once, and both tools read every transcript of it. A
+  transcript is in the set when it is protein-coding with its coding end in
+  the last exon, has no partial-model tag (`cds_start_NF`, `cds_end_NF`,
+  `mRNA_start_NF`, `mRNA_end_NF`), is not a readthrough, and its 3' end is
+  supported: a Tier-1 model (MANE, Ensembl canonical, GENCODE Primary, or
+  basic with TSL 1-2), or within `apa_set_slop` nt (default 50) of a
+  PolyASite 2.0 cluster supported by at least 2 protocols or of a GENCODE
+  `polyA_site`. It needs `qapa_gencode_polya` and `qapa_polyasite`, the same
+  files QAPA uses for its sites. On GENCODE v50 it keeps 202,029 transcripts
+  of 19,111 genes (72,332 DaPars2 3' UTRs; basic gives 84,358). With any
+  setting, transcripts without CDS lines or with an incomplete 3' end
+  (`cds_end_NF`, `mRNA_end_NF`) are left out. DaPars2 uses protein-coding transcripts whose coding end lies in
   the last exon (3' UTRs with introns are skipped, as in QAPA). QAPA is
   annotation-only (`qapa build -N`) unless poly(A) sites are given: either
   `qapa_gencode_polya` (GENCODE's `polyAs` GTF, converted to QAPA's BED) with

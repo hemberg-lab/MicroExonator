@@ -666,6 +666,34 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         # the splicing reference (and its identity) is untouched
         self.assertIn("rule umbrella_hisat2:", out)
 
+    def test_megasearch_apa_set_feeds_both_apa_references(self):
+        def apa_inputs(temp_dir):
+            os.makedirs(os.path.join(temp_dir, "apa"), exist_ok=True)
+            for name in ("gencode.gtf.gz", "polyAs.gtf.gz", "polyasite.bed.gz"):
+                open(os.path.join(temp_dir, "apa", name), "w").close()
+
+        result = self.module_dry_run("quant_umbrella_modules", [
+            "umbrella_modules: [dapars2, qapa]", "umbrella_modules_mode: ingest",
+            "apa_annotation_gtf: apa/gencode.gtf.gz", "apa_transcripts: megasearch",
+            "qapa_gencode_polya: apa/polyAs.gtf.gz", "qapa_polyasite: apa/polyasite.bed.gz"], prepare=apa_inputs)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertEqual(out.count("rule umbrella_apa_set:"), 1)
+        self.assertIn("apa_annotation.py apa-set --gtf apa/gencode.gtf.gz --gencode-polya apa/polyAs.gtf.gz "
+                      "--polyasite apa/polyasite.bed.gz --slop 50", out)
+        set_gtf = re.search(r"--out (umbrella/modules/reference/[^ ]+/apa_set/[0-9a-f]{16}/apa_set.gtf.gz)", out)
+        self.assertIsNotNone(set_gtf, out)
+        for command in ("dapars-utr", "qapa-db", "qapa-gtf"):
+            self.assertIn("apa_annotation.py {} --gtf {}".format(command, set_gtf.group(1)), out)
+        self.assertNotIn("--transcripts basic", out)
+        self.assertIn("--transcripts all", out)
+
+    def test_megasearch_apa_set_needs_poly_a_evidence(self):
+        result = self.module_dry_run("quant_dapars2", ["umbrella_modules_mode: ingest",
+                                                       "apa_transcripts: megasearch"])
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("apa_transcripts: megasearch selects 3' ends with poly(A) evidence", result.stdout)
+
     def test_qapa_polya_tracks_go_together(self):
         result = self.module_dry_run("quant_qapa", [
             "umbrella_modules_mode: ingest", "qapa_gencode_polya: apa/polyAs.gtf.gz"])

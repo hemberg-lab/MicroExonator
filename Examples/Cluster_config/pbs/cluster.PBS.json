@@ -817,6 +817,17 @@
         "output": "logs/U.leafcutter_exons.out",
         "error": "logs/U.leafcutter_exons.err"
     },
+    "umbrella_apa_set": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "12000",
+        "mem": "12000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.apa_set",
+        "output": "logs/U.apa_set.out",
+        "error": "logs/U.apa_set.err"
+    },
     "umbrella_dapars2_reference": {
         "ppn": "1",
         "threads": "1",
