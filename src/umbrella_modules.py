@@ -121,7 +121,10 @@ def missing_caches(runs, cache_dir_of, modules):
 
 
 def write_status(path, tool, status, reasons=(), **extra):
-    """Compact status JSON: ok, unsupported (design) or no_annotation; failures raise."""
+    """Compact status JSON; failures raise.
+
+    ok, unsupported (design), native_only (unrecognised native columns), empty
+    (the tool reported no features) or no_tests (features, but none tested)."""
     record = dict(tool=tool, status=status, reasons=list(reasons), **extra)
     with open(path, "w") as stream:
         json.dump(record, stream, sort_keys=True, indent=2)

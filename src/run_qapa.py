@@ -7,8 +7,9 @@ keep       After `salmon quant` against QAPA's UTR library: keep quant.sf
 pau        Per comparison, from the caches: one quant.sf per biological
            replicate (technical runs: NumReads summed, effective length
            read-weighted, TPM recomputed), `qapa quant` for PAU, and a count
-           table per poly(A) site (gene + 3' UTR end, QAPA's APA unit) for the
-           DEXSeq usage test.
+           table per 3' UTR isoform (one row of QAPA's PAU table, keyed by its
+           first transcript and UTR3 coordinates, grouped by the gene QAPA's
+           identifier table gives that transcript) for the DEXSeq usage test.
 normalize  Joins QAPA's PAU table with the DEXSeq results into the shared
            normalized columns: effect = mean PAU(A) - mean PAU(B) for that
            site (percent, as QAPA reports it); p and q from DEXSeq.
@@ -30,7 +31,12 @@ if __package__:
 else:
     from umbrella_modules import NORMALIZED, write_status
 
-GENE = re.compile(r"ENS[A-Z]*G\d+")
+# QAPA's library names, as its create_merged_data.R splits them:
+# TX_GENE[,TX_GENE...]_SPECIES_CHR_LASTEXONSTART_LASTEXONEND_STRAND_utr_START_END,
+# with "::chr:start-end(strand)" appended by `qapa fasta` (bedtools getfasta)
+QAPA_NAME = re.compile(r"^(?P<ids>[^_]+_[^_,]+(?:,[^_]+_[^_,]+)*)_[^_]+_[^_]+_\d+_\d+_[-+]_utr_"
+                       r"(?P<start>\d+)_(?P<end>\d+)$")
+VERSION = re.compile(r"\.\d+(_PAR_Y)?$")
 PAU_EFFECT = "mean PAU(A) - mean PAU(B) of this poly(A) site within its gene, in percent"
 
 
@@ -80,12 +86,26 @@ def combine_runs(paths):
 
 
 def site_key(name):
-    """(gene, UTR3.Start, UTR3.End): QAPA's poly(A) site unit, from a UTR library name."""
-    gene = GENE.search(name)
-    tokens = name.split("_")
-    if not gene or len(tokens) < 3:
+    """(first transcript, UTR3.Start, UTR3.End) of a library sequence: one PAU table row."""
+    match = QAPA_NAME.match(name.split("::", 1)[0])
+    if not match:
         raise ValueError("unexpected QAPA sequence name: {}".format(name))
-    return gene.group(), tokens[-2], tokens[-1]
+    return VERSION.sub("", match.group("ids").split("_", 1)[0]), match.group("start"), match.group("end")
+
+
+def pau_site(row):
+    """The site_key of a PAU table row (QAPA keeps the name's transcripts and UTR3 ends)."""
+    return VERSION.sub("", row["Transcript"].split(",")[0]), _int(row["UTR3.Start"]), _int(row["UTR3.End"])
+
+
+def gene_of_transcript(db):
+    """Transcript -> gene from QAPA's identifier table (protein-coding genes, as QAPA keeps)."""
+    genes = {}
+    with open(db) as stream:
+        for row in csv.DictReader(stream, delimiter="\t"):
+            if row.get("Gene type") == "protein_coding":
+                genes[row["Transcript stable ID"]] = row["Gene stable ID"]
+    return genes
 
 
 def pau(preflight_path, caches, db, out_dir):
@@ -97,6 +117,7 @@ def pau(preflight_path, caches, db, out_dir):
     for run, replicate in preflight["collapse"].items():
         members[replicate].append(run)
     counts = defaultdict(lambda: defaultdict(float))
+    genes = gene_of_transcript(db)
     with tempfile.TemporaryDirectory(prefix="qapa-", dir=str(out_dir)) as directory:
         work = Path(directory)
         paths = []
@@ -107,7 +128,9 @@ def pau(preflight_path, caches, db, out_dir):
                 stream.write("Name\tLength\tEffectiveLength\tTPM\tNumReads\n")
                 for name, length, effective, tpm, reads in rows:
                     stream.write("{}\t{}\t{:.3f}\t{:.6f}\t{:.3f}\n".format(name, length, effective, tpm, reads))
-                    counts[site_key(name)][replicate] += reads
+                    site = site_key(name)
+                    if site[0] in genes:        # QAPA's PAU table drops the others too
+                        counts[site][replicate] += reads
             # absolute: qapa runs inside the private folder, the workflow passes relative paths
             paths.append(str((work / replicate / "quant.sf").resolve()))
         with open(out_dir / "pau.tsv", "w") as stream, open(out_dir / "qapa.log", "w") as log:
@@ -115,9 +138,9 @@ def pau(preflight_path, caches, db, out_dir):
                            stderr=log, check=True, cwd=str(work))
     with gzip.open(out_dir / "site_counts.tsv.gz", "wt") as stream:
         stream.write("site_id\tgene_id\t" + "\t".join(replicates) + "\n")
-        for (gene, start, end), by_replicate in sorted(counts.items()):
+        for site, by_replicate in sorted(counts.items()):
             values = "\t".join("{:.0f}".format(by_replicate[r]) for r in replicates)
-            stream.write("{}_{}_{}\t{}\t{}\n".format(gene, start, end, gene, values))
+            stream.write("{}\t{}\t{}\n".format("_".join(site), genes[site[0]], values))
     with open(out_dir / "samples.tsv", "w") as stream:
         stream.write("sample\tcondition\n")
         for side in ("a", "b"):
@@ -138,7 +161,7 @@ def normalize(preflight_path, pau_table, dexseq_table, out_dir, ids=None):
     records = []
     with open(pau_table) as stream:
         for row in csv.DictReader(stream, delimiter="\t"):
-            site = "{}_{}_{}".format(row["Gene"], _int(row["UTR3.Start"]), _int(row["UTR3.End"]))
+            site = "_".join(pau_site(row))
             values = {side: [float(row[r + ".PAU"]) for r in preflight["replicates"][side]
                              if row.get(r + ".PAU") not in (None, "", "NA")] for side in ("a", "b")}
             effect = (sum(values["a"]) / len(values["a"]) - sum(values["b"]) / len(values["b"])
@@ -166,8 +189,15 @@ def normalize(preflight_path, pau_table, dexseq_table, out_dir, ids=None):
         writer = csv.DictWriter(stream, fieldnames=NORMALIZED, delimiter="\t", extrasaction="ignore")
         writer.writeheader()
         writer.writerows(records)
-    write_status(out_dir / "status.json", "qapa", "ok", [], sites=len(records),
-                 tested=sum(bool(r["p_value"]) for r in records), **base)
+    tested = sum(bool(r["p_value"]) for r in records)
+    status, reasons = "ok", []
+    if not records:
+        status, reasons = "empty", ["QAPA's PAU table has no sites"]
+    elif not tested:
+        status, reasons = "no_tests", ["no site has a DEXSeq p-value (genes with >= 2 sites, "
+                                       ">= 2 replicates per side)"]
+    write_status(out_dir / "status.json", "qapa", status, reasons, sites=len(records),
+                 dexseq_rows=len(dexseq), tested=tested, **base)
 
 
 def _int(value):

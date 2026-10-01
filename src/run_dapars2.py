@@ -277,8 +277,13 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
         writer = csv.DictWriter(stream, fieldnames=NORMALIZED, delimiter="\t", extrasaction="ignore")
         writer.writeheader()
         writer.writerows(normalized)
-    write_status(status_path, "dapars2", "ok", [], regions=len(rows),
-                 tested=sum(p is not None for p in pvalues),
+    tested = sum(p is not None for p in pvalues)
+    status, reasons = "ok", []
+    if not rows:
+        status, reasons = "empty", ["DaPars2 reported no 3' UTR regions"]
+    elif not tested:
+        status, reasons = "no_tests", ["no region has varying PDUI values in >= 2 replicates per side"]
+    write_status(status_path, "dapars2", status, reasons, regions=len(rows), tested=tested,
                  replicates={side: replicates[side] for side in ("a", "b")}, **base)
 
 

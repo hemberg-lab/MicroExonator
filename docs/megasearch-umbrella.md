@@ -298,8 +298,9 @@ umbrella_modules_mode: ingest              # default: cached_only
 - **Results.** Every comparison writes `results.tsv.gz` with shared columns
   (effect as A minus B, its definition, native statistic and its type, p and q
   only where the method gives them, and a status), the tool's native table,
-  `status.json` (`ok`, `unsupported` for designs the preflight rejects, or
-  `native_only`) and a Snakemake benchmark. Effects are not interchangeable:
+  `status.json` (`ok`, `unsupported` for designs the preflight rejects,
+  `native_only`, `empty` when the tool reported no features, or `no_tests`
+  when nothing could be tested) and a Snakemake benchmark. Effects are not interchangeable:
   MAJIQ reports junction inclusion within an LSV, DaPars2 distal poly(A)
   usage of a 3' UTR, QAPA the usage of one poly(A) site within its gene.
   MAJIQ's HET scores are heuristics, never relabelled as adjusted p-values.

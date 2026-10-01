@@ -179,7 +179,18 @@ class QapaTests(unittest.TestCase):
             self.assertAlmostEqual(proximal[2], 325.0)          # read-weighted
             self.assertAlmostEqual(distal[2], 800.0)
             self.assertAlmostEqual(proximal[3] + distal[3], 1e6)
-            self.assertEqual(run_qapa.site_key(NAME_D), ("ENSG1", "600", "1300"))
+            self.assertEqual(run_qapa.site_key(NAME_D), ("ENST9", "600", "1300"))
+            # as Salmon reports them after `qapa fasta`, versioned and collapsed
+            self.assertEqual(run_qapa.site_key(
+                "ENST00000426406_ENSG00000284733.2_hsa_chr1_450739_451678_-_utr_450739_451678"
+                "::chr1:450739-451678(-)"), ("ENST00000426406", "450739", "451678"))
+            self.assertEqual(run_qapa.site_key(
+                "ENST5.3_ENSG7.1,ENST6.1_ENSG7.1_hsa_chr2_10_900_+_utr_300_900::chr2:300-900(+)"),
+                ("ENST5", "300", "900"))
+            self.assertEqual(run_qapa.pau_site({"Transcript": "ENST5,ENST6", "UTR3.Start": "300.0",
+                                                "UTR3.End": "900"}), ("ENST5", "300", "900"))
+            with self.assertRaises(ValueError):
+                run_qapa.site_key("ENST1_600_800")
 
     def test_pau_and_normalize_with_a_mock_qapa(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -197,7 +208,10 @@ class QapaTests(unittest.TestCase):
             pau_header = ("APA_ID\tTranscript\tGene\tGene_Name\tChr\tLastExon.Start\tLastExon.End\tStrand\t"
                           "UTR3.Start\tUTR3.End\tLength\tNum_Events\tr1.PAU\tr2.PAU\tr3.PAU\tr4.PAU\n")
 
-            (root / "db.txt").write_text("db\n")
+            (root / "db.txt").write_text(
+                "Gene stable ID\tTranscript stable ID\tGene type\tTranscript type\tGene name\n"
+                "ENSG1\tENST1\tprotein_coding\tprotein_coding\tAAA\n"
+                "ENSG1\tENST9\tprotein_coding\tprotein_coding\tAAA\n")
 
             def fake_qapa(command, stdout, stderr, check, cwd):
                 self.assertEqual(command[:3], ["qapa", "quant", "--db"])
@@ -214,15 +228,23 @@ class QapaTests(unittest.TestCase):
             with patch("src.run_qapa.subprocess.run", side_effect=fake_qapa):
                 run_qapa.pau("preflight.json", relative, "db.txt", "out")
             counts = gzip.open(root / "out" / "site_counts.tsv.gz", "rt").read().splitlines()
-            self.assertEqual(counts[1], "ENSG1_600_1300\tENSG1\t30\t28\t10\t12")
+            self.assertEqual(counts[1:], ["ENST1_600_800\tENSG1\t10\t12\t30\t28",
+                                          "ENST9_600_1300\tENSG1\t30\t28\t10\t12"])
             with gzip.open(root / "out" / "dexseq.tsv.gz", "wt") as stream:
-                stream.write("site_id\tgene_id\tlog2fold_a_b\tpvalue\tpadj\nENSG1_600_800\tENSG1\t-1.5\t0.001\t0.01\n")
+                stream.write("site_id\tgene_id\tlog2fold_a_b\tpvalue\tpadj\nENST1_600_800\tENSG1\t-1.5\t0.001\t0.01\n")
             run_qapa.normalize(preflight, root / "out" / "pau.tsv", root / "out" / "dexseq.tsv.gz", root / "out")
             rows = gzip.open(root / "out" / "results.tsv.gz", "rt").read().splitlines()
             header, row = rows[0].split("\t"), rows[1].split("\t")
             record = dict(zip(header, row))
             self.assertEqual(record["effect"], "-45")           # 27.5 - 72.5
             self.assertEqual((record["p_value"], record["q_value"], record["status"]), ("0.001", "0.01", "tested"))
+            self.assertEqual(json.loads((root / "out" / "status.json").read_text())["status"], "ok")
+            # no DEXSeq row matches: reported as no_tests, never as ok
+            with gzip.open(root / "out" / "dexseq.tsv.gz", "wt") as stream:
+                stream.write("site_id\tgene_id\tlog2fold_a_b\tpvalue\tpadj\n")
+            run_qapa.normalize(preflight, root / "out" / "pau.tsv", root / "out" / "dexseq.tsv.gz", root / "out")
+            status = json.loads((root / "out" / "status.json").read_text())
+            self.assertEqual((status["status"], status["tested"], status["sites"]), ("no_tests", 0, 1))
 
 
 FAKE_MAJIQ = """#!/bin/sh
