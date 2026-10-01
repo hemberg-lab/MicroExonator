@@ -1,0 +1,3 @@
+control_vs_treated:
+  A : control_1,control_2,control_3
+  B : treated_1,treated_2,treated_3

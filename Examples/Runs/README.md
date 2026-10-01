@@ -1,6 +1,8 @@
 # Example runs
 
-These are the configurations of runs from the original publication and related projects. Paths point to the cluster where they were run and must be replaced with your own, and some files use settings from earlier versions (for example, `whippet_delta` given inside `config.yaml`; it is now the path of a separate YAML file, as in `Parada_et_al/whippet_delta.yaml`). Use them as a guide to the input files; the documentation at https://microexonator.readthedocs.io describes the current settings.
+`Template/` is the starting point for a new MicroExonator 2.0.0 run: a `config.yaml` with the default robustness filter and the differential inclusion test that needs no Whippet, plus example `local_samples.tsv`, `bulk_samples.tsv` and `whippet_delta.yaml` files. Replace the `/path/to/` paths with your own.
+
+The other folders are the configurations of runs from the original publication and related projects, updated to the current settings. Their paths are placeholders, they use `filter_method : legacy_mixture` as the original runs did, and comparisons are in a separate `whippet_delta.yaml`. Bulk runs also need a `bulk_samples` file that assigns each sample to a condition; these examples do not include one yet.
 
 - `Parada_et_al`: the mouse embryonic development runs of the publication, with SRA accessions, URL inputs and the `whippet_delta.yaml` comparisons.
 - `Autism`, `Zebrafish`: runs from SRA accession codes, listed in `NCBI_accession_list.txt`.
@@ -8,4 +10,4 @@ These are the configurations of runs from the original publication and related p
 - `COSMIC`: a large set of cancer cell lines from local FASTQ files, listed with their sample names in `local_samples.tsv`.
 - `C_elegans`: a configuration for *C. elegans*.
 
-Cluster configuration examples for LSF and PBS are in `Examples/Cluster_config/`; the command to submit jobs is described in the documentation.
+Cluster configuration examples for LSF and PBS are in `Examples/Cluster_config/`. The documentation at https://microexonator.readthedocs.io describes every setting.

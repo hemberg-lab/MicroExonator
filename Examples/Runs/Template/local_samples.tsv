@@ -1,0 +1,7 @@
+path	sample
+/path/to/fastq/control_1.fastq.gz	control_1
+/path/to/fastq/control_2.fastq.gz	control_2
+/path/to/fastq/control_3.fastq.gz	control_3
+/path/to/fastq/treated_1.fastq.gz	treated_1
+/path/to/fastq/treated_2.fastq.gz	treated_2
+/path/to/fastq/treated_3.fastq.gz	treated_3

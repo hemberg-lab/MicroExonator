@@ -1,38 +1,19 @@
-
-Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Fabian/Caenorhabditis_elegans.WBcel235.dna.fa
-Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Fabian/ce11.Ensembl.genes.bed12.Ensembl
+Genome_fasta : /path/to/Caenorhabditis_elegans.WBcel235.dna.fa
+Gene_anontation_bed12 : /path/to/ce11.Ensembl.genes.bed12.Ensembl
 GT_AG_U2_5 : NA
 GT_AG_U2_3 : NA
 conservation_bigwig : NA
-working_directory : /lustre/scratch117/cellgen/team218/gp7/Fabian/MicroExonator/
-ME_DB : /lustre/scratch117/cellgen/team218/gp7/Fabian/empty_DB
+working_directory : /path/to/MicroExonator/
+ME_DB : /path/to/empty_DB
 ME_len : 30
+filter_method : legacy_mixture
 Optimize_hard_drive : F
 min_number_files_detected : 2
 
 #Whippet
 
 downstream_only : F
-whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
-Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/Danio_rerio.GRCz11.96.chr.gtf.UCSC_style
-
-
-whippet_delta:
-    WT_vs_SID1:
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-02_S2,FB264-RNA-07_S7,FB264-RNA-12_S12,FB264-RNA-04_S4,FB264-RNA-09_S9,FB264-RNA-14_S14
-    WT_vs_SID1_qt129:
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-02_S2,FB264-RNA-07_S7,FB264-RNA-12_S12
-    WT_vs_SID1_mj444:   
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-04_S4,FB264-RNA-09_S9,FB264-RNA-14_S14
-    WT_vs_SID2:
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-03_S3,FB264-RNA-08_S8,FB264-RNA-13_S13,FB264-RNA-05_S5,FB264-RNA-10_S10,FB264-RNA-15_S15
-    WT_vs_SID2_qt142:
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-03_S3,FB264-RNA-08_S8,FB264-RNA-13_S13
-    WT_vs_SID2_mj465:
-        A : FB264-RNA-01_S1,FB264-RNA-06_S6,FB264-RNA-11_S11
-        B : FB264-RNA-05_S5,FB264-RNA-10_S10,FB264-RNA-15_S15
+whippet_bin_folder : /path/to/Whippet.jl/bin
+julia : /path/to/julia
+Gene_anontation_GTF : /path/to/Caenorhabditis_elegans.WBcel235.gtf
+whippet_delta : whippet_delta.yaml

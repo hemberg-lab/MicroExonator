@@ -1,0 +1,24 @@
+# A starting point for MicroExonator 2.0.0. Replace the paths with your own;
+# every parameter is described in the documentation (Configuration reference).
+
+Genome_fasta : /path/to/genome.fa
+Gene_anontation_bed12 : /path/to/annotation.bed12
+Gene_anontation_GTF : /path/to/annotation.gtf
+GT_AG_U2_5 : /path/to/GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /path/to/GT_AG_U2_3.good.matrix
+conservation_bigwig : /path/to/conservation.bw
+working_directory : /path/to/MicroExonator/
+ME_DB : /path/to/known_microexons.bed12
+ME_len : 30
+max_read_len : 150
+min_number_files_detected : 2
+min_reads_PSI : 5
+
+# Confidence filter: robustness (default), with one condition per sample
+bulk_samples : bulk_samples.tsv
+filter_method : robustness
+min_detected_samples : 1
+
+# Differential inclusion without Whippet
+delta_method : microexonator
+whippet_delta : whippet_delta.yaml

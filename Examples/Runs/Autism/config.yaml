@@ -1,11 +1,12 @@
-Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/hg19.fa
-Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.bed12
-GT_AG_U2_5 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/SpliceRack/hg19_GT_AG_U2_5.good.matrix
-GT_AG_U2_3 : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/SpliceRack/hg19_GT_AG_U2_3.good.matrix
-conservation_bigwig : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Phylop/hg19.100way.phyloP100way.bw  
-working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Test_Martin/Autism/MicroExonator/
-ME_DB : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/hg19.VastDb.bed12
+Genome_fasta : /path/to/hg19.fa
+Gene_anontation_bed12 : /path/to/gencode.v19.chr_patch_hapl_scaff.annotation.bed12
+GT_AG_U2_5 : /path/to/hg19_GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /path/to/hg19_GT_AG_U2_3.good.matrix
+conservation_bigwig : /path/to/hg19.100way.phyloP100way.bw
+working_directory : /path/to/MicroExonator/
+ME_DB : /path/to/hg19.VastDb.bed12
 ME_len : 30
+filter_method : legacy_mixture
 Optimize_hard_drive : F
 min_number_files_detected : 3
 
@@ -13,13 +14,8 @@ min_number_files_detected : 3
 # Whippet
 
 downstream_only : T
-whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
-Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/hg19/Tracks/Gene_annotation/gencode.v19.chr_patch_hapl_scaff.annotation.gtf
-
-whippet_delta:
-    Control_vs_Autism-temporal_cortex :
-        A : SRR309144,SRR309143,SRR309142,SRR309141
-        B : SRR309136,SRR309135,SRR309134,SRR309133
-    Control_vs_Autism-frontal_cortex :
-        A : SRR309140,SRR309139
-        B : SRR309138,SRR309137
+Only_whippet : T
+whippet_bin_folder : /path/to/Whippet.jl/bin
+julia : /path/to/julia
+Gene_anontation_GTF : /path/to/gencode.v19.chr_patch_hapl_scaff.annotation.gtf
+whippet_delta : whippet_delta.yaml

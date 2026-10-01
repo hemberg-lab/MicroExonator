@@ -1,57 +1,19 @@
-Genome_fasta : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/danRer11.fa
-Gene_anontation_bed12 : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/darRer11.Ensembl.genes.bed12
-GT_AG_U2_5 : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11_GT_AG_U2_5.good.matrix
-GT_AG_U2_3 : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/danRer11_GT_AG_U2_3.good.matrix
+Genome_fasta : /path/to/danRer11.fa
+Gene_anontation_bed12 : /path/to/darRer11.Ensembl.genes.bed12
+GT_AG_U2_5 : /path/to/danRer11_GT_AG_U2_5.good.matrix
+GT_AG_U2_3 : /path/to/danRer11_GT_AG_U2_3.good.matrix
 conservation_bigwig : NA
 ME_len : 30
-working_directory : /lustre/scratch117/cellgen/team218/gp7/Micro-exons/Runs/Zebrafish/MicroExonator/
-ME_DB : /lustre/scratch117/cellgen/team218/igs_gp7/Zebrafish/Data/VastDb.bed12
+filter_method : legacy_mixture
+working_directory : /path/to/MicroExonator/
+ME_DB : /path/to/VastDb.bed12
 Optimize_hard_drive : F
 min_number_files_detected : 2
 
 #Whippet
 
 downstream_only : F
-whippet_bin_folder : /lustre/scratch117/cellgen/team218/gp7/miniconda/envs/julia_0.6.1/share/julia/site/v0.6/Whippet/bin
-Gene_anontation_GTF : /lustre/scratch117/cellgen/team218/gp7/Genome/danRer11/Danio_rerio.GRCz11.96.chr.gtf.UCSC_style
-
-whippet_delta:
-    ZT16_vs_ZT4-20Mo:
-        A : SRR6652910,SRR6652909,SRR6652908,SRR6652907
-        B : SRR6652906,SRR6652905,SRR6652904,SRR6652903
-    ZT16_vs_ZT4-16Mo :
-        A : SRR6652902,SRR6652901,SRR6652900
-        B : SRR6652899,SRR6652898,SRR6652897,SRR6652896
-    ZT16_vs_ZT4-4Mo:
-        A : SRR6652895,SRR6652894,SRR6652893,SRR6652892
-        B : SRR6652891,SRR6652890,SRR6652889,SRR6652888
-        
-    20Mo_vs_16Mo-ZT16:
-        A : SRR6652910,SRR6652909,SRR6652908,SRR6652907
-        B : SRR6652902,SRR6652901,SRR6652900
-    20Mo_vs_4M-ZT16:
-        A : SRR6652910,SRR6652909,SRR6652908,SRR6652907
-        B : SRR6652895,SRR6652894,SRR6652893,SRR6652892
-    16Mo_vs_4Mo-ZT16:
-        A : SRR6652902,SRR6652901,SRR6652900
-        B : SRR6652895,SRR6652894,SRR6652893,SRR6652892
-        
-    20Mo_vs_16Mo-ZT4:
-        A : SRR6652906,SRR6652905,SRR6652904,SRR6652903
-        B : SRR6652899,SRR6652898,SRR6652897,SRR6652896
-    20Mo_vs_4M-ZT4:
-        A : SRR6652906,SRR6652905,SRR6652904,SRR6652903
-        B : SRR6652891,SRR6652890,SRR6652889,SRR6652888
-    16Mo_vs_4Mo-ZT4:
-        A : SRR6652899,SRR6652898,SRR6652897,SRR6652896
-        B : SRR6652891,SRR6652890,SRR6652889,SRR6652888
-        
-    20Mo_vs_16Mo-TOTAL:
-        A : SRR6652910,SRR6652909,SRR6652908,SRR6652907,SRR6652906,SRR6652905,SRR6652904,SRR6652903
-        B : SRR6652902,SRR6652901,SRR6652900,SRR6652899,SRR6652898,SRR6652897,SRR6652896
-    20Mo_vs_4M-TOTAL:
-        A : SRR6652910,SRR6652909,SRR6652908,SRR6652907,SRR6652906,SRR6652905,SRR6652904,SRR6652903
-        B : SRR6652895,SRR6652894,SRR6652893,SRR6652892,SRR6652891,SRR6652890,SRR6652889,SRR6652888
-    16Mo_vs_4Mo-TOTAL:
-        A : SRR6652902,SRR6652901,SRR6652900,SRR6652899,SRR6652898,SRR6652897,SRR6652896
-        B : SRR6652895,SRR6652894,SRR6652893,SRR6652892,SRR6652891,SRR6652890,SRR6652889,SRR6652888
+whippet_bin_folder : /path/to/Whippet.jl/bin
+julia : /path/to/julia
+Gene_anontation_GTF : /path/to/Danio_rerio.GRCz11.96.chr.gtf.UCSC_style
+whippet_delta : whippet_delta.yaml
