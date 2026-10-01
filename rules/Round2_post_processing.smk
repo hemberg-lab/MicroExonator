@@ -1,25 +1,9 @@
-
-from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
 from src.legacy_mixture import LEGACY_MIXTURE_FAILURE
-#GS = GSRemoteProvider()
 
 #wildcard_constraints:
 #    sample="([a-zA-Z0-9]*)_.*"
 
 
-#if "google_path" in config:
-#    rule ME_reads:
-#        input:
-#            "Round2/{sample}.sam.pre_processed",
-#            GS.remote(config["google_path"]  + "{sample}.fastq.gz")
-#        output:
-#            temp("Round2/{sample}.sam.pre_processed.fastq")
-#        priority: 100
-#        conda:
-#            "../envs/core.yaml"
-#        shell:
-#            "python3 src/round2_ME_reads_fastq2.py {input}"
-#else:
 rule ME_reads:
     input:
         "Round2/{sample}.sam.pre_processed",

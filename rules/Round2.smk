@@ -1,7 +1,3 @@
-from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
-#GS = GSRemoteProvider()
-
-
 def synthetic_skip_tag_source():
     """Existing skipping tags, or NA to disable synthetic skipping tags."""
     if str2bool(config.get("synthetic_skip_tags", True)):
@@ -340,22 +336,6 @@ def hard_drive_behavior(fastq):
 #        "python3 src/validate_fastq.py {input}"
 
 
-#if "google_path" in config:
-#    rule Round2_bowtie_to_tags:
-#        input:
-#            "Round2/ME_canonical_SJ_tags.fa",
-#            GS.remote(config["google_path"] +  "{sample}.fastq.gz"),
-#            expand("Round2/ME_canonical_SJ_tags.fa.{ebwt}", ebwt=EBWT)
-#        output:
-#            temp("Round2/{sample}.sam")
-#        threads: 5
-#        priority: 100
-#        conda:
-#            "../envs/core.yaml"
-#        shell:
-#            "gzip -dc {input[1]} |  bowtie {input[0]} -p {threads} -q - -S -v 2 --seed 123 | awk '!($6 ~ /I/) && !($6 ~ /D/) && !($6 ~ /S/) && !($6 ~ /\*/)' > {output}"
-
-#else:
 rule Round2_bowtie_to_tags:
     input:
         "Round2/ME_canonical_SJ_tags.fa",

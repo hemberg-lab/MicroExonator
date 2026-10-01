@@ -48,6 +48,7 @@ Input and cluster setup
 * Paired-end mates joined from SRA downloads also get a bare ``+`` separator line.
 * A PBS cluster example (``Examples/Cluster_config/pbs/cluster.PBS.json``) with resources measured on hg38 runs, and a fixed LSF example. ``Round2_filter`` memory grows with read depth; see :ref:`cluster_resources`.
 * Start-up no longer prints Python ``DeprecationWarning`` messages from other packages; deprecated configuration keys are reported as one ``Note:`` line.
+* The experimental Google Cloud Storage input (``google_path``) has been removed, so the Google Cloud packages are no longer needed.
 
 Testing
 -------
