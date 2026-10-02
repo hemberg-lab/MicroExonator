@@ -9,12 +9,11 @@ reads trimmed to max_read_len. Each selected record is written as
 whitespace, which is what the earlier Biopython SeqIO version wrote.
 
 The FASTQ is scanned as plain four-line records (no SeqRecord objects) and
-decompressed by a separate pigz/gzip process, so this step is I/O bound rather
+decompressed by a separate gzip process, so this step is I/O bound rather
 than parser bound.
 """
 
 import csv
-import shutil
 import subprocess
 import sys
 
@@ -35,8 +34,7 @@ def ME_read_ids(alingment_pre_processed_round2):
 
 def decompress(row_fastq):
 
-    tool = shutil.which("pigz") or "gzip"
-    return subprocess.Popen([tool, "-dcf", row_fastq], stdout=subprocess.PIPE, bufsize=1 << 20)
+    return subprocess.Popen(["gzip", "-dcf", row_fastq], stdout=subprocess.PIPE, bufsize=1 << 20)
 
 
 def main(alingment_pre_processed_round2, row_fastq):
