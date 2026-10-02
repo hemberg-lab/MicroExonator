@@ -159,7 +159,8 @@ rule quant_umbrella:
         UMBRELLA_COMPARISON_TARGETS,
         UMBRELLA_SYNTHESIS_TARGETS,
         UMBRELLA_QC_TARGETS,
-        umbrella_module_targets,
+        # the selected modules, through their inventory (which needs all their outputs)
+        [UMBRELLA_MODULE_INVENTORY] if UMBRELLA_MODULES else [],
         [UMBRELLA_REFERENCE_MANIFEST] if any(UMBRELLA_OPTIONAL[tool] for tool in ("whippet", "salmon", "hisat2")) else []
 
 

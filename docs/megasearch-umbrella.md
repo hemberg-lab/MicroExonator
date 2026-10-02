@@ -305,7 +305,8 @@ umbrella_modules_mode: ingest              # default: cached_only
 
 - **Targets.** `prepare_<tool>` makes the per-run caches, `quant_<tool>` adds
   every configured comparison, `quant_umbrella_modules` runs the selected
-  modules plus an inventory, and `quant_umbrella` includes the selected ones.
+  modules plus an inventory, and `quant_umbrella` includes the selected ones
+  and their inventory.
   A named target implies its tool even when it is not selected.
 - **Modes.** In `cached_only`, every run a comparison uses must already have
   its caches: the workflow stops at start-up otherwise, and never stages,

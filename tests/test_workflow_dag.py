@@ -950,6 +950,18 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("rule umbrella_qapa_pau:", result.stdout)
         self.assertIn("rule umbrella_dapars2_compare:", result.stdout)
 
+    def test_quant_umbrella_writes_the_module_inventory(self):
+        def write_caches(temp_dir):
+            self.write_module_caches(temp_dir, ["dapars2", "qapa"])
+        result = self.module_dry_run("quant_umbrella", ["umbrella_modules: [dapars2, qapa]"],
+                                     prepare=write_caches)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rule umbrella_module_inventory:", result.stdout)
+        self.assertIn("rule umbrella_qapa_pau:", result.stdout)
+        without = self.module_dry_run("quant_umbrella")
+        self.assertEqual(without.returncode, 0, without.stdout)
+        self.assertNotIn("umbrella_module_inventory", without.stdout)
+
     def test_a_library_of_two_runs_is_processed_once(self):
         rows = ["sample_b\trun_b\trep_b\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\t",
                 "GSM_c1\tSRR_c1\trep_c\tproject\tbatch\tcase\tfastq\tr1.fastq.gz\tr2.fastq.gz\tPE\tunstranded\tref\ttrue\tLIB_c",

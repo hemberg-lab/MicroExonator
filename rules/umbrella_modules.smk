@@ -10,6 +10,7 @@ Targets:
   quant_umbrella_modules                           the selected modules, plus an
                                                    inventory of their outputs
   quant_umbrella                                   also includes the selected ones
+                                                   and their inventory
 
 A named target implies its tool even when it is not selected, and pulls no
 other tool: MAJIQ and DaPars2 read the shared temporary HISAT2 BAM; QAPA reads
