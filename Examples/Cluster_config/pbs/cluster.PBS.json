@@ -38,8 +38,8 @@
         "mem": "30000mb"
     },
     "bowtie_to_genome": {
-        "ppn": "1",
-        "threads": "1",
+        "ppn": "8",
+        "threads": "8",
         "name": "ME.bowtie_to_genome.{wildcards.sample}",
         "output": "logs/ME.bowtie_to_genome.{wildcards.sample}.out",
         "error": "logs/ME.bowtie_to_genome.{wildcards.sample}.err",
@@ -47,8 +47,8 @@
         "mem": "4000mb"
     },
     "Round2_bowtie_to_tags": {
-        "ppn": "5",
-        "threads": "5",
+        "ppn": "8",
+        "threads": "8",
         "name": "ME.Round2_bowtie_to_tags.{wildcards.sample}",
         "output": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.out",
         "error": "logs/ME.Round2_bowtie_to_tags.{wildcards.sample}.err",
