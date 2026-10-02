@@ -5,14 +5,14 @@
 Differential inclusion analysis
 ===============================
 
-This downstream module tests for differential inclusion of annotated and novel microexons between user-defined groups of samples, using `Whippet <https://github.com/timbitz/Whippet.jl>`_. Whippet builds a contiguous splice graph for each gene from the annotation, where nodes are non-overlapping stretches of exonic sequence and edges are splice junctions or contiguous sequence, and quantifies splicing by mapping reads directly to these graphs. MicroExonator adds the detected microexons to the annotation first, so that they become nodes of the graph.
+This downstream module tests for differential inclusion of annotated and novel microexons between user-defined groups of samples. By default it uses MicroExonator's own counts and needs no extra software (see *Without Whippet* below). With ``delta_method : whippet`` it uses `Whippet <https://github.com/timbitz/Whippet.jl>`_ instead, which also tests other splicing events. Whippet builds a contiguous splice graph for each gene from the annotation, where nodes are non-overlapping stretches of exonic sequence and edges are splice junctions or contiguous sequence, and quantifies splicing by mapping reads directly to these graphs. MicroExonator adds the detected microexons to the annotation first, so that they become nodes of the graph.
 
 Whippet's k-mers are long relative to microexons, so its own PSI for microexon nodes is not reliable. For microexons, use the ``.diff.ME.microexons`` results described below, which are computed from MicroExonator's PSI.
 
 Without Whippet
 ===============
 
-With ``delta_method : microexonator``, MicroExonator tests differential inclusion of microexons itself, and neither Julia nor Whippet is needed. It applies Whippet's statistical model (``whippet-delta.jl``) to MicroExonator's own per-sample PSI and read counts:
+By default (``delta_method : microexonator``), MicroExonator tests differential inclusion of microexons itself, and neither Julia nor Whippet is needed; set ``delta_method : whippet`` for the Whippet route described in the rest of this page. It applies Whippet's statistical model (``whippet-delta.jl``) to MicroExonator's own per-sample PSI and read counts:
 
 * each sample with a PSI and at least ``delta_min_reads`` reads gives the posterior Beta(PSI × N + 1, (1 − PSI) × N + 1), where N is the sample's corrected inclusion plus exclusion reads;
 * the posteriors of a group's replicates are sampled, pooled and fitted with a single Beta;
@@ -84,21 +84,20 @@ where ``sample1`` to ``sample6`` are sample names as defined in the input files 
 Optional parameters
 -------------------
 
-To skip discovery and quantification and analyse only the splicing events in the GTF annotation, add both:
+To skip discovery and quantification and analyse only the splicing events in the GTF annotation, add:
 
 .. code-block:: bash
 
     downstream_only : T
-    Only_whippet : T
 
-``downstream_only`` leaves out the discovery and quantification rules, and ``Only_whippet`` builds the Whippet index from ``Gene_anontation_GTF`` alone instead of the annotation with the detected microexons added. Setting only ``downstream_only`` stops with a missing ``Report/out.robustly_detected.txt``.
+Whippet then builds its index from ``Gene_anontation_GTF`` alone and tests every comparison with ``whippet-delta``; ``Only_whippet`` and ``delta_method : whippet`` are implied. The MicroExonator test needs quantification, so ``delta_method : microexonator`` together with ``downstream_only`` stops at start-up.
 
 Extra options for ``whippet-quant`` can be given as one string with ``whippet_flags``, for example ``whippet_flags : "--biascorrect"``.
 
 Run
 ===
 
-Run the usual MicroExonator command with ``differential_inclusion`` as the target. If discovery and quantification have not been run yet, they are added to the job plan and their results are passed to Whippet automatically (unless ``downstream_only`` is ``T``). A single command can therefore run thousands of jobs; a dry-run (``-n``) first is recommended.
+Run the usual MicroExonator command with ``differential_inclusion`` as the target. If discovery and quantification have not been run yet, they are added to the job plan and their results are passed to the differential test automatically (unless ``downstream_only`` is ``T``). A single command can therefore run thousands of jobs; a dry-run (``-n``) first is recommended.
 
 .. code-block:: bash
 

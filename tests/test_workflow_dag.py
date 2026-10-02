@@ -235,12 +235,57 @@ class DeltaMethodTests(unittest.TestCase):
         self.assertNotIn("whippet-", result.stdout)
         self.assertNotIn("julia", result.stdout)
 
-    def test_whippet_remains_the_default(self):
+    def test_microexonator_delta_is_the_default(self):
         result = self.delta_dry_run("whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("src/me_delta.py", result.stdout)
+        self.assertNotIn("whippet-delta.jl", result.stdout)
+
+    def test_whippet_delta_on_request(self):
+        result = self.delta_dry_run("delta_method: whippet", "whippet_bin_folder: /opt/whippet/bin", "julia: julia")
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("whippet-delta.jl", result.stdout)
         self.assertNotIn("src/me_delta.py", result.stdout)
+
+    def test_downstream_only_alone_runs_whippet_on_the_annotation(self):
+        # the MiMB chapter (section 4.1.2) sets downstream_only and nothing else
+        result = self.delta_dry_run("downstream_only: T", "whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("whippet-index.jl --fasta genome.fa --gtf annotation.gtf", result.stdout)
+        self.assertIn("whippet-delta.jl", result.stdout)
+        self.assertIn("Whippet/Delta/control_vs_case.diff.gz", result.stdout)
+        self.assertNotIn("src/me_delta.py", result.stdout)
+        self.assertNotIn("Report/out.robustly_detected", result.stdout)
+
+    def test_downstream_only_needs_no_bulk_samples(self):
+        result = WorkflowSelectionTests.run_quant_dry_run(
+            self,
+            include_bulk_manifest=False,
+            extra_config=("downstream_only: T", "whippet_bin_folder: /opt/whippet/bin", "julia: julia"),
+            print_shell=True,
+            target="differential_inclusion",
+            delta_comparisons=self.COMPARISON,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("whippet-delta.jl", result.stdout)
+
+    def test_downstream_only_keeps_working_with_the_old_settings(self):
+        result = self.delta_dry_run("downstream_only: T", "Only_whippet: T", "delta_method: whippet",
+                                    "whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("whippet-delta.jl", result.stdout)
+
+    def test_downstream_only_refuses_the_microexonator_delta(self):
+        result = self.delta_dry_run("downstream_only: T", "delta_method: microexonator",
+                                    "whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("downstream_only skips the quantification", result.stdout)
 
     def test_unknown_delta_method_is_rejected(self):
         result = self.delta_dry_run("delta_method: rmats")

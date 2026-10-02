@@ -160,10 +160,10 @@ Differential inclusion (Whippet)
      - YAML file listing the comparisons between sample groups (see :doc:`differential_inclusion_analysis`).
    * - ``downstream_only``
      - F
-     - Skip discovery and quantification. Use together with ``Only_whippet : T`` to run Whippet on the annotation alone.
+     - Skip discovery and quantification and run Whippet on the annotation alone. Implies ``Only_whippet : T`` and ``delta_method : whippet``.
    * - ``Only_whippet``
      - F
-     - Build the Whippet index from ``Gene_anontation_GTF`` without the detected microexons, and produce only Whippet's ``.diff.gz`` results.
+     - Build the Whippet index from ``Gene_anontation_GTF`` without the detected microexons, and produce only Whippet's ``.diff.gz`` results. Set automatically by ``downstream_only``.
    * - ``whippet_flags``
      - none
      - Extra command-line options passed to ``whippet-quant``, as one string.
@@ -182,8 +182,8 @@ Differential inclusion without Whippet
      - Default
      - Description
    * - ``delta_method``
-     - whippet
-     - ``whippet`` runs Whippet; ``microexonator`` tests microexons with MicroExonator's own counts and needs no Whippet installation (see :doc:`differential_inclusion_analysis`).
+     - microexonator
+     - ``microexonator`` tests microexons with MicroExonator's own counts and needs no Whippet installation; ``whippet`` runs Whippet (see :doc:`differential_inclusion_analysis`).
    * - ``delta_min_reads``
      - 5
      - Minimum corrected reads (inclusion plus exclusion) for a sample to be used.

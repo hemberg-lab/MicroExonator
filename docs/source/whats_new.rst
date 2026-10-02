@@ -31,7 +31,7 @@ Each fix can be switched off to reproduce the counts of earlier versions. See :d
 Differential inclusion without Whippet
 --------------------------------------
 
-* ``delta_method : microexonator`` tests differential inclusion of microexons with MicroExonator's own PSI and read counts, using Whippet's statistical model, so Julia and Whippet do not need to be installed. With the same inputs it reproduces Whippet's ``DeltaPsi`` to within 0.02. See :doc:`differential_inclusion_analysis`.
+* Differential inclusion uses MicroExonator's own test by default; ``delta_method : whippet`` selects the Whippet route. ``downstream_only : T`` on its own now runs Whippet on the annotation alone, as the *Methods in Molecular Biology* chapter describes; it used to also need ``Only_whippet : T``. ``delta_method : microexonator`` tests differential inclusion of microexons with MicroExonator's own PSI and read counts, using Whippet's statistical model, so Julia and Whippet do not need to be installed. With the same inputs it reproduces Whippet's ``DeltaPsi`` to within 0.02. See :doc:`differential_inclusion_analysis`.
 
 New reports
 -----------
@@ -48,6 +48,7 @@ Input and cluster setup
 * Paired-end mates joined from SRA downloads also get a bare ``+`` separator line.
 * A PBS cluster example (``Examples/Cluster_config/pbs/cluster.PBS.json``) with resources measured on hg38 runs, and a fixed LSF example. ``Round2_filter`` memory grows with read depth; see :ref:`cluster_resources`.
 * Start-up no longer prints Python ``DeprecationWarning`` messages from other packages; deprecated configuration keys are reported as one ``Note:`` line.
+* Faster quantification: reading the microexon reads from each FASTQ (``ME_reads``) runs about 10 times faster, finding the introns that contain each microexon (``Get_ME_from_annotation``) about 10 times faster, and the two Bowtie steps of quantification use 8 threads. Outputs are unchanged.
 * The corrected PSI files use ``min_reads_PSI`` as their read cut-off; it was fixed at 5 before.
 * The single-cell targets of the *Methods in Molecular Biology* chapter (``snakepool``, ``quant_unpool_single_cell``, ``collapse_whippet`` and ``cluster_bams``) work again; they had been switched off by mistake. Each comparison now keeps its own number of pseudo-bulks and repeats, and differentially included nodes are matched against the microexons of the configured confidence filter.
 * The experimental Google Cloud Storage input (``google_path``) has been removed, so the Google Cloud packages are no longer needed.

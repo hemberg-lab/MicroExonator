@@ -68,6 +68,12 @@ class FilterGroupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "bulk_samples.tsv"):
             load_filter_groups({"Single_Cell": "F"}, {"sample_a"})
 
+    def test_downstream_only_bulk_run_needs_no_bulk_samples(self):
+        from src.filtering_config import load_filter_groups
+
+        groups = load_filter_groups({"Single_Cell": "F", "downstream_only": "T"}, {"sample_a"})
+        self.assertEqual(groups, {"bulk_se": {}, "bulk_pe": {}, "single_cell": {}})
+
     def test_unclustered_single_cell_run_uses_one_all_cells_group(self):
         from src.filtering_config import load_filter_groups
 

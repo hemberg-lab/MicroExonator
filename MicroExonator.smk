@@ -133,6 +133,12 @@ if ("min_reads_PSI" in config)==False:
 if "Single_Cell" not in config:
     config["Single_Cell"]="F"
 
+# downstream_only skips discovery and quantification, so Whippet works on the
+# annotation alone (what Only_whippet selects) and its own delta is the only
+# test that can run.
+if str2bool(config.get("downstream_only", False)):
+    config["Only_whippet"] = "T"
+
 
 include : "rules/init.smk"
 include : "rules/Get_data.smk"
@@ -269,7 +275,15 @@ rule discovery:
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.smk"
 
-DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()
+# differential_inclusion: MicroExonator's own delta (src/me_delta.py) unless
+# delta_method is "whippet"
+if str2bool(config.get("downstream_only", False)):
+   DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()
+   if DELTA_METHOD == "microexonator":
+      raise WorkflowError('downstream_only skips the quantification that delta_method "microexonator" '
+                          'tests; remove delta_method to compare the annotation with Whippet alone.')
+else:
+   DELTA_METHOD = str(config.get("delta_method", "microexonator")).lower()
 if DELTA_METHOD not in ("whippet", "microexonator"):
    raise WorkflowError('delta_method must be "whippet" or "microexonator", not "{}"'.format(config["delta_method"]))
 

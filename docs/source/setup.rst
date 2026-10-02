@@ -123,7 +123,7 @@ These values come from runs on the human genome (hg38) with 14 to 40 million fra
      - default
      -
    * - Round2_bowtie_to_tags
-     - 5
+     - 8
      - 2
      -
    * - total_hisat2_to_genome
@@ -135,7 +135,7 @@ These values come from runs on the human genome (hg38) with 14 to 40 million fra
      - 30
      - for the human genome
    * - bowtie_to_genome
-     - default
+     - 8
      - 4
      -
    * - generate_fasta_from_bed12

@@ -15,4 +15,5 @@ min_number_files_detected : 2
 whippet_bin_folder : /path/to/Whippet.jl/bin
 julia : /path/to/julia
 Gene_anontation_GTF : /path/to/gencode.vM16.annotation.gtf
+delta_method : whippet
 whippet_delta : whippet_delta.yaml

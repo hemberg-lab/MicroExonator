@@ -14,7 +14,6 @@ min_number_files_detected : 3
 # Whippet
 
 downstream_only : T
-Only_whippet : T
 whippet_bin_folder : /path/to/Whippet.jl/bin
 julia : /path/to/julia
 Gene_anontation_GTF : /path/to/gencode.v19.chr_patch_hapl_scaff.annotation.gtf

@@ -111,6 +111,9 @@ def load_filter_groups(config, samples, paired_dict=None):
     samples = set(samples)
     paired_dict = paired_dict or {}
     single_cell = as_bool(config.get("Single_Cell", False))
+    if not single_cell and as_bool(config.get("downstream_only", False)) and "bulk_samples" not in config:
+        # bulk downstream_only runs no discovery, quantification or confidence filter
+        return {"bulk_se": {}, "bulk_pe": {}, "single_cell": {}}
     if not single_cell and "bulk_samples" not in config:
         raise ValueError(
             "Bulk RNA-seq robustness filtering requires bulk_samples.tsv "
