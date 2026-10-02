@@ -7,6 +7,7 @@ from pybedtools import BedTool
 import pyBigWig
 from collections import defaultdict
 
+from intron_hits import containing_introns
 from tag_paths import maximal_flanks, path_label
 from synthetic_skip_tags import (
     load_tag_introns,
@@ -348,6 +349,9 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
     intron_bed = BedTool(introns_str , from_string=True)
     intron_bed = intron_bed.sort()
 
+    # Containing introns of every microexon, from one bedtools call (src/intron_hits.py)
+    ME_introns = containing_introns(intron_bed, non_detected_ME)
+
 
     TOTAL_SJ_starts = set([])
     TOTAL_SJ_ends = set([])
@@ -445,9 +449,7 @@ def main(ME_centric, bed12, U2_GTAG_5_file, U2_GTAG_3_file, phylop, ME_len, ME_D
 
 
 
-            ME_bed = BedTool(" ".join([chrom, str(estart), str(eend - 1), "ME", "0", strand]) , from_string=True)
-
-            SJs_bed = intron_bed.intersect(ME_bed, wa=True, s=True, F=1, nonamecheck=True)
+            SJs_bed = ME_introns.get(ME_info, [])
 
 
             SJs = set([])
