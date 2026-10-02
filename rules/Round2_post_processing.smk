@@ -75,11 +75,12 @@ else:
             expand("data/Genome.{ebwt}", ebwt=EBWT)
         output:
             temp("Round2/{sample}.sam.pre_processed.hg19.sam")
+        threads: 8
         priority: 100
         conda:
             "../envs/core.yaml"
         shell:
-            "bowtie {input[1]} -p 1 -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
+            "bowtie {input[1]} -p {threads} -q {input[0]} -S -v 2 --seed 123| awk '$2==0 || $2==16'> {output}"
 
 
 rule Round2_filter:

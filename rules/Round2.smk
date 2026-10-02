@@ -366,7 +366,7 @@ rule Round2_bowtie_to_tags:
     output:
         sam = temp("Round2/{sample}.sam.raw"),
         lengths = "Round2/read_lengths/{sample}.tsv"
-    threads: 5
+    threads: 8
     priority: 100
     conda:
          "../envs/core.yaml"

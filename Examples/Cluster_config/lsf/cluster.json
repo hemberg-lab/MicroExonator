@@ -34,7 +34,7 @@
 
     "Round2_bowtie_to_tags" :
     {
-        "nCPUs"    : 5
+        "nCPUs"    : 8
     },
 
     "bowtie_genome_index" :
@@ -45,7 +45,7 @@
     
     "bowtie_to_genome" :
     {
-        "nCPUs"    : 2
+        "nCPUs"    : 8
     },
 
     "Output" :
