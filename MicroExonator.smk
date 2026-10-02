@@ -317,7 +317,17 @@ rule discovery:
 if "whippet_bin_folder" in config:
    include : "rules/Whippet_quant.smk"
 
+# differential_inclusion: MicroExonator's own delta (src/me_delta.py) unless
+# delta_method is "whippet"
+DELTA_METHOD = str(config.get("delta_method", "microexonator")).lower()
+if DELTA_METHOD not in ("whippet", "microexonator"):
+   raise WorkflowError('delta_method must be "whippet" or "microexonator", not "{}"'.format(config["delta_method"]))
+
 if "umbrella_manifest" in config:
+   if "whippet_delta" in config:
+      raise WorkflowError("whippet_delta is the legacy comparisons file; with umbrella_manifest, "
+                          "comparisons come from umbrella_comparisons (differential_inclusion "
+                          "runs them). Remove whippet_delta from the config.")
    include : "rules/umbrella_reference.smk"
    include : "rules/umbrella_alignment.smk"
    include : "rules/umbrella_reducers.smk"
@@ -325,12 +335,7 @@ if "umbrella_manifest" in config:
    include : "rules/umbrella_qc.smk"
    include : "rules/umbrella_modules.smk"
    include : "rules/umbrella_quantifiers.smk"
-
-DELTA_METHOD = str(config.get("delta_method", "whippet")).lower()
-if DELTA_METHOD not in ("whippet", "microexonator"):
-   raise WorkflowError('delta_method must be "whippet" or "microexonator", not "{}"'.format(config["delta_method"]))
-
-if "whippet_delta" in config:
+elif "whippet_delta" in config:
    with open(config["whippet_delta"], 'r') as stream:
       whippet_delta = yaml.safe_load(stream)
    if DELTA_METHOD == "microexonator":

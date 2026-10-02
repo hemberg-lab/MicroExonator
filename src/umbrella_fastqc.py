@@ -51,19 +51,24 @@ def fastqc(reads, run_id, out, reads_per_file=2000000, threads=1, scratch=None):
 
 
 def keep(run_id, hisat2, featurecounts, salmon, whippet_map, out):
+    """Copy the summaries given (tools switched off in umbrella_optional pass None)."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(hisat2, out / "{}.hisat2.summary.txt".format(run_id))
-    with open(featurecounts) as stream:
-        lines = stream.read().splitlines()
-    header = lines[0].split("\t")
-    lines[0] = "\t".join(header[:1] + [run_id])
-    (out / "{}.featurecounts.txt.summary".format(run_id)).write_text("\n".join(lines) + "\n")
-    salmon, target = Path(salmon), out / "salmon" / run_id
-    (target / "aux_info").mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(salmon / "aux_info" / "meta_info.json", target / "aux_info" / "meta_info.json")
-    shutil.copyfile(salmon / "lib_format_counts.json", target / "lib_format_counts.json")
-    shutil.copyfile(whippet_map, out / "{}.whippet.map.gz".format(run_id))
+    if hisat2:
+        shutil.copyfile(hisat2, out / "{}.hisat2.summary.txt".format(run_id))
+    if featurecounts:
+        with open(featurecounts) as stream:
+            lines = stream.read().splitlines()
+        header = lines[0].split("\t")
+        lines[0] = "\t".join(header[:1] + [run_id])
+        (out / "{}.featurecounts.txt.summary".format(run_id)).write_text("\n".join(lines) + "\n")
+    if salmon:
+        salmon, target = Path(salmon), out / "salmon" / run_id
+        (target / "aux_info").mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(salmon / "aux_info" / "meta_info.json", target / "aux_info" / "meta_info.json")
+        shutil.copyfile(salmon / "lib_format_counts.json", target / "lib_format_counts.json")
+    if whippet_map:
+        shutil.copyfile(whippet_map, out / "{}.whippet.map.gz".format(run_id))
 
 
 def main(argv=None):
@@ -78,8 +83,10 @@ def main(argv=None):
     run_fastqc.add_argument("--threads", type=int, default=1)
     run_fastqc.add_argument("--scratch")
     run_keep = commands.add_parser("keep")
-    for name in ("run-id", "hisat2", "featurecounts", "salmon", "whippet-map", "out"):
+    for name in ("run-id", "out"):
         run_keep.add_argument("--" + name, required=True)
+    for name in ("hisat2", "featurecounts", "salmon", "whippet-map"):
+        run_keep.add_argument("--" + name)
     args = parser.parse_args(argv)
     if args.command == "fastqc":
         fastqc(args.reads, args.run_id, args.out, args.reads_per_file, args.threads, args.scratch)

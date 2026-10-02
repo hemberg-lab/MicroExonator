@@ -167,8 +167,8 @@ Differential inclusion without Whippet
      - Default
      - Description
    * - ``delta_method``
-     - whippet
-     - ``whippet`` runs Whippet; ``microexonator`` tests microexons with MicroExonator's own counts and needs no Whippet installation (see :doc:`differential_inclusion_analysis`).
+     - microexonator
+     - ``microexonator`` tests microexons with MicroExonator's own counts and needs no Whippet installation; ``whippet`` runs Whippet (see :doc:`differential_inclusion_analysis`).
    * - ``delta_min_reads``
      - 5
      - Minimum corrected reads (inclusion plus exclusion) for a sample to be used.

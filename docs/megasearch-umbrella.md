@@ -101,10 +101,34 @@ A selection keeps the runs matching every key it gives: `groups`, `samples`
 (sample IDs), `runs` (run IDs) and `where` (any manifest column, including
 extra metadata columns; a value or a list of values).
 
-**Optional analyses** (`umbrella_optional`): `rmats`, `coverage`,
-`leafcutter`, `suppa2` and `multiqc` are on by default;
-`microexonator_whippet_delta` (the legacy ME-in-Whippet delta, run next to
-the Whippet-free one for validation) is off. LeafCutter uses the conda-managed Python
+**Tool selection** (`umbrella_optional`). Every tool can be switched off:
+
+| Key | Default | Controls |
+|---|---|---|
+| `microexonator` | on | MicroExonator per run, its shards and `microexonator_delta` |
+| `whippet` | on | Whippet per run, its shards and `whippet_delta` |
+| `salmon` | on | Salmon per run, its shards and DESeq2 on tximport |
+| `hisat2` | on | the analyses of the shared HISAT2 alignment: junctions and capture rates, featureCounts and its DESeq2, the compact QC table |
+| `rmats`, `coverage`, `leafcutter` | on (need `hisat2`) | rMATS, summed coverage, LeafCutter |
+| `suppa2` | on (needs `salmon`) | SUPPA2 |
+| `multiqc` | on | FastQC plus the kept summaries of the selected tools, one MultiQC report per project |
+| `microexonator_whippet_delta` | off (needs `microexonator` and `whippet`) | the legacy ME-in-Whippet delta, run next to the Whippet-free one for validation |
+
+`quant_umbrella`, the comparison joins, the per-comparison tools and the
+synthesis follow the selection. An extra left unset is switched off with the
+tool it needs; one set to `true` without it, an unknown key, or switching off
+all four tools stops the run before any job. Modules that need an alignment
+(MAJIQ, DaPars2) still align with `hisat2: false`. The reference bundle
+(`umbrella/reference/<id>/manifest.json`) lists every index, so a run that
+uses any of `whippet`, `salmon` or `hisat2` builds all three indexes once;
+MicroExonator alone builds none. For example, MicroExonator plus its delta
+without anything else:
+
+```yaml
+umbrella_optional: {whippet: false, salmon: false, hisat2: false, multiqc: false}
+```
+
+LeafCutter uses the conda-managed Python
 `leafcutter-cluster` and `leafcutter-ds` commands; it needs no separate source
 checkout, R installation or scheduler submission. It is pinned in
 `envs/umbrella-leafcutter.yaml`. The first real installation and comparison
@@ -130,9 +154,12 @@ path. The rule-local environments have not yet been solved on the cluster.
 |---|---|
 | `quant_microexonator` | legacy per-run quantification outputs and MicroExonator group shards, without cohort detection filtering |
 | `quant_whippet` | the above, plus native Whippet quantification and Whippet shards |
-| `quant_umbrella` | everything: alignment shards, Salmon shards, joins, comparisons, synthesis, and the robustly detected microexon list |
+| `quant_umbrella` | everything selected in `umbrella_optional` (all by default): alignment shards, Salmon shards, joins, comparisons, synthesis, and the robustly detected microexon list |
+| `differential_inclusion` | MicroExonator per run, its group shards and its Whippet-free delta (`src/me_delta.py`) for every comparison in `umbrella_comparisons`; no HISAT2, Salmon or Whippet index. With `delta_method: whippet`, Whippet and its delta instead |
 
-`quant` and `get_whippet_psi` keep their legacy meaning.
+`quant` and `get_whippet_psi` keep their legacy meaning. In umbrella mode the
+comparisons come from `umbrella_comparisons`; the legacy `whippet_delta` file
+is refused.
 
 The umbrella delta uses a fixed microexon list generated from
 `Round2/TOTAL.ME_centric.txt`, which comes from the configured annotation and

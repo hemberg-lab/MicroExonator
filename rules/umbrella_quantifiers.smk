@@ -142,17 +142,49 @@ rule quant_whippet:
         UMBRELLA_SPLICING_SHARDS["whippet"]
 
 
+def umbrella_selected(tool, paths):
+    return paths if UMBRELLA_OPTIONAL[tool] else []
+
+
+# The full umbrella; umbrella_optional switches tools off (rules/umbrella_alignment.smk).
 rule quant_umbrella:
     input:
-        UMBRELLA_ME_QUANT_INPUTS,
-        "Report/out.robustly_detected.txt",
-        UMBRELLA_WHIPPET_PSI,
-        UMBRELLA_SALMON_SHARDS,
+        umbrella_selected("microexonator", UMBRELLA_ME_QUANT_INPUTS),
+        umbrella_selected("microexonator", ["Report/out.robustly_detected.txt"]),
+        umbrella_selected("whippet", UMBRELLA_WHIPPET_PSI),
+        umbrella_selected("salmon", UMBRELLA_SALMON_SHARDS),
         UMBRELLA_ALIGNMENT_TARGETS,
-        UMBRELLA_SPLICING_SHARDS["microexonator"],
-        UMBRELLA_SPLICING_SHARDS["whippet"],
+        umbrella_selected("microexonator", UMBRELLA_SPLICING_SHARDS["microexonator"]),
+        umbrella_selected("whippet", UMBRELLA_SPLICING_SHARDS["whippet"]),
         UMBRELLA_COMPARISON_TARGETS,
         UMBRELLA_SYNTHESIS_TARGETS,
         UMBRELLA_QC_TARGETS,
         umbrella_module_targets,
-        UMBRELLA_REFERENCE_MANIFEST
+        [UMBRELLA_REFERENCE_MANIFEST] if any(UMBRELLA_OPTIONAL[tool] for tool in ("whippet", "salmon", "hisat2")) else []
+
+
+# differential_inclusion: MicroExonator per run, its group shards and its own
+# Whippet-free delta (src/me_delta.py) for every comparison in
+# umbrella_comparisons. Needs no HISAT2, Salmon or Whippet index.
+# delta_method: whippet gives Whippet's delta instead.
+UMBRELLA_DELTA_FILE = {"microexonator": "microexonator_delta.tsv", "whippet": "whippet_delta.diff.gz"}
+UMBRELLA_DELTA_TARGETS = [
+    "comparisons/{}/{}/{}/{}".format(result["reference_id"], result["project_id"], comparison_id,
+                                     UMBRELLA_DELTA_FILE[DELTA_METHOD])
+    for comparison_id, result in sorted(UMBRELLA_COMPARISONS.items())]
+
+
+def umbrella_differential_inclusion(wildcards):
+    if not UMBRELLA_COMPARISONS:
+        raise WorkflowError("differential_inclusion needs umbrella_comparisons (a comparisons YAML)")
+    if not UMBRELLA_OPTIONAL[DELTA_METHOD]:
+        raise WorkflowError("differential_inclusion with delta_method: {0} needs {0}, which "
+                            "umbrella_optional switches off".format(DELTA_METHOD))
+    if DELTA_METHOD == "microexonator":
+        return UMBRELLA_ME_QUANT_INPUTS + UMBRELLA_SPLICING_SHARDS["microexonator"] + UMBRELLA_DELTA_TARGETS
+    return UMBRELLA_WHIPPET_PSI + UMBRELLA_SPLICING_SHARDS["whippet"] + UMBRELLA_DELTA_TARGETS
+
+
+rule differential_inclusion:
+    input:
+        umbrella_differential_inclusion

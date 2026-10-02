@@ -6,22 +6,57 @@ them have run. Durable outputs are group-by-batch shards written through
 shard_guard; nothing per run is kept except the rMATS prep files, which
 `--task post` needs later.
 
-Optional analyses (config `umbrella_optional`, all on by default):
-  rmats       rMATS-turbo prep per run, kept for later per-comparison post
-  coverage    summed CPM coverage per group and batch (bigWig) plus n
-  leafcutter  per-comparison LeafCutter (also needs config leafcutter_dir)
-  suppa2      per-comparison SUPPA2 on Salmon transcript TPM
-  multiqc     FastQC plus kept summaries per run, one MultiQC report per
-              project; new batches only (rules/umbrella_qc.smk)
+Tool selection (config `umbrella_optional`, all on by default except the
+last). quant_umbrella, the comparison joins, the per-comparison tools and the
+synthesis follow it:
+  microexonator  MicroExonator per run, its shards and microexonator_delta
+  whippet        Whippet per run, its shards and whippet_delta
+  salmon         Salmon per run, its shards and DESeq2 on tximport
+  hisat2         the analyses of the shared HISAT2 alignment: junctions and
+                 their capture rates, featureCounts with its DESeq2, and the
+                 compact QC table (modules that need an alignment still align)
+  rmats       rMATS-turbo prep per run, kept for later per-comparison post (hisat2)
+  coverage    summed CPM coverage per group and batch (bigWig) plus n (hisat2)
+  leafcutter  per-comparison LeafCutter (hisat2)
+  suppa2      per-comparison SUPPA2 on Salmon transcript TPM (salmon)
+  multiqc     FastQC plus the kept summaries of the selected tools per run,
+              one MultiQC report per project; new batches only
+              (rules/umbrella_qc.smk)
   microexonator_whippet_delta  (off by default) legacy ME-in-Whippet delta
+                 (microexonator and whippet)
+The reference bundle (umbrella/reference/<id>/manifest.json) still lists
+every index, so a run that uses any of whippet, salmon or hisat2 builds all
+three indexes once. MicroExonator alone needs none of them.
 """
 
 import json
 from pathlib import Path
 
-UMBRELLA_OPTIONAL = {"rmats": True, "coverage": True, "leafcutter": True, "suppa2": True,
+UMBRELLA_TOOLS = ("microexonator", "whippet", "salmon", "hisat2")
+UMBRELLA_OPTIONAL = {"microexonator": True, "whippet": True, "salmon": True, "hisat2": True,
+                     "rmats": True, "coverage": True, "leafcutter": True, "suppa2": True,
                      "multiqc": True, "microexonator_whippet_delta": False}
-UMBRELLA_OPTIONAL.update(config.get("umbrella_optional", {}) or {})
+_unknown_optional = sorted(set(config.get("umbrella_optional", {}) or {}) - set(UMBRELLA_OPTIONAL))
+if _unknown_optional:
+    raise WorkflowError("unknown umbrella_optional {}; choose from {}".format(
+        ", ".join(_unknown_optional), ", ".join(UMBRELLA_OPTIONAL)))
+_chosen = {key: str(value).lower() in ("true", "t", "1", "yes")
+           for key, value in (config.get("umbrella_optional", {}) or {}).items()}
+UMBRELLA_OPTIONAL.update(_chosen)
+# an extra left unset follows the tools it needs; one set to true without them is an error
+_needs = {"rmats": ("hisat2",), "coverage": ("hisat2",), "leafcutter": ("hisat2",),
+          "suppa2": ("salmon",), "microexonator_whippet_delta": ("microexonator", "whippet")}
+_conflicts = []
+for _extra, _tools in sorted(_needs.items()):
+    if not all(UMBRELLA_OPTIONAL[tool] for tool in _tools):
+        if _chosen.get(_extra):
+            _conflicts.append("{} needs {}".format(_extra, " and ".join(_tools)))
+        UMBRELLA_OPTIONAL[_extra] = False
+if _conflicts:
+    raise WorkflowError("umbrella_optional: {}; switch the tool on, or leave the extra unset".format(
+        "; ".join(_conflicts)))
+if not any(UMBRELLA_OPTIONAL[tool] for tool in UMBRELLA_TOOLS):
+    raise WorkflowError("umbrella_optional switches off every tool ({})".format(", ".join(UMBRELLA_TOOLS)))
 UMBRELLA_HISAT2_FLAGS = config.get("umbrella_hisat2_flags", "")
 UMBRELLA_INTRON_CATALOG = UMBRELLA_REFERENCE_ROOT + "/introns.tsv.gz"
 UMBRELLA_CHROM_SIZES = UMBRELLA_REFERENCE_ROOT + "/chrom.sizes"
@@ -362,6 +397,8 @@ for reference_id, project_id, group, batch_id in sorted({
         (run.reference_id, run.project_id, run.group, run.batch_id)
         for run in UMBRELLA_MANIFEST.included_runs()}):
     shard = "{}/{}/{}/{}".format(reference_id, project_id, group, batch_id)
+    if not UMBRELLA_OPTIONAL["hisat2"]:
+        continue
     UMBRELLA_ALIGNMENT_TARGETS += [
         "junctions/{}.junctions.tsv.gz".format(shard),
         "junctions/{}.capture.tsv.gz".format(shard),

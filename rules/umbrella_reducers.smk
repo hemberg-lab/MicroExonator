@@ -74,6 +74,10 @@ UMBRELLA_JOIN_KINDS = {
     "microexonator": ("splicing/{}.microexonator.tsv.gz", "microexonator", False),
     "whippet": ("splicing/{}.whippet.tsv.gz", "whippet", False),
 }
+# the umbrella_optional tool each joined kind comes from
+UMBRELLA_JOIN_TOOL = {kind: ("hisat2" if kind in ("junctions", "featurecounts")
+                             else "salmon" if kind.startswith("salmon") else kind)
+                      for kind in UMBRELLA_JOIN_KINDS}
 
 UMBRELLA_COMPARISONS = {}
 if config.get("umbrella_comparisons"):
@@ -130,4 +134,5 @@ rule umbrella_comparison_join:
 UMBRELLA_COMPARISON_TARGETS = []
 for comparison_id, result in sorted(UMBRELLA_COMPARISONS.items()):
     root = "comparisons/{}/{}/{}".format(result["reference_id"], result["project_id"], comparison_id)
-    UMBRELLA_COMPARISON_TARGETS += [root + "/joined/{}.tsv.gz".format(kind) for kind in UMBRELLA_JOIN_KINDS]
+    UMBRELLA_COMPARISON_TARGETS += [root + "/joined/{}.tsv.gz".format(kind) for kind in UMBRELLA_JOIN_KINDS
+                                    if UMBRELLA_OPTIONAL[UMBRELLA_JOIN_TOOL[kind]]]

@@ -12,7 +12,7 @@ Whippet's k-mers are long relative to microexons, so its own PSI for microexon n
 Without Whippet
 ===============
 
-With ``delta_method : microexonator``, MicroExonator tests differential inclusion of microexons itself, and neither Julia nor Whippet is needed. It applies Whippet's statistical model (``whippet-delta.jl``) to MicroExonator's own per-sample PSI and read counts:
+By default (``delta_method : microexonator``), MicroExonator tests differential inclusion of microexons itself, and neither Julia nor Whippet is needed; set ``delta_method : whippet`` for the Whippet route described in the rest of this page. It applies Whippet's statistical model (``whippet-delta.jl``) to MicroExonator's own per-sample PSI and read counts:
 
 * each sample with a PSI and at least ``delta_min_reads`` reads gives the posterior Beta(PSI × N + 1, (1 − PSI) × N + 1), where N is the sample's corrected inclusion plus exclusion reads;
 * the posteriors of a group's replicates are sampled, pooled and fitted with a single Beta;

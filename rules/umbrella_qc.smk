@@ -19,9 +19,16 @@ import os
 UMBRELLA_QC_RUN = "qc/" + UMBRELLA_SHARD + "/runs/{run_id}"
 UMBRELLA_FASTQC_READS = int(config.get("umbrella_fastqc_reads", 2000000))
 UMBRELLA_MULTIQC = "multiqc/{reference_id}/{project_id}"
-UMBRELLA_QC_KEPT = ("{run_id}.hisat2.summary.txt", "{run_id}.featurecounts.txt.summary",
-                    "salmon/{run_id}/aux_info/meta_info.json",
-                    "salmon/{run_id}/lib_format_counts.json", "{run_id}.whippet.map.gz")
+# summaries kept per selected tool (umbrella_optional); with all three on, the
+# rule below is the one earlier runs used, so their kept files stay as they are
+UMBRELLA_QC_SOURCES = {
+    "hisat2": ("{run_id}.hisat2.summary.txt", "{run_id}.featurecounts.txt.summary"),
+    "salmon": ("salmon/{run_id}/aux_info/meta_info.json", "salmon/{run_id}/lib_format_counts.json"),
+    "whippet": ("{run_id}.whippet.map.gz",),
+}
+UMBRELLA_QC_KEPT = tuple(name for tool in ("hisat2", "salmon", "whippet") if UMBRELLA_OPTIONAL[tool]
+                         for name in UMBRELLA_QC_SOURCES[tool])
+UMBRELLA_QC_ALL_TOOLS = all(UMBRELLA_OPTIONAL[tool] for tool in UMBRELLA_QC_SOURCES)
 
 
 def umbrella_qc_root(record):
@@ -60,22 +67,46 @@ rule umbrella_fastqc:
         "--out {output} --reads-per-file {params.reads} --threads {threads} --scratch {params.scratch}"
 
 
-rule umbrella_qc_keep:
-    input:
-        hisat2=lambda w: umbrella_align_run(w).work_dir + "/align/hisat2.summary.txt",
-        featurecounts=lambda w: umbrella_align_run(w).work_dir + "/align/featurecounts.txt.summary",
-        salmon=lambda w: umbrella_align_run(w).work_dir + "/salmon",
-        whippet_map=lambda w: umbrella_align_run(w).work_dir + "/whippet/quant.map.gz"
-    output:
-        [protected(UMBRELLA_QC_RUN + "/" + name) for name in UMBRELLA_QC_KEPT]
-    wildcard_constraints:
-        reference_id="[^/]+", project_id="[^/]+", group="[^/]+", batch_id="[^/]+", run_id="[^/]+"
-    params:
-        out=UMBRELLA_QC_RUN
-    shell:
-        "python3 src/umbrella_fastqc.py keep --run-id {wildcards.run_id} --hisat2 {input.hisat2} "
-        "--featurecounts {input.featurecounts} --salmon {input.salmon} "
-        "--whippet-map {input.whippet_map} --out {params.out}"
+if UMBRELLA_QC_ALL_TOOLS:
+    rule umbrella_qc_keep:
+        input:
+            hisat2=lambda w: umbrella_align_run(w).work_dir + "/align/hisat2.summary.txt",
+            featurecounts=lambda w: umbrella_align_run(w).work_dir + "/align/featurecounts.txt.summary",
+            salmon=lambda w: umbrella_align_run(w).work_dir + "/salmon",
+            whippet_map=lambda w: umbrella_align_run(w).work_dir + "/whippet/quant.map.gz"
+        output:
+            [protected(UMBRELLA_QC_RUN + "/" + name) for name in UMBRELLA_QC_KEPT]
+        wildcard_constraints:
+            reference_id="[^/]+", project_id="[^/]+", group="[^/]+", batch_id="[^/]+", run_id="[^/]+"
+        params:
+            out=UMBRELLA_QC_RUN
+        shell:
+            "python3 src/umbrella_fastqc.py keep --run-id {wildcards.run_id} --hisat2 {input.hisat2} "
+            "--featurecounts {input.featurecounts} --salmon {input.salmon} "
+            "--whippet-map {input.whippet_map} --out {params.out}"
+elif UMBRELLA_QC_KEPT:
+    _QC_INPUTS = {"hisat2": {"hisat2": "/align/hisat2.summary.txt",
+                             "featurecounts": "/align/featurecounts.txt.summary"},
+                  "salmon": {"salmon": "/salmon"},
+                  "whippet": {"whippet_map": "/whippet/quant.map.gz"}}
+    _QC_SELECTED = {name: suffix for tool, names in _QC_INPUTS.items() if UMBRELLA_OPTIONAL[tool]
+                    for name, suffix in names.items()}
+
+    rule umbrella_qc_keep:
+        input:
+            **{name: (lambda w, suffix=suffix: umbrella_align_run(w).work_dir + suffix)
+               for name, suffix in _QC_SELECTED.items()}
+        output:
+            [protected(UMBRELLA_QC_RUN + "/" + name) for name in UMBRELLA_QC_KEPT]
+        wildcard_constraints:
+            reference_id="[^/]+", project_id="[^/]+", group="[^/]+", batch_id="[^/]+", run_id="[^/]+"
+        params:
+            out=UMBRELLA_QC_RUN,
+            sources=lambda w, input: " ".join("--{} {}".format(name.replace("_", "-"), input[name])
+                                              for name in _QC_SELECTED)
+        shell:
+            "python3 src/umbrella_fastqc.py keep --run-id {wildcards.run_id} {params.sources} "
+            "--out {params.out}"
 
 
 def umbrella_project_runs(wildcards):

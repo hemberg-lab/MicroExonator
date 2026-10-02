@@ -262,7 +262,11 @@ def umbrella_tool_table(wildcards):
                       [root + "/suppa2/{}.dpsi".format(kind) for kind in UMBRELLA_SUPPA_TYPES]))
     if not UMBRELLA_OPTIONAL.get("rmats"):
         tools = [tool for tool in tools if tool[0] != "rmats"]
-    return tools
+    # tools whose upstream is switched off (umbrella_optional) are left out
+    upstream_tool = {"hisat2": "hisat2", "salmon": "salmon", "microexonator": "microexonator",
+                     "whippet": "whippet"}
+    return [tool for tool in tools
+            if tool[3] not in upstream_tool or UMBRELLA_OPTIONAL[upstream_tool[tool[3]]]]
 
 
 rule umbrella_synthesis:
@@ -270,8 +274,9 @@ rule umbrella_synthesis:
         preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
         outputs=lambda w: [path for tool in umbrella_tool_table(w) for path in tool[5]],
         capture=lambda w: ["junctions/{}.capture_rates.json".format(shard)
-                           for shard in umbrella_comparison(w)["shards"]],
+                           for shard in umbrella_comparison(w)["shards"]] if UMBRELLA_OPTIONAL["hisat2"] else [],
         qc=lambda w: ["qc/{}.qc.tsv.gz".format(shard) for shard in umbrella_comparison(w)["shards"]]
+           if UMBRELLA_OPTIONAL["hisat2"] else []
     output:
         report=UMBRELLA_COMPARISON_ROOT + "/synthesis.tsv",
         config=UMBRELLA_COMPARISON_ROOT + "/synthesis_config.json"

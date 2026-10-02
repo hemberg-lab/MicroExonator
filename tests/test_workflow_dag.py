@@ -296,8 +296,15 @@ class DeltaMethodTests(unittest.TestCase):
         self.assertNotIn("whippet-", result.stdout)
         self.assertNotIn("julia", result.stdout)
 
-    def test_whippet_remains_the_default(self):
+    def test_microexonator_delta_is_the_default(self):
         result = self.delta_dry_run("whippet_bin_folder: /opt/whippet/bin", "julia: julia")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("src/me_delta.py", result.stdout)
+        self.assertNotIn("whippet-delta.jl", result.stdout)
+
+    def test_whippet_delta_on_request(self):
+        result = self.delta_dry_run("delta_method: whippet", "whippet_bin_folder: /opt/whippet/bin", "julia: julia")
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("whippet-delta.jl", result.stdout)
@@ -564,6 +571,93 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         for narrow in ("quant_microexonator", "quant_whippet"):
             self.assertNotIn("hisat2 -p", runs[narrow].stdout)
             self.assertNotIn(root, runs[narrow].stdout)
+
+    SELECTION_ROWS = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
+                      "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
+                      for name, group in (("b", "control"), ("c", "case"), ("d", "case"))]
+    SELECTION_COMPARISONS = ("comparisons:\n  - comparison_id: case_vs_control\n    project_id: project\n"
+                             "    group_a: case\n    group_b: control\n")
+    # the umbrella's own indexes (MicroExonator's discovery builds its own HISAT2 index)
+    INDEX_BUILDS = ("rule umbrella_hisat2_index:", "rule umbrella_salmon_index:",
+                    "rule umbrella_whippet_index:", "rule umbrella_reference_manifest:")
+
+    def selection_dry_run(self, target, extra=(), prebuilt=True):
+        return WorkflowSelectionTests.run_quant_dry_run(
+            self, umbrella=True, print_shell=True, target=target, umbrella_prebuilt=prebuilt,
+            umbrella_extra_rows=self.SELECTION_ROWS, umbrella_comparisons=self.SELECTION_COMPARISONS,
+            extra_config=extra)
+
+    def test_differential_inclusion_runs_microexonator_and_its_delta_only(self):
+        result = self.selection_dry_run("differential_inclusion", prebuilt=False)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("comparisons/ref/project/case_vs_control/microexonator_delta.tsv", out)
+        self.assertIn("run_comparison_tools.py microexonator ", out)
+        self.assertIn("splicing/ref/project/case/batch.microexonator.tsv.gz", out)
+        self.assertIn("Report/ME_ambiguous_positions.txt", out)
+        for absent in ("hisat2 -p", "whippet-quant.jl", "salmon quant", "whippet_delta.diff.gz",
+                       "synthesis.tsv") + self.INDEX_BUILDS:
+            self.assertNotIn(absent, out)
+
+    def test_differential_inclusion_whippet_delta_on_request(self):
+        result = self.selection_dry_run("differential_inclusion", extra=("delta_method: whippet",))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("comparisons/ref/project/case_vs_control/whippet_delta.diff.gz", result.stdout)
+        self.assertNotIn("microexonator_delta.tsv", result.stdout)
+
+    def test_umbrella_refuses_the_legacy_comparisons_file(self):
+        result = self.selection_dry_run("differential_inclusion", extra=("whippet_delta: whippet.delta.yaml",))
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("umbrella_comparisons", result.stdout)
+
+    def test_quant_umbrella_follows_the_tool_selection(self):
+        result = self.selection_dry_run(
+            "quant_umbrella", extra=("umbrella_optional:", "  whippet: false", "  salmon: false"))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        root = "comparisons/ref/project/case_vs_control/"
+        for present in ("hisat2 -p", root + "microexonator_delta.tsv", root + "deseq2_featurecounts.results.tsv.gz",
+                        root + "leafcutter_cluster_significance.txt", root + "synthesis.tsv",
+                        root + "joined/junctions.tsv.gz", "multiqc_report.html"):
+            self.assertIn(present, out)
+        for absent in ("whippet-quant.jl", "salmon quant", root + "whippet_delta.diff.gz",
+                       root + "deseq2_tximport", root + "suppa2/", root + "joined/whippet.tsv.gz",
+                       root + "joined/salmon_counts.tsv.gz", "--whippet-map", "--salmon "):
+            self.assertNotIn(absent, out)
+        self.assertIn("--hisat2 ", out)
+
+    def test_microexonator_alone_through_the_selection_needs_no_index(self):
+        result = self.selection_dry_run(
+            "quant_umbrella", prebuilt=False,
+            extra=("umbrella_optional:", "  whippet: false", "  salmon: false", "  hisat2: false",
+                   "  multiqc: false"))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("comparisons/ref/project/case_vs_control/microexonator_delta.tsv", out)
+        self.assertIn("comparisons/ref/project/case_vs_control/synthesis.tsv", out)
+        for absent in ("hisat2 -p", "whippet-quant.jl", "salmon quant", "fastqc") + self.INDEX_BUILDS:
+            self.assertNotIn(absent, out)
+
+    def test_default_selection_keeps_the_existing_qc_rule(self):
+        result = self.selection_dry_run("quant_umbrella")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("--featurecounts umbrella/work", result.stdout)
+        self.assertIn("--whippet-map umbrella/work", result.stdout)
+        self.assertIn("whippet_delta.diff.gz", result.stdout)
+
+    def test_tool_selection_errors_are_actionable(self):
+        conflict = self.selection_dry_run(
+            "quant_umbrella", extra=("umbrella_optional:", "  hisat2: false", "  leafcutter: true"))
+        self.assertNotEqual(conflict.returncode, 0, conflict.stdout)
+        self.assertIn("leafcutter needs hisat2", conflict.stdout)
+        unknown = self.selection_dry_run("quant_umbrella", extra=("umbrella_optional:", "  star: true"))
+        self.assertNotEqual(unknown.returncode, 0, unknown.stdout)
+        self.assertIn("unknown umbrella_optional star", unknown.stdout)
+        nothing = self.selection_dry_run(
+            "quant_umbrella", extra=("umbrella_optional:", "  microexonator: false", "  whippet: false",
+                                     "  salmon: false", "  hisat2: false"))
+        self.assertNotEqual(nothing.returncode, 0, nothing.stdout)
+        self.assertIn("switches off every tool", nothing.stdout)
 
     UMBRELLA_ROWS = ["sample_{0}\trun_{0}\trep_{0}\tproject\tbatch\t{1}\tfastq\tr1.fastq.gz\t"
                      "r2.fastq.gz\tPE\tunstranded\tref\ttrue".format(name, group)
