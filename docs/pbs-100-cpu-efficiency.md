@@ -1,8 +1,8 @@
-# Running `quant_umbrella` efficiently on PBS with a 100-CPU cap
+# Configuring `quant_umbrella` for a 100-CPU PBS limit
 
-Notes for running the umbrella on a PBS cluster where one user can hold at most
-100 CPUs at a time (the Donnelly Centre limit), with a Snakemake profile that
-reads `cluster.PBS.json`. The command these notes assume:
+Configuration changes for running the umbrella on a PBS cluster where one user
+can hold at most 100 CPUs at a time, with a Snakemake profile (`base`) that
+reads `cluster.PBS.json`. Current command:
 
 ```bash
 snakemake -s MicroExonator.smk quant_umbrella --profile base \
@@ -10,67 +10,45 @@ snakemake -s MicroExonator.smk quant_umbrella --profile base \
   -k --rerun-incomplete -j 50 --resources get_data=8
 ```
 
-The rule set uses `retries:`, so this is Snakemake 7 or later. Line numbers
-refer to the `refurbishment/umbrella` branch.
+The changes touch three places, and none of them edits the rules:
 
-## The short version
+- the profile, `base/config.yaml`
+- `cluster.PBS.json`
+- the command line
 
-1. Tell Snakemake about the CPU cap with a `cpus` resource. `-j` counts jobs,
-   not cores.
-2. Lower `ppn`/`threads` on the staging jobs. They mostly wait on the network
-   but each one holds 4 cores.
-3. In `cluster.PBS.json`, fix the entries that request more or fewer CPUs than
-   the rule uses, and give the small legacy rules realistic memory and walltime.
-4. In the profile, add a `cluster-status` script and a `latency-wait` setting
-   so jobs PBS kills don't hang the run.
-5. Time one representative run at different thread counts before scaling up.
+The rule set uses `retries:`, so this assumes Snakemake 7 or later. Every
+option below exists there.
 
-## 1. `-j 50` limits jobs, not CPUs
+Three values must agree for each rule:
 
-In cluster mode, `-j 50` means "at most 50 submitted jobs". Each job requests
-its own `ppn` from `cluster.PBS.json`:
+- `threads` (from the rule, or overridden with `set-threads`)
+- `ppn` in `cluster.PBS.json`
+- the `cpus` resource from `set-resources`
 
-| Per-run job (quant_umbrella) | ppn | mem | Most at once in 100 CPUs |
-|---|---|---|---|
-| `umbrella_hisat2` | 8 | 16 GB | 12 |
-| `Round2_bowtie_to_tags` (legacy ME quant) | 8 | 2 GB | 12 |
-| `Round1_bwa_mem_to_tags` | 5 | 10 GB | 20 |
-| `umbrella_stage_reads` / `umbrella_stage_single` | 4 | 3 / 8 GB | 25 |
-| `umbrella_legacy_fastq` | 4 | 2 GB | 25 |
-| `umbrella_featurecounts` | 4 | 3 GB | 25 |
-| `umbrella_rmats_prep` | 4 | 6 GB | 25 |
-| `umbrella_salmon_quant` | 4 | 24 GB | 25 |
-| `umbrella_whippet_quant` | 1 | 12 GB | 100 |
-| `umbrella_junctions`, `umbrella_coverage_run`, per-run legacy scripts | 1 | 2–10 GB | 100 |
+If they drift apart, the tool, PBS and Snakemake each count a different number
+of cores.
 
-So 50 jobs can ask for anywhere from 50 to 400 CPUs. PBS enforces the 100-CPU
-limit and holds the rest in the queue, which causes three problems:
+## 1. Profile: count CPUs, not jobs
 
-- **Snakemake loses control of the order.** Queued jobs start in PBS order, not
-  Snakemake's (`priority:` stops having an effect). This matters most for the
-  temporary BAM and FASTQ files. A run's reads and its `aligned.bam` are
-  deleted only after every consumer has finished (junctions, featureCounts,
-  rMATS prep, coverage, Salmon, Whippet, MicroExonator). If the consumers sit
-  behind other runs' alignments, temporaries pile up on scratch.
-- **Waiting jobs use up `-j` slots.** If 40 of the 50 slots are 8-CPU jobs
-  waiting in PBS, Snakemake can't submit the cheap 1-CPU jobs that would fill
-  the remaining cores.
-- **Queue limits.** Some PBS setups also cap how many jobs one user can have
-  queued. Check whether Donnelly does.
+`-j 50` limits Snakemake to 50 submitted jobs, but each job asks PBS for its own
+`ppn` (1 to 8), so 50 jobs can mean anywhere from 50 to 400 CPUs. PBS holds the
+extras in its own queue. Then:
 
-**Fix: count CPUs as a Snakemake resource.** Snakemake applies global
-`--resources` limits in cluster mode too. In `base/config.yaml`:
+- Snakemake no longer controls what runs first, so temporary FASTQs and BAMs pile up on scratch.
+- Jobs waiting in PBS take up `-j` slots that cheap 1-CPU jobs could have used.
+
+Giving every job a `cpus` resource lets Snakemake enforce the limit itself:
 
 ```yaml
+# base/config.yaml
 default-resources:
   - cpus=1
 set-resources:
-  # keep in step with ppn in cluster.PBS.json
   - umbrella_hisat2:cpus=8
-  - Round2_bowtie_to_tags:cpus=8
+  - Round2_bowtie_to_tags:cpus=4
   - Round1_bwa_mem_to_tags:cpus=5
-  - umbrella_stage_reads:cpus=4
-  - umbrella_stage_single:cpus=4
+  - umbrella_stage_reads:cpus=2
+  - umbrella_stage_single:cpus=2
   - umbrella_legacy_fastq:cpus=4
   - umbrella_featurecounts:cpus=4
   - umbrella_rmats_prep:cpus=4
@@ -80,154 +58,137 @@ set-resources:
   - umbrella_salmon_index:cpus=8
   - umbrella_rmats_post:cpus=4
   - umbrella_leafcutter:cpus=4
-  # add the module rules you enable (umbrella_majiq_*, umbrella_qapa_*, ...)
+  # add any enabled module rules with threads > 1 (umbrella_majiq_*, umbrella_qapa_*, umbrella_dapars2_compare)
 ```
 
-Then put the cap on the command line. A command-line `--resources` replaces the
-profile's `resources:` entry rather than merging with it, so list both
-resources there:
+## 2. Profile: thread overrides
 
-```bash
-... -k --rerun-incomplete -j 150 --resources get_data=8 cpus=96
+`set-threads` changes a rule's `threads` without editing the rule. Two rules
+benefit:
+
+```yaml
+set-threads:
+  # network-bound while downloading (the rule's own note: 24-59 % of one core);
+  # at 4, get_data=8 holds 32 of the 100 CPUs mostly idle
+  - umbrella_stage_reads=2
+  - umbrella_stage_single=2
+  # the single-threaded gzip | awk | python stages around bowtie set the pace;
+  # 4 instead of 8 runs twice as many samples at once
+  - Round2_bowtie_to_tags=4
 ```
 
-With `cpus` doing the limiting, `-j` can go above 100 so that 1-CPU jobs always
-have a slot. Keep the `cpus` cap slightly below 100 if anything else of yours
-(an interactive session, or Snakemake itself running inside a job) uses part of
-the allowance. Check the setup with `snakemake ... -n` first, and confirm that
-`qstat -u $USER` never shows more than about 100 cores running.
+Time one run at both values before you commit to them. Keep
+`umbrella_hisat2` at 8 threads: it scales well, and `samtools sort -@` uses the
+same threads.
 
-The `cpus` values must match `ppn` in `cluster.PBS.json`. If they drift apart,
-Snakemake's count and PBS's count disagree.
+## 3. Profile: job monitoring and submission
 
-## 2. Staging (downloads) holds more cores than it uses
+```yaml
+cluster-status: "base/pbs_status.py"   # see below
+latency-wait: 60
+max-jobs-per-second: 5
+max-status-checks-per-second: 1
+```
 
-The rule's own comment (`rules/umbrella_inputs.smk:59`) notes that while
-downloading, staging uses 24–59 % of **one** core. Only fasterq-dump/pigz at
-the end use all 4. With `--resources get_data=8`, that's 32 cores (a third of
-the cap) held mostly idle by downloads. Local (non-SRA) runs also take 4 cores
-each, without a `get_data` slot.
+- **`cluster-status`.** Without one, Snakemake doesn't notice when PBS kills a
+  job for exceeding walltime or memory, and `-k` waits forever. The script gets
+  the job ID and must print `running`, `success` or `failed`. It can work it out
+  from `qstat -fx <jobid>` (PBS Pro) or `qstat -f <jobid>` / `tracejob <jobid>`
+  (Torque), using `job_state` and `exit_status`.
+- **`latency-wait`.** Prevents false "missing output" failures on a slow shared
+  filesystem.
+- **Submission rates.** Keep the PBS server responsive when many short jobs are
+  submitted at once.
 
-Options, in order of effort:
+Check that the `cluster:` line passes the CPU request through, or every job runs
+on one core:
 
-- Set `ppn: 2` for `umbrella_stage_reads` and `umbrella_stage_single` in
-  `cluster.PBS.json`, and `threads: 2` in the rule. Expect slower extraction
-  and compression in return for more alignments running.
-- Keep `get_data` around 6–8. More concurrent downloads mostly fill scratch
-  with FASTQs waiting for alignment slots.
-- If Donnelly lets jobs run on the login or a transfer node, make staging a
-  `localrule` so it doesn't use the PBS allowance at all (it still respects
-  `get_data`).
+- Torque:
+  `qsub -l nodes={cluster.nodes}:ppn={cluster.ppn},mem={cluster.mem},walltime={cluster.walltime} -q {cluster.queue} -N {cluster.name} -o {cluster.output} -e {cluster.error}`
+- PBS Pro:
+  `qsub -l select=1:ncpus={cluster.ppn}:mem={cluster.mem} -l walltime={cluster.walltime} ...`
 
-## 3. Thread counts on the per-run tools
+## 4. `cluster.PBS.json`
 
-With a hard CPU cap, total throughput across samples matters more than how
-fast one sample finishes. A thread is only worth giving if the tool actually
-speeds up with it.
+**Match the new thread counts:**
 
-- **`Round2_bowtie_to_tags`** (`rules/Round2.smk:374`) is
-  `gzip -dc | awk | bowtie -p 8 | awk | python3 select_tag_alignments.py`.
-  Bowtie against the small tag index is fast, so the single-threaded
-  gzip/awk/Python stages probably limit it. If 3 threads give about the same
-  speed as 8, you can run 33 at once instead of 12. Change `threads:` in the
-  rule, `ppn` in the JSON and the `cpus` override together.
-- **`Round1_bwa_mem_to_tags`** (5 threads, piped to awk) is in the same
-  situation, if `quant_umbrella` pulls in discovery.
-- **`umbrella_hisat2`** scales well up to about 8 threads, and `samtools sort -@`
-  reuses them, so 8 is reasonable. It is the job that occupies the most
-  core-hours, though, so measure 4 vs 8 as well.
-- **Whippet, junctions, coverage and the per-run scripts** are single-threaded.
-  They are cheap in CPUs, so per-node memory, not the CPU cap, decides how many
-  can run (`umbrella_whippet_quant` asks for 12 GB).
+```json
+"umbrella_stage_reads":  { "ppn": "2", "threads": "2" },
+"umbrella_stage_single": { "ppn": "2", "threads": "2" },
+"Round2_bowtie_to_tags": { "ppn": "4", "threads": "4" }
+```
 
-How to measure: pick one typical run, use `--forcerun <rule>` with a few
-`threads` values (or add a `benchmark:` directive), and compare wall time.
-Pick the thread count where doubling threads no longer roughly halves the
-time.
+(Keep the other fields these entries already have.)
 
-## 4. `cluster.PBS.json` fixes
+**Entries that request more CPUs than the rule uses:**
 
-Compared against the `threads:` the rules actually use:
-
-**Request more CPUs than they use:**
-
-| Rule | ppn | Rule threads | Fix |
+| Rule | ppn now | Rule threads | Set |
 |---|---|---|---|
-| `bowtie_genome_index` | 8 | 1 | `ppn: 1`, or add `--threads` to the rule |
+| `bowtie_genome_index` | 8 | 1 | `ppn: 1` |
 | `Output` | 2 | 1 | `ppn: 1` |
 
-**Use more CPUs than they request** (no JSON entry, so they get `ppn: 1`; only
-matters if you use these aligners): `total_STAR_to_Genome` (5),
-`total_olego_to_Genome` (10), `total_tophat_to_Genome` (5), `mv_STAR` (5).
-These oversubscribe the node, or get killed where CPU use is enforced.
+**Entries that are missing.** These rules fall back to `ppn: 1` but run with more
+threads, which oversubscribes the node. Add them only if you use these aligners:
 
-**Default memory and walltime too large.** About 30 legacy entries fall back to
+| Rule | Rule threads |
+|---|---|
+| `total_STAR_to_Genome` | 5 |
+| `mv_STAR` | 5 |
+| `total_tophat_to_Genome` | 5 |
+| `total_olego_to_Genome` | 10 |
+
+**Default memory and walltime too large.** About 30 short legacy rules use
 `__default__` (10 GB, 24 h), including:
 
-- `*_alingment_pre_processing`
+- `Round1_alingment_pre_processing`
 - `ME_psi_to_quant`
 - `SamToBam`, `BamIndex`
 - `correct_quant`, `get_PSI_sparse_quants_*`
-- the detection filters and the delta rules
+- `detection_filter_*`
+- the `*delta*` rules
 
-Most finish in minutes. PBS backfills short jobs into gaps sooner, and a 10 GB
-request blocks scheduling wherever memory is also limited. The umbrella entries
-already use realistic values (1–8 h). Something like 2–4 GB and 2–4 h for the
-small legacy steps would bring them in line. Check a few `logs/*.err` or
-`qstat -f` records for real peak memory before tightening.
+PBS backfills short jobs into idle gaps sooner, and smaller memory requests fit
+on more nodes. A tighter default fixes all of them at once:
 
-## 5. Profile settings
+```json
+"__default__": {
+    "mem_mb": "4000",
+    "mem": "4000mb",
+    "walltime": "04:00:00",
+    "runtime": 14400,
+    ...
+}
+```
 
-Things to have in `base/config.yaml` (it is the same file as above):
+Keep explicit, larger values for the rules that need them. The umbrella
+entries already set their own. Among the legacy rules, give an explicit entry
+to any that relied on the old default, such as `download_fastq`,
+`Round1_filter` and `ME_reads`. Use real peak memory from `qstat -f` or the
+logs as the guide.
 
-- **`cluster-status: <script>`.** Without one, Snakemake doesn't notice when PBS
-  kills a job for exceeding walltime or memory. The job just never finishes and
-  `-k` keeps waiting. A short script that maps `qstat -f <jobid>` or
-  `tracejob <jobid>` to `running` / `success` / `failed` is enough. The submit
-  command must print the job ID (plain `qsub` does).
-- **`latency-wait: 60`.** Shared filesystems can be slow to show new files, and
-  without this you get false "missing output" failures.
-- **`max-jobs-per-second: 5` and `max-status-checks-per-second: 1`.** These keep
-  the PBS server responsive when many short jobs are submitted at once.
-- **Check the resource line of `cluster:`.**
-  - Torque uses `-l nodes={cluster.nodes}:ppn={cluster.ppn},mem={cluster.mem},walltime={cluster.walltime}`.
-  - PBS Pro uses `-l select=1:ncpus={cluster.ppn}:mem={cluster.mem} -l walltime={cluster.walltime}`.
+## 5. Command line
 
-  A job whose `ppn` never reaches PBS silently runs with one core.
-- **`--rerun-incomplete`** (already in the command) is right here: a job PBS
-  killed leaves incomplete outputs behind.
+```bash
+snakemake -s MicroExonator.smk quant_umbrella --profile base \
+  --use-conda --conda-frontend conda --conda-prefix $C \
+  -k --rerun-incomplete -j 150 --resources get_data=8 cpus=96
+```
 
-## 6. Where Snakemake runs, and scratch
+- **`cpus=96`.** This is now the real limit. It sits a little under 100 to leave
+  room for anything else of yours running at the same time.
+- **List both resources here.** A command-line `--resources` replaces the
+  profile's `resources:` entry instead of adding to it.
+- **`-j 150`.** Raised so that 1-CPU jobs always find a free slot. `cpus`
+  enforces the CPU limit.
+- **`get_data=8`.** Still sensible. At 2 threads, 8 downloads now hold 16 CPUs
+  instead of 32. Going higher mainly fills scratch with reads waiting to be
+  aligned.
 
-- Running Snakemake itself inside a batch job uses one CPU of the 100 for the
-  whole run. If the login node allows long-lived processes, run it in `tmux`
-  there instead.
-- Set `umbrella_stage_tmpdir` to node-local scratch if the nodes have it.
-  Uncompressed reads are written there during staging, and 25 jobs doing this
-  on the shared filesystem at once slow each other down.
-- Watch scratch during the first batch: staged FASTQs and `aligned.bam` per run
-  accumulate when consumers lag (section 1). `snakemake --delete-temp-output -n`
-  lists what is still being held.
+Before the full run, do a dry run (`-n`) to check that the profile is accepted.
+Once it's running, check that `qstat -u $USER` shows about 100 CPUs in use.
 
-## 7. Plan the one-off big jobs
+## 6. Pipeline config
 
-The reference builds (`umbrella_hisat2_index`, `umbrella_salmon_index` at 32 GB,
-`umbrella_whippet_index`, and the MAJIQ/QAPA references if enabled) run once
-per reference but need the most memory. Build the reference first with its own
-target while nothing else is running, then start `quant_umbrella`. That way the
-per-run jobs don't compete with them for CPUs and memory.
-
-## 8. Slow runs hold up the joins
-
-Shards, joins and comparisons wait for every run in their group and batch, so
-one very deep run can leave most of the 100 cores idle at the end of a batch.
-Order the manifest, or split batches, so the deepest runs start early. Where
-it's practical, keep batches of similar depth together.
-
-## Before the big run
-
-1. `snakemake ... -n` with the new profile, to check the `cpus` overrides are
-   accepted.
-2. Run one batch of 5–10 runs. Check `qstat -u $USER` core totals, real memory
-   per rule, and scratch growth.
-3. Adjust `ppn`/`threads`, then scale `-j` and `get_data`.
+- **`umbrella_stage_tmpdir`.** Point it at node-local scratch if the nodes have
+  it. Staging writes uncompressed reads there, and many concurrent jobs doing
+  that on the shared filesystem slow each other down.
