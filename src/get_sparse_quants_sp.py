@@ -80,50 +80,48 @@ def calcBin(vx, vN, vCL = 95):
   
   
   
-pool_ME_coverages = defaultdict(int)
-pool_excluding_covs = defaultdict(int)
+# One pseudo-bulk per output file: Report/quant/corrected/PSI_sparse/single_cell/<cell type>-<n>.corrected.PSI.gz
+pseudo_pool_ID = snakemake.output["corrected_sparse"].split("/")[-1]
+if pseudo_pool_ID.endswith(".corrected.PSI.gz"):
+    pseudo_pool_ID = pseudo_pool_ID[:-len(".corrected.PSI.gz")]
+cell_type = pseudo_pool_ID.rsplit("-", 1)[0].replace("_", " ")
 
+# PSI is reported only with at least min_reads_PSI corrected reads, as in the
+# bulk files; a microexon with exclusion reads only is kept with PSI 0.
+min_reads = float(snakemake.params["min_reads"])
 
+pool_ME_coverages = defaultdict(float)
+pool_excluding_covs = defaultdict(float)
 
 for f in snakemake.input["cells"]:
-    
-    sample = f.split("/")[-1].split(".")[0]
-    
+
     with gzip.open(f, "rt") as file:
 
         reader = csv.reader(file, delimiter="\t")
 
         for row in reader:
 
-            sample, ME, ME_coverages, excluding_covs = row       
-            pseudo_pool_ID = snakemake.output["corrected_sparse"].split("/")[-2].split(".")[0]
+            sample, ME, ME_coverages, excluding_covs = row
+            pool_ME_coverages[ME] += float(ME_coverages)
+            pool_excluding_covs[ME] += float(excluding_covs)
 
-            if float(ME_coverages) > 0:
-                pool_ME_coverages[(pseudo_pool_ID, ME)] += float(ME_coverages)
 
-            if float(excluding_covs) > 0:    
-                pool_excluding_covs[(pseudo_pool_ID, ME)] += float(excluding_covs)
-                    
-                    
-pseudo_pool_set = set(pool_ME_coverages.keys())                   
-                    
 with gzip.open(snakemake.output["corrected_sparse"], "wt") as out:
-  
+
     header = "\t".join(["ME", "pseudo_pool", "cell_type",  "ME_coverages", "excluding_covs", "PSI", "CI_Lo", "CI_Hi"])
-    
+
     out.write(header + "\n")
-    
-    for key in pseudo_pool_set:
 
-        if len(key)==2:
-            
-            pseudo_pool, ME = key
+    for ME in sorted(pool_ME_coverages):
 
-            cell_type = pseudo_pool.split("-")[0].replace("_", " ")
-            ME_coverages = pool_ME_coverages[key]
-            excluding_covs = pool_excluding_covs[key]
-            CI_Lo, CI_Hi = calcBin(float(ME_coverages),  ME_coverages+excluding_covs)
-            PSI = ME_coverages/(ME_coverages+excluding_covs)
+        ME_coverages = pool_ME_coverages[ME]
+        excluding_covs = pool_excluding_covs[ME]
+        total = ME_coverages + excluding_covs
 
-            out_line = "\t".join(map(str, [ME, pseudo_pool, cell_type,  ME_coverages, excluding_covs, PSI, CI_Lo, CI_Hi]))
+        if total >= min_reads and total > 0:
+
+            CI_Lo, CI_Hi = calcBin(ME_coverages, total)
+            PSI = ME_coverages / total
+
+            out_line = "\t".join(map(str, [ME, pseudo_pool_ID, cell_type,  ME_coverages, excluding_covs, PSI, CI_Lo, CI_Hi]))
             out.write(out_line + "\n")

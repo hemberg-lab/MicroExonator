@@ -155,6 +155,8 @@ rule get_PSI_sparse_quants_sp:
         cells = lambda w : get_cell_sp(w.cluster)
     output:
         corrected_sparse = protected("Report/quant/corrected/PSI_sparse/single_cell/{cluster}.corrected.PSI.gz")
+    params:
+        min_reads = config["min_reads_PSI"]
     priority: 10
     script:
         "../src/get_sparse_quants_sp.py" 
