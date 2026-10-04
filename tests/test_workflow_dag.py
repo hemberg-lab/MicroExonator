@@ -29,6 +29,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         target="quant",
         delta_comparisons=None,
         run_metadata=None,
+        annotation_gtf=True,
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -105,7 +106,8 @@ class WorkflowSelectionTests(unittest.TestCase):
             with open(os.path.join(temp_dir, "config.yaml"), "w") as handle:
                 handle.write("Genome_fasta: genome.fa\n")
                 handle.write("Gene_anontation_bed12: annotation.bed12\n")
-                handle.write("Gene_anontation_GTF: annotation.gtf\n")
+                if annotation_gtf:
+                    handle.write("Gene_anontation_GTF: annotation.gtf\n")
                 handle.write("GT_AG_U2_5: u2_5.matrix\n")
                 handle.write("GT_AG_U2_3: u2_3.matrix\n")
                 handle.write("conservation_bigwig: conservation.bw\n")
@@ -191,6 +193,12 @@ class WorkflowSelectionTests(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("bulk_samples.tsv", result.stdout)
+
+    def test_quant_runs_with_a_bed12_annotation_only(self):
+        result = self.run_quant_dry_run(annotation_gtf=False)
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("Report/out.robustly_detected.txt", result.stdout)
 
     def test_legacy_mixture_quant_needs_no_bulk_samples(self):
         result = self.run_quant_dry_run(include_bulk_manifest=False, filter_method="legacy_mixture")

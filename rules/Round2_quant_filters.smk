@@ -245,15 +245,18 @@ rule detection_filter:
 ## GENE EXPRESSION
 
 
-rule get_transcriptome:
-    input:
-        genome = config["Genome_fasta"],
-        gtf = config["Gene_anontation_GTF"]
-    output:
-        "Genome/transcriptome.fa"
-    conda: "../envs/core.yaml"
-    shell:
-        "gffread -w {output} -g {input}"
+# Salmon gene expression (salmon_all_quant) needs the GTF; runs with only a
+# BED12 annotation skip it instead of failing at start-up.
+if "Gene_anontation_GTF" in config:
+    rule get_transcriptome:
+        input:
+            genome = config["Genome_fasta"],
+            gtf = config["Gene_anontation_GTF"]
+        output:
+            "Genome/transcriptome.fa"
+        conda: "../envs/core.yaml"
+        shell:
+            "gffread -w {output} -g {input}"
 
            
 rule salmon_index:

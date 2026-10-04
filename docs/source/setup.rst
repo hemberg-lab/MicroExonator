@@ -165,7 +165,7 @@ These values come from runs on the human genome (hg38) with 14 to 40 million fra
    * - salmon_index
      - 2
      - 32
-     - for gene expression (the ``gene_count`` target)
+     - for gene expression with Salmon (the ``salmon_all_quant`` target)
    * - ME_SJ_coverage, coverage_to_PSI_report, correct_quant
      - default
      - 2
