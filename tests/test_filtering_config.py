@@ -68,6 +68,23 @@ class FilterGroupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "bulk_samples.tsv"):
             load_filter_groups({"Single_Cell": "F"}, {"sample_a"})
 
+    def test_legacy_mixture_bulk_run_needs_no_bulk_samples(self):
+        from src.filtering_config import load_filter_groups
+
+        groups = load_filter_groups({"Single_Cell": "F"}, {"sample_a"}, filter_method="legacy_mixture")
+        self.assertEqual(groups, {"bulk_se": {}, "bulk_pe": {}, "single_cell": {}})
+
+    def test_legacy_mixture_still_reads_bulk_samples_when_given(self):
+        from src.filtering_config import load_filter_groups
+
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = os.path.join(directory, "bulk_samples.tsv")
+            with open(manifest, "w") as handle:
+                handle.write("sample\tcondition\nsample_a\tcontrol\n")
+            groups = load_filter_groups({"Single_Cell": "F", "bulk_samples": manifest}, {"sample_a"},
+                                        filter_method="legacy_mixture")
+        self.assertEqual(groups["bulk_se"], {"control": ["sample_a"]})
+
     def test_downstream_only_bulk_run_needs_no_bulk_samples(self):
         from src.filtering_config import load_filter_groups
 

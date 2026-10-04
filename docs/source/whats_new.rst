@@ -13,7 +13,7 @@ Python 3 and defaults
 ---------------------
 
 * All pipeline scripts run under Python 3, with pinned conda environments.
-* The robustness filter is the default confidence filter; the original Gaussian mixture filter is available as ``filter_method : legacy_mixture``.
+* The robustness filter is the default confidence filter; it needs a ``bulk_samples`` file with the condition of each bulk sample. The original Gaussian mixture filter is available as ``filter_method : legacy_mixture`` and needs no ``bulk_samples`` file.
 * Whippet receives corrected MicroExonator PSI values by default.
 
 Quantification fixes

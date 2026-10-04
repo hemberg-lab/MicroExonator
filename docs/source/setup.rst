@@ -48,7 +48,7 @@ By default, downloaded or copied FASTQ files are kept only while they are needed
 Sample groups
 =============
 
-Bulk RNA-seq runs also need a ``bulk_samples`` file that assigns every sample to a biological condition. It is used to decide which microexons are detected robustly within each group (see :doc:`discovery_and_quantification`). It is a tab-separated file with the columns ``sample`` and ``condition``:
+Bulk RNA-seq runs with the default confidence filter also need a ``bulk_samples`` file that assigns every sample to a biological condition. It is used to decide which microexons are detected robustly within each group (see :doc:`discovery_and_quantification`). It is a tab-separated file with the columns ``sample`` and ``condition``:
 
 .. code-block:: text
 

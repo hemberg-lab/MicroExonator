@@ -37,7 +37,7 @@ These parameters are needed for every run, even when only downstream modules are
 * ``ME_len``: maximum microexon length (default 30).
 * ``max_read_len``: tag flank length and read trimming length (default 150). Set it to the length of the longest reads in your data; see :ref:`read_length`.
 * ``min_number_files_detected``: the number of samples in which a putative novel microexon must be found during discovery. At least 2 is recommended for single-end data and 3 when paired-end files are present.
-* ``bulk_samples``: a tab-separated file assigning every bulk sample to a condition (columns ``sample`` and ``condition``; see :doc:`setup`). Sample names must match the input names exactly. For paired-end data, list the first-read sample declared in ``paired_samples``. Condition names are used in output paths: spaces become underscores, and other characters that are not valid in paths are rejected. Pure single-cell runs do not need this file (see :doc:`single_cell_analysis`).
+* ``bulk_samples``: a tab-separated file assigning every bulk sample to a condition (columns ``sample`` and ``condition``; see :doc:`setup`). Sample names must match the input names exactly. For paired-end data, list the first-read sample declared in ``paired_samples``. Condition names are used in output paths: spaces become underscores, and other characters that are not valid in paths are rejected. Pure single-cell runs, and runs with ``filter_method : legacy_mixture``, do not need this file (see :doc:`single_cell_analysis`).
 
 Optional configuration
 ----------------------

@@ -192,6 +192,13 @@ class WorkflowSelectionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("bulk_samples.tsv", result.stdout)
 
+    def test_legacy_mixture_quant_needs_no_bulk_samples(self):
+        result = self.run_quant_dry_run(include_bulk_manifest=False, filter_method="legacy_mixture")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("Report/out.high_quality.txt", result.stdout)
+        self.assertNotIn("Report/filter/se/", result.stdout)
+
     def test_start_up_prints_no_deprecation_noise(self):
         # a deprecated config key gives one plain note; nothing that looks like an error
         result = self.run_quant_dry_run(extra_config=["filter_mode: unbiased"])

@@ -24,7 +24,7 @@ Required
    * - ``min_number_files_detected``
      - Minimum number of samples in which a putative novel microexon must be found during discovery to be kept for quantification. We recommend at least 2 for single-end data and 3 when paired-end files are present.
    * - ``bulk_samples``
-     - Tab-separated file assigning each bulk sample to a condition (columns ``sample`` and ``condition``; see :doc:`setup`). Required for bulk RNA-seq runs; pure single-cell runs use the cluster metadata instead.
+     - Tab-separated file assigning each bulk sample to a condition (columns ``sample`` and ``condition``; see :doc:`setup`). Required for bulk RNA-seq runs with the default robustness filter; not needed with ``filter_method : legacy_mixture`` or ``downstream_only : T``, which do not use conditions. Pure single-cell runs use the cluster metadata instead.
 
 Splice sites, conservation and microexon length
 ===============================================

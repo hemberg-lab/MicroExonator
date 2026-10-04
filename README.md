@@ -6,7 +6,7 @@ MicroExonator is a Snakemake workflow for the de novo discovery and quantificati
 
 This branch holds MicroExonator 2.0.0, now in beta. It runs under Python 3 and fixes several quantification problems that affected a sizeable share of microexons: read length handling, microexons without an annotated skipping junction, consecutive microexons, microexons that share a splice site with a longer exon, and junctions with a copy in the genome. It also adds differential inclusion without Whippet and new diagnostic reports. See [What's new](https://microexonator.readthedocs.io/en/latest/whats_new.html) for details.
 
-Coming from an earlier version: the default confidence filter is now the robustness filter, so bulk RNA-seq runs need a `bulk_samples` file that assigns each sample to a condition. The original Gaussian mixture filter is still available as `filter_method : legacy_mixture`.
+Coming from an earlier version: the default confidence filter is now the robustness filter, so bulk RNA-seq runs need a `bulk_samples` file that assigns each sample to a condition. The original Gaussian mixture filter is still available as `filter_method : legacy_mixture`, and needs no `bulk_samples` file.
 
 The *Methods in Molecular Biology* protocol corresponds to the `MiMB` branch, which is kept unchanged for reproducibility.
 

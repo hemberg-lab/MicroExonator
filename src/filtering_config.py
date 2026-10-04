@@ -105,14 +105,20 @@ def normalize_group_id(value, source, normalized_labels):
     return normalized
 
 
-def load_filter_groups(config, samples, paired_dict=None):
-    """Load the biological sample groups used by robustness filtering."""
+def load_filter_groups(config, samples, paired_dict=None, filter_method="robustness"):
+    """Load the biological sample groups used by robustness filtering.
+
+    Bulk runs without bulk_samples get no groups when nothing reads them:
+    downstream_only runs no filter, and legacy_mixture counts samples across
+    the whole run (min_number_files_detected) instead of per condition.
+    """
 
     samples = set(samples)
     paired_dict = paired_dict or {}
     single_cell = as_bool(config.get("Single_Cell", False))
-    if not single_cell and as_bool(config.get("downstream_only", False)) and "bulk_samples" not in config:
-        # bulk downstream_only runs no discovery, quantification or confidence filter
+    groups_unused = (as_bool(config.get("downstream_only", False))
+                     or filter_method == "legacy_mixture")
+    if not single_cell and groups_unused and "bulk_samples" not in config:
         return {"bulk_se": {}, "bulk_pe": {}, "single_cell": {}}
     if not single_cell and "bulk_samples" not in config:
         raise ValueError(

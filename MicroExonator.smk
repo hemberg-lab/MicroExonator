@@ -145,7 +145,7 @@ include : "rules/Get_data.smk"
 
 
 try:
-    filter_groups = load_filter_groups(config, DATA, paired_dict=paired_dict)
+    filter_groups = load_filter_groups(config, DATA, paired_dict=paired_dict, filter_method=FILTER_METHOD)
 except ValueError as error:
     raise WorkflowError(str(error))
 
