@@ -16,6 +16,9 @@ from src.filtering_config import (
 random.seed(123)
 
 configfile : "config.yaml"
+if isinstance(config.get("umbrella_execution"), dict) and config["umbrella_execution"].get("enabled"):
+    raise WorkflowError("umbrella_execution.enabled requires the guarded launcher: "
+                        "python3 src/umbrella_execution.py --configfile config.yaml -- <Snakemake options>")
 DATA = set([])
 to_validate = set([])
 EBWT = [
