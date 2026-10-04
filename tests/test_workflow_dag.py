@@ -30,6 +30,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         delta_comparisons=None,
         run_metadata=None,
         annotation_gtf=True,
+        validate_samples=(),
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -97,6 +98,9 @@ class WorkflowSelectionTests(unittest.TestCase):
                     absolute_path = os.path.join(temp_dir, relative_path)
                     os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
                     open(absolute_path, "w").close()
+            if validate_samples:
+                with open(os.path.join(temp_dir, "validate.txt"), "w") as handle:
+                    handle.write("".join(sample + "\n" for sample in validate_samples))
             if run_metadata is not None:
                 with open(os.path.join(temp_dir, "run_metadata.tsv"), "w") as handle:
                     handle.write(run_metadata)
@@ -224,6 +228,45 @@ class WorkflowSelectionTests(unittest.TestCase):
         self.assertIn("Report/out.robustly_detected.txt", result.stdout)
         self.assertNotIn("Report/ME_junction_genomic_copies.txt", result.stdout)
         self.assertNotIn("Report/read_lengths.tsv", result.stdout)
+
+
+class FastqCopyTests(unittest.TestCase):
+    """Optimize_hard_drive and validate_fastq_list choose the FASTQ copy quantification reads."""
+
+    def dry_run(self, *extra_config):
+        return WorkflowSelectionTests.run_quant_dry_run(self, extra_config=extra_config, print_shell=True)
+
+    def test_quantification_reads_the_shared_copy_by_default(self):
+        result = self.dry_run()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("FASTQ/round2/", result.stdout)
+        self.assertNotIn("rule download_fastq2:", result.stdout)
+
+    def test_optimize_hard_drive_fetches_a_quantification_copy(self):
+        result = self.dry_run("Optimize_hard_drive: T")
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("rule download_fastq2:", out)
+        self.assertIn("FASTQ/round2/sample_a.fastq.gz", out)
+        self.assertIn("mv FASTQ/sample_a.fastq.gz FASTQ/round2/sample_a.fastq.gz", out)
+        # every quantification step reads the round2 copy, so nothing downloads twice
+        for rule in ("Round2_bowtie_to_tags", "ME_reads"):
+            block = out.split("rule {}:".format(rule), 1)[1].split("\n\n", 1)[0]
+            self.assertIn("FASTQ/round2/sample_a.fastq.gz", block, rule)
+        self.assertEqual(out.count("rule download_fastq:"), 1, out[-3000:])
+
+    def test_validated_copies_have_a_producing_rule(self):
+        for extra, validated in ((("validate_fastq_list: validate.txt",), "FASTQ/valid/sample_a.valid.fastq.gz"),
+                                 (("validate_fastq_list: validate.txt", "Optimize_hard_drive: T"),
+                                  "FASTQ/round2/valid/sample_a.valid.fastq.gz")):
+            with self.subTest(extra=extra):
+                result = WorkflowSelectionTests.run_quant_dry_run(
+                    self, extra_config=extra, print_shell=True, validate_samples=("sample_a",))
+                self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+                self.assertIn(validated, result.stdout)
+                self.assertNotIn(".fastq.gz.valid", result.stdout)
 
 
 class DeltaMethodTests(unittest.TestCase):

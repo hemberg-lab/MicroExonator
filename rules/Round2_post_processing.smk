@@ -7,7 +7,7 @@ from src.legacy_mixture import LEGACY_MIXTURE_FAILURE
 rule ME_reads:
     input:
         "Round2/{sample}.sam.pre_processed",
-        "FASTQ/{sample}.fastq.gz"
+        hard_drive_behavior
     output:
         temp("Round2/{sample}.sam.pre_processed.fastq")
     priority: 100

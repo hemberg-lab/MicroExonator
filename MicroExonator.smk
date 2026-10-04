@@ -56,10 +56,11 @@ def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
 def hard_drive_behavior(wildcards):
-    
+    """FASTQ read by the quantification rules: the separate quantification copy
+    with Optimize_hard_drive, and the validated copy for validate_fastq_list."""
     fastq = wildcards.sample
 
-    if config.get("Optimize_hard_drive", False)=="T":
+    if str2bool(config.get("Optimize_hard_drive", False)):
 
         if "validate_fastq_list" in config:
 

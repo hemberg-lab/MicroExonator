@@ -263,77 +263,28 @@ rule Round2_bowtie_tags_index:
     shell:
         "bowtie-build {input} {input}"
 
+# Optimize_hard_drive : T keeps a separate temporary copy of each FASTQ for
+# quantification, fetched again once discovery has finished (and its copy has
+# been deleted). A copy that is still on disk (Keep_fastq_gz : T, or another
+# step still using it) is copied instead of downloaded again.
 rule download_fastq2:
     input:
-        "download/{sample}.download.sh",
-        "Round2/TOTAL.ME_centric.txt"
+        script = "download/{sample}.download.sh",
+        discovery_done = "Round2/TOTAL.ME_centric.txt"
     params:
-        "FASTQ/{sample}.fastq"
+        first_copy = "FASTQ/{sample}.fastq.gz"
     output:
-        temp("FASTQ/round2/{sample}.fastq")
+        temp("FASTQ/round2/{sample}.fastq.gz")
+    wildcard_constraints:
+        sample = "[^/]+"
     priority: -10
     resources:
         get_data = 1
     conda:
-        "../envs/core.yaml"
+        "../envs/download.yaml"
     shell:
-        #"bash {input[0]}"
-        "bash {input[0]} && mv {params} {output}"
-
-def hard_drive_behavior(fastq):
-    if config.get("Optimize_hard_drive", False)=="T":
-
-        if "validate_fastq_list" in config:
-
-            to_validate = set[()]
-
-            with open(config["validate_fastq_list"]) as fastq_list:
-                reader = csv.reader(fastq_list, delimiter="\t")
-                for row in reader:
-                    to_validate.add(row[0])
-
-            if fastq in to_validate:
-                return("FASTQ/round2/" + str(fastq) + ".fastq.gz.valid")
-            else:
-                return(  "FASTQ/round2/" + str(fastq) + ".fastq.gz")
-
-        else:
-            return(  "FASTQ/round2/" + str(fastq) + ".fastq.gz")
-    else:
-
-        if "validate_fastq_list" in config:
-
-            to_validate = set([])
-
-            with open(config["validate_fastq_list"]) as fastq_list:
-                reader = csv.reader(fastq_list, delimiter="\t")
-                for row in reader:
-                    to_validate.add(row[0])
-
-            if fastq in to_validate:
-                return("FASTQ/" + str(fastq) + ".fastq.gz.valid")
-            else:
-                return(  "FASTQ/" + str(fastq) + ".fastq.gz")
-        else:
-
-            return("FASTQ/" + str(fastq) + ".fastq.gz")
-
-
-#rule validate_fastq:
-#    input:
-#        "FASTQ/{sample}.fastq.gz"
-#    output:
-#        "FASTQ/{sample}.fastq.gz.valid"
-#    shell:
-#        "python3 src/validate_fastq.py {input}"
-
-#rule validate_fastq2:
-#    input:
-#        "FASTQ/round2/{sample}.fastq.gz"
-#    output:
-#        "FASTQ/round2/{sample}.fastq.gz.valid"
-#    shell:
-#        "python3 src/validate_fastq.py {input}"
+        "if [ -f {params.first_copy} ]; then cp {params.first_copy} {output}; "
+        "else bash {input.script} && mv {params.first_copy} {output}; fi"
 
 
 rule Round2_bowtie_to_tags:

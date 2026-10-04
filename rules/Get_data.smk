@@ -4,6 +4,8 @@ if str2bool(config.get("Keep_fastq_gz", False)):
             "download/{sample}.download.sh"
         output:
             "FASTQ/{sample}.fastq.gz"
+        wildcard_constraints:
+            sample = "[^/]+"
         resources:
             get_data = 1
         conda:
@@ -18,6 +20,8 @@ else:
             "download/{sample}.download.sh"
         output:
             temp("FASTQ/{sample}.fastq.gz")
+        wildcard_constraints:
+            sample = "[^/]+"
         resources:
             get_data = 1
         conda:
