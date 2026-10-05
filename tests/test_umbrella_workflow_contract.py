@@ -27,13 +27,14 @@ class UmbrellaWorkflowContractTests(unittest.TestCase):
         self.assertIn('else temp("FASTQ/{sample}.fastq.gz")', self.intake)
         self.assertIn('rule umbrella_legacy_fastq:', self.intake)
 
-    def test_native_reads_are_temporary_and_manifest_invalidates_outputs(self):
+    def test_native_reads_are_temporary_and_validation_is_shared(self):
         # Staged reads are removed once all their consumers have run; the
         # legacy FASTQ is relinked (source symlink or hard link) so it
         # outlives them.
         self.assertRegex(self.intake, r'temp\("umbrella/work/\{reference_id\}/\{project_id\}/\{batch_id\}/\{run_id\}/R1\.fastq\.gz"\)')
         self.assertIn('link_legacy_fastq(input.fastq, output[0])', self.intake)
-        self.assertIn('manifest=str(UMBRELLA_MANIFEST.path)', self.intake)
+        # Manifest-location reuse and processing invalidation are exercised by
+        # the native regression in test_manifest_relocation.py, not a path param.
         self.assertIn('reads=umbrella_validation_inputs', self.intake)
 
 if __name__ == "__main__":

@@ -65,12 +65,12 @@ rule umbrella_stage_reads:
         # the restage flag rides in this param: changing the shell text would
         # make Snakemake rerun staging for any staged reads still on disk
         tmpdir=" ".join(filter(None, (UMBRELLA_STAGE_TMPDIR, UMBRELLA_ALLOW_RESTAGE))),
-        manifest=str(UMBRELLA_MANIFEST.path),
+        # Manifest location is runtime routing, not processing identity.
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
-        "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
+        "python3 src/umbrella_stage_reads.py --manifest {UMBRELLA_MANIFEST.path:q} "
         "--run-id {wildcards.run_id:q} --r1 {output.r1:q} --r2 {output.r2:q} "
         "--threads {threads} {params.tmpdir}"
 
@@ -94,12 +94,11 @@ rule umbrella_stage_single:
         # the restage flag rides in this param: changing the shell text would
         # make Snakemake rerun staging for any staged reads still on disk
         tmpdir=" ".join(filter(None, (UMBRELLA_STAGE_TMPDIR, UMBRELLA_ALLOW_RESTAGE))),
-        manifest=str(UMBRELLA_MANIFEST.path),
         run_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(w.run_id)
     conda:
         "../envs/umbrella-inputs.yaml"
     shell:
-        "python3 src/umbrella_stage_reads.py --manifest {params.manifest:q} "
+        "python3 src/umbrella_stage_reads.py --manifest {UMBRELLA_MANIFEST.path:q} "
         "--run-id {wildcards.run_id:q} --r1 {output:q} --threads {threads} {params.tmpdir}"
 
 
