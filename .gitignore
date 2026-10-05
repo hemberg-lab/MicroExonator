@@ -7,6 +7,11 @@ __pycache__/
 .snakemake/
 
 # Local planning artifacts belong outside this repository.
+# Personal cluster notes and runbooks are not public software documentation.
+/docs/pbs-100-cpu-efficiency.md
+/docs/internal/
+/docs/cluster-notes/
+/docs/runbooks/
 /docs/superpowers/
 /.superpowers/
 /.claude/plans/
