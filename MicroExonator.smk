@@ -393,5 +393,12 @@ rule get_whippet_psi:
 
     
 include : "rules/sashimi.smk"
+
+# Scheduling only: apply after includes without changing producer fingerprints.
+from src.disk_saving_priority import apply_disk_saving_priorities
+try:
+    apply_disk_saving_priorities(workflow, config)
+except ValueError as error:
+    raise WorkflowError(str(error))
   
 #ruleorder: quant_pool_pb > whippet_quant
