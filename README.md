@@ -25,6 +25,9 @@ Finally, create an enviroment to run [snakemake](https://snakemake.readthedocs.i
 
 Extended documentation can be found at https://microexonator.readthedocs.io.
 
+Optional [cached expression PCA](docs/expression-pca.md) generates comparison-level
+ggplot2/ggrepel QC plots from retained umbrella counts without acquiring reads.
+
 The default confidence filter is now the quantitative robustness route. Bulk
 RNA-seq runs must declare biological sample groups in a tab-separated
 `bulk_samples.tsv` file and set `bulk_samples` in `config.yaml`. Pure

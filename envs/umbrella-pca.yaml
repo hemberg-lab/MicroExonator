@@ -1,0 +1,10 @@
+name: microexonator-umbrella-pca
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4.3
+  - bioconductor-deseq2
+  - r-jsonlite
+  - r-ggplot2
+  - r-ggrepel
