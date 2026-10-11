@@ -27,6 +27,9 @@ Extended documentation can be found at https://microexonator.readthedocs.io.
 
 Optional [cached expression PCA](docs/expression-pca.md) generates comparison-level
 ggplot2/ggrepel QC plots from retained umbrella counts without acquiring reads.
+The expanded [gene-expression QC report](docs/gene-expression-qc.md) adds PCA
+sensitivity views, sample heatmaps, count summaries and influence diagnostics,
+with independently selectable featureCounts and Salmon sources.
 
 The default confidence filter is now the quantitative robustness route. Bulk
 RNA-seq runs must declare biological sample groups in a tab-separated

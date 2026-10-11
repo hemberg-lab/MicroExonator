@@ -60,6 +60,7 @@ main <- function() {
   missing <- setdiff(samples, colnames(counts))
   if (length(missing)) stop("Missing biological replicate columns: ", paste(missing, collapse = ", "))
   counts <- counts[, samples, drop = FALSE]
+  raw_counts <- counts
   keep <- rowSums(counts >= 10) >= 2
   counts <- counts[keep, , drop = FALSE]
   if (nrow(counts) < 2 || any(colSums(counts) == 0)) stop("Insufficient expressed genes or empty sample")
@@ -98,7 +99,13 @@ main <- function() {
                        PC1 = pca$x[, 1], PC2 = pca$x[, 2],
                        PC1_variance_pct = explained[1], PC2_variance_pct = explained[2],
                        group_distance_qc(transformed, groups, min_group), row.names = NULL)
-  scores$qc_status <- factor(scores$qc_status, levels = c("Unflagged", "Review", "Not assessed"))
+  qc_report <- identical(opt[["qc-report"]], "true")
+  if (qc_report) {
+    scores$qc_status <- "Not classified"
+    scores$distance_threshold <- NA_real_
+    scores$qc_reason <- "Descriptive QC only; no automatic sample exclusions"
+  }
+  scores$qc_status <- factor(scores$qc_status, levels = c("Unflagged", "Review", "Not assessed", "Not classified"))
   scores$group <- factor(scores$group, levels = c(pf$group_a, pf$group_b))
   pca_plot <- ggplot(scores, aes(PC1, PC2, colour = group, shape = qc_status)) +
     geom_point(size = 3.2) +
@@ -114,7 +121,17 @@ main <- function() {
          caption = "VST; up to 500 most variable genes. Review flags are exploratory, not exclusions.") +
     theme_classic(base_size = 12) + theme(legend.position = "bottom")
   dir.create(dirname(opt$out), recursive = TRUE, showWarnings = FALSE)
-  ggsave(paste0(opt$out, ".pdf"), plot = pca_plot, width = 9, height = 6, units = "in")
+  if (qc_report) {
+    # The standalone report opts out of the old exploratory binary flags.
+    pca_plot$mapping$shape <- NULL
+    pca_plot <- pca_plot + guides(shape = "none") +
+      labs(caption = "VST; up to 500 most variable genes. Descriptive QC only; no automatic exclusions.")
+    script_path <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value=TRUE)[1])
+    source(file.path(dirname(script_path), "gene_expression_qc.R"))
+    gene_expression_qc_report(opt, pf, dds, raw_counts, transformed, pca_plot)
+  } else {
+    ggsave(paste0(opt$out, ".pdf"), plot = pca_plot, width = 9, height = 6, units = "in")
+  }
   write.table(scores, gzfile(paste0(opt$out, ".scores.tsv.gz")), sep = "\t", quote = FALSE, row.names = FALSE)
 }
 

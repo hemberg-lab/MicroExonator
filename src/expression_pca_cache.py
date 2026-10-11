@@ -1,8 +1,44 @@
 """Discover comparison PCA inputs without importing any read-processing rules."""
 from pathlib import Path
+import json
 
 ROUTES = {'featurecounts': ('featurecounts',),
           'tximport': ('salmon_counts', 'salmon_tpm', 'salmon_length')}
+
+
+def qc_routes(sources):
+    """Public source names, including CLI comma syntax; empty means disabled."""
+    if isinstance(sources, str):
+        sources = [s.strip().lower() for s in sources.split(',') if s.strip()]
+    if sources is None or sources == ['none']:
+        return []
+    if not isinstance(sources, (list, tuple)):
+        raise ValueError('QC sources must be a list or comma-separated source names')
+    aliases = {'featurecounts': 'featurecounts', 'salmon': 'tximport', 'tximport': 'tximport'}
+    routes = []
+    for source in sources:
+        if source not in aliases:
+            raise ValueError('Unknown QC source: {} (use featurecounts or salmon)'.format(source))
+        route = aliases[source]
+        if route not in routes:
+            routes.append(route)
+    return routes
+
+
+def retained_qc_inputs(root, preflight):
+    """Use only available shard QC; never regenerate missing processing metrics."""
+    with open(preflight) as stream:
+        shards = json.load(stream).get('shards', [])
+    inputs = []
+    for shard in shards:
+        # A preflight's shard identifiers are relative, not arbitrary paths.
+        parts = shard.split('/')
+        if len(parts) != 4 or any(p in ('', '.', '..') for p in parts):
+            raise ValueError('Invalid retained QC shard identifier: ' + shard)
+        path = Path(root).parent / 'qc' / (shard + '.qc.tsv.gz')
+        if path.is_file():
+            inputs.append(str(path))
+    return inputs
 
 
 def cached_comparisons(root, routes, comparisons=None):

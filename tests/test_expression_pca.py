@@ -107,6 +107,24 @@ class ExpressionPCATests(unittest.TestCase):
             result = subprocess.run(salmon_command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((root / 'salmon_pca.pdf').read_bytes().startswith(b'%PDF'))
+            # Both count sources must produce the complete seven-page report,
+            # without changing the retained matrices or classifying samples.
+            import re
+            for report_command, prefix in ((command, 'pca'), (salmon_command, 'salmon_pca')):
+                before = counts.read_bytes()
+                report = subprocess.run(report_command + ['--qc-report', 'true', '--cooks', 'true'],
+                                        capture_output=True, text=True, cwd=root)
+                self.assertEqual(report.returncode, 0, report.stderr)
+                self.assertEqual(len(re.findall(rb'/Type /Page\b', (root / (prefix+'.pdf')).read_bytes())), 7)
+                with gzip.open(root / (prefix+'.summary.tsv.gz'), 'rt') as stream:
+                    summaries = list(csv.DictReader(stream, delimiter='\t'))
+                self.assertEqual([r['sample_id'] for r in summaries], samples)
+                self.assertEqual({r['processing_qc_status'] for r in summaries}, {'Unavailable'})
+                self.assertEqual({r['cooks_status'] for r in summaries}, {'Available'})
+                with gzip.open(root / (prefix+'.scores.tsv.gz'), 'rt') as stream:
+                    self.assertEqual({r['qc_status'] for r in csv.DictReader(stream, delimiter='\t')}, {'Not classified'})
+                self.assertEqual(counts.read_bytes(), before)
+                self.assertFalse((root / 'Rplots.pdf').exists())
             preflight.write_text(json.dumps({'group_a': 'Treatment', 'group_b': 'Control',
                 'replicates': {'a': ['missing', 'a2'], 'b': samples[2:]}}))
             failed = subprocess.run(command, capture_output=True, text=True)

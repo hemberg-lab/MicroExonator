@@ -8,3 +8,4 @@ dependencies:
   - r-jsonlite
   - r-ggplot2
   - r-ggrepel
+  - r-gridextra
