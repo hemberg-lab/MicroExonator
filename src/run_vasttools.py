@@ -26,12 +26,12 @@ compare   Per comparison, from the caches only, in a private folder:
           Writes
             inclusion.tsv.gz  the combine table (PSI in %, quality columns)
             tidy.tsv.gz       events passing tidy
-            diff.tsv.gz       vast-tools diff (A minus B)
+            diff.tsv.gz       vast-tools diff (A minus B), or a not-run marker for MWU
             results.tsv.gz    normalized rows (effect = E[dPSI], A minus B)
             microexons.tsv.gz every microexon of the umbrella ME_DB with its
-                              VASTDB event, or not_in_vastdb: vast-tools only
-                              quantifies VASTDB events, so a microexon it does
-                              not have is untested here, never contradicted
+                              installed catalogue match, separately distinguishing
+                              unreported, unquantified and absent events. None of
+                              those states is contradictory differential evidence.
             status.json
 """
 
@@ -76,7 +76,17 @@ def vast(vast_tools, *args, cwd=None, log=None):
     if log is not None:
         log.write("$ " + " ".join(command) + "\n")
         log.flush()
-    subprocess.run(command, check=True, cwd=cwd, stdout=log, stderr=subprocess.STDOUT)
+    try:
+        subprocess.run(command, check=True, cwd=cwd, stdout=log, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as error:
+        if log is None:
+            raise
+        log.flush()
+        from collections import deque
+        with open(log.name) as stream:
+            tail = ''.join(deque(stream, maxlen=25))
+        raise RuntimeError('vast-tools {} failed (exit {}); log: {}\n{}'.format(
+            args[0], error.returncode, log.name, tail)) from error
 
 
 # ------------------------------------------------------------ VASTDB
@@ -246,6 +256,53 @@ def read_table(path, key="EVENT"):
     return rows
 
 
+def read_catalog(dbdir, species):
+    """Installed exon catalogue, independent of read coverage and combine output.
+
+    combine uses FULL and rewrites old IDs via New_ID. MIC may contain legacy
+    microexons absent from FULL; those are catalogued but not reported, not
+    evidence against a microexon and not necessarily active quantification targets.
+    """
+    key = SPECIES_KEY[species]
+    root = Path(dbdir) / key
+    paths = [root / 'TEMPLATES' / (key + '.FULL.Template.txt.gz'),
+             root / 'TEMPLATES' / (key + '.MIC.Template.txt')]
+    for path in paths:
+        if not path.is_file():
+            raise ValueError('Missing VASTDB catalogue template: {}'.format(path))
+    aliases = {}
+    conversion = root / 'FILES' / ('New_ID-' + key + '.txt.gz')
+    if conversion.exists():
+        with gzip.open(conversion, 'rt') as stream:
+            for line in stream:
+                new, old, *_ = line.rstrip('\n').split('\t')
+                aliases[old] = new
+    entries = {}
+    for path in paths:
+        opener = gzip.open if path.suffix == '.gz' else open
+        with opener(path, 'rt') as stream:
+            header = stream.readline().rstrip('\n').split('\t')
+            if header[:6] != ['GENE', 'EVENT', 'COORD', 'LENGTH', 'FullCO', 'COMPLEX']:
+                raise ValueError('Unrecognized VASTDB catalogue header: {}'.format(path))
+            for line in stream:
+                fields = line.rstrip('\n').split('\t')
+                if len(fields) < 6:
+                    continue
+                gene, old, coordinate, length, full, complexity = fields[:6]
+                if event_type(old, complexity) != 'exon':
+                    continue
+                match = re.fullmatch(r'(.+):(\d+)-(\d+)', coordinate)
+                if not match:
+                    raise ValueError('Unrecognized exon catalogue coordinate: ' + coordinate)
+                event = aliases.get(old, old)
+                chrom, start, end = match.groups()
+                strand = strand_of(event, full, complexity)
+                entry = dict(event=event, chrom=chrom, start=int(start), end=int(end), strand=strand,
+                             gene=gene, complexity=complexity)
+                entries.setdefault((event, chrom, start, end, strand), entry)
+    return list(entries.values())
+
+
 def mann_whitney(a, b, exact_limit=20000):
     """Two-sided Mann-Whitney U p-value: exact by permutation of the rank sums
     when there are at most `exact_limit` splits, else the normal approximation
@@ -306,7 +363,10 @@ def read_me_db(path):
 
 def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, threads=1,
             ids=None, prob=0.95, min_dpsi=0.1, min_reads=10, min_samples=2, ir_version=2,
-            tidy_args="--noVLOW --p_IR --noB3", mwu_min_dpsi=0.15, mwu_q=0.05, diff_max_n=5):
+            tidy_args="--noVLOW --p_IR --noB3", mwu_min_dpsi=0.15, mwu_q=0.05, diff_max_n=5,
+            implementation="catalogue-aware-v2"):
+    if implementation != 'catalogue-aware-v2':
+        raise ValueError('Unsupported vast-tools comparison implementation: ' + implementation)
     preflight = json.loads(Path(preflight_path).read_text())
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -317,6 +377,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
         _empty_outputs(out_dir)
         write_status(status_path, "vasttools", "unsupported", preflight["reasons"], **base)
         return
+    catalogue = read_catalog(dbdir, species)
     replicates = {side: list(preflight["replicates"][side]) for side in ("a", "b")}
     members = {}
     for run, replicate in preflight["collapse"].items():
@@ -374,24 +435,25 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
             vast(vast_tools, "tidy", inclusion, "--groups", work / "tidy_groups.txt", "--min_N",
                  samples_needed, "--min_SD", 0, *tidy_args.split(), "-outFile", work / "tidy.tab",
                  cwd=work, log=log)
-            vast(vast_tools, "diff", "-a", ",".join(column[r] for r in replicates["a"]),
-                 "-b", ",".join(column[r] for r in replicates["b"]), "--sampleNameA", "A",
-                 "--sampleNameB", "B", "-i", inclusion, "-o", vast_out, "-d", "diff",
-                 "-r", prob, "-m", min_dpsi, "-e", min_reads, "-S", samples_needed, "-c", threads,
-                 "--noPDF", cwd=work, log=log)
+            if method == 'diff':
+                vast(vast_tools, "diff", "-a", ",".join(column[r] for r in replicates["a"]),
+                     "-b", ",".join(column[r] for r in replicates["b"]), "--sampleNameA", "A",
+                     "--sampleNameB", "B", "-i", inclusion, "-o", vast_out, "-d", "diff",
+                     "-r", prob, "-m", min_dpsi, "-e", min_reads, "-S", samples_needed, "-c", threads,
+                     "--noPDF", cwd=work, log=log)
+            else:
+                (vast_out / 'diff.tab').write_text('# Bayesian diff not run: using tidy + Mann-Whitney\n')
         for source, target in ((inclusion, "inclusion.tsv.gz"), (work / "tidy.tab", "tidy.tsv.gz"),
                                (vast_out / "diff.tab", "diff.tsv.gz")):
             with open(source, "rb") as stream, gzip.open(out_dir / target, "wb") as sink:
                 shutil.copyfileobj(stream, sink)
         events, _ = read_inclusion(inclusion)
         tidy = read_table(work / "tidy.tab")
-        diff = read_table(vast_out / "diff.tab")
+        diff = read_table(vast_out / "diff.tab") if method == 'diff' else {}
     names = {side: [column[r] for r in replicates[side]] for side in ("a", "b")}
     records, pvalues = [], []
     for event, info in events.items():
         values = {side: [info["psi"].get(n) for n in names[side]] for side in ("a", "b")}
-        if not any(v is not None for side in values.values() for v in side):
-            continue
         tidy_row = tidy.get(event)
         tidy_values = {side: [_float(tidy_row.get(n)) for n in names[side]] if tidy_row else []
                        for side in ("a", "b")}
@@ -420,10 +482,13 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
             tested = record["tidy"] and q is not None
             called = tested and q < mwu_q and record["mean_dpsi"] is not None and abs(
                 record["mean_dpsi"]) >= mwu_min_dpsi
-        record["status"] = ("called" if called else "tested" if tested else
-                            "filtered" if record["expected"] is not None or record["tidy"] else "not_quantified")
+        quantified = any(v is not None for side in record['values'].values() for v in side)
+        record['status'] = ('not_quantified' if not quantified else
+                            'called' if called else 'tested' if tested else 'filtered')
     normalized = []
     for record in records:
+        if not any(v is not None for side in record['values'].values() for v in side):
+            continue  # retain these records for catalogue mapping, not expression evidence
         info = record["info"]
         effect = record["expected"] if method == "diff" else record["mean_dpsi"]
         normalized.append({
@@ -438,7 +503,8 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
             "n_b": sum(v is not None for v in record["values"]["b"]),
             "coverage": "tidy_pass" if record["tidy"] else "tidy_fail",
             "native_statistic": "" if record["mv"] is None else "{:.6g}".format(record["mv"]),
-            "statistic_type": "vast-tools diff MV: |dPSI| exceeded with probability {}".format(prob),
+            "statistic_type": ("vast-tools diff MV: |dPSI| exceeded with probability {}".format(prob)
+                               if method == 'diff' else 'Mann-Whitney p-value; BH q-value'),
             "p_value": "" if record["p"] is None else "{:.6g}".format(record["p"]),
             "q_value": "" if record["q"] is None else "{:.6g}".format(record["q"]),
             "status": record["status"],
@@ -448,7 +514,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
         writer = csv.DictWriter(stream, fieldnames=NORMALIZED, delimiter="\t", extrasaction="ignore")
         writer.writeheader()
         writer.writerows(normalized)
-    microexon_rows = microexon_table(read_me_db(me_db), records, method)
+    microexon_rows = microexon_table(read_me_db(me_db), records, method, catalogue)
     with gzip.open(out_dir / "microexons.tsv.gz", "wt") as stream:
         writer = csv.DictWriter(stream, fieldnames=MICROEXON_COLUMNS, delimiter="\t")
         writer.writeheader()
@@ -456,10 +522,10 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     tested = sum(r["status"] in ("tested", "called") for r in records)
     called = sum(r["status"] == "called" for r in records)
     status, reasons = "ok", []
-    if not records:
+    if not normalized:
         status, reasons = "empty", ["vast-tools quantified no event in these samples"]
     elif not tested:
-        status, reasons = "no_tests", ["no event passed tidy with a diff estimate"]
+        status, reasons = "no_tests", ["no event passed tidy with sufficient data for " + method]
     by_status = {}
     for row in microexon_rows:
         by_status[row["vasttools_status"]] = by_status.get(row["vasttools_status"], 0) + 1
@@ -474,11 +540,14 @@ MICROEXON_COLUMNS = ("microexon_id", "vasttools_status", "vastdb_event", "vastdb
 RANK = {"called": 0, "tested": 1, "filtered": 2, "not_quantified": 3}
 
 
-def microexon_table(microexons, records, method):
+def microexon_table(microexons, records, method, catalogue):
     """One row per umbrella microexon: its best-matching VASTDB exon event, by
     identical 1-based coordinates and strand, preferring the microexon (MIC)
-    module, or not_in_vastdb."""
+    module. Absence is checked against installed templates, not coverage."""
     by_coordinates = {}
+    catalog_coordinates = {}
+    for entry in catalogue:
+        catalog_coordinates.setdefault((entry['chrom'], entry['start'], entry['end']), []).append(entry)
     for record in records:
         if event_type(record["event"], record["info"]["complexity"]) != "exon" or not record["chrom"]:
             continue
@@ -487,10 +556,20 @@ def microexon_table(microexons, records, method):
     rows = []
     for chrom, strand, start, end in sorted(microexons):
         microexon_id = "{}_{}_{}_{}".format(chrom, strand, start - 1, end)
-        matches = [r for r in by_coordinates.get((chrom, start, end), []) if r["strand"] in (strand, "")]
+        candidates = by_coordinates.get((chrom, start, end), [])
+        matches = [r for r in candidates if r['strand'] == strand]
         if not matches:
-            rows.append(dict(microexon_id=microexon_id, vasttools_status="not_in_vastdb", vastdb_event="",
-                             vastdb_events="", gene_name="", event_class="", effect="", native_statistic="",
+            entries = catalog_coordinates.get((chrom, start, end), [])
+            known = [e for e in entries if e['strand'] == strand]
+            known.sort(key=lambda e: (not e['complexity'].startswith('MIC'), e['event']))
+            ambiguous = any(not e['strand'] for e in entries) or any(not r['strand'] for r in candidates)
+            status = 'not_reported' if known else 'mapping_ambiguous' if ambiguous else 'not_in_vastdb'
+            rows.append(dict(microexon_id=microexon_id, vasttools_status=status,
+                             vastdb_event=known[0]['event'] if known else '',
+                             vastdb_events=';'.join(sorted({e['event'] for e in known})),
+                             gene_name=known[0]['gene'] if known else '',
+                             event_class='microexon' if known and known[0]['complexity'].startswith('MIC') else '',
+                             effect="", native_statistic="",
                              p_value="", q_value="", method=method))
             continue
         matches.sort(key=lambda r: (not r["info"]["complexity"].startswith("MIC"), RANK[r["status"]], r["event"]))

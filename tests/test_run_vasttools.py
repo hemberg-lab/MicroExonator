@@ -156,7 +156,23 @@ class MockToolTests(unittest.TestCase):
             self.align("SRR1", self.temp / "cache")
         self.assertFalse((self.temp / "cache" / "to_combine.tar").exists())
 
+    def test_failed_native_command_surfaces_its_log(self):
+        failing = self.temp / 'fail-tool'
+        failing.mkdir()
+        script = failing / 'vast-tools'
+        script.write_text('#!/bin/sh\necho "native failure detail"\nexit 42\n')
+        script.chmod(0o755)
+        with open(self.temp/'failure.log', 'w') as log:
+            with self.assertRaisesRegex(RuntimeError, 'native failure detail'):
+                vt.vast(failing,'align',log=log)
+
     def write_tables(self, samples, rows, tidy_events, diff_rows):
+        templates = self.temp / 'db/Hs2/TEMPLATES'
+        templates.mkdir(parents=True, exist_ok=True)
+        text = HEADER + '\n' + ''.join('\t'.join(map(str, row[:6])) + '\n' for row in rows)
+        with gzip.open(templates / 'Hs2.FULL.Template.txt.gz', 'wt') as stream:
+            stream.write(text)
+        (templates / 'Hs2.MIC.Template.txt').write_text(HEADER + '\n')
         tidy = "EVENT\t" + "\t".join(samples) + "\n" + "".join(
             "{}\t{}\n".format(event, "\t".join(str(p) for p in psis))
             for event, psis in tidy_events)
@@ -199,6 +215,8 @@ class MockToolTests(unittest.TestCase):
              ["NA", "NA", "NA", "NA", "NA", "NA"]),
             ("GENE4", "HsaINT0000004", "chr2:100-200", "101", "chr2:50-99=201-300:+", "IR",
              [10, 12, 11, 40, 45, 41]),
+            ('GENE5','HsaEX5','chr1:3001-3010','10','chr1:2900,3001-3010,3100','MIC',
+             [5,6,4,5,4,6]),
         ]
         self.write_tables(samples, rows,
                           tidy_events=[("HsaEX0027358", [80, 85, 82, 20, 25, 22]),
@@ -241,6 +259,7 @@ class MockToolTests(unittest.TestCase):
         self.assertEqual(gfra1["event_class"], "microexon")
         self.assertEqual(results["HsaEX0000002"]["status"], "tested")
         self.assertEqual(results["HsaINT0000004"]["status"], "filtered")   # diff estimate, but no tidy pass
+        self.assertEqual(results['HsaEX5']['status'],'filtered')  # PSI exists, no tidy/diff estimate
         self.assertNotIn("HsaEX0000003", results)                            # never quantified
         with gzip.open(out / "microexons.tsv.gz", "rt") as stream:
             microexons = {row["microexon_id"]: row for row in __import__("csv").DictReader(stream, delimiter="\t")}
@@ -260,7 +279,8 @@ class MockToolTests(unittest.TestCase):
         caches = self.caches(units_a + units_b)
         samples = units_a + units_b
         psis = [80, 82, 84, 86, 88, 90, 10, 12, 14, 16, 18, 20]
-        self.write_tables(samples, [("G", "HsaEX1", "chr1:11-20", "10", "chr1:1,11-20,40", "MIC", psis)],
+        self.write_tables(samples, [("G", "HsaEX1", "chr1:11-20", "10", "chr1:1,11-20,40", "MIC", psis),
+                                   ('G2','HsaEX2','chr1:101-110','10','chr1:90,101-110,140','MIC',psis)],
                           tidy_events=[("HsaEX1", psis)], diff_rows=[("G", "HsaEX1", 0.85, 0.15, 0.7, 0.02)])
         me_db = self.temp / "me.bed"
         me_db.write_text("chr1\t10\t20\tme\t0\t+\n")
@@ -269,10 +289,71 @@ class MockToolTests(unittest.TestCase):
         status = json.loads((out / "status.json").read_text())
         self.assertEqual((status["method"], status["called"]), ("mann_whitney", 1))
         with gzip.open(out / "results.tsv.gz", "rt") as stream:
-            row = next(__import__("csv").DictReader(stream, delimiter="\t"))
+            rows = list(__import__('csv').DictReader(stream, delimiter='\t'))
+            row = rows[0]
+        self.assertEqual(rows[1]['status'],'filtered')
         self.assertEqual(row["status"], "called")      # MV 0.02 would fail diff; MWU calls it
         self.assertAlmostEqual(float(row["effect"]), 0.7)
         self.assertLess(float(row["p_value"]), 0.01)
+        self.assertNotIn('diff', [c[0] for c in self.calls()])
+        with gzip.open(out / 'diff.tsv.gz', 'rt') as stream:
+            self.assertIn('not run', stream.read())
+
+    def test_catalogued_unreported_and_unquantified_are_not_absent(self):
+        units = ['a1', 'a2', 'b1', 'b2']
+        caches = self.caches(units)
+        self.write_tables(units, [
+            ('G', 'HsaEX1', 'chr1:11-20', '10', 'chr1:1,11-20,40', 'MIC', ['NA']*4)], [], [])
+        # A real-library failure mode: an exon exists in the MIC template but
+        # does not survive into the final FULL inclusion table.
+        (self.temp / 'db/Hs2/TEMPLATES/Hs2.MIC.Template.txt').write_text(HEADER+'\n'+
+            'G\told-MIC1\tchr1:101-110\t10\tchr1:90,101-110,140\tMIC-S\n')
+        bed = self.temp / 'me.bed'
+        bed.write_text('chr1\t10\t20\tsilent\t0\t+\nchr1\t100\t110\tunreported\t0\t+\n'
+                       'chr1\t200\t210\tabsent\t0\t+\n')
+        out = self.temp / 'out'
+        vt.compare(self.preflight(units[:2], units[2:]), caches, self.tool, self.temp/'db', 'hg38', bed, out)
+        with gzip.open(out/'microexons.tsv.gz', 'rt') as stream:
+            rows = {r['microexon_id']:r for r in __import__('csv').DictReader(stream,delimiter='\t')}
+        self.assertEqual(rows['chr1_+_10_20']['vasttools_status'], 'not_quantified')
+        self.assertEqual(rows['chr1_+_100_110']['vasttools_status'], 'not_reported')
+        self.assertEqual(rows['chr1_+_100_110']['vastdb_event'], 'old-MIC1')
+        self.assertEqual(rows['chr1_+_200_210']['vasttools_status'], 'not_in_vastdb')
+
+    def test_catalog_required_for_absence_claims_and_names_converted(self):
+        self.assertTrue(hasattr(vt, 'read_catalog'), 'installed catalogue reader missing')
+        db = self.temp/'db'
+        with self.assertRaisesRegex((ValueError, SystemExit), 'catalog|template|Template'):
+            vt.read_catalog(db, 'hg38')
+        self.write_tables(['a1','a2','b1','b2'], [], [], [])
+        (db/'Hs2/TEMPLATES/Hs2.MIC.Template.txt').write_text(HEADER+'\n'+
+            'G\told-MIC1\tchr1:101-110\t10\tchr1:140,101-110,90\tMIC-S\n')
+        (db/'Hs2/FILES').mkdir()
+        with gzip.open(db/'Hs2/FILES/New_ID-Hs2.txt.gz','wt') as stream:
+            stream.write('HsaEX123\told-MIC1\n')
+        catalogue = vt.read_catalog(db,'hg38')
+        self.assertIn('HsaEX123', {entry['event'] for entry in catalogue})
+
+    def test_hg38_cntn1_microexon_coordinates(self):
+        # Public VASTDB EVENT_INFO-hg38: CNTN1 HsaEX1009208, MIC-S,
+        # chr12:40937230-40937237 (1-based closed), independently read from
+        # the existing annotation download. Counts below are synthetic.
+        units = ['a1','a2','a3','b1','b2','b3']
+        caches = self.caches(units)
+        self.write_tables(units, [('CNTN1','HsaEX1009208','chr12:40937230-40937237','8',
+            'chr12:40936905,40937230-40937237,40937570','MIC',[80,85,82,20,25,22])],
+            [('HsaEX1009208',[80,85,82,20,25,22])],
+            [('CNTN1','HsaEX1009208',.82,.22,.6,.4)])
+        bed = self.temp/'human.bed'
+        bed.write_text('chr12\t40937229\t40937237\tCNTN1\t0\t+\n'
+                       'chr12\t40937229\t40937237\topposite\t0\t-\n')
+        out = self.temp/'human'
+        vt.compare(self.preflight(units[:3],units[3:]),caches,self.tool,self.temp/'db','hg38',bed,out)
+        with gzip.open(out/'microexons.tsv.gz','rt') as stream:
+            rows = {r['microexon_id']:r for r in __import__('csv').DictReader(stream,delimiter='\t')}
+        self.assertEqual(rows['chr12_+_40937229_40937237']['vasttools_status'],'called')
+        self.assertEqual(rows['chr12_+_40937229_40937237']['vastdb_event'],'HsaEX1009208')
+        self.assertEqual(rows['chr12_-_40937229_40937237']['vasttools_status'],'not_in_vastdb')
 
     def test_unsupported_design_runs_nothing(self):
         caches = self.caches(["a1", "b1"])
@@ -333,16 +414,23 @@ class RealVastToolsTests(unittest.TestCase):
         inc, exc = {}, {}
         for library in (files / "{}_MIC-50.fasta".format(key), files / "EXSK-50.fasta"):
             name = None
-            for line in open(library):
-                line = line.strip()
-                if line.startswith(">"):
-                    name = line[1:]
-                elif ".INC." in name:
-                    inc.setdefault(name.split(".")[0], []).append(line)
-                elif ".EXC." in name:
-                    exc.setdefault(name.split(".")[0], []).append(line)
-        events = sorted(e for e in inc if e in exc)
+            with open(library) as stream:
+                for line in stream:
+                    line = line.strip()
+                    if line.startswith(">"):
+                        name = line[1:]
+                    elif ".INC." in name:
+                        inc.setdefault(name.split(".")[0], []).append(line)
+                    elif ".EXC." in name:
+                        exc.setdefault(name.split(".")[0], []).append(line)
         rng = random.Random(1)
+        candidates = sorted(e for e in inc if e in exc)
+        # Bound this smoke test: reuse installed indexes; at most 60 events and
+        # 24,000 paired fragments per processing unit, never a genome re-index.
+        # Enough mRNA-mapping reads are needed for native strand auto-detection.
+        micro = [e for e in candidates if 'MICROEX' in e]
+        other = [e for e in candidates if e not in set(micro)]
+        events = sorted(rng.sample(micro,min(40,len(micro))) + rng.sample(other,min(20,len(other))))
         changed = set(rng.sample(events, min(40, len(events))))
         complement = str.maketrans("ACGTN", "TGCAN")
         with tempfile.TemporaryDirectory() as temp:
@@ -355,7 +443,7 @@ class RealVastToolsTests(unittest.TestCase):
                 with gzip.open(folder / "R1.fastq.gz", "wt") as r1, gzip.open(folder / "R2.fastq.gz", "wt") as r2:
                     n = 0
                     for event in events:
-                        for _ in range(20 if unit.startswith("a2") else 40):
+                        for _ in range(200 if unit.startswith("a2") else 400):
                             share = psi if event in changed else 0.5
                             seq = rng.choice(inc[event] if rng.random() < share else exc[event])
                             if len(seq) < 60:
@@ -375,14 +463,30 @@ class RealVastToolsTests(unittest.TestCase):
                 "collapse": {"a1": "a1", "a2x": "a2", "a2y": "a2", "a3": "a3",
                              "b1": "b1", "b2": "b2", "b3": "b3"}}))
             me_db = temp / "me.bed"
-            me_db.write_text("chr2L\t1000\t1012\tfake\t0\t+\n")
+            # Independent fixture construction from the native MIC template,
+            # not the catalogue reader under test.
+            micro_entries = []
+            with open(Path(db)/key/'TEMPLATES'/(key+'.MIC.Template.txt')) as stream:
+                import re
+                next(stream)
+                for line in stream:
+                    f = line.rstrip('\n').split('\t')
+                    match = re.fullmatch(r'(.+):(\d+)-(\d+)', f[2])
+                    flank = f[4].split(':',1)[1].split(',')
+                    left = int(re.findall(r'\d+',flank[0])[0])
+                    right = int(re.findall(r'\d+',flank[-1])[0])
+                    micro_entries.append(dict(chrom=match[1],start=int(match[2]),end=int(match[3]),
+                                              event=f[1],strand='+' if left<right else '-'))
+            me_db.write_text("chrUn_smoke_absent\t1000\t1012\tfake\t0\t+\n" + ''.join(
+                '{}\t{}\t{}\t{}\t0\t{}\n'.format(e['chrom'],e['start']-1,e['end'],e['event'],e['strand'])
+                for e in micro_entries))
             out = temp / "out"
             vt.compare(preflight, caches, tool, db, species, me_db, out, threads=4)
             status = json.loads((out / "status.json").read_text())
             self.assertEqual(status["status"], "ok")
             self.assertEqual(status["merged_replicates"], ["rep_a2"])
             self.assertGreater(status["called"], 10)
-            self.assertEqual(status["microexons"], {"not_in_vastdb": 1})
+            self.assertEqual(status['microexons'].get('not_in_vastdb'),1)
 
 
 if __name__ == "__main__":

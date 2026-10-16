@@ -11,6 +11,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ExecutionLedgerTests(unittest.TestCase):
+    def test_new_module_is_not_an_implicit_complement_default(self):
+        from src import umbrella_execution as execution
+        self.assertTrue(hasattr(execution, 'execution_tools'), 'explicit execution tool selector missing')
+        self.assertNotIn('vasttools', execution.execution_tools('complement', {}))
+        self.assertEqual(execution.execution_tools('complement', {'tools':['vasttools']}), ['vasttools'])
+
+    def test_vasttools_complement_is_accepted_and_inventoried(self):
+        from src.umbrella_execution import PacketLedger, tool_for
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            with PacketLedger(root/'packet', {'manifest':'frozen'}) as ledger:
+                scout = ledger.begin('scout','discovery',['L1'],[],['whippet'])
+                product = root/'whippet.tsv'; product.write_text('PSI\n0.5\n')
+                ledger.complete(scout, {'whippet':[product]})
+                execution = ledger.begin('confirm','complement',['L1'],[],['vasttools'])
+                output = root/'results.tsv'; output.write_text('event\tdpsi\nE1\t0.3\n')
+                tool = tool_for('umbrella_vasttools_compare',str(output))
+                self.assertEqual(tool,'vasttools')
+                ledger.complete(execution,{tool:[output]})
+                self.assertEqual(execution['completed_tools'],['vasttools'])
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)

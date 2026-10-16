@@ -17,7 +17,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DISCOVERY = {"microexonator", "whippet"}
-COMPLEMENT = {"hisat2", "salmon", "rmats", "coverage", "suppa2", "majiq", "dapars2", "qapa", "multiqc"}
+COMPLEMENT = {"hisat2", "salmon", "rmats", "coverage", "suppa2", "majiq", "dapars2", "qapa", "multiqc", "vasttools"}
+DEFAULT_COMPLEMENT = COMPLEMENT - {'vasttools'}
+
+
+def execution_tools(mode, settings):
+    tools = sorted(settings.get('tools', DISCOVERY if mode == 'discovery' else DEFAULT_COMPLEMENT))
+    if mode == 'discovery' and set(tools) != DISCOVERY:
+        raise ValueError('discovery profile requires MicroExonator and Whippet')
+    if mode == 'complement' and set(tools) - COMPLEMENT:
+        raise ValueError('invalid complement profile')
+    return tools
 
 
 def timestamp():
@@ -350,7 +360,8 @@ def tool_for(rule, path):
                          ("umbrella_salmon", "salmon"), ("umbrella_rmats", "rmats"),
                          ("umbrella_coverage", "coverage"), ("umbrella_suppa", "suppa2"),
                          ("umbrella_majiq", "majiq"), ("umbrella_dapars2", "dapars2"),
-                         ("umbrella_qapa", "qapa"), ("umbrella_multiqc", "multiqc")):
+                         ("umbrella_qapa", "qapa"), ("umbrella_multiqc", "multiqc"),
+                         ("umbrella_vasttools", "vasttools")):
         if rule.startswith(prefix):
             return tool
     if rule == "umbrella_deseq2":
@@ -470,11 +481,7 @@ def run_execution(config_path, source_root, snakemake, arguments, snakefile="Mic
                          for item in arguments]
     view = execution_view(config["umbrella_manifest"], config.get("umbrella_comparisons"),
                           settings.get("libraries"), settings.get("comparisons"))
-    tools = sorted(settings.get("tools", DISCOVERY if mode == "discovery" else COMPLEMENT))
-    if mode == "discovery" and set(tools) != DISCOVERY:
-        raise ValueError("discovery profile requires MicroExonator and Whippet")
-    if mode == "complement" and set(tools) - COMPLEMENT:
-        raise ValueError("invalid complement profile")
+    tools = execution_tools(mode, settings)
     identity = packet_identity(config, source_root, snakefile)
     packet_root = source_root / "umbrella/executions" / packet_id
     with PacketLedger(packet_root, identity) as ledger:
@@ -505,7 +512,7 @@ def run_execution(config_path, source_root, snakemake, arguments, snakefile="Mic
         generated["umbrella_optional"] = {tool: tool in tools for tool in
                                            ("microexonator", "whippet", "salmon", "hisat2", "rmats", "coverage",
                                             "suppa2", "multiqc", "leafcutter", "microexonator_whippet_delta")}
-        generated["umbrella_modules"] = sorted(set(tools) & {"majiq", "dapars2", "qapa"})
+        generated["umbrella_modules"] = sorted(set(tools) & {"majiq", "dapars2", "qapa", "vasttools"})
         generated["umbrella_modules_mode"] = "ingest"
         manifest_path = work / "manifest.tsv"
         with manifest_path.open("w") as stream:

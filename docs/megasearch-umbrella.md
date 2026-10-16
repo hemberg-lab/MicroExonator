@@ -285,9 +285,9 @@ nothing per run or per shard does. Check with a dry run first.
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).
 
-## Optional modules: MAJIQ, DaPars2 and QAPA
+## Optional modules: MAJIQ, DaPars2, QAPA and vast-tools
 
-Three opt-in tools that can run on their own, in any subset, without
+Four opt-in tools that can run on their own, in any subset, without
 MicroExonator, Whippet or the other comparison tools:
 
 | Module | Per run (kept) | Per comparison |
@@ -295,11 +295,12 @@ MicroExonator, Whippet or the other comparison tools:
 | `majiq` (MAJIQ v3) | SJ file from the HISAT2 BAM | splicegraph from the selected runs, PsiCoverage per biological replicate, HET |
 | `dapars2` (DaPars2) | raw coverage inside merged 3' UTR windows, mapped read count | DaPars2 by chromosome, PDUI per replicate, Welch t-test with BH (exploratory) |
 | `qapa` (QAPA) | Salmon quantification against QAPA's 3' UTR library | PAU with `qapa quant`, DEXSeq site-usage test |
+| `vasttools` (vast-tools) | compressed `to_combine` cache from staged reads and VASTDB indexes | technical-run merge, combine, tidy, Bayesian diff or Mann-Whitney, microexon support mapping |
 
 Config:
 
 ```yaml
-umbrella_modules: [majiq, dapars2, qapa]   # default: none
+umbrella_modules: [majiq, dapars2, qapa, vasttools]   # choose any subset; default: none
 umbrella_modules_mode: ingest              # default: cached_only
 ```
 
@@ -387,6 +388,86 @@ umbrella_modules_mode: ingest              # default: cached_only
   cache records the MAJIQ version that wrote it; a comparison refuses SJ files
   from another version than the installed one, and reports the version in its
   results and `status.json`.
+
+### vast-tools
+
+Select `vasttools` explicitly; it is not added to existing runs by default.
+`prepare_vasttools` produces its retained caches and `quant_vasttools` adds
+the configured comparisons. The standard `quant_umbrella` target includes it
+only when selected in `umbrella_modules`. First ingestion needs staged reads;
+if those reads were already deleted, explicitly allow restaging using the
+same guard as the other modules. Later cached-only comparisons need no FASTQs.
+
+```yaml
+umbrella_modules: [vasttools]
+umbrella_modules_mode: ingest
+vasttools_species: hg38
+```
+
+The runtime is managed by `envs/umbrella-vasttools.yaml` (Bowtie 1, Perl, R
+and dependencies). Snakemake downloads the pinned MIT-licensed tool source
+and the matching prebuilt VASTDB library once per run directory; no manual
+software checkout or genome re-index is needed. `vasttools_species` supports
+hg38 (default), hg19, mm10, mm9 and dm6; explicitly match it to the input
+assembly. Downloads run locally through Snakemake's local rules. hg38's
+compressed archive is about 5 GB; allow additional space for the unpacked
+permanent library and the temporary split reads. A mirror can be supplied
+with `vasttools_vastdb_url`, but must serve the same library release/content.
+
+For each comparison:
+
+- Technical runs are merged within biological replicates, never across them.
+- `tidy` requires coverage in each group, with `--noVLOW --p_IR --noB3`.
+- When either group has at most `vasttools_diff_max_n` replicates (default 5),
+  calls require a tidy pass and Bayesian MV >= `vasttools_min_dpsi` (0.1), at
+  `vasttools_diff_prob` (0.95). Minimum corrected reads are
+  `vasttools_min_reads` (10); minimum covered samples per group are
+  `vasttools_min_samples` (2), bounded by group size.
+- When both groups exceed that limit, calls use two-sided Mann-Whitney on
+  tidy PSI values (at least three valid values per group), BH q below
+  `vasttools_mwu_q` (0.05), and absolute mean dPSI >=
+  `vasttools_mwu_min_dpsi` (0.15). The unused Bayesian calculation is skipped;
+  `diff.tsv.gz` contains a clear not-run marker. Effects are always A minus B
+  as fractions, not percentages. Native inclusion/tidy tables retain percentages.
+
+`microexons.tsv.gz` checks exact coordinates and strand against the installed
+FULL and MIC catalogue templates, resolving old-to-new event IDs. Statuses:
+
+| Status | Interpretation |
+|---|---|
+| `called` / `tested` / `filtered` | A reported matching exon event, with the stated comparison outcome |
+| `not_quantified` | The event is reported but has no PSI in the compared samples |
+| `not_reported` | Present in the installed catalogue templates but not emitted as a matching exon event; may be a legacy MIC entry outside the active FULL catalogue |
+| `mapping_ambiguous` | Coordinate candidate exists but strand cannot be resolved safely |
+| `not_in_vastdb` | No exact exon-coordinate/strand match in the inspected installed templates |
+
+Only measured matching events provide comparison evidence. None of the last
+four statuses is evidence contradicting MicroExonator. Catalogue membership
+does not imply that the installed tool can quantify that event. Canonical
+microexon evidence remains the standalone MicroExonator Delta result; this
+module supplies orthogonal support where VASTDB measures a matching event.
+
+The guarded two-pass launcher accepts an explicit `vasttools` entry in a
+complement execution's `tools`; its default tool selection is unchanged.
+Comparison implementation changes alter the analysis ID, not per-run cache
+IDs. Do not weaken packet-identity guards to apply a code update to an
+already-frozen experimental packet; use its documented explicit revision.
+
+Optional native smoke test (reuse an installed source and matching VASTDB):
+
+```bash
+VASTTOOLS_TEST_DIR=/path/to/vast-tools \
+VASTTOOLS_TEST_DB=/path/to/VASTDB \
+VASTTOOLS_TEST_SPECIES=dm6 \
+python -m unittest tests.test_run_vasttools.RealVastToolsTests -v
+```
+
+Use the conda environment's Python and put its `bin` on PATH. The test samples
+at most 60 junction events and 24,000 paired fragments per processing unit;
+it tests seven units, including a split technical replicate, using existing
+indexes. It tests tool wiring and catalogue statuses, not sensitivity on
+biological RNA-seq. Native `vast-tools` uses Bash process substitution;
+restrictive filesystem sandboxes can block Bowtie's `/dev/fd` writes.
 
 ## Known limits
 

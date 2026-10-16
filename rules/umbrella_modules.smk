@@ -74,6 +74,7 @@ MODULE_SETTINGS = {
     "qapa": {"test": "DEXSeq ~ sample + exon + condition:exon, genes with >= 2 sites"},
     # vast-tools' README: diff filtered with tidy; tidy + Mann-Whitney beyond 5 per group
     "vasttools": {"prob": float(config.get("vasttools_diff_prob", 0.95)),
+                  "implementation": "catalogue-aware-v2",
                   "min_dpsi": float(config.get("vasttools_min_dpsi", 0.1)),
                   "min_reads": int(config.get("vasttools_min_reads", 10)),
                   "min_samples": int(config.get("vasttools_min_samples", 2)),
