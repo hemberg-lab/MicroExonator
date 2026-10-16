@@ -1,12 +1,12 @@
-"""Optional umbrella modules: MAJIQ v3, DaPars2 and QAPA (src/umbrella_modules.py).
+"""Optional umbrella modules: MAJIQ v3, DaPars2, QAPA and vast-tools (src/umbrella_modules.py).
 
 Selection (config):
-  umbrella_modules: [majiq, dapars2, qapa]   any subset; default none
+  umbrella_modules: [majiq, dapars2, qapa, vasttools]   any subset; default none
   umbrella_modules_mode: cached_only | ingest (default cached_only)
 
 Targets:
-  prepare_majiq / prepare_dapars2 / prepare_qapa   per-run caches of that tool
-  quant_majiq / quant_dapars2 / quant_qapa         caches plus every comparison
+  prepare_<tool>   per-run caches of that tool (majiq, dapars2, qapa, vasttools)
+  quant_<tool>     caches plus every comparison
   quant_umbrella_modules                           the selected modules, plus an
                                                    inventory of their outputs
   quant_umbrella                                   also includes the selected ones
@@ -14,7 +14,8 @@ Targets:
 
 A named target implies its tool even when it is not selected, and pulls no
 other tool: MAJIQ and DaPars2 read the shared temporary HISAT2 BAM; QAPA reads
-the staged reads with its own Salmon 3' UTR index. Comparison rules read only
+the staged reads with its own Salmon 3' UTR index; vast-tools aligns the staged
+reads to its own VASTDB library. Comparison rules read only
 the per-run caches and the comparison preflight, never reads or BAMs.
 HISAT2's inputs are deliberately unchanged (Snakemake would re-align every
 existing run if its input set changed), so on a brand-new reference the
@@ -31,8 +32,8 @@ Per-run caches are protected; comparison outputs are recomputed freely.
 import json as _json
 import os as _os
 
-from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, MODULES, SOFTWARE, analysis_id,
-                                  apa_set_id,
+from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, MODULES, SOFTWARE, VASTTOOLS_COMMIT,
+                                  analysis_id, apa_set_id, vastdb_library,
                                   cache_id, missing_caches, module_reference_id, parse_selection)
 
 try:
@@ -71,6 +72,16 @@ MODULE_SETTINGS = {
                   statistic=str(config.get("majiq_het_statistic", "ttest"))),
     "dapars2": {"coverage_threshold": int(config.get("dapars2_coverage_threshold", 10))},
     "qapa": {"test": "DEXSeq ~ sample + exon + condition:exon, genes with >= 2 sites"},
+    # vast-tools' README: diff filtered with tidy; tidy + Mann-Whitney beyond 5 per group
+    "vasttools": {"prob": float(config.get("vasttools_diff_prob", 0.95)),
+                  "min_dpsi": float(config.get("vasttools_min_dpsi", 0.1)),
+                  "min_reads": int(config.get("vasttools_min_reads", 10)),
+                  "min_samples": int(config.get("vasttools_min_samples", 2)),
+                  "tidy_args": str(config.get("vasttools_tidy_args", "--noVLOW --p_IR --noB3")),
+                  "mwu_min_dpsi": float(config.get("vasttools_mwu_min_dpsi", 0.15)),
+                  "mwu_q": float(config.get("vasttools_mwu_q", 0.05)),
+                  "diff_max_n": int(config.get("vasttools_diff_max_n", 5)),
+                  "ir_version": int(config.get("vasttools_ir_version", 2))},
 }
 # Per-run cache producers are defined only in ingest mode. In cached_only the
 # kept caches are plain inputs with no rule that could remake them, so neither
@@ -572,9 +583,123 @@ rule umbrella_majiq_compare:
         "--bin-dir {params.bin} --args {params.args:q} --statistic {params.statistic} --ids {params.ids:q}"
 
 
+# ------------------------------------------------------------ vast-tools
+
+# vast-tools (MIT) from its pinned commit, and its VASTDB library: both fetched
+# once by rules (login node: they download), kept, never temporary. The library
+# does not depend on the umbrella reference, so it lives outside the
+# reference_id folders and is shared by every reference.
+VASTTOOLS_SOFTWARE = "umbrella/modules/software/vasttools/" + VASTTOOLS_COMMIT
+VASTTOOLS = VASTTOOLS_SOFTWARE + "/vast-tools"
+try:
+    VASTTOOLS_SPECIES, VASTDB_FILE = vastdb_library(config)
+except ValueError as error:
+    raise WorkflowError(str(error))
+VASTDB_DIR = "umbrella/modules/databases/vastdb/" + VASTDB_FILE[:-len(".tar.gz")]
+VASTDB = VASTDB_DIR + "/installed.json"
+
+localrules: umbrella_vasttools_software, umbrella_vastdb
+
+
+rule umbrella_vasttools_software:
+    output:
+        VASTTOOLS
+    params:
+        root=VASTTOOLS_SOFTWARE,
+        url="https://github.com/vastgroup/vast-tools/archive/{}.tar.gz".format(VASTTOOLS_COMMIT)
+    shell:
+        # the bundled bowtie zip is dropped: bowtie 1.3.1 comes from the conda env
+        "mkdir -p {params.root} && curl -fsSL --retry 3 {params.url} "
+        "| tar xz --strip-components 1 -C {params.root} && rm -f {params.root}/bowtie-*.zip "
+        "&& chmod +x {output}"
+
+
+rule umbrella_vastdb:
+    output:
+        protected(VASTDB)
+    params:
+        folder=VASTDB_DIR,
+        url=config.get("vasttools_vastdb_url", "https://vastdb.crg.eu/libs/" + VASTDB_FILE),
+        species=VASTTOOLS_SPECIES
+    shell:
+        # about 5 GB for hg38; -C - resumes an interrupted download
+        "mkdir -p {params.folder} && curl -fL --retry 5 --retry-delay 60 -C - "
+        "-o {params.folder}/library.tar.gz {params.url} "
+        "&& python3 src/run_vasttools.py install-db --archive {params.folder}/library.tar.gz "
+        "--folder {params.folder} --species {params.species} --url {params.url} --record {output}"
+
+
+if MODULE_PRODUCERS:
+    rule umbrella_vasttools_align:
+        input:
+            reads=module_ingest("vasttools", lambda w: umbrella_quant_reads(w)),
+            valid=module_ingest("vasttools", lambda w: umbrella_quant_run(w).work_dir + "/reads.valid"),
+            software=module_ingest("vasttools", VASTTOOLS),
+            vastdb=module_ingest("vasttools", VASTDB)
+        output:
+            [protected(MODULE_CACHE.replace("{tool}", "vasttools") + "/" + name)
+             for name in CACHE_FILES["vasttools"]]
+        wildcard_constraints:
+            **MODULE_WILDCARDS
+        params:
+            out=MODULE_CACHE.replace("{tool}", "vasttools"),
+            software=VASTTOOLS_SOFTWARE,
+            dbdir=VASTDB_DIR,
+            species=VASTTOOLS_SPECIES,
+            ir_version=MODULE_SETTINGS["vasttools"]["ir_version"],
+            expr="--expr" if config.get("vasttools_expr", False) else "",
+            identity=lambda w: module_identity(w, "vasttools")
+        threads: 8
+        log:
+            "umbrella/logs/{reference_id}/{project_id}/{batch_id}/{run_id}.vasttools.{cache_id}.log"
+        benchmark:
+            "umbrella/modules/benchmarks/{reference_id}/{project_id}/{batch_id}/{run_id}.vasttools.{cache_id}.tsv"
+        conda:
+            "../envs/umbrella-vasttools.yaml"
+        shell:
+            "python3 src/run_vasttools.py align --vast-tools {params.software} --dbdir {params.dbdir} "
+            "--species {params.species} --reads {input.reads} --run-id {wildcards.run_id} "
+            "--out-dir {params.out} --threads {threads} --ir-version {params.ir_version} {params.expr} "
+            "--identity {params.identity:q} > {log} 2>&1"
+
+
+rule umbrella_vasttools_compare:
+    input:
+        preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
+        caches=module_comparison_caches("vasttools"),
+        software=VASTTOOLS,
+        vastdb=VASTDB,
+        me_db=UMBRELLA_REFERENCE["me_db"]
+    output:
+        [MODULE_ANALYSIS.replace("{tool}", "vasttools") + "/" + name
+         for name in ("inclusion.tsv.gz", "tidy.tsv.gz", "diff.tsv.gz", "results.tsv.gz",
+                      "microexons.tsv.gz", "status.json")]
+    wildcard_constraints:
+        **MODULE_WILDCARDS
+    params:
+        out=MODULE_ANALYSIS.replace("{tool}", "vasttools"),
+        caches=lambda w: module_cache_arguments(w, "vasttools"),
+        software=VASTTOOLS_SOFTWARE,
+        dbdir=VASTDB_DIR,
+        species=VASTTOOLS_SPECIES,
+        settings=_json.dumps(MODULE_SETTINGS["vasttools"], sort_keys=True),
+        ids=lambda w: module_ids(w, "vasttools", SOFTWARE["vasttools"])
+    threads: 4
+    benchmark:
+        MODULE_ANALYSIS.replace("{tool}", "vasttools") + "/benchmark.tsv"
+    conda:
+        "../envs/umbrella-vasttools.yaml"
+    shell:
+        "python3 src/run_vasttools.py compare --preflight {input.preflight} {params.caches} "
+        "--vast-tools {params.software} --dbdir {params.dbdir} --species {params.species} "
+        "--me-db {input.me_db} --out-dir {params.out} --threads {threads} "
+        "--settings {params.settings:q} --ids {params.ids:q}"
+
+
 # ------------------------------------------------------------ targets
 
-MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz"}
+MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz",
+               "vasttools": "results.tsv.gz"}
 
 
 def module_prepare_targets(tool):
@@ -646,6 +771,9 @@ rule prepare_dapars2:
 rule prepare_qapa:
     input: module_target("qapa", module_prepare_targets)
 
+rule prepare_vasttools:
+    input: module_target("vasttools", module_prepare_targets)
+
 rule quant_majiq:
     input: module_target("majiq", module_quant_targets)
 
@@ -654,6 +782,9 @@ rule quant_dapars2:
 
 rule quant_qapa:
     input: module_target("qapa", module_quant_targets)
+
+rule quant_vasttools:
+    input: module_target("vasttools", module_quant_targets)
 
 
 UMBRELLA_MODULE_INVENTORY = "umbrella/modules/inventory/{}.{}.json".format(
@@ -664,7 +795,7 @@ def module_inventory_inputs(wildcards):
     if not UMBRELLA_MODULES:
         raise WorkflowError("quant_umbrella_modules needs umbrella_modules, e.g. "
                             "umbrella_modules: [majiq, dapars2, qapa]; or use quant_majiq, "
-                            "quant_dapars2 or quant_qapa")
+                            "quant_dapars2, quant_qapa or quant_vasttools")
     return umbrella_module_targets(wildcards)
 
 

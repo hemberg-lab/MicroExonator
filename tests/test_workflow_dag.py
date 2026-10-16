@@ -875,6 +875,67 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotEqual(empty.returncode, 0)
         self.assertIn("quant_umbrella_modules needs umbrella_modules", empty.stdout)
 
+    def test_vasttools_alone_fetches_its_software_and_vastdb_once(self):
+        result = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        stats = dict(re.findall(r"^(umbrella_\w+)\s+(\d+)$", out, re.M))
+        self.assertEqual(stats.get("umbrella_vasttools_software"), "1")
+        self.assertEqual(stats.get("umbrella_vastdb"), "1")
+        self.assertEqual(stats.get("umbrella_vasttools_align"), "4")
+        self.assertEqual(stats.get("umbrella_vasttools_compare"), "1")
+        for expected in ("https://vastdb.crg.eu/libs/vastdb.hs2.23.06.20.tar.gz",
+                         "umbrella/modules/databases/vastdb/vastdb.hs2.23.06.20",
+                         "run_vasttools.py install-db", "run_vasttools.py align",
+                         "--species hg38", "--ir-version 2", "run_vasttools.py compare",
+                         "vastgroup/vast-tools/archive/5598e1f1b0067611dc9e5abb285b4eacaf543ee3"):
+            self.assertIn(expected, out)
+        # the library is kept: no temp() and no cleanup of the database folder
+        self.assertNotIn("rm -rf umbrella/modules/databases", out)
+        for absent in ("rule umbrella_hisat2:", "whippet-quant.jl", "rule umbrella_salmon_quant:",
+                       "rule umbrella_reference_manifest:", "rule umbrella_whippet_index:",
+                       "rule umbrella_salmon_index:", "Round2", "rule umbrella_dapars2", "rule umbrella_majiq",
+                       "rule umbrella_qapa"):
+            self.assertNotIn(absent, out)
+
+    def test_vasttools_species_and_library_url(self):
+        mouse = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest",
+                                                        "vasttools_species: mm10"])
+        self.assertEqual(mouse.returncode, 0, mouse.stdout)
+        self.assertIn("vastdb.mm2.23.06.20.tar.gz", mouse.stdout)
+        self.assertIn("--species mm10", mouse.stdout)
+        mirror = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest",
+                                                         "vasttools_vastdb_url: https://mirror.example/hs2.tar.gz"])
+        self.assertEqual(mirror.returncode, 0, mirror.stdout)
+        self.assertIn("https://mirror.example/hs2.tar.gz", mirror.stdout)
+        unknown = self.module_dry_run("quant_vasttools", ["vasttools_species: panTro4"])
+        self.assertNotEqual(unknown.returncode, 0)
+        self.assertIn("vasttools_species panTro4 has no VASTDB library here", unknown.stdout)
+
+    def test_vasttools_cached_only_compares_without_reads(self):
+        result = self.module_dry_run("quant_vasttools", ["umbrella_modules: [vasttools]"],
+                                     prepare=lambda d: self.write_module_caches(d, ["vasttools"]))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("rule umbrella_vasttools_compare:", out)
+        for absent in ("rule umbrella_stage", "rule umbrella_vasttools_align:", "rule umbrella_validate_reads:",
+                       "Set of input files has changed"):
+            self.assertNotIn(absent, out)
+        missing = self.module_dry_run("quant_vasttools", ["umbrella_modules: [vasttools]"])
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("cached_only, but 4 run/tool caches are missing", missing.stdout)
+
+    def test_vasttools_shares_staging_with_the_other_modules(self):
+        result = self.module_dry_run("quant_umbrella_modules", [
+            "umbrella_modules: [qapa, vasttools]", "umbrella_modules_mode: ingest"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        stats = dict(re.findall(r"^(umbrella_\w+)\s+(\d+)$", result.stdout, re.M))
+        staged = sum(int(stats.get(rule, 0)) for rule in ("umbrella_stage_reads", "umbrella_stage_single"))
+        self.assertEqual(staged, 4, result.stdout)
+        self.assertEqual(stats.get("umbrella_vasttools_align"), "4")
+        self.assertEqual(stats.get("umbrella_qapa_quant"), "4")
+        self.assertIn("umbrella_module_inventory", result.stdout)
+
     @staticmethod
     def write_module_caches(temp_dir, tools, names=None, metadata=True):
         """Caches as an ingest leaves them: files plus Snakemake records holding
@@ -885,7 +946,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         from src.umbrella_manifest import load_umbrella_manifest
         from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
         producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant",
-                     "majiq": "umbrella_majiq_sj"}
+                     "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}
         for tool in tools:
             reference = module_reference_id("ref", tool, settings.get(tool, {}))

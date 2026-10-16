@@ -1,0 +1,19 @@
+# vast-tools (MIT) runs from its pinned source (rule umbrella_vasttools_software);
+# this environment gives it bowtie 1, Perl and the R packages its `diff`, `tidy`
+# and intron-retention steps load (optparse, MASS, reshape2, ggplot2). The Python
+# is for src/run_vasttools.py.
+name: microexonator-umbrella-vasttools
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - bowtie=1.3.1
+  - perl=5.32
+  - coreutils
+  - gzip
+  - r-base=4.3
+  - r-optparse
+  - r-mass
+  - r-reshape2
+  - r-ggplot2

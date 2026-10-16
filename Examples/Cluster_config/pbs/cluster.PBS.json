@@ -992,5 +992,27 @@
         "name": "U.majiq_compare.{wildcards.comparison_id}",
         "output": "logs/U.majiq_compare.{wildcards.comparison_id}.out",
         "error": "logs/U.majiq_compare.{wildcards.comparison_id}.err"
+    },
+    "umbrella_vasttools_align": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "32000",
+        "mem": "32000mb",
+        "walltime": "24:00:00",
+        "runtime": 86400,
+        "name": "U.vasttools_align.{wildcards.run_id}",
+        "output": "logs/U.vasttools_align.{wildcards.run_id}.out",
+        "error": "logs/U.vasttools_align.{wildcards.run_id}.err"
+    },
+    "umbrella_vasttools_compare": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "32000",
+        "mem": "32000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.vasttools_compare.{wildcards.comparison_id}",
+        "output": "logs/U.vasttools_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.vasttools_compare.{wildcards.comparison_id}.err"
     }
 }

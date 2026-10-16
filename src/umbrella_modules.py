@@ -1,7 +1,7 @@
 """Selection, identities and cache checks for the optional umbrella modules.
 
-Modules (MAJIQ, DaPars2, QAPA) are opt-in tools layered on the umbrella's
-staged reads and shared HISAT2 alignment. Each keeps small per-run caches
+Modules (MAJIQ, DaPars2, QAPA, vast-tools) are opt-in tools layered on the
+umbrella's staged reads and shared HISAT2 alignment. Each keeps small per-run caches
 that later comparisons read, so regrouping never needs the reads again.
 
 Identities, all computed, never typed by hand:
@@ -25,7 +25,7 @@ Modes (`umbrella_modules_mode`):
 import hashlib
 import json
 
-MODULES = ("majiq", "dapars2", "qapa")
+MODULES = ("majiq", "dapars2", "qapa", "vasttools")
 MODES = ("cached_only", "ingest")
 
 # pinned software, part of each module_reference_id
@@ -33,8 +33,23 @@ SOFTWARE = {
     "majiq": "majiq v3 (licensed source, see majiq_source)",
     "dapars2": "DaPars2 3UTR/DaPars2@fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6",
     "qapa": "QAPA morrislab/qapa@v1.4.1 + salmon 1.10.3",
+    "vasttools": "vast-tools vastgroup/vast-tools@5598e1f1b0067611dc9e5abb285b4eacaf543ee3 (2.5.1) + bowtie 1.3.1",
 }
 DAPARS2_COMMIT = "fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6"
+# vast-tools master at 3 Oct 2026 (VERSION 2.5.1; tagged releases stop at v2.5.1, 2020)
+VASTTOOLS_COMMIT = "5598e1f1b0067611dc9e5abb285b4eacaf543ee3"
+# VASTDB library per vast-tools assembly code (vast-tools install.R; current release)
+VASTDB_RELEASE = "23.06.20"
+VASTDB_LIBRARIES = {"hg38": "hs2", "hg19": "hsa", "mm10": "mm2", "mm9": "mmu", "dm6": "dme"}
+
+
+def vastdb_library(config):
+    """(species, library file) for vasttools_species; unknown assemblies are refused."""
+    species = str(config.get("vasttools_species", "hg38"))
+    if species not in VASTDB_LIBRARIES:
+        raise ValueError("vasttools_species {} has no VASTDB library here; choose from {}".format(
+            species, ", ".join(sorted(VASTDB_LIBRARIES))))
+    return species, "vastdb.{}.{}.tar.gz".format(VASTDB_LIBRARIES[species], VASTDB_RELEASE)
 
 
 def _digest(payload, length=16):
@@ -48,7 +63,7 @@ def parse_selection(config):
     if isinstance(raw, str):
         raw = [item.strip() for item in raw.split(",") if item.strip()]
     if not isinstance(raw, list):
-        raise ValueError("umbrella_modules must be a list, e.g. [majiq, dapars2, qapa]")
+        raise ValueError("umbrella_modules must be a list, e.g. [majiq, dapars2, qapa, vasttools]")
     unknown = sorted(set(raw) - set(MODULES))
     if unknown:
         raise ValueError("unknown umbrella_modules {}; choose from {}".format(
@@ -70,6 +85,11 @@ def module_settings(config, module):
     if module == "majiq":
         return {"strandness": config.get("majiq_strandness", "manifest"),
                 "source": str(config.get("majiq_source", config.get("majiq_bin_folder", "")))}
+    if module == "vasttools":
+        species = str(config.get("vasttools_species", "hg38"))
+        library = "vastdb.{}.{}.tar.gz".format(VASTDB_LIBRARIES.get(species, "?"), VASTDB_RELEASE)
+        return {"species": species, "vastdb": library, "ir_version": int(config.get("vasttools_ir_version", 2)),
+                "expr": bool(config.get("vasttools_expr", False))}
     # the APA annotation ("" = the umbrella annotation_gtf, already in reference_id)
     annotation = {"annotation": str(config.get("apa_annotation_gtf", "") or ""),
                   "transcripts": str(config.get("apa_transcripts", "basic")),
@@ -122,6 +142,7 @@ CACHE_FILES = {
     "majiq": ("run.sj", "cache.json"),
     "dapars2": ("utr_coverage.bedgraph.gz", "depth.json", "cache.json"),
     "qapa": ("quant.sf.gz", "lib_format_counts.json", "cache.json"),
+    "vasttools": ("to_combine.tar", "cache.json"),
 }
 
 
