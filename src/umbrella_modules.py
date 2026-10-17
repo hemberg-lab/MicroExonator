@@ -25,11 +25,12 @@ Modes (`umbrella_modules_mode`):
 import hashlib
 import json
 
-MODULES = ("majiq", "dapars2", "qapa", "vasttools")
+MODULES = ("majiq", "dapars2", "qapa", "vasttools", "rmats_conservative")
 MODES = ("cached_only", "ingest")
 
 # pinned software, part of each module_reference_id
 SOFTWARE = {
+    "rmats_conservative": "rMATS-turbo 4.3.0, no novel splice sites; profile v1",
     "majiq": "majiq v3 (licensed source, see majiq_source)",
     "dapars2": "DaPars2 3UTR/DaPars2@fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6",
     "qapa": "QAPA morrislab/qapa@v1.4.1 + salmon 1.10.3",
@@ -82,6 +83,9 @@ def parse_selection(config):
 
 def module_settings(config, module):
     """The config that changes a module's per-run caches (not its comparisons)."""
+    if module == 'rmats_conservative':
+        return {'novel_splice_sites': False, 'library_type': 'fr-unstranded',
+                'variable_read_length': True, 'profile': 1}
     if module == "majiq":
         return {"strandness": config.get("majiq_strandness", "manifest"),
                 "source": str(config.get("majiq_source", config.get("majiq_bin_folder", "")))}
@@ -139,6 +143,7 @@ def analysis_id(preflight, module_reference, settings):
 
 # file names each module keeps per run (relative to its cache directory)
 CACHE_FILES = {
+    "rmats_conservative": ("run.rmats", "cache.json"),
     "majiq": ("run.sj", "cache.json"),
     "dapars2": ("utr_coverage.bedgraph.gz", "depth.json", "cache.json"),
     "qapa": ("quant.sf.gz", "lib_format_counts.json", "cache.json"),

@@ -889,6 +889,45 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertNotEqual(empty.returncode, 0)
         self.assertIn("quant_umbrella_modules needs umbrella_modules", empty.stdout)
 
+    def test_conservative_rmats_is_an_independent_opt_in_module(self):
+        result = self.module_dry_run('quant_rmats_conservative', ['umbrella_modules_mode: ingest'])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn('rule umbrella_rmats_conservative_prep:', result.stdout)
+        self.assertIn('rule umbrella_rmats_conservative_compare:', result.stdout)
+        self.assertIn('run_rmats_profile.py prep', result.stdout)
+        self.assertIn('run_rmats_profile.py compare', result.stdout)
+        self.assertNotIn('rule umbrella_rmats_prep:', result.stdout)
+        self.assertNotIn('rule umbrella_whippet_quant:', result.stdout)
+        self.assertNotIn('rule umbrella_salmon_quant:', result.stdout)
+        self.assertNotIn('rule umbrella_majiq_sj:', result.stdout)
+
+    def test_conservative_rmats_cached_only_refuses_restaging(self):
+        result = self.module_dry_run('quant_rmats_conservative', ['umbrella_modules: [rmats_conservative]'])
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn('cached_only, but 4 run/tool caches are missing', result.stdout)
+
+    def test_conservative_rmats_cached_only_compares_without_reads_or_alignment(self):
+        result = self.module_dry_run('quant_rmats_conservative', ['umbrella_modules: [rmats_conservative]'],
+                                     prepare=lambda d: self.write_module_caches(d, ['rmats_conservative']))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn('rule umbrella_rmats_conservative_compare:', result.stdout)
+        for absent in ('rule umbrella_stage', 'rule umbrella_hisat2:', 'rule umbrella_validate_reads:',
+                       'rule umbrella_rmats_conservative_prep:', 'rule umbrella_rmats_prep:',
+                       'Set of input files has changed'):
+            self.assertNotIn(absent, result.stdout)
+
+    def test_conservative_and_original_rmats_share_alignment_not_prep(self):
+        result = self.module_dry_run('quant_umbrella', [
+            'umbrella_modules: [rmats_conservative]', 'umbrella_modules_mode: ingest',
+            'umbrella_optional:', '  leafcutter: false'])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        stats = dict(re.findall(r'^(umbrella_\w+)\s+(\d+)$', result.stdout, re.M))
+        self.assertEqual(stats.get('umbrella_hisat2'), '4')
+        self.assertEqual(stats.get('umbrella_rmats_prep'), '4')
+        self.assertEqual(stats.get('umbrella_rmats_conservative_prep'), '4')
+        self.assertIn('--novelSS', result.stdout)
+        self.assertIn('/modules/rmats_conservative/', result.stdout)
+
     def test_vasttools_alone_fetches_its_software_and_vastdb_once(self):
         result = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest"])
         self.assertEqual(result.returncode, 0, result.stdout)
@@ -960,7 +999,8 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         from src.umbrella_manifest import load_umbrella_manifest
         from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
         producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant",
-                     "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align"}
+                     "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align",
+                     "rmats_conservative": "umbrella_rmats_conservative_prep"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}
         for tool in tools:
             reference = module_reference_id("ref", tool, settings.get(tool, {}))

@@ -13,6 +13,12 @@
         "walltime": "24:00:00",
         "runtime": 86400
     },
+    "umbrella_rmats_conservative_prep": {
+        "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
+    },
+    "umbrella_rmats_conservative_compare": {
+        "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
+    },
     "Round1_bwa_mem_to_tags": {
         "ppn": "5",
         "threads": "5",

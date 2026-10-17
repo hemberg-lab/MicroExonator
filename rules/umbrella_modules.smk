@@ -68,6 +68,7 @@ MODULE_CACHE = ("umbrella/modules/cache/{reference_id}/{project_id}/{batch_id}/{
                 "{tool}/{cache_id}")
 MODULE_ANALYSIS = UMBRELLA_COMPARISON_ROOT + "/modules/{tool}/{analysis_id}"
 MODULE_SETTINGS = {
+    'rmats_conservative': {'profile': 'no-novel-splice-sites-v1', 'tool_family': 'rmats'},
     "majiq": dict({key: config.get("majiq_" + key + "_args") for key in ("update", "psicov", "heterogen")},
                   statistic=str(config.get("majiq_het_statistic", "ttest"))),
     "dapars2": {"coverage_threshold": int(config.get("dapars2_coverage_threshold", 10))},
@@ -700,7 +701,7 @@ rule umbrella_vasttools_compare:
 # ------------------------------------------------------------ targets
 
 MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz",
-               "vasttools": "results.tsv.gz"}
+               "vasttools": "results.tsv.gz", "rmats_conservative": "results.tsv.gz"}
 
 
 def module_prepare_targets(tool):
@@ -752,6 +753,9 @@ def module_target(tool, targets):
         module_check(tool)
         return targets(tool)
     return function
+
+
+include: 'umbrella_rmats_conservative.smk'
 
 
 def umbrella_module_targets(wildcards=None):
@@ -814,6 +818,8 @@ rule umbrella_module_inventory:
                      "module_reference_ids": {tool: MODULE_REFERENCE_ID[tool] for tool in UMBRELLA_MODULES},
                      "software": {tool: SOFTWARE[tool] for tool in UMBRELLA_MODULES},
                      "comparisons": {}}
+        inventory['tool_families'] = {tool: ('rmats' if tool == 'rmats_conservative' else tool)
+                                      for tool in UMBRELLA_MODULES}
         for comparison_id, result in sorted(UMBRELLA_COMPARISONS.items()):
             for tool in UMBRELLA_MODULES:
                 folder = module_analysis_dir(result, tool)

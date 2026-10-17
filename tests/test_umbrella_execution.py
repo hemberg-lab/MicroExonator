@@ -11,6 +11,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ExecutionLedgerTests(unittest.TestCase):
+    def test_conservative_rmats_is_explicit_and_distinct_from_original(self):
+        from src.umbrella_execution import execution_tools, tool_for
+        self.assertNotIn('rmats_conservative', execution_tools('complement', {}))
+        self.assertEqual(execution_tools('complement', {'tools':['rmats_conservative']}), ['rmats_conservative'])
+        self.assertEqual(tool_for('umbrella_rmats_conservative_prep', 'cache'), 'rmats_conservative')
+        self.assertEqual(tool_for('umbrella_rmats_post', 'result'), 'rmats')
+
     def test_new_module_is_not_an_implicit_complement_default(self):
         from src import umbrella_execution as execution
         self.assertTrue(hasattr(execution, 'execution_tools'), 'explicit execution tool selector missing')

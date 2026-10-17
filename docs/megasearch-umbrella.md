@@ -285,9 +285,9 @@ nothing per run or per shard does. Check with a dry run first.
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).
 
-## Optional modules: MAJIQ, DaPars2, QAPA and vast-tools
+## Optional modules: MAJIQ, DaPars2, QAPA, vast-tools and conservative rMATS
 
-Four opt-in tools that can run on their own, in any subset, without
+Five opt-in tools that can run on their own, in any subset, without
 MicroExonator, Whippet or the other comparison tools:
 
 | Module | Per run (kept) | Per comparison |
@@ -296,11 +296,12 @@ MicroExonator, Whippet or the other comparison tools:
 | `dapars2` (DaPars2) | raw coverage inside merged 3' UTR windows, mapped read count | DaPars2 by chromosome, PDUI per replicate, Welch t-test with BH (exploratory) |
 | `qapa` (QAPA) | Salmon quantification against QAPA's 3' UTR library | PAU with `qapa quant`, DEXSeq site-usage test |
 | `vasttools` (vast-tools) | compressed `to_combine` cache from staged reads and VASTDB indexes | technical-run merge, combine, tidy, Bayesian diff or Mann-Whitney, microexon support mapping |
+| `rmats_conservative` (rMATS-turbo 4.3.0) | `prep` summary from the HISAT2 BAM, without `--novelSS` | `inte` + `post` on the kept summaries, JC events normalized, native tables archived |
 
 Config:
 
 ```yaml
-umbrella_modules: [majiq, dapars2, qapa, vasttools]   # choose any subset; default: none
+umbrella_modules: [majiq, dapars2, qapa, vasttools, rmats_conservative]   # any subset; default: none
 umbrella_modules_mode: ingest              # default: cached_only
 ```
 
@@ -468,6 +469,35 @@ it tests seven units, including a split technical replicate, using existing
 indexes. It tests tool wiring and catalogue statuses, not sensitivity on
 biological RNA-seq. Native `vast-tools` uses Bash process substitution;
 restrictive filesystem sandboxes can block Bowtie's `/dev/fd` writes.
+
+### Conservative rMATS
+
+`rmats_conservative` is a second rMATS profile next to the original rMATS
+comparison tool, which is unchanged and still runs with `--novelSS`. Select it
+explicitly (`umbrella_modules: [rmats_conservative]`); `prepare_rmats_conservative`
+makes the per-run `run.rmats` caches and `quant_rmats_conservative` adds every
+comparison.
+
+- **No novel splice sites.** `prep` and `post` run without `--novelSS`, so
+  events are built from annotated splice sites only. This is not a guarantee of
+  correctness: rMATS can still report novel combinations of annotated sites.
+- **Same library policy as the original route:** `fr-unstranded`,
+  `--variable-read-length`; when prep read lengths differ, `post` uses the
+  maximum (recorded with a warning in `status.json`).
+- **One tool family.** Both profiles are rMATS; the module inventory lists
+  `rmats_conservative` under the `rmats` family. Count them as one tool, not
+  two independent votes.
+- **Effect** is rMATS' `IncLevelDifference`, PSI(A) minus PSI(B), with its
+  likelihood-ratio p-value and per-event-class FDR. `native.tar.gz` keeps the
+  native JC/JCEC tables and individual counts.
+- **Replication.** A comparison needs two biological replicates per side, and
+  one processing unit per replicate: merge technical runs with `library_id`
+  first. Otherwise the module reports `unsupported` instead of treating runs as
+  replicates.
+- **Reuse.** The per-run prep reads the shared temporary HISAT2 BAM in
+  `ingest` mode; later comparisons in `cached_only` mode reuse `run.rmats`
+  without reads or BAMs. A cache whose reference, module profile, cache ID or
+  layout differs from the comparison is refused.
 
 ## Known limits
 
