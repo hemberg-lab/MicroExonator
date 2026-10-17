@@ -25,12 +25,14 @@ Modes (`umbrella_modules_mode`):
 import hashlib
 import json
 
-MODULES = ("majiq", "dapars2", "qapa", "vasttools", "rmats_conservative")
+MODULES = ("majiq", "dapars2", "qapa", "vasttools", "rmats_conservative", "psisigma")
 MODES = ("cached_only", "ingest")
 
 # pinned software, part of each module_reference_id
 SOFTWARE = {
     "rmats_conservative": "rMATS-turbo 4.3.0, no novel splice sites; profile v1",
+    "psisigma": ("PSI-Sigma wososa/PSI-Sigma@bfcb1423f1ec61ac48b6f92250505ec5855f4a53 (v2.3); PDL 2.106, "
+                 "PDL-GSL 2.103, PDL-Stats 0.856, Statistics-Multtest 0.14; HISAT2 adapter v1"),
     "majiq": "majiq v3 (licensed source, see majiq_source)",
     "dapars2": "DaPars2 3UTR/DaPars2@fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6",
     "qapa": "QAPA morrislab/qapa@v1.4.1 + salmon 1.10.3",
@@ -81,8 +83,18 @@ def parse_selection(config):
     return [module for module in MODULES if module in raw], mode
 
 
+def flag(value):
+    """A config boolean, also when given as a string on the command line."""
+    return str(value).strip().lower() in ("true", "t", "1", "yes")
+
+
 def module_settings(config, module):
     """The config that changes a module's per-run caches (not its comparisons)."""
+    if module == 'psisigma':
+        # irmode 0 only: intron retention then depends on the annotation alone
+        return {'canonical_only': flag(config.get('psisigma_canonical_only', True)), 'irmode': 0,
+                'annotation': 'umbrella annotation_gtf with ME_DB microexons, primary chromosomes',
+                'adapter': 'NH:i:1 as MAPQ 255; spliced records grouped by samtools collate'}
     if module == 'rmats_conservative':
         return {'novel_splice_sites': False, 'library_type': 'fr-unstranded',
                 'variable_read_length': True, 'profile': 1}
@@ -144,6 +156,7 @@ def analysis_id(preflight, module_reference, settings):
 # file names each module keeps per run (relative to its cache directory)
 CACHE_FILES = {
     "rmats_conservative": ("run.rmats", "cache.json"),
+    "psisigma": ("run.SJ.tab.gz", "ir_positions.tsv.gz", "qc.json", "cache.json"),
     "majiq": ("run.sj", "cache.json"),
     "dapars2": ("utr_coverage.bedgraph.gz", "depth.json", "cache.json"),
     "qapa": ("quant.sf.gz", "lib_format_counts.json", "cache.json"),

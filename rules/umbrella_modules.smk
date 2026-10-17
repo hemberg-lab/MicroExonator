@@ -33,7 +33,7 @@ import json as _json
 import os as _os
 
 from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, MODULES, SOFTWARE, VASTTOOLS_COMMIT,
-                                  analysis_id, apa_set_id, vastdb_library,
+                                  analysis_id, apa_set_id, flag, vastdb_library,
                                   cache_id, missing_caches, module_reference_id, parse_selection)
 
 try:
@@ -69,6 +69,13 @@ MODULE_CACHE = ("umbrella/modules/cache/{reference_id}/{project_id}/{batch_id}/{
 MODULE_ANALYSIS = UMBRELLA_COMPARISON_ROOT + "/modules/{tool}/{analysis_id}"
 MODULE_SETTINGS = {
     'rmats_conservative': {'profile': 'no-novel-splice-sites-v1', 'tool_family': 'rmats'},
+    # PSI-Sigma's driver defaults; --nread as in its README example
+    'psisigma': {'nread': int(config.get('psisigma_nread', 10)),
+                 'skipratio': float(config.get('psisigma_skipratio', 0.05)),
+                 'irrange': int(config.get('psisigma_irrange', 5)),
+                 'variance': int(config.get('psisigma_variance', 0)),
+                 'irclean': int(config.get('psisigma_irclean', 0)),
+                 'canonical_only': flag(config.get('psisigma_canonical_only', True))},
     "majiq": dict({key: config.get("majiq_" + key + "_args") for key in ("update", "psicov", "heterogen")},
                   statistic=str(config.get("majiq_het_statistic", "ttest"))),
     "dapars2": {"coverage_threshold": int(config.get("dapars2_coverage_threshold", 10))},
@@ -701,7 +708,8 @@ rule umbrella_vasttools_compare:
 # ------------------------------------------------------------ targets
 
 MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz",
-               "vasttools": "results.tsv.gz", "rmats_conservative": "results.tsv.gz"}
+               "vasttools": "results.tsv.gz", "rmats_conservative": "results.tsv.gz",
+               "psisigma": "results.tsv.gz"}
 
 
 def module_prepare_targets(tool):
@@ -756,6 +764,7 @@ def module_target(tool, targets):
 
 
 include: 'umbrella_rmats_conservative.smk'
+include: 'umbrella_psisigma.smk'
 
 
 def umbrella_module_targets(wildcards=None):

@@ -1,0 +1,23 @@
+# PSI-Sigma v2.3 (Kuan-Ting Lin; free for non-commercial academic use, see its
+# LICENSE) runs from its pinned source (rule umbrella_psisigma_software). Its
+# statistics need four Perl distributions that conda-forge and bioconda do not
+# carry (PDL, PDL-Stats, PDL-GSL, Statistics-Multtest); src/install_psisigma.py
+# builds them once from pinned, checksummed CPAN tarballs into the software
+# folder, against this environment's Perl and GSL. Python, pysam and numpy are for
+# src/run_psisigma.py (per-run junction and intron-retention caches).
+name: microexonator-umbrella-psisigma
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - perl=5.32
+  - perl-app-cpanminus
+  - gsl=2.7
+  - make
+  - c-compiler
+  - pkg-config
+  - samtools=1.20
+  - pysam
+  - numpy
+  - gawk

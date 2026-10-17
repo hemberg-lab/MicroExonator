@@ -285,9 +285,9 @@ nothing per run or per shard does. Check with a dry run first.
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).
 
-## Optional modules: MAJIQ, DaPars2, QAPA, vast-tools and conservative rMATS
+## Optional modules: MAJIQ, DaPars2, QAPA, vast-tools, conservative rMATS and PSI-Sigma
 
-Five opt-in tools that can run on their own, in any subset, without
+Six opt-in tools that can run on their own, in any subset, without
 MicroExonator, Whippet or the other comparison tools:
 
 | Module | Per run (kept) | Per comparison |
@@ -296,12 +296,13 @@ MicroExonator, Whippet or the other comparison tools:
 | `dapars2` (DaPars2) | raw coverage inside merged 3' UTR windows, mapped read count | DaPars2 by chromosome, PDUI per replicate, Welch t-test with BH (exploratory) |
 | `qapa` (QAPA) | Salmon quantification against QAPA's 3' UTR library | PAU with `qapa quant`, DEXSeq site-usage test |
 | `vasttools` (vast-tools) | compressed `to_combine` cache from staged reads and VASTDB indexes | technical-run merge, combine, tidy, Bayesian diff or Mann-Whitney, microexon support mapping |
+| `psisigma` (PSI-Sigma v2.3) | junction counts and coverage at retained-intron positions, from the HISAT2 BAM | replicate sums, PSI-Sigma database, PSI and filter steps, Welch t-test with BH |
 | `rmats_conservative` (rMATS-turbo 4.3.0) | `prep` summary from the HISAT2 BAM, without `--novelSS` | `inte` + `post` on the kept summaries, JC events normalized, native tables archived |
 
 Config:
 
 ```yaml
-umbrella_modules: [majiq, dapars2, qapa, vasttools, rmats_conservative]   # any subset; default: none
+umbrella_modules: [majiq, dapars2, qapa, vasttools, rmats_conservative, psisigma]   # any subset; default: none
 umbrella_modules_mode: ingest              # default: cached_only
 ```
 
@@ -498,6 +499,66 @@ comparison.
   `ingest` mode; later comparisons in `cached_only` mode reuse `run.rmats`
   without reads or BAMs. A cache whose reference, module profile, cache ID or
   layout differs from the comparison is refused.
+
+### PSI-Sigma
+
+PSI-Sigma v2.3 (Lin & Krainer, *Bioinformatics* 2019) quantifies exon
+skipping, alternative 5'/3' sites, mutually exclusive exons and intron
+retention. Select it explicitly (`umbrella_modules: [psisigma]`);
+`prepare_psisigma` makes the per-run caches and `quant_psisigma` adds every
+comparison. Its licence allows non-commercial use by individuals at academic or
+non-profit institutions; the workflow downloads the pinned source
+(`umbrella_psisigma_software`), checks every script against its SHA-256 and
+keeps PSI-Sigma's LICENSE next to it.
+
+- **Installation downloads from CPAN.** PSI-Sigma's statistics use PDL,
+  PDL::Stats, PDL::GSL and Statistics::Multtest, which conda does not carry.
+  `src/install_psisigma.py` builds pinned, checksummed CPAN releases once into
+  `umbrella/modules/software/psisigma/<commit>/perl5`, against the Perl and GSL
+  of `envs/umbrella-psisigma.yaml` (cpanm also fetches their dependencies). It
+  runs on the login node, like the other downloads.
+- **HISAT2 instead of STAR.** PSI-Sigma was written for STAR. The module feeds
+  it the shared HISAT2 alignment with three adaptations:
+  - unique alignments are HISAT2's `NH:i:1`, given to PSI-Sigma as MAPQ 255
+    (its unique threshold) in the stream; no BAM is rewritten;
+  - spliced records are grouped by read name (`samtools collate`) before
+    PSI-Sigma's own junction counter, so mates crossing one junction count once,
+    as PSI-Sigma's `samtools sort -n` does;
+  - non-canonical junctions (not GT-AG, GC-AG or AT-AC) are dropped, as
+    PSI-Sigma's STAR protocol does with `--outFilterIntronMotifs
+    RemoveNoncanonical` (`psisigma_canonical_only: true`, the default). This
+    filters junction counts, not whole alignments, so it approximates STAR.
+  STAR's two-pass mode has no equivalent here. Soft clipping differs between
+  aligners and PSI-Sigma ignores clipped reads for intron coverage, so each
+  run's `qc.json` records its soft-clipped fraction: check it is similar
+  between groups.
+- **Intron retention without keeping BAMs.** Only PSI-Sigma's default
+  `--irmode 0` is allowed (`psisigma_irmode` must be 0). In that mode the
+  retained-intron events and their five coverage positions come from the
+  annotation alone, so each run keeps its coverage at those positions, counted
+  with PSI-Sigma's read rules. A comparison sums a replicate's runs (exactly
+  what a merged BAM gives), takes PSI-Sigma's median per intron, and checks
+  that its own database has the same retained introns. Comparisons never read
+  a BAM, so `cached_only` regrouping keeps intron retention.
+- **Annotation.** The umbrella's `annotation_gtf` with the ME_DB microexons
+  inserted, restricted to primary chromosomes (PSI-Sigma splits IDs on `_`),
+  with gene and transcript lines added where missing and transcripts sorted
+  before their exons. PSI-Sigma quantifies annotated events only: microexons
+  absent from that annotation are not seen, and very short exons align poorly,
+  so their inclusion tends to read low.
+- **Statistics.** PSI-Sigma's `--variance 0` (the default) is labelled
+  Student's t but runs Welch's t-test; the FDR is Benjamini-Hochberg over all
+  events (`--adjp 1`). PSI-Sigma needs two biological replicates per side.
+  When it cannot test an event (equal group means, or identical replicates) it
+  prints dPSI 0; the module reports that effect as blank and the event as
+  `untested`.
+- **Effect** is PSI(A) minus PSI(B) as a fraction: B is passed as PSI-Sigma's
+  `groupa` (N) and A as `groupb` (T), so its dPSI (T - N) is already A - B.
+  `native.tar.gz` keeps PSI-Sigma's database, unfiltered and sorted tables.
+- **Options** (defaults are PSI-Sigma's driver defaults): `psisigma_nread`
+  (10), `psisigma_skipratio` (0.05), `psisigma_irrange` (5),
+  `psisigma_variance` (0), `psisigma_irclean` (0), `psisigma_canonical_only`
+  (true).
 
 ## Known limits
 

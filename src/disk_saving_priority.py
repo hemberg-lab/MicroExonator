@@ -25,6 +25,7 @@ PRIORITIES = {
     'umbrella_rmats_conservative_prep': 100,
     'umbrella_majiq_sj': 100,
     'umbrella_vasttools_align': 100,
+    'umbrella_psisigma_prep': 100,
     # Other direct readers: all must finish, not just the alignment.
     'umbrella_whippet_quant': 90,
     'umbrella_junctions': 90,

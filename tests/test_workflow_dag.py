@@ -928,6 +928,57 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn('--novelSS', result.stdout)
         self.assertIn('/modules/rmats_conservative/', result.stdout)
 
+    def test_psisigma_alone_aligns_once_and_compares_from_caches(self):
+        result = self.module_dry_run('quant_psisigma', ['umbrella_modules_mode: ingest'])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        stats = dict(re.findall(r'^(umbrella_\w+)\s+(\d+)$', out, re.M))
+        for rule, count in (('umbrella_psisigma_software', '1'), ('umbrella_psisigma_reference', '1'),
+                            ('umbrella_psisigma_prep', '4'), ('umbrella_psisigma_compare', '1'),
+                            ('umbrella_hisat2', '4')):
+            self.assertEqual(stats.get(rule), count, rule)
+        for expected in ('install_psisigma.py', 'run_psisigma.py reference', 'run_psisigma.py prep',
+                         'run_psisigma.py compare', '/perl5/lib/perl5', '"canonical_only": true'):
+            self.assertIn(expected, out)
+        self.assertNotIn('--all-junctions', out)
+        # the comparison reads caches only: no BAM among its inputs
+        compare = out[out.index('rule umbrella_psisigma_compare:'):]
+        compare = compare[:compare.index('\n\n')]
+        self.assertNotIn('aligned.bam', compare)
+        for absent in ('rule umbrella_whippet_quant:', 'rule umbrella_salmon_quant:', 'rule umbrella_rmats_prep:',
+                       'rule umbrella_majiq', 'Round2'):
+            self.assertNotIn(absent, out)
+
+    def test_psisigma_options_and_irmode_refusal(self):
+        everything = self.module_dry_run('quant_psisigma', ['umbrella_modules_mode: ingest',
+                                                            'psisigma_canonical_only: false'])
+        self.assertEqual(everything.returncode, 0, everything.stdout)
+        self.assertIn('--all-junctions', everything.stdout)
+        refused = self.module_dry_run('quant_psisigma', ['psisigma_irmode: 1'])
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn('psisigma_irmode must be 0', refused.stdout)
+
+    def test_psisigma_cached_only_compares_without_reads_or_alignment(self):
+        result = self.module_dry_run('quant_psisigma', ['umbrella_modules: [psisigma]'],
+                                     prepare=lambda d: self.write_module_caches(d, ['psisigma']))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn('rule umbrella_psisigma_compare:', result.stdout)
+        for absent in ('rule umbrella_stage', 'rule umbrella_hisat2:', 'rule umbrella_validate_reads:',
+                       'rule umbrella_psisigma_prep:', 'Set of input files has changed'):
+            self.assertNotIn(absent, result.stdout)
+        missing = self.module_dry_run('quant_psisigma', ['umbrella_modules: [psisigma]'])
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn('cached_only, but 4 run/tool caches are missing', missing.stdout)
+
+    def test_psisigma_shares_the_alignment_with_other_modules(self):
+        result = self.module_dry_run('quant_umbrella_modules', [
+            'umbrella_modules: [dapars2, psisigma, rmats_conservative]', 'umbrella_modules_mode: ingest'])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        stats = dict(re.findall(r'^(umbrella_\w+)\s+(\d+)$', result.stdout, re.M))
+        self.assertEqual(stats.get('umbrella_hisat2'), '4')
+        for rule in ('umbrella_psisigma_prep', 'umbrella_dapars2_coverage', 'umbrella_rmats_conservative_prep'):
+            self.assertEqual(stats.get(rule), '4', rule)
+
     def test_vasttools_alone_fetches_its_software_and_vastdb_once(self):
         result = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest"])
         self.assertEqual(result.returncode, 0, result.stdout)
@@ -1000,7 +1051,8 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
         producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant",
                      "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align",
-                     "rmats_conservative": "umbrella_rmats_conservative_prep"}
+                     "rmats_conservative": "umbrella_rmats_conservative_prep",
+                     "psisigma": "umbrella_psisigma_prep"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}
         for tool in tools:
             reference = module_reference_id("ref", tool, settings.get(tool, {}))
