@@ -91,11 +91,12 @@ def umbrella_hisat2_reads(wildcards):
 
 
 def umbrella_hisat2_strand(wildcards):
+    from src.summarize_junctions import strandedness_argument
     record = umbrella_align_run(wildcards)
     if record.strandedness in ("unstranded", "auto"):
         return ""
-    return "--rna-strandness " + {"firststrand": "R", "secondstrand": "F"}[
-        record.strandedness] * (2 if record.layout == "PE" else 1)
+    return "--rna-strandness " + strandedness_argument(
+        "hisat2", record.strandedness, None, record.layout)
 
 
 # ------------------------------------------------------------ reference level

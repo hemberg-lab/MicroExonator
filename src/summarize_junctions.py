@@ -182,8 +182,10 @@ def strandedness_argument(tool, declared, summary_path, layout="SE"):
         if declared == "undetermined":
             declared = "unstranded"
     if tool == "hisat2":
-        return {"unstranded": "", "secondstrand": "F", "firststrand": "R"}[declared] * (
-            2 if layout == "PE" else 1)
+        flags = ({"unstranded": "", "secondstrand": "FR", "firststrand": "RF"}
+                 if layout == "PE" else
+                 {"unstranded": "", "secondstrand": "F", "firststrand": "R"})
+        return flags[declared]
     return TOOL_STRAND[tool][declared]
 
 

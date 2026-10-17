@@ -92,7 +92,15 @@ class StrandArgumentTests(unittest.TestCase):
             self.assertEqual(strandedness_argument("featurecounts", "auto", summary), "1")
             summary.write_text(json.dumps({"inferred_strandedness": "undetermined"}))
             self.assertEqual(strandedness_argument("featurecounts", "auto", summary), "0")
-        self.assertEqual(strandedness_argument("hisat2", "firststrand", None, "PE"), "RR")
+        self.assertEqual(strandedness_argument("hisat2", "firststrand", None, "PE"), "RF")
+
+    def test_hisat2_uses_supported_library_flags(self):
+        for layout, declared, expected in (
+                ("PE", "firststrand", "RF"), ("PE", "secondstrand", "FR"),
+                ("SE", "firststrand", "R"), ("SE", "secondstrand", "F"),
+                ("PE", "unstranded", ""), ("SE", "unstranded", "")):
+            with self.subTest(layout=layout, declared=declared):
+                self.assertEqual(strandedness_argument("hisat2", declared, None, layout), expected)
 
 
 class CatalogShardCaptureTests(unittest.TestCase):

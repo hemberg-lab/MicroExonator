@@ -41,6 +41,7 @@ class WorkflowSelectionTests(unittest.TestCase):
         pre_existing=(),
         prepare=None,
         umbrella_extra_column=None,
+        umbrella_strandedness="unstranded",
     ):
         snakemake = find_snakemake()
         if not snakemake:
@@ -113,8 +114,8 @@ class WorkflowSelectionTests(unittest.TestCase):
                     extra = "\t" + umbrella_extra_column if umbrella_extra_column else ""
                     handle.write("sample_id\trun_id\tbiological_replicate_id\tproject_id\tbatch_id\tgroup\tsource_type\tsource_1\tsource_2\tlayout\tstrandedness\treference_id\tinclude" + extra + "\n")
                     source_2 = "r2.fastq.gz" if umbrella_layout == "PE" else ""
-                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\tunstranded\t{}\ttrue{}\n".format(
-                        umbrella_layout.lower(), source_2, umbrella_layout, umbrella_reference_id,
+                    handle.write("sample_a\trun_{}\trep_a\tproject\tbatch\tcontrol\tfastq\tr1.fastq.gz\t{}\t{}\t{}\t{}\ttrue{}\n".format(
+                        umbrella_layout.lower(), source_2, umbrella_layout, umbrella_strandedness, umbrella_reference_id,
                         "\t" if umbrella_extra_column else ""))
                     for row in umbrella_extra_rows:
                         handle.write(row + "\n")
@@ -223,6 +224,19 @@ class WorkflowSelectionTests(unittest.TestCase):
         self.assertNotIn("Report/out.high_quality.txt", result.stdout)
         self.assertIn("Report/ME_junction_genomic_copies.txt", result.stdout)
         self.assertIn("Report/read_lengths.tsv", result.stdout)
+
+    def test_hisat2_declared_strand_flags_and_auto_baseline(self):
+        for declared, expected in (("firststrand", "RF"), ("secondstrand", "FR"),
+                                   ("auto", None), ("unstranded", None)):
+            result = self.run_quant_dry_run(
+                umbrella=True, target="quant_umbrella", print_shell=True,
+                umbrella_strandedness=declared)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            command = next(line for line in result.stdout.splitlines() if line.startswith("hisat2 -p"))
+            if expected:
+                self.assertIn("--rna-strandness " + expected + " ", command)
+            else:
+                self.assertNotIn("--rna-strandness", command)
 
     def test_legacy_quant_runs_mixture_preflight(self):
         result = self.run_quant_dry_run(filter_method="legacy_mixture")
