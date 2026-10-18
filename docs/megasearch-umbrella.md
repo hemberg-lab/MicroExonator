@@ -574,3 +574,18 @@ keeps PSI-Sigma's LICENSE next to it.
 - Module-only targets on a brand-new reference also build the Whippet and
   Salmon indexes, because HISAT2 waits for the full reference manifest; its
   inputs cannot change without re-aligning existing runs.
+
+### vast-tools speed work (pending a pin bump)
+
+The refurbished vast-tools branches (`perf/*` in `vast-tools-refurbished`) give
+byte-identical `to_combine` content with `align` about 18% faster at `-c 8`
+(concurrent lanes), plus an optional Rust trimmer. They are local and
+unpushed, so `VASTTOOLS_COMMIT` in `src/umbrella_modules.py` is deliberately
+unchanged: a bump must point at a fetchable commit, and it changes
+`module_reference_id`, so every vast-tools cache is rebuilt. Do it as one
+deliberate step once the commit is published.
+
+- `umbrella_vasttools_align` already requests 8 threads, which is the setting
+  where the concurrent lanes help most; no PBS change is needed.
+- The cache gzip in `src/run_vasttools.py` only compresses the small
+  `to_combine` files, so switching it to pigz would gain nothing measurable.
