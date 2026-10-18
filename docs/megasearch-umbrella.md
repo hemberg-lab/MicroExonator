@@ -296,13 +296,14 @@ MicroExonator, Whippet or the other comparison tools:
 | `dapars2` (DaPars2) | raw coverage inside merged 3' UTR windows, mapped read count | DaPars2 by chromosome, PDUI per replicate, Welch t-test with BH (exploratory) |
 | `qapa` (QAPA) | Salmon quantification against QAPA's 3' UTR library | PAU with `qapa quant`, DEXSeq site-usage test |
 | `vasttools` (vast-tools) | compressed `to_combine` cache from staged reads and VASTDB indexes | technical-run merge, combine, tidy, Bayesian diff or Mann-Whitney, microexon support mapping |
+| `vasttools_turbo` (vast-tools, chunked) | the same cache as `vasttools`, made by independent chunk jobs and pooled with `vast-tools merge` | identical to `vasttools` (same compare step) |
 | `psisigma` (PSI-Sigma v2.3) | junction counts and coverage at retained-intron positions, from the HISAT2 BAM | replicate sums, PSI-Sigma database, PSI and filter steps, Welch t-test with BH |
 | `rmats_conservative` (rMATS-turbo 4.3.0) | `prep` summary from the HISAT2 BAM, without `--novelSS` | `inte` + `post` on the kept summaries, JC events normalized, native tables archived |
 
 Config:
 
 ```yaml
-umbrella_modules: [majiq, dapars2, qapa, vasttools, rmats_conservative, psisigma]   # any subset; default: none
+umbrella_modules: [majiq, dapars2, qapa, vasttools, vasttools_turbo, rmats_conservative, psisigma]   # any subset; default: none
 umbrella_modules_mode: ingest              # default: cached_only
 ```
 
@@ -471,6 +472,88 @@ indexes. It tests tool wiring and catalogue statuses, not sensitivity on
 biological RNA-seq. Native `vast-tools` uses Bash process substitution;
 restrictive filesystem sandboxes can block Bowtie's `/dev/fd` writes.
 
+### vast-tools-turbo
+
+`vasttools_turbo` makes the same per-run cache as `vasttools`, but splits a run
+into chunks that align as independent cluster jobs. It is a separate optional
+module, like `rmats_conservative`: the native `vasttools` rules, caches and
+results are untouched, and both can be selected in one execution to compare
+them.
+
+```yaml
+umbrella_modules: [vasttools, vasttools_turbo]   # native and turbo side by side
+umbrella_modules_mode: ingest
+vasttools_species: hg38
+vasttools_turbo_chunks: 8      # chunks per run (changes the cache identity), default 8
+vasttools_turbo_threads: 4     # Bowtie threads per chunk job (no identity change), default 4
+```
+
+`prepare_vasttools_turbo` makes the caches and `quant_vasttools_turbo` adds the
+comparisons. Both modules share the pinned vast-tools source, VASTDB and the
+staged reads, so nothing is downloaded or staged twice.
+
+Per run, three kinds of jobs (`src/run_vasttools_turbo.py`):
+
+1. `umbrella_vasttools_turbo_split` decides strandedness exactly as
+   `vast-tools align` does (first 500K reads against VASTDB's mRNA library,
+   0.35 / 0.65 thresholds, each mate separately), then deals the reads
+   round-robin into N chunks. Mates always stay in the same chunk.
+2. `umbrella_vasttools_turbo_chunk` (N jobs) runs `vast-tools align` on one
+   chunk with that decision forced (`--ns`, or `--rc1/--nrc1` and
+   `--rc2/--nrc2`), so no chunk can decide differently from its siblings.
+3. `umbrella_vasttools_turbo_merge` pools the chunks with `vast-tools merge`
+   (the tool's own way to deepen a sample) and writes `to_combine.tar` and
+   `cache.json` in the native layout. It refuses to write a cache if a chunk
+   is missing, a chunk's strandedness or read count disagrees with the split,
+   a required file is missing, or the merged `.eej2` is empty.
+
+The chunk FASTQs and chunk outputs are temporary. `compare` is the native
+step (`src/run_vasttools.py compare`), so results have the same columns; the
+`tool` column says `vasttools_turbo`.
+
+Differences from native, by design:
+
+- Raw counts are the same. Corrected counts and PSI can differ in the last
+  rounding digits, because vast-tools rounds per file before `merge` sums
+  them. Measured on the 250,000-read Hsa test FASTQ (hg19 VASTDB, 2 and 3
+  chunks, single-end and its halves as paired-end; opt-in
+  `RealTurboEquivalenceTests`): single-end gives the same events, identical raw
+  EEJ counts, and every number within 0.06 (vast-tools' rounding), with
+  identical labels. Paired-end differs a little more: `Trim.pl` numbers its
+  50-mers with one counter over the whole run, which sets the order of a pair's
+  fragments after sorting and so which of them vast-tools' adjacent-line logic
+  counts once; chunks renumber, so up to 3.6% of EEJ rows move by at most 2
+  reads (totals within 0.1%; intron-retention totals within 0.5%, one intron
+  corrected count by 5%). A native run repeated twice is identical, so these
+  differences come from chunking, not noise. Compare the two modules on your
+  own paired-end data before relying on turbo for it.
+- vast-tools `merge` writes the literal `S` in the exskX complexity column,
+  losing the `C` annotation of 2,900 of 18,612 events; turbo restores it from
+  the chunks (it does not depend on reads, and chunks that disagree are
+  refused). Native technical-run merges in `compare` still have this upstream
+  limitation; it is left as is.
+- Only `vasttools_ir_version: 2` is supported (`merge` does not rebuild the
+  version 1 intron retention summary); version 1 is refused at start-up.
+- With `vasttools_expr: true` the cRPKM files are merged, but vast-tools'
+  `.3bias` file is not (`compare` uses neither).
+- Each chunk loads the Bowtie indexes again (about 26 s of CPU for the
+  COMBI library), so total CPU grows slightly while wall time per run drops
+  to roughly one chunk. Each run needs at least 1000 reads per chunk.
+- The cache identity includes the chunk count; changing
+  `vasttools_turbo_chunks` makes new caches.
+
+To compare the two after a run, read the benchmark files:
+`umbrella/modules/benchmarks/<reference>/<project>/<batch>/<run>.vasttools.<id>.tsv`
+for native, and the `...vasttools_turbo_split`, `..._chunk<k>` and
+`..._merge` files for turbo (wall time of a run is about split + the slowest
+chunk + merge). The two comparison folders under `modules/vasttools/` and
+`modules/vasttools_turbo/` can be diffed on `results.tsv.gz`.
+
+Cluster resources are in `Examples/Cluster_config/pbs/cluster.PBS.json`
+(`umbrella_vasttools_turbo_split`, `_chunk`, `_merge`, `_compare`). Chunk jobs
+use 4 cores and 32 GB: memory is set by the Bowtie index, not by the thread
+count.
+
 ### Conservative rMATS
 
 `rmats_conservative` is a second rMATS profile next to the original rMATS
@@ -583,9 +666,8 @@ byte-identical `to_combine` content with `align` about 18% faster at `-c 8`
 unpushed, so `VASTTOOLS_COMMIT` in `src/umbrella_modules.py` is deliberately
 unchanged: a bump must point at a fetchable commit, and it changes
 `module_reference_id`, so every vast-tools cache is rebuilt. Do it as one
-deliberate step once the commit is published.
+deliberate step once the commit is published. `vasttools_turbo` (above) is the
+workflow-level speed-up and runs on the pinned commit.
 
-- `umbrella_vasttools_align` already requests 8 threads, which is the setting
-  where the concurrent lanes help most; no PBS change is needed.
 - The cache gzip in `src/run_vasttools.py` only compresses the small
   `to_combine` files, so switching it to pigz would gain nothing measurable.

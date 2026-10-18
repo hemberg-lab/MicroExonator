@@ -1040,6 +1040,63 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertEqual(stats.get("umbrella_qapa_quant"), "4")
         self.assertIn("umbrella_module_inventory", result.stdout)
 
+    def test_vasttools_turbo_alone_splits_chunks_merges_and_compares(self):
+        result = self.module_dry_run("quant_vasttools_turbo", ["umbrella_modules_mode: ingest",
+                                                               "vasttools_turbo_chunks: 5"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        stats = dict(re.findall(r"^(umbrella_\w+)\s+(\d+)$", out, re.M))
+        self.assertEqual(stats.get("umbrella_vasttools_software"), "1")
+        self.assertEqual(stats.get("umbrella_vastdb"), "1")
+        self.assertEqual(stats.get("umbrella_vasttools_turbo_split"), "4")
+        self.assertEqual(stats.get("umbrella_vasttools_turbo_chunk"), "20")
+        self.assertEqual(stats.get("umbrella_vasttools_turbo_merge"), "4")
+        self.assertEqual(stats.get("umbrella_vasttools_turbo_compare"), "1")
+        for expected in ("run_vasttools_turbo.py split", "run_vasttools_turbo.py chunk",
+                         "run_vasttools_turbo.py merge", "--chunks 5", "--tool-name vasttools_turbo",
+                         "/modules/cache/ref/project/batch/", "/vasttools_turbo/"):
+            self.assertIn(expected, out)
+        for absent in ("rule umbrella_vasttools_align:", "rule umbrella_vasttools_compare:",
+                       "rule umbrella_hisat2:", "rule umbrella_salmon_quant:"):
+            self.assertNotIn(absent, out)
+
+    def test_vasttools_turbo_and_native_run_side_by_side_with_separate_caches(self):
+        result = self.module_dry_run("quant_umbrella_modules", [
+            "umbrella_modules: [vasttools, vasttools_turbo, rmats_conservative, psisigma]",
+            "umbrella_modules_mode: ingest"])
+        self.assertEqual(result.returncode, 0, result.stdout)
+        stats = dict(re.findall(r"^(umbrella_\w+)\s+(\d+)$", result.stdout, re.M))
+        staged = sum(int(stats.get(rule, 0)) for rule in ("umbrella_stage_reads", "umbrella_stage_single"))
+        self.assertEqual(staged, 4, result.stdout)
+        self.assertEqual(stats.get("umbrella_vasttools_software"), "1")
+        self.assertEqual(stats.get("umbrella_vastdb"), "1")
+        for rule, count in (("umbrella_vasttools_align", "4"), ("umbrella_vasttools_turbo_merge", "4"),
+                            ("umbrella_vasttools_compare", "1"), ("umbrella_vasttools_turbo_compare", "1"),
+                            ("umbrella_psisigma_prep", "4"), ("umbrella_rmats_conservative_prep", "4")):
+            self.assertEqual(stats.get(rule), count, rule)
+        self.assertIn("modules/vasttools/", result.stdout)
+        self.assertIn("modules/vasttools_turbo/", result.stdout)
+
+    def test_vasttools_turbo_cached_only_compares_without_reads_or_chunks(self):
+        result = self.module_dry_run("quant_vasttools_turbo", ["umbrella_modules: [vasttools_turbo]"],
+                                     prepare=lambda d: self.write_module_caches(d, ["vasttools_turbo"]))
+        self.assertEqual(result.returncode, 0, result.stdout)
+        out = result.stdout
+        self.assertIn("rule umbrella_vasttools_turbo_compare:", out)
+        for absent in ("rule umbrella_stage", "rule umbrella_vasttools_turbo_split:",
+                       "rule umbrella_vasttools_turbo_chunk:", "rule umbrella_vasttools_turbo_merge:",
+                       "Set of input files has changed"):
+            self.assertNotIn(absent, out)
+        missing = self.module_dry_run("quant_vasttools_turbo", ["umbrella_modules: [vasttools_turbo]"])
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("cached_only, but 4 run/tool caches are missing", missing.stdout)
+
+    def test_vasttools_turbo_refuses_intron_retention_version_one(self):
+        result = self.module_dry_run("quant_vasttools_turbo", [
+            "umbrella_modules: [vasttools_turbo]", "umbrella_modules_mode: ingest", "vasttools_ir_version: 1"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("supports vasttools_ir_version 2 only", result.stdout)
+
     @staticmethod
     def write_module_caches(temp_dir, tools, names=None, metadata=True):
         """Caches as an ingest leaves them: files plus Snakemake records holding
@@ -1051,6 +1108,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         from src.umbrella_modules import CACHE_FILES, cache_id, module_reference_id
         producers = {"dapars2": "umbrella_dapars2_coverage", "qapa": "umbrella_qapa_quant",
                      "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align",
+                     "vasttools_turbo": "umbrella_vasttools_turbo_merge",
                      "rmats_conservative": "umbrella_rmats_conservative_prep",
                      "psisigma": "umbrella_psisigma_prep"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}

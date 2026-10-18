@@ -364,7 +364,7 @@ def read_me_db(path):
 def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, threads=1,
             ids=None, prob=0.95, min_dpsi=0.1, min_reads=10, min_samples=2, ir_version=2,
             tidy_args="--noVLOW --p_IR --noB3", mwu_min_dpsi=0.15, mwu_q=0.05, diff_max_n=5,
-            implementation="catalogue-aware-v2"):
+            implementation="catalogue-aware-v2", tool_name="vasttools"):
     if implementation != 'catalogue-aware-v2':
         raise ValueError('Unsupported vast-tools comparison implementation: ' + implementation)
     preflight = json.loads(Path(preflight_path).read_text())
@@ -375,7 +375,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     base = dict(project_id=preflight["project_id"], comparison_id=preflight["comparison_id"], **ids)
     if not preflight["inference_supported"]:
         _empty_outputs(out_dir)
-        write_status(status_path, "vasttools", "unsupported", preflight["reasons"], **base)
+        write_status(status_path, tool_name, "unsupported", preflight["reasons"], **base)
         return
     catalogue = read_catalog(dbdir, species)
     replicates = {side: list(preflight["replicates"][side]) for side in ("a", "b")}
@@ -492,7 +492,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
         info = record["info"]
         effect = record["expected"] if method == "diff" else record["mean_dpsi"]
         normalized.append({
-            "tool": "vasttools", "tool_version": ids.get("tool_version", ""), "feature_id": record["event"],
+            "tool": tool_name, "tool_version": ids.get("tool_version", ""), "feature_id": record["event"],
             "gene_id": "", "gene_name": info["gene"], "chrom": record["chrom"], "start": record["start"],
             "end": record["end"], "coordinates": "0-based half-open alternative sequence; FullCO " + info["full"],
             "strand": record["strand"], "event_class": event_class(record["event"], info["complexity"]),
@@ -529,7 +529,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     by_status = {}
     for row in microexon_rows:
         by_status[row["vasttools_status"]] = by_status.get(row["vasttools_status"], 0) + 1
-    write_status(status_path, "vasttools", status, reasons, method=method, events=len(records),
+    write_status(status_path, tool_name, status, reasons, method=method, events=len(records),
                  tested=tested, called=called, min_samples=samples_needed, merged_replicates=sorted(
                      {m[1] for m in merges}), microexons=by_status,
                  replicates={side: replicates[side] for side in ("a", "b")}, **base)
@@ -625,6 +625,7 @@ def main(argv=None):
     cmp_.add_argument("--threads", type=int, default=1)
     cmp_.add_argument("--ids", default="{}", help="JSON of identity fields for the results")
     cmp_.add_argument("--settings", default="{}", help="JSON of compare settings")
+    cmp_.add_argument("--tool-name", default="vasttools", help="label written to results and status")
     args = parser.parse_args(argv)
     if args.command == "install-db":
         install_db(args.archive, args.folder, args.species, args.url, args.record)
@@ -634,7 +635,8 @@ def main(argv=None):
     else:
         caches = dict(item.split("=", 1) for item in args.cache)
         compare(args.preflight, caches, args.vast_tools, args.dbdir, args.species, args.me_db,
-                args.out_dir, args.threads, json.loads(args.ids), **json.loads(args.settings))
+                args.out_dir, args.threads, json.loads(args.ids), tool_name=args.tool_name,
+                **json.loads(args.settings))
 
 
 if __name__ == "__main__":

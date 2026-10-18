@@ -17,8 +17,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DISCOVERY = {"microexonator", "whippet"}
-COMPLEMENT = {"hisat2", "salmon", "rmats", "coverage", "suppa2", "majiq", "dapars2", "qapa", "multiqc", "vasttools", "rmats_conservative", "psisigma"}
-DEFAULT_COMPLEMENT = COMPLEMENT - {'vasttools', 'rmats_conservative', 'psisigma'}
+COMPLEMENT = {"hisat2", "salmon", "rmats", "coverage", "suppa2", "majiq", "dapars2", "qapa", "multiqc", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma"}
+DEFAULT_COMPLEMENT = COMPLEMENT - {'vasttools', 'vasttools_turbo', 'rmats_conservative', 'psisigma'}
 
 
 def execution_tools(mode, settings):
@@ -360,6 +360,8 @@ def tool_for(rule, path):
         return 'rmats_conservative'
     if rule.startswith('umbrella_psisigma'):
         return 'psisigma'
+    if rule.startswith('umbrella_vasttools_turbo'):
+        return 'vasttools_turbo'
     for prefix, tool in (("umbrella_microexonator", "microexonator"), ("umbrella_whippet", "whippet"),
                          ("umbrella_salmon", "salmon"), ("umbrella_rmats", "rmats"),
                          ("umbrella_coverage", "coverage"), ("umbrella_suppa", "suppa2"),
@@ -516,7 +518,7 @@ def run_execution(config_path, source_root, snakemake, arguments, snakefile="Mic
         generated["umbrella_optional"] = {tool: tool in tools for tool in
                                            ("microexonator", "whippet", "salmon", "hisat2", "rmats", "coverage",
                                             "suppa2", "multiqc", "leafcutter", "microexonator_whippet_delta")}
-        generated["umbrella_modules"] = sorted(set(tools) & {"majiq", "dapars2", "qapa", "vasttools", "rmats_conservative", "psisigma"})
+        generated["umbrella_modules"] = sorted(set(tools) & {"majiq", "dapars2", "qapa", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma"})
         generated["umbrella_modules_mode"] = "ingest"
         manifest_path = work / "manifest.tsv"
         with manifest_path.open("w") as stream:

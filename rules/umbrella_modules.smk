@@ -92,6 +92,8 @@ MODULE_SETTINGS = {
                   "diff_max_n": int(config.get("vasttools_diff_max_n", 5)),
                   "ir_version": int(config.get("vasttools_ir_version", 2))},
 }
+# vast-tools-turbo compares exactly like native; only the per-run caches are made differently
+MODULE_SETTINGS["vasttools_turbo"] = dict(MODULE_SETTINGS["vasttools"])
 # Per-run cache producers are defined only in ingest mode. In cached_only the
 # kept caches are plain inputs with no rule that could remake them, so neither
 # Snakemake's records (an earlier ingest's input set) nor a rebuilt reference
@@ -708,7 +710,7 @@ rule umbrella_vasttools_compare:
 # ------------------------------------------------------------ targets
 
 MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz",
-               "vasttools": "results.tsv.gz", "rmats_conservative": "results.tsv.gz",
+               "vasttools": "results.tsv.gz", "vasttools_turbo": "results.tsv.gz", "rmats_conservative": "results.tsv.gz",
                "psisigma": "results.tsv.gz"}
 
 
@@ -765,6 +767,7 @@ def module_target(tool, targets):
 
 include: 'umbrella_rmats_conservative.smk'
 include: 'umbrella_psisigma.smk'
+include: 'umbrella_vasttools_turbo.smk'
 
 
 def umbrella_module_targets(wildcards=None):
@@ -827,7 +830,7 @@ rule umbrella_module_inventory:
                      "module_reference_ids": {tool: MODULE_REFERENCE_ID[tool] for tool in UMBRELLA_MODULES},
                      "software": {tool: SOFTWARE[tool] for tool in UMBRELLA_MODULES},
                      "comparisons": {}}
-        inventory['tool_families'] = {tool: ('rmats' if tool == 'rmats_conservative' else tool)
+        inventory['tool_families'] = {tool: {'rmats_conservative': 'rmats', 'vasttools_turbo': 'vasttools'}.get(tool, tool)
                                       for tool in UMBRELLA_MODULES}
         for comparison_id, result in sorted(UMBRELLA_COMPARISONS.items()):
             for tool in UMBRELLA_MODULES:

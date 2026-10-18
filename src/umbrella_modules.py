@@ -25,7 +25,7 @@ Modes (`umbrella_modules_mode`):
 import hashlib
 import json
 
-MODULES = ("majiq", "dapars2", "qapa", "vasttools", "rmats_conservative", "psisigma")
+MODULES = ("majiq", "dapars2", "qapa", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma")
 MODES = ("cached_only", "ingest")
 
 # pinned software, part of each module_reference_id
@@ -37,6 +37,8 @@ SOFTWARE = {
     "dapars2": "DaPars2 3UTR/DaPars2@fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6",
     "qapa": "QAPA morrislab/qapa@v1.4.1 + salmon 1.10.3",
     "vasttools": "vast-tools vastgroup/vast-tools@5598e1f1b0067611dc9e5abb285b4eacaf543ee3 (2.5.1) + bowtie 1.3.1",
+    "vasttools_turbo": ("vast-tools vastgroup/vast-tools@5598e1f1b0067611dc9e5abb285b4eacaf543ee3 (2.5.1) + "
+                        "bowtie 1.3.1; chunked align + vast-tools merge, profile v1"),
 }
 DAPARS2_COMMIT = "fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6"
 # vast-tools master at 3 Oct 2026 (VERSION 2.5.1; tagged releases stop at v2.5.1, 2020)
@@ -106,6 +108,11 @@ def module_settings(config, module):
         library = "vastdb.{}.{}.tar.gz".format(VASTDB_LIBRARIES.get(species, "?"), VASTDB_RELEASE)
         return {"species": species, "vastdb": library, "ir_version": int(config.get("vasttools_ir_version", 2)),
                 "expr": bool(config.get("vasttools_expr", False))}
+    if module == "vasttools_turbo":
+        # chunks change the per-run counts slightly (rounding), so they are identity;
+        # threads per chunk do not
+        return dict(module_settings(config, "vasttools"), chunks=int(config.get("vasttools_turbo_chunks", 8)),
+                    profile=1)
     # the APA annotation ("" = the umbrella annotation_gtf, already in reference_id)
     annotation = {"annotation": str(config.get("apa_annotation_gtf", "") or ""),
                   "transcripts": str(config.get("apa_transcripts", "basic")),
@@ -161,6 +168,7 @@ CACHE_FILES = {
     "dapars2": ("utr_coverage.bedgraph.gz", "depth.json", "cache.json"),
     "qapa": ("quant.sf.gz", "lib_format_counts.json", "cache.json"),
     "vasttools": ("to_combine.tar", "cache.json"),
+    "vasttools_turbo": ("to_combine.tar", "cache.json"),
 }
 
 
