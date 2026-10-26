@@ -1097,5 +1097,145 @@
         "name": "U.psisigma_compare.{wildcards.comparison_id}",
         "output": "logs/U.psisigma_compare.{wildcards.comparison_id}.out",
         "error": "logs/U.psisigma_compare.{wildcards.comparison_id}.err"
+    },
+    "umbrella_circrna_source": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "02:00:00",
+        "runtime": 7200,
+        "name": "U.circrna_source.{wildcards.index}",
+        "output": "logs/U.circrna_source.{wildcards.index}.out",
+        "error": "logs/U.circrna_source.{wildcards.index}.err"
+    },
+    "umbrella_circrna_catalogue": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "06:00:00",
+        "runtime": 21600,
+        "name": "U.circrna_catalogue",
+        "output": "logs/U.circrna_catalogue.out",
+        "error": "logs/U.circrna_catalogue.err"
+    },
+    "umbrella_circrna_annotation": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "mem": "4000mb",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.circrna_annotation",
+        "output": "logs/U.circrna_annotation.out",
+        "error": "logs/U.circrna_annotation.err"
+    },
+    "umbrella_circrna_star_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "40000",
+        "mem": "40000mb",
+        "walltime": "06:00:00",
+        "runtime": 21600,
+        "name": "U.circrna_star_index",
+        "output": "logs/U.circrna_star_index.out",
+        "error": "logs/U.circrna_star_index.err"
+    },
+    "umbrella_circrna_refflat": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "4000",
+        "mem": "4000mb",
+        "walltime": "01:00:00",
+        "runtime": 3600,
+        "name": "U.circrna_refflat",
+        "output": "logs/U.circrna_refflat.out",
+        "error": "logs/U.circrna_refflat.err"
+    },
+    "umbrella_circrna_star": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "40000",
+        "mem": "40000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.circrna_star.{wildcards.run_id}",
+        "output": "logs/U.circrna_star.{wildcards.run_id}.out",
+        "error": "logs/U.circrna_star.{wildcards.run_id}.err"
+    },
+    "umbrella_ciriquant_prep": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "32000",
+        "mem": "32000mb",
+        "walltime": "24:00:00",
+        "runtime": 86400,
+        "name": "U.ciriquant_prep.{wildcards.run_id}",
+        "output": "logs/U.ciriquant_prep.{wildcards.run_id}.out",
+        "error": "logs/U.ciriquant_prep.{wildcards.run_id}.err"
+    },
+    "umbrella_circexplorer2_calls": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.circexplorer2_calls.{wildcards.run_id}",
+        "output": "logs/U.circexplorer2_calls.{wildcards.run_id}.out",
+        "error": "logs/U.circexplorer2_calls.{wildcards.run_id}.err"
+    },
+    "umbrella_ciriquant_compare": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.ciriquant_compare.{wildcards.comparison_id}",
+        "output": "logs/U.ciriquant_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.ciriquant_compare.{wildcards.comparison_id}.err"
+    },
+    "umbrella_circexplorer2_support": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.circexplorer2_support.{wildcards.comparison_id}",
+        "output": "logs/U.circexplorer2_support.{wildcards.comparison_id}.out",
+        "error": "logs/U.circexplorer2_support.{wildcards.comparison_id}.err"
+    },
+    "umbrella_dcc_compare": {
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.dcc_compare.{wildcards.comparison_id}",
+        "output": "logs/U.dcc_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.dcc_compare.{wildcards.comparison_id}.err"
+    },
+    "umbrella_ciriquant_index": {
+        "ppn": "8",
+        "threads": "8",
+        "mem_mb": "64000",
+        "mem": "64000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.ciriquant_index",
+        "output": "logs/U.ciriquant_index.out",
+        "error": "logs/U.ciriquant_index.err"
+    },
+    "umbrella_circrna_differential": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "8000",
+        "mem": "8000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400
     }
 }

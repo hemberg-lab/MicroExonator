@@ -1110,7 +1110,8 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
                      "majiq": "umbrella_majiq_sj", "vasttools": "umbrella_vasttools_align",
                      "vasttools_turbo": "umbrella_vasttools_turbo_merge",
                      "rmats_conservative": "umbrella_rmats_conservative_prep",
-                     "psisigma": "umbrella_psisigma_prep"}
+                     "psisigma": "umbrella_psisigma_prep", "circrna_star": "umbrella_circrna_star",
+                     "ciriquant": "umbrella_ciriquant_prep", "circexplorer2": "umbrella_circexplorer2_calls"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"}}
         for tool in tools:
             reference = module_reference_id("ref", tool, settings.get(tool, {}))

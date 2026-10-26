@@ -1,0 +1,23 @@
+# circRNA discovery from one shared STAR chimeric alignment per run:
+# STAR 2.7.11b (chimeric junctions, no BAM), CIRCexplorer2 2.3.8 (parse +
+# annotate, MIT) and DCC 0.5.0 (detection, GPL-3). pybedtools/bedtools are
+# CIRCexplorer2 annotate dependencies; pysam/HTSeq/pandas/numpy are DCC's.
+# DCC comes from its pinned v0.5.0 commit through pip: conda-forge carries an
+# unrelated package also named "dcc", which hides bioconda's under strict
+# channel priority.
+name: microexonator-umbrella-circrna-discovery
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - star=2.7.11b
+  - circexplorer2=2.3.8
+  - bedtools=2.31.1
+  - pysam
+  - htseq
+  - pandas
+  - numpy
+  - pip
+  - pip:
+    - https://github.com/dieterich-lab/DCC/archive/afd5cdd6c47eee8eee5fc60597d43efe35b739b1.tar.gz

@@ -1,4 +1,8 @@
-"""Optional umbrella modules: MAJIQ v3, DaPars2, QAPA and vast-tools (src/umbrella_modules.py).
+"""Optional umbrella modules: MAJIQ v3, DaPars2, QAPA, vast-tools(+turbo), conservative rMATS,
+PSI-Sigma and the circRNA modules CIRIquant, CIRCexplorer2 and DCC (src/umbrella_modules.py).
+
+Scope: umbrella_module_scope {tool: all | selected}; "selected" modules (the circRNA ones by
+default) run only on the comparisons listed for them in umbrella_module_selection.
 
 Selection (config):
   umbrella_modules: [majiq, dapars2, qapa, vasttools]   any subset; default none
@@ -32,16 +36,18 @@ Per-run caches are protected; comparison outputs are recomputed freely.
 import json as _json
 import os as _os
 
-from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, MODULES, SOFTWARE, VASTTOOLS_COMMIT,
-                                  analysis_id, apa_set_id, flag, vastdb_library,
-                                  cache_id, missing_caches, module_reference_id, parse_selection)
+from src.umbrella_modules import (CACHE_FILES, DAPARS2_COMMIT, INTERNAL_MODULES, MODULES, SOFTWARE,
+                                  VASTTOOLS_COMMIT, analysis_id, apa_set_id, flag, vastdb_library,
+                                  cache_id, load_module_selection, missing_caches, module_reference_id,
+                                  parse_scope, parse_selection)
 
 try:
     UMBRELLA_MODULES, UMBRELLA_MODULES_MODE = parse_selection(config)
 except ValueError as error:
     raise WorkflowError(str(error))
 
-MODULE_REFERENCE_ID = {tool: module_reference_id(UMBRELLA_REFERENCE_ID, tool, config) for tool in MODULES}
+MODULE_REFERENCE_ID = {tool: module_reference_id(UMBRELLA_REFERENCE_ID, tool, config)
+                       for tool in MODULES + INTERNAL_MODULES}
 # DaPars2 and QAPA locate 3' UTRs from coding ends, so they may need a different
 # GTF than the splicing tools (e.g. GENCODE comprehensive next to an exon-only
 # Whippet build). It changes only their module_reference_id.
@@ -57,7 +63,7 @@ if bool(config.get("qapa_gencode_polya")) != bool(config.get("qapa_polyasite")):
     raise WorkflowError("qapa_gencode_polya and qapa_polyasite go together (QAPA's -g and -p); "
                         "use qapa_polya_sites alone for a custom BED")
 MODULE_REFERENCE = {tool: "umbrella/modules/reference/{}/{}/{}".format(
-    UMBRELLA_REFERENCE_ID, tool, MODULE_REFERENCE_ID[tool]) for tool in MODULES}
+    UMBRELLA_REFERENCE_ID, tool, MODULE_REFERENCE_ID[tool]) for tool in MODULES + INTERNAL_MODULES}
 # apa_transcripts: megasearch builds the MegaSearch APA set once from the APA GTF and
 # the poly(A) evidence; DaPars2 and QAPA then read every transcript of that set
 APA_SET_DIR = "umbrella/modules/reference/{}/apa_set/{}".format(UMBRELLA_REFERENCE_ID,
@@ -94,6 +100,43 @@ MODULE_SETTINGS = {
 }
 # vast-tools-turbo compares exactly like native; only the per-run caches are made differently
 MODULE_SETTINGS["vasttools_turbo"] = dict(MODULE_SETTINGS["vasttools"])
+MODULE_SETTINGS["ciriquant"] = {"min_bsj": int(config.get("ciriquant_min_bsj", 1)), "report": "descriptive-v1"}
+MODULE_SETTINGS["circexplorer2"] = {"report": "support-v1"}
+MODULE_SETTINGS["dcc"] = {"min_reads": int(config.get("dcc_min_reads", 2)),
+                          "min_replicates": int(config.get("dcc_min_replicates", 1)),
+                          "min_length": int(config.get("dcc_min_length", 30)),
+                          "max_length": int(config.get("dcc_max_length", 1000000)),
+                          "chrM": flag(config.get("dcc_filter_chrM", True))}
+
+# Per-comparison scope: modules with scope "selected" (the circRNA modules by default)
+# run only on the comparisons of umbrella_module_selection, and keep per-run caches only
+# for the runs those comparisons use. The selection is provenance, not identity.
+try:
+    MODULE_SCOPE = parse_scope(config)
+    MODULE_SELECTION = load_module_selection(config.get("umbrella_module_selection"), set(UMBRELLA_COMPARISONS),
+                                             MODULE_SCOPE)
+except (OSError, ValueError) as error:
+    raise WorkflowError("invalid module scope or selection: {}".format(error))
+
+
+def module_comparisons(tool):
+    """(comparison_id, preflight) pairs a module runs on."""
+    if MODULE_SCOPE.get(tool, "all") == "all":
+        return sorted(UMBRELLA_COMPARISONS.items())
+    return [(comparison_id, UMBRELLA_COMPARISONS[comparison_id])
+            for comparison_id in sorted(MODULE_SELECTION.get(tool, {}))]
+
+
+def module_runs(tool):
+    """Manifest runs that get this module's per-run caches."""
+    if MODULE_SCOPE.get(tool, "all") == "all":
+        return UMBRELLA_MANIFEST.included_runs()
+    units = {unit for _, result in module_comparisons(tool) for unit in result["collapse"]}
+    return [UMBRELLA_MANIFEST.by_run[unit] for unit in sorted(units)]
+
+
+def module_selection_row(wildcards, tool):
+    return _json.dumps(MODULE_SELECTION.get(tool, {}).get(wildcards.comparison_id, {}), sort_keys=True)
 # Per-run cache producers are defined only in ingest mode. In cached_only the
 # kept caches are plain inputs with no rule that could remake them, so neither
 # Snakemake's records (an earlier ingest's input set) nor a rebuilt reference
@@ -711,20 +754,31 @@ rule umbrella_vasttools_compare:
 
 MODULE_FINAL = {"majiq": "results.tsv.gz", "dapars2": "results.tsv.gz", "qapa": "results.tsv.gz",
                "vasttools": "results.tsv.gz", "vasttools_turbo": "results.tsv.gz", "rmats_conservative": "results.tsv.gz",
-               "psisigma": "results.tsv.gz"}
+               "psisigma": "results.tsv.gz", "ciriquant": "results.tsv.gz", "circexplorer2": "results.tsv.gz",
+               "dcc": "results.tsv.gz"}
+# modules computed from another module's kept caches: in cached_only those parents must exist
+MODULE_PARENT_CACHES = {"circexplorer2": "circrna_star", "dcc": "circrna_star"}
+# tool-specific start-up checks, run only when a target asks for the tool (filled by included files)
+MODULE_EXTRA_CHECKS = {}
 
 
 def module_prepare_targets(tool):
-    # MAJIQ's run.sj (file or directory) is checked by module_check, not declared
-    return [path for record in UMBRELLA_MANIFEST.included_runs()
-            for path in (module_cache_outputs(record, tool) if tool != "majiq"
+    # MAJIQ's run.sj (file or directory) is checked by module_check, not declared;
+    # DCC keeps nothing per run: its per-run inputs are the shared STAR caches
+    cached = "circrna_star" if tool == "dcc" else tool
+    return [path for record in module_runs(tool)
+            for path in (module_cache_outputs(record, cached) if tool != "majiq"
                          else [module_cache_dir(record, tool) + "/cache.json"])]
 
 
 def module_quant_targets(tool):
-    return module_prepare_targets(tool) + [
+    targets = module_prepare_targets(tool) + [
         module_analysis_dir(result, tool) + "/" + MODULE_FINAL[tool]
-        for _, result in sorted(UMBRELLA_COMPARISONS.items())]
+        for _, result in module_comparisons(tool)]
+    if tool in ("ciriquant", "circexplorer2", "dcc") and CIRC_DIFF_ENABLED:
+        targets += [module_analysis_dir(result, tool) + "/differential/" + CIRC_DIFF_ID + "/status.tsv"
+                    for _, result in module_comparisons(tool)]
+    return targets
 
 
 def module_check(tool):
@@ -740,8 +794,13 @@ def module_check(tool):
             "majiq_license to its path{}".format(
                 " (majiq_license {} does not exist)".format(MAJIQ_LICENSE) if MAJIQ_LICENSE else
                 ", or put it in $HOME as majiq_license*"))
-    runs = UMBRELLA_MANIFEST.included_runs()
-    incomplete = [module_cache_dir(record, tool) for record in runs
+    if MODULE_SCOPE.get(tool, "all") == "selected" and not MODULE_SELECTION.get(tool):
+        raise WorkflowError("{0} runs only on selected comparisons and none is selected: add rows for {0} to "
+                            "umbrella_module_selection, or set umbrella_module_scope: {{{0}: all}}".format(tool))
+    if tool in MODULE_EXTRA_CHECKS:
+        MODULE_EXTRA_CHECKS[tool]()
+    runs = module_runs(tool)
+    incomplete = [module_cache_dir(record, tool) for record in runs if CACHE_FILES[tool]
                   if _os.path.exists(module_cache_dir(record, tool) + "/cache.json")
                   and not all(_os.path.exists(module_cache_dir(record, tool) + "/" + name)
                               for name in CACHE_FILES[tool])]
@@ -750,7 +809,7 @@ def module_check(tool):
                             "delete those folders and ingest them again".format(
                                 len(incomplete), tool, incomplete[0]))
     if UMBRELLA_MODULES_MODE == "cached_only":
-        missing = missing_caches(runs, module_cache_dir, [tool])
+        missing = missing_caches(runs, module_cache_dir, [MODULE_PARENT_CACHES.get(tool, tool)])
         if missing:
             raise WorkflowError(
                 "umbrella_modules_mode is cached_only, but {} run/tool caches are missing (first: run {}, "
@@ -768,6 +827,7 @@ def module_target(tool, targets):
 include: 'umbrella_rmats_conservative.smk'
 include: 'umbrella_psisigma.smk'
 include: 'umbrella_vasttools_turbo.smk'
+include: 'umbrella_circrna.smk'
 
 
 def umbrella_module_targets(wildcards=None):
@@ -827,21 +887,25 @@ rule umbrella_module_inventory:
     run:
         inventory = {"reference_id": UMBRELLA_REFERENCE_ID, "modules": UMBRELLA_MODULES,
                      "mode": UMBRELLA_MODULES_MODE,
+                     "scope": {tool: MODULE_SCOPE[tool] for tool in UMBRELLA_MODULES},
+                     "selection": {tool: MODULE_SELECTION.get(tool, {}) for tool in UMBRELLA_MODULES
+                                   if MODULE_SCOPE[tool] == "selected"},
+                     "shared_evidence": {tool: MODULE_PARENT_CACHES[tool] for tool in UMBRELLA_MODULES
+                                         if tool in MODULE_PARENT_CACHES},
                      "module_reference_ids": {tool: MODULE_REFERENCE_ID[tool] for tool in UMBRELLA_MODULES},
                      "software": {tool: SOFTWARE[tool] for tool in UMBRELLA_MODULES},
                      "comparisons": {}}
         inventory['tool_families'] = {tool: {'rmats_conservative': 'rmats', 'vasttools_turbo': 'vasttools'}.get(tool, tool)
                                       for tool in UMBRELLA_MODULES}
-        for comparison_id, result in sorted(UMBRELLA_COMPARISONS.items()):
-            for tool in UMBRELLA_MODULES:
+        for tool in UMBRELLA_MODULES:
+            for comparison_id, result in module_comparisons(tool):
                 folder = module_analysis_dir(result, tool)
                 status = _json.loads(Path(folder + "/status.json").read_text())
                 inventory["comparisons"].setdefault(comparison_id, {})[tool] = {
                     "folder": folder, "status": status["status"], "reasons": status.get("reasons", []),
                     "bytes": sum(p.stat().st_size for p in Path(folder).rglob("*") if p.is_file())}
-        inventory["cache_bytes"] = {tool: sum(
-            Path(path).stat().st_size for record in UMBRELLA_MANIFEST.included_runs()
-            for path in module_prepare_targets(tool) if record.run_id in path) for tool in UMBRELLA_MODULES}
+        inventory["cache_bytes"] = {tool: sum(Path(path).stat().st_size for path in module_prepare_targets(tool)
+                                              if Path(path).is_file()) for tool in UMBRELLA_MODULES}
         Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
         Path(output[0]).write_text(_json.dumps(inventory, sort_keys=True, indent=2) + "\n")
 

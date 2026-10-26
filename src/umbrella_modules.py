@@ -25,8 +25,16 @@ Modes (`umbrella_modules_mode`):
 import hashlib
 import json
 
-MODULES = ("majiq", "dapars2", "qapa", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma")
+MODULES = ("majiq", "dapars2", "qapa", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma",
+           "ciriquant", "circexplorer2", "dcc")
+# shared producers that are never selected on their own (their own IDs and caches)
+INTERNAL_MODULES = ("circrna_star",)
 MODES = ("cached_only", "ingest")
+SCOPES = ("all", "selected")
+# modules that run only on the comparisons of umbrella_module_selection unless told otherwise
+DEFAULT_SCOPE = {"ciriquant": "selected", "circexplorer2": "selected", "dcc": "selected"}
+CIRCRNA_STAR = ("STAR 2.7.11b chimeric-only (--outSAMtype None, --chimOutType Junctions, legacy format); "
+                "DCC joint-mapping settings; profile v1")
 
 # pinned software, part of each module_reference_id
 SOFTWARE = {
@@ -39,6 +47,12 @@ SOFTWARE = {
     "vasttools": "vast-tools vastgroup/vast-tools@5598e1f1b0067611dc9e5abb285b4eacaf543ee3 (2.5.1) + bowtie 1.3.1",
     "vasttools_turbo": ("vast-tools vastgroup/vast-tools@5598e1f1b0067611dc9e5abb285b4eacaf543ee3 (2.5.1) + "
                         "bowtie 1.3.1; chunked align + vast-tools merge, profile v1"),
+    "ciriquant": ("CIRIquant 1.1.3 (bioconda) + hisat2 2.2.1; native counting with the load_fai and grouper "
+                  "Python 3 fixes (src/run_ciriquant.py); pseudo-circular index built once per catalogue with "
+                  "CIRIquant's generate_index/build_index; counts export v1"),
+    "circrna_star": CIRCRNA_STAR,
+    "circexplorer2": "CIRCexplorer2 2.3.8 parse -t STAR + annotate; on " + CIRCRNA_STAR,
+    "dcc": "DCC 0.5.0 (dieterich-lab/DCC@afd5cdd6) detection, CircSkip off; on " + CIRCRNA_STAR,
 }
 DAPARS2_COMMIT = "fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6"
 # vast-tools master at 3 Oct 2026 (VERSION 2.5.1; tagged releases stop at v2.5.1, 2020)
@@ -60,6 +74,110 @@ def vastdb_library(config):
 def _digest(payload, length=16):
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()[:length]
+
+
+def file_sha256(path, _cache={}):
+    """sha256 of a file's bytes, or a marker naming the missing path."""
+    import os
+    path = str(path)
+    if not os.path.isfile(path):
+        return "missing:" + path
+    key = (path, os.path.getmtime(path), os.path.getsize(path))
+    if key not in _cache:
+        digest = hashlib.sha256()
+        with open(path, "rb") as stream:
+            for block in iter(lambda: stream.read(1 << 20), b""):
+                digest.update(block)
+        _cache[key] = digest.hexdigest()
+    return _cache[key]
+
+
+def circrna_catalogue_settings(config):
+    """What the frozen circRNA catalogue is made from: sources (content hashes), the
+    liftover chain for sources on another assembly, and the build filters."""
+    assembly = str(config.get("circrna_assembly", "hg38"))
+    sources = []
+    for entry in config.get("circrna_catalogue_sources", []) or []:
+        if isinstance(entry, str):
+            entry = {"path": entry}
+        if not isinstance(entry, dict) or "path" not in entry:
+            raise ValueError("circrna_catalogue_sources entries need a path (and optionally assembly, name)")
+        source_assembly = str(entry.get("assembly", assembly))
+        role = str(entry.get("role", "quantify"))
+        if role not in ("quantify", "annotate"):
+            raise ValueError("circrna_catalogue_sources role must be quantify or annotate, not {}".format(role))
+        fmt = str(entry.get("format", "bed6"))
+        if fmt not in ("bed6", "circatlas", "circbase", "circpedia"):
+            raise ValueError("circrna_catalogue_sources format must be bed6, circatlas, circbase or circpedia")
+        sources.append({"name": str(entry.get("name", "")), "assembly": source_assembly, "role": role,
+                        "format": fmt, "tissue": str(entry.get("tissue", "")), "sha256": file_sha256(entry["path"])})
+    if sources and not any(source["role"] == "quantify" for source in sources):
+        raise ValueError("circrna_catalogue_sources needs at least one source with role quantify")
+    lifted = any(source["assembly"] != assembly for source in sources)
+    chain = config.get("circrna_liftover_chain", "")
+    return {"assembly": assembly, "sources": sources,
+            "liftover_chain": file_sha256(chain) if lifted and chain else ("" if not lifted else "missing"),
+            "max_span": int(config.get("circrna_max_span", 0)),
+            "max_pseudo_bases": int(config.get("circrna_max_pseudo_bases", 2_000_000_000)),
+            "build": "src/circrna_catalogue.py v2 (format converters; BSJ boundaries lifted one by one; "
+                     "annotate sources add names only)"}
+
+
+def circrna_catalogue_id(reference_id, config):
+    return _digest({"reference_id": reference_id, "catalogue": circrna_catalogue_settings(config)})
+
+
+def parse_scope(config):
+    """{module: 'all' | 'selected'} for every module (umbrella_module_scope overrides defaults)."""
+    raw = config.get("umbrella_module_scope", {}) or {}
+    if not isinstance(raw, dict):
+        raise ValueError("umbrella_module_scope must be a mapping, e.g. {ciriquant: selected}")
+    unknown = sorted(set(raw) - set(MODULES))
+    if unknown:
+        raise ValueError("umbrella_module_scope names unknown modules {}; choose from {}".format(
+            ", ".join(unknown), ", ".join(MODULES)))
+    bad = sorted(module for module, value in raw.items() if value not in SCOPES)
+    if bad:
+        raise ValueError("umbrella_module_scope values must be all or selected (check {})".format(", ".join(bad)))
+    scope = {module: DEFAULT_SCOPE.get(module, "all") for module in MODULES}
+    scope.update(raw)
+    return scope
+
+
+SELECTION_COLUMNS = ("comparison_id", "tool", "role", "library_evidence", "decided_by", "approved_by", "reason")
+
+
+def load_module_selection(path, comparison_ids, scope):
+    """Approved per-comparison selection for 'selected'-scope modules.
+
+    Returns {tool: {comparison_id: row}}. Unknown comparisons or tools, all-scope tools,
+    duplicates and rows without approved_by are refused; the selection is provenance,
+    not identity (it enters no cache, reference or analysis ID)."""
+    import csv
+    selection = {}
+    if not path:
+        return selection
+    with open(path, newline="") as stream:
+        reader = csv.DictReader((line for line in stream if not line.startswith("#")), delimiter="\t")
+        missing = set(SELECTION_COLUMNS) - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError("umbrella_module_selection {} lacks columns {}".format(path, ", ".join(sorted(missing))))
+        for number, row in enumerate(reader, start=2):
+            row = {key: (value or "").strip() for key, value in row.items() if key}
+            where = "umbrella_module_selection line {}".format(number)
+            if row["comparison_id"] not in comparison_ids:
+                raise ValueError("{}: comparison {} is not in umbrella_comparisons".format(where, row["comparison_id"]))
+            if row["tool"] not in scope:
+                raise ValueError("{}: unknown tool {}".format(where, row["tool"]))
+            if scope[row["tool"]] != "selected":
+                raise ValueError("{}: {} runs on every comparison (scope all); set umbrella_module_scope: "
+                                 "{{{}: selected}} to select comparisons for it".format(where, row["tool"], row["tool"]))
+            if not row["approved_by"]:
+                raise ValueError("{}: approved_by is empty; a person approves each row before a launch".format(where))
+            if row["comparison_id"] in selection.get(row["tool"], {}):
+                raise ValueError("{}: {} is selected twice for {}".format(where, row["comparison_id"], row["tool"]))
+            selection.setdefault(row["tool"], {})[row["comparison_id"]] = row
+    return selection
 
 
 def parse_selection(config):
@@ -92,6 +210,17 @@ def flag(value):
 
 def module_settings(config, module):
     """The config that changes a module's per-run caches (not its comparisons)."""
+    if module == "ciriquant":
+        return {"catalogue": circrna_catalogue_settings(config), "anchor": int(config.get("ciriquant_anchor", 5)),
+                "library_type": "from umbrella strandedness (auto: inferred junction strandedness)",
+                "counts": "every catalogue circRNA; BSJ and FSJ in read pairs"}
+    if module == "circrna_star":
+        return {"sjdb_overhang": int(config.get("circrna_star_sjdb_overhang", 100)),
+                "annotation": "umbrella annotation_gtf", "genome": "umbrella genome_fasta"}
+    if module == "circexplorer2":
+        return dict(module_settings(config, "circrna_star"), refflat="umbrella annotation_gtf, gene_name or gene_id")
+    if module == "dcc":
+        return dict(module_settings(config, "circrna_star"))
     if module == 'psisigma':
         # irmode 0 only: intron retention then depends on the annotation alone
         return {'canonical_only': flag(config.get('psisigma_canonical_only', True)), 'irmode': 0,
@@ -169,6 +298,11 @@ CACHE_FILES = {
     "qapa": ("quant.sf.gz", "lib_format_counts.json", "cache.json"),
     "vasttools": ("to_combine.tar", "cache.json"),
     "vasttools_turbo": ("to_combine.tar", "cache.json"),
+    "ciriquant": ("counts.tsv.gz", "cache.json"),
+    "circrna_star": ("Chimeric.out.junction.gz", "SJ.out.tab.gz", "Log.final.out", "cache.json"),
+    "circexplorer2": ("calls.tsv.gz", "circularRNA_known.txt.gz", "back_spliced_junction.bed.gz", "cache.json"),
+    # DCC runs per comparison on circrna_star caches; it keeps nothing per run
+    "dcc": (),
 }
 
 

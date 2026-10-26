@@ -285,7 +285,7 @@ nothing per run or per shard does. Check with a dry run first.
   tool versions in `umbrella_reference: versions`, compute the reference ID,
   and check the microexon report (`whippet.microexons.report.tsv`).
 
-## Optional modules: MAJIQ, DaPars2, QAPA, vast-tools, conservative rMATS and PSI-Sigma
+## Optional modules: MAJIQ, DaPars2, QAPA, vast-tools, conservative rMATS, PSI-Sigma and circRNA
 
 Six opt-in tools that can run on their own, in any subset, without
 MicroExonator, Whippet or the other comparison tools:
@@ -643,6 +643,94 @@ keeps PSI-Sigma's LICENSE next to it.
   `psisigma_variance` (0), `psisigma_irclean` (0), `psisigma_canonical_only`
   (true).
 
+### circRNA modules: CIRIquant, CIRCexplorer2 and DCC
+
+Three opt-in modules quantify and detect back-spliced junctions (BSJ):
+
+| Module | Per run (kept) | Per comparison |
+|---|---|---|
+| `ciriquant` (CIRIquant 1.1.3) | `counts.tsv.gz`: BSJ and FSJ read pairs for every catalogue circRNA, from the staged FASTQs and the shared HISAT2 BAM | replicate BSJ/FSJ matrices, CIRIquant's junction ratio 2*BSJ/(2*BSJ+FSJ), A minus B of the replicate means |
+| `circexplorer2` (2.3.8) | `calls.tsv.gz` from the shared STAR chimeric cache | detection support per replicate |
+| `dcc` (0.5.0) | none (reads the shared STAR caches) | DCC detection with its replicate filter |
+
+All comparison outputs are descriptive or detection-only (`status: no_tests`): no
+differential test is claimed for circRNAs in this release. Circular RNAs are depleted
+from poly(A)-selected libraries; select comparisons with documented rRNA-depleted
+libraries for inference, and record the library evidence in the selection.
+
+**Per-comparison scope.** These modules default to `umbrella_module_scope: selected`:
+they run only on the comparisons listed for them in `umbrella_module_selection`, and
+make per-run caches only for those comparisons' runs, in the same pass as the modules
+that run on every comparison. The selection is provenance, not identity: changing it
+never changes a cache, reference or analysis ID.
+
+```yaml
+umbrella_modules: [vasttools, rmats_conservative, psisigma, ciriquant, circexplorer2, dcc]
+umbrella_modules_mode: ingest
+umbrella_module_selection: circrna_selection.tsv
+# umbrella_module_scope: {circexplorer2: all}   # optional override per module
+circrna_catalogue_sources:
+  - {path: Homo-sapiens.txt, format: circpedia, tissue: Central nervous system, name: CIRCpedia_v3_CNS}
+  - {path: human_bed_v3.0.txt, format: circatlas, role: annotate, name: circAtlas_v3}
+  - {path: hsa_hg19_circRNA.txt, format: circbase, assembly: hg19, role: annotate, name: circBase}
+circrna_liftover_chain: hg19ToHg38.over.chain.gz
+circrna_max_span: 100000
+```
+
+`circrna_selection.tsv` (tab-separated; `#` lines are comments) needs the columns
+`comparison_id, tool, role, library_evidence, decided_by, approved_by, reason`. Rows
+without `approved_by`, unknown comparisons and modules whose scope is `all` are refused.
+`role` (e.g. `test`, `polya_reference`, `library_unknown`) and the evidence are copied
+into each comparison's `status.json` and the module inventory.
+
+- **Catalogue sources.** `format` reads each database as it is published: `bed6`
+  (0-based start), `circatlas` (circAtlas 3.0 `human_bed_v3.0.txt`, whose Start is
+  1-based), `circbase` (`hsa_hg19_circRNA.txt`, 0-based) and `circpedia` (CIRCpedia v3
+  `Homo-sapiens.txt`; `tissue` keeps rows whose long-read evidence names that tissue).
+  `role: quantify` sources make the catalogue; `role: annotate` sources only add their
+  names to the same BSJs. Whole databases are far too large for CIRIquant (circAtlas 3.0
+  human: 32 Gb of pseudo-reference), so quantify a tissue-relevant subset.
+- **Catalogue.** Sources are on `circrna_assembly` (hg38 by default) or lifted to it: each BSJ boundary is lifted separately through the UCSC
+  chain, both must land on the same contig and orientation, and failed rows are kept
+  beside the lifted file with their reason. The build merges names of the same BSJ,
+  drops rows outside the genome, ambiguous strands and mostly-N spans, reports splice
+  motifs, and refuses catalogues whose CIRIquant pseudo-reference (each circRNA's
+  genomic span written twice) exceeds `circrna_max_pseudo_bases` (2e9). `circrna_max_span`
+  (0 = no cap) is optional. The frozen catalogue and its content-derived ID live in
+  `umbrella/modules/reference/<reference_id>/circrna_catalogue/<catalogue_id>/`; its ID
+  enters CIRIquant's identity only.
+- **CIRIquant** needs paired-end runs; a selection asking it for a single-end or mixed
+  comparison stops at start-up. Its library type follows the umbrella strandedness
+  (`auto` reads the inferred one). `src/run_ciriquant.py` calls CIRIquant's own index,
+  realignment and BSJ/FSJ counting functions; it replaces only two helpers that still
+  carry Python 2 arithmetic in 1.1.3 (`load_fai`, `grouper`), and a test fails if
+  upstream fixes them. The pseudo-circular index is built once per catalogue
+  (`umbrella_ciriquant_index`, with CIRIquant's own `generate_index` and `build_index`)
+  instead of once per run; counts are identical (native test). Counts are exported for every catalogue circRNA (CIRIquant's own
+  GTF omits BSJ = 0), with `not_indexed` and `no_support` kept distinct from zero.
+- **Shared STAR.** One STAR 2.7.11b run per run (chimeric junctions only, no BAM,
+  DCC's joint-mapping settings) serves both CIRCexplorer2 and DCC; report their
+  agreement as shared-evidence support, not two independent discoveries. The STAR
+  index is built once from the umbrella genome and annotation (`circrna_star_sjdb_overhang`,
+  default 100). CIRCexplorer2 calls are computed from the kept STAR cache, so they can
+  be made in `cached_only`; DCC runs per comparison on the kept STAR caches, with its
+  CircSkip step switched off.
+- **Targets.** `prepare_<tool>` and `quant_<tool>` for `ciriquant`, `circexplorer2` and
+  `dcc`; `quant_umbrella_modules` includes them when selected.
+
+Tests: `tests/test_circrna_catalogue.py`, `tests/test_run_ciriquant.py`,
+`tests/test_circrna_discovery.py`, `tests/test_circrna_workflow_dag.py`,
+`tests/test_umbrella_module_scope.py` and `tests/test_circrna_workflow_native.py` (a real
+Snakemake run on a synthetic genome). The native tests need conda prefixes made from the
+two environment files:
+
+```bash
+CIRCRNA_CIRIQUANT_ENV=/path/to/ciriquant-env CIRCRNA_DISCOVERY_ENV=/path/to/discovery-env MICROEXONATOR_SNAKEMAKE=$(which snakemake) python -m unittest tests.test_run_ciriquant tests.test_circrna_discovery tests.test_circrna_workflow_native -v
+```
+
+Real STAR runs only on Linux in these tests (STAR's macOS builds cannot spawn
+`--readFilesCommand`; the module streams gzipped reads through named pipes instead).
+
 ## Known limits
 
 - Whippet psi path columns (`Inc_Paths`, `Exc_Paths`, `Edges`) are not kept.
@@ -671,3 +759,63 @@ workflow-level speed-up and runs on the pinned commit.
 
 - The cache gzip in `src/run_vasttools.py` only compresses the small
   `to_combine` files, so switching it to pigz would gain nothing measurable.
+# Optional circRNA differential comparisons
+
+After circRNA counting, enable comparison-only inference with:
+
+```yaml
+circrna_differential: true
+circrna_hisat_delta: true
+circrna_delta_min_samples: 2
+circrna_delta_min_reads: 5
+circrna_delta_draws: 10000
+circrna_delta_threshold: 0.1
+```
+
+The existing selected circRNA targets then include `umbrella_circrna_differential`.
+Add that rule to any `--allowed-rules` list. The conda environment is
+`envs/umbrella-circrna-diff.yaml`; the PBS example includes a one-core, 8 GB entry.
+Outputs live beneath each tool/comparison's `differential/<settings-id>/` directory.
+Changing these settings does not change counting-cache identities.
+
+`abundance.tsv.gz` uses edgeR quasi-likelihood inference on integer BSJ counts,
+TMMwsp normalization and BH adjustment within this tool/comparison. This follows
+the recommended replicated count-model family, but does not reproduce native
+CIRI_DE_replicate's gene-derived normalization. The tested universe consists of
+the retained native calls; discovery/annotation filtering limits it. Missing
+counts are not converted to zeros. With inadequate support, `status.tsv` reports
+`insufficient_data` rather than manufacturing significant events: fewer than two
+replicates per side, fewer than `circrna_abundance_min_events` (default 10) events
+before or after `filterByExpr`, or a replicate without BSJ reads. An edgeR fit error
+is `fit_failed` with its message; R warnings are kept as `warning` lines. Read
+`events_tested` and `normalization.tsv` with the results: when filtering leaves few
+events, most of them changed, TMMwsp and the dispersion estimate absorb the change.
+
+`hisat_delta.tsv.gz` is a separate **experimental** Whippet-style Bayesian
+comparison of BSJ/(BSJ+linear support), independently at the donor and acceptor.
+Linear support comes from unique-fragment HISAT2 junction counts sharing the
+same chromosome, strand and exact splice boundary. It is not native CIRIquant's
+2*BSJ/(2*BSJ+FSJ), nor an estimate of complete circular transcript abundance.
+The two boundaries are not independent replication and must not count as two
+tool votes. `hisat_evidence.tsv.gz` retains the per-replicate numerator and
+denominator. Cross-aligner count differences and possible shared fragment
+evidence mean the posterior confidence is not calibrated FDR.
+In count simulations (`python -m tests.simulate_circrna_delta`; 120 events, 3 vs 3,
+P(|delta| > 0.1) >= 0.95) the pooled moment-fit posterior, like MicroExonator Delta,
+made no calls under a homogeneous null, but 7/120 under a null with heterogeneous
+replicates, and found 14-18/120 moderate changes (0.3 vs 0.5). Treat calls from
+overdispersed comparisons with caution.
+
+The Bayesian route requires **already retained** junction shards at
+`junctions/<reference>/<project>/<group>/<batch>.junctions.tsv.gz`. Missing
+shards stop the DAG; enabling this option never implicitly regenerates HISAT2
+alignments. For a new cohort, finish retaining those shards first, then run the
+comparison from caches. Set `circrna_hisat_delta: false` to run abundance only.
+The current module-only rerun does not itself create these group/batch shards.
+
+No one-to-one inference: at least two eligible biological replicates per group
+are required. Technical units are collapsed first. Opposite-strand circles,
+unknown library protocols and detector-only novel events need separate review.
+Assess tool agreement within the jointly measurable event universe, separately
+for abundance and usage. Shared STAR/HISAT2 evidence is correlated; consensus
+alone does not establish specificity.

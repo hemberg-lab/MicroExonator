@@ -1,0 +1,10 @@
+name: microexonator-circrna-diff
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - numpy=1.26
+  - r-base=4.3
+  - bioconductor-edger=4.0
+  - r-statmod

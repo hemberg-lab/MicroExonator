@@ -28,6 +28,8 @@ PRIORITIES = {
     'umbrella_vasttools_turbo_split': 100,
     'umbrella_vasttools_turbo_chunk': 100,
     'umbrella_psisigma_prep': 100,
+    'umbrella_ciriquant_prep': 100,
+    'umbrella_circrna_star': 100,
     # Other direct readers: all must finish, not just the alignment.
     'umbrella_whippet_quant': 90,
     'umbrella_junctions': 90,
