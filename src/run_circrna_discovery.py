@@ -42,6 +42,11 @@ STAR_CHIMERIC = ("--chimSegmentMin", "15", "--chimJunctionOverhangMin", "15", "-
                  "--outSJfilterOverhangMin", "15", "15", "15", "15", "--chimMultimapNmax", "0",
                  "--chimOutJunctionFormat", "0", "--chimOutType", "Junctions", "--outSAMtype", "None")
 STAR_FILES = ("Chimeric.out.junction.gz", "SJ.out.tab.gz", "Log.final.out", "cache.json")
+# bioconda STAR ships one build per CPU instruction set behind a dispatch script (bin/STAR); on the
+# cluster's older nodes that script picks a build the CPU cannot run (Illegal instruction, exit 132).
+# Each job therefore picks the fastest build whose instruction set /proc/cpuinfo lists and that runs.
+STAR_BUILDS = (("STAR-avx2", "avx2"), ("STAR-avx", "avx"), ("STAR-sse4.1", "sse4_1"), ("STAR-ssse3", "ssse3"),
+               ("STAR-sse3", "pni"), ("STAR-plain", None))
 CALL_COLUMNS = ("circ_id", "chrom", "start", "end", "strand", "reads", "gene", "circ_type", "exon_count")
 
 
@@ -94,7 +99,60 @@ def _log_final(path):
     return {name: stats.get(key, "") for name, key in keys.items()}
 
 
-def star(reads, index, out_dir, run_id, threads=1, identity=None, tmp_root=None, star_bin="STAR"):
+def cpu_flags(cpuinfo="/proc/cpuinfo"):
+    """Instruction-set flags of this machine; None where /proc/cpuinfo does not exist (macOS)."""
+    try:
+        text = Path(cpuinfo).read_text()
+    except OSError:
+        return None
+    for line in text.splitlines():
+        if line.split(":", 1)[0].strip() == "flags":
+            return set(line.split(":", 1)[1].split())
+    return set()
+
+
+def _runs(binary):
+    try:
+        return subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=60).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def star_binary(cpuinfo="/proc/cpuinfo"):
+    """STAR executable for this machine: CIRCRNA_STAR_BIN if set, else the first runnable build it supports."""
+    if os.environ.get("CIRCRNA_STAR_BIN"):
+        return os.environ["CIRCRNA_STAR_BIN"]
+    flags = cpu_flags(cpuinfo)
+    if flags is None:
+        return "STAR"
+    tried = []
+    for name, flag in STAR_BUILDS:
+        path = shutil.which(name)
+        if path and (flag is None or flag in flags):
+            tried.append(name)
+            if _runs(path):
+                return path
+    if _runs("STAR"):
+        return "STAR"
+    raise SystemExit("no STAR build runs on this machine (tried {} and STAR)".format(", ".join(tried) or "none"))
+
+
+def star_index(genome, gtf, out_dir, threads=1, overhang=100, sa_bases=14):
+    """STAR genome index for the chimeric runs, with a build this machine can run."""
+    binary = star_binary()
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    print("STAR build: " + binary, flush=True)
+    command = [binary, "--runMode", "genomeGenerate", "--runThreadN", str(threads), "--genomeDir", str(out_dir),
+               "--genomeFastaFiles", str(genome), "--sjdbGTFfile", str(gtf), "--sjdbOverhang", str(overhang),
+               "--genomeSAindexNbases", str(sa_bases), "--outFileNamePrefix", str(out_dir).rstrip("/") + "/"]
+    print("$ " + " ".join(command), flush=True)
+    result = subprocess.run(command)
+    if result.returncode:
+        raise SystemExit("STAR genomeGenerate failed with exit {}".format(result.returncode))
+
+
+def star(reads, index, out_dir, run_id, threads=1, identity=None, tmp_root=None, star_bin=None):
+    star_bin = star_bin or star_binary()
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     tmp_root = tmp_root or os.environ.get("TMPDIR") or str(out)
@@ -128,6 +186,7 @@ def star(reads, index, out_dir, run_id, threads=1, identity=None, tmp_root=None,
         shutil.copyfile(work / "Log.final.out", out / "Log.final.out")
     stats = _log_final(out / "Log.final.out")
     record = dict(identity or {}, run_id=run_id, tool="circrna_star", star_version=version,
+                  star_build=Path(star_bin).name,
                   parameters=list(STAR_CHIMERIC), mates=len(reads), **stats)
     (out / "cache.json").write_text(json.dumps(record, sort_keys=True, indent=2) + "\n")
     return record
@@ -362,6 +421,13 @@ def main(argv=None):
     s.add_argument("--threads", type=int, default=1)
     s.add_argument("--identity", default="{}")
     s.add_argument("--tmp-root")
+    x = commands.add_parser("star-index")
+    x.add_argument("--genome", required=True)
+    x.add_argument("--gtf", required=True)
+    x.add_argument("--out-dir", required=True)
+    x.add_argument("--threads", type=int, default=1)
+    x.add_argument("--overhang", type=int, default=100)
+    x.add_argument("--sa-bases", type=int, default=14)
     c = commands.add_parser("circexplorer2")
     c.add_argument("--star-cache", required=True)
     c.add_argument("--refflat", required=True)
@@ -388,6 +454,8 @@ def main(argv=None):
         print(gtf_to_refflat(args.gtf, args.out), "transcripts")
     elif args.command == "star":
         star(args.reads, args.index, args.out_dir, args.run_id, args.threads, json.loads(args.identity), args.tmp_root)
+    elif args.command == "star-index":
+        star_index(args.genome, args.gtf, args.out_dir, args.threads, args.overhang, args.sa_bases)
     elif args.command == "circexplorer2":
         circexplorer2(args.star_cache, args.refflat, args.genome, args.out_dir, args.run_id,
                       json.loads(args.identity), args.tmp_root)

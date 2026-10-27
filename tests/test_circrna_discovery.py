@@ -151,6 +151,81 @@ class NativeParserTests(unittest.TestCase):
         self.assertEqual(json.loads((out / "status.json").read_text())["status"], "no_tests")
 
 
+class StarBuildTests(unittest.TestCase):
+    """bioconda's STAR dispatch script crashed on the cluster (Illegal instruction, exit 132)."""
+
+    def builds(self, folder, crash=(), flags="fpu sse sse2 pni ssse3 sse4_1 sse4_2 avx avx2"):
+        for name in [n for n, _ in rd.STAR_BUILDS] + ["STAR"]:
+            path = folder / name
+            # exit 132 is what the shell reports for SIGILL
+            path.write_text("#!/bin/sh\n" + ("exit 132\n" if name in crash else "echo 2.7.11b\n"))
+            path.chmod(0o755)
+        cpuinfo = folder / "cpuinfo"
+        cpuinfo.write_text("processor\t: 0\nflags\t\t: {}\n".format(flags))
+        return cpuinfo
+
+    def pick(self, **kwargs):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            cpuinfo = self.builds(folder, **kwargs)
+            old = os.environ.get("PATH", "")
+            os.environ["PATH"] = str(folder) + os.pathsep + old
+            try:
+                return Path(rd.star_binary(str(cpuinfo))).name
+            finally:
+                os.environ["PATH"] = old
+
+    def test_fastest_supported_build_is_used(self):
+        self.assertEqual(self.pick(), "STAR-avx2")
+
+    def test_builds_the_cpu_lacks_are_never_tried(self):
+        # rc06: sse4_2 and no avx/avx2
+        self.assertEqual(self.pick(flags="fpu sse sse2 pni ssse3 sse4_1 sse4_2"), "STAR-sse4.1")
+
+    def test_a_build_that_crashes_is_skipped(self):
+        self.assertEqual(self.pick(crash=("STAR", "STAR-avx2", "STAR-avx")), "STAR-sse4.1")
+
+    def test_no_runnable_build_stops_with_the_list_tried(self):
+        crash = tuple(n for n, _ in rd.STAR_BUILDS) + ("STAR",)
+        with self.assertRaises(SystemExit) as stop:
+            self.pick(crash=crash, flags="sse sse2")
+        self.assertIn("STAR-plain", str(stop.exception))
+
+    def test_override_and_machines_without_cpuinfo(self):
+        os.environ["CIRCRNA_STAR_BIN"] = "/opt/STAR"
+        try:
+            self.assertEqual(rd.star_binary("/nonexistent"), "/opt/STAR")
+        finally:
+            del os.environ["CIRCRNA_STAR_BIN"]
+        self.assertEqual(rd.star_binary("/nonexistent/cpuinfo"), "STAR")
+
+    def test_star_index_command(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            fake = folder / "STAR-fake"
+            fake.write_text('#!/bin/sh\necho "$@" > "$(dirname "$0")/args"\n')
+            fake.chmod(0o755)
+            crash = folder / "STAR-crash"
+            crash.write_text("#!/bin/sh\nexit 132\n")
+            crash.chmod(0o755)
+            os.environ["CIRCRNA_STAR_BIN"] = str(fake)
+            try:
+                rd.main(["star-index", "--genome", "g.fa", "--gtf", "a.gtf", "--out-dir", str(folder / "index"),
+                         "--threads", "8", "--overhang", "100", "--sa-bases", "14"])
+                args = (folder / "args").read_text().split()
+                self.assertEqual(args[:2], ["--runMode", "genomeGenerate"])
+                for flag, value in (("--runThreadN", "8"), ("--genomeDir", str(folder / "index")),
+                                    ("--sjdbGTFfile", "a.gtf"), ("--genomeSAindexNbases", "14"),
+                                    ("--outFileNamePrefix", str(folder / "index") + "/")):
+                    self.assertEqual(args[args.index(flag) + 1], value)
+                os.environ["CIRCRNA_STAR_BIN"] = str(crash)
+                with self.assertRaises(SystemExit) as stop:
+                    rd.main(["star-index", "--genome", "g.fa", "--gtf", "a.gtf", "--out-dir", str(folder / "i2")])
+                self.assertIn("exit 132", str(stop.exception))
+            finally:
+                del os.environ["CIRCRNA_STAR_BIN"]
+
+
 @unittest.skipUnless(ENV and platform.system() == "Linux",
                      "real STAR runs on Linux only (macOS STAR cannot spawn readFilesCommand); run on the cluster")
 class NativeStarTests(unittest.TestCase):
@@ -164,7 +239,7 @@ class NativeStarTests(unittest.TestCase):
             fx = fixture.build(work / "fx")
             index = work / "star_index"
             index.mkdir()
-            subprocess.run(["STAR", "--runMode", "genomeGenerate", "--genomeDir", str(index), "--genomeFastaFiles",
+            subprocess.run([rd.star_binary(), "--runMode", "genomeGenerate", "--genomeDir", str(index), "--genomeFastaFiles",
                             str(fx["genome"]), "--sjdbGTFfile", str(fx["gtf"]), "--sjdbOverhang", "74",
                             "--genomeSAindexNbases", "5", "--outFileNamePrefix", str(index) + "/"],
                            env=env, check=True, capture_output=True)

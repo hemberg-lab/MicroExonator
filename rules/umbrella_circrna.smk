@@ -216,9 +216,10 @@ rule umbrella_circrna_star_index:
     conda:
         "../envs/umbrella-circrna-discovery.yaml"
     shell:
-        "mkdir -p {output} && STAR --runMode genomeGenerate --runThreadN {threads} --genomeDir {output} "
-        "--genomeFastaFiles {input.genome} --sjdbGTFfile {input.gtf} --sjdbOverhang {params.overhang} "
-        "--genomeSAindexNbases {params.sa_bases} --outFileNamePrefix {output}/ > {log} 2>&1"
+        # run_circrna_discovery.py picks a STAR build the node can run (see STAR_BUILDS there)
+        "python3 src/run_circrna_discovery.py star-index --genome {input.genome} --gtf {input.gtf} "
+        "--out-dir {output} --threads {threads} --overhang {params.overhang} --sa-bases {params.sa_bases} "
+        "> {log} 2>&1"
 
 
 rule umbrella_circrna_refflat:
