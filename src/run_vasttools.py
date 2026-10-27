@@ -2,6 +2,8 @@
 
 install-db  Once: unpack a downloaded VASTDB library, check its layout and record
             its checksum (installed.json); the archive is then deleted.
+link-db     Instead of install-db, when the library is already unpacked on disk
+            (config vasttools_vastdb_dir): check its layout and release, link it.
 align     Per run, from the staged reads: `vast-tools align` (reads split into
           50-nt pieces, mapped to the genome and to VASTDB's junction libraries;
           strandedness detected by vast-tools). Keeps only the run's
@@ -121,6 +123,35 @@ def install_db(archive, folder, species, url, record):
         "vastdb_version": version.read_text().strip() if version.exists() else ""},
         sort_keys=True, indent=2) + "\n")
     archive.unlink()
+
+
+def link_db(existing, folder, species, record, release):
+    """Use a VASTDB library already unpacked elsewhere (e.g. a lab copy) instead of
+    downloading it: check its layout and release, link <folder>/<key> to it, record it.
+    `existing` is the folder holding e.g. Hs2/, or the Hs2/ folder itself."""
+    key = SPECIES_KEY.get(species)
+    if key is None:
+        raise SystemExit("no VASTDB species key for {}".format(species))
+    existing = Path(existing).resolve()
+    source = existing if existing.name == key else existing / key
+    for needed in ("FILES", "TEMPLATES"):
+        if not (source / needed).is_dir():
+            raise SystemExit("VASTDB {} has no {}/{}".format(existing, key, needed))
+    version_file = source / "VASTDB_VERSION"
+    version = version_file.read_text().strip() if version_file.exists() else ""
+    if release not in version:
+        raise SystemExit("VASTDB {} is release {!r}, not {}: event IDs would differ; point "
+                         "vasttools_vastdb_dir at a {} library".format(source, version or "unknown", release, release))
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    link = folder / key
+    if link.is_symlink() and link.resolve() != source:
+        link.unlink()
+    if not link.exists():
+        link.symlink_to(source, target_is_directory=True)
+    Path(record).write_text(json.dumps({
+        "species": species, "species_key": key, "source_dir": str(source), "linked": True,
+        "vastdb_version": version}, sort_keys=True, indent=2) + "\n")
 
 
 # ------------------------------------------------------------ per run
@@ -602,6 +633,12 @@ def main(argv=None):
     db.add_argument("--species", required=True)
     db.add_argument("--url", default="")
     db.add_argument("--record", required=True)
+    ln = commands.add_parser("link-db")
+    ln.add_argument("--existing", required=True, help="unpacked VASTDB folder (holding e.g. Hs2/)")
+    ln.add_argument("--folder", required=True)
+    ln.add_argument("--species", required=True)
+    ln.add_argument("--release", required=True, help="expected release, e.g. 23.06.20")
+    ln.add_argument("--record", required=True)
     al = commands.add_parser("align")
     al.add_argument("--vast-tools", required=True, help="folder holding the vast-tools script")
     al.add_argument("--dbdir", required=True, help="VASTDB folder (holding e.g. Hs2/)")
@@ -629,6 +666,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "install-db":
         install_db(args.archive, args.folder, args.species, args.url, args.record)
+    elif args.command == "link-db":
+        link_db(args.existing, args.folder, args.species, args.record, args.release)
     elif args.command == "align":
         align(args.vast_tools, args.dbdir, args.species, args.reads, args.run_id, args.out_dir,
               args.threads, args.ir_version, args.expr, args.tmp_root, json.loads(args.identity))

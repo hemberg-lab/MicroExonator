@@ -668,14 +668,23 @@ rule umbrella_vasttools_software:
         "&& chmod +x {output}"
 
 
+# vasttools_vastdb_dir: an unpacked library already on disk (same release) is linked
+# instead of downloaded, e.g. when vastdb.crg.eu is unreachable
+VASTDB_EXISTING = config.get("vasttools_vastdb_dir")
+
+
 rule umbrella_vastdb:
     output:
         protected(VASTDB)
     params:
         folder=VASTDB_DIR,
         url=config.get("vasttools_vastdb_url", "https://vastdb.crg.eu/libs/" + VASTDB_FILE),
-        species=VASTTOOLS_SPECIES
+        species=VASTTOOLS_SPECIES,
+        existing=VASTDB_EXISTING or "",
+        release=".".join(VASTDB_FILE[:-len(".tar.gz")].split(".")[-3:])
     shell:
+        "python3 src/run_vasttools.py link-db --existing {params.existing:q} --folder {params.folder} "
+        "--species {params.species} --release {params.release} --record {output}" if VASTDB_EXISTING else
         # about 5 GB for hg38; -C - resumes an interrupted download
         "mkdir -p {params.folder} && curl -fL --retry 5 --retry-delay 60 -C - "
         "-o {params.folder}/library.tar.gz {params.url} "

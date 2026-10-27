@@ -400,6 +400,42 @@ class InstallDbTests(unittest.TestCase):
             self.assertFalse((temp / "installed.json").exists())
 
 
+class LinkDbTests(unittest.TestCase):
+    """vastdb.crg.eu stopped serving the library on 27 October 2026: link a copy on disk instead."""
+
+    def library(self, root, version="vastdb.hs2.23.06.20\n"):
+        for sub in ("FILES", "TEMPLATES"):
+            (root / "Hs2" / sub).mkdir(parents=True)
+        if version is not None:
+            (root / "Hs2" / "VASTDB_VERSION").write_text(version)
+        return root
+
+    def test_links_the_library_and_records_it(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp = Path(temp)
+            lab = self.library(temp / "lab" / "VASTDB")
+            for given in (lab, lab / "Hs2"):
+                folder = temp / ("db_" + given.name)
+                vt.main(["link-db", "--existing", str(given), "--folder", str(folder), "--species", "hg38",
+                         "--release", "23.06.20", "--record", str(folder / "installed.json")])
+                self.assertEqual((folder / "Hs2").resolve(), (lab / "Hs2").resolve())
+                record = json.loads((folder / "installed.json").read_text())
+                self.assertTrue(record["linked"])
+                self.assertEqual(record["vastdb_version"], "vastdb.hs2.23.06.20")
+
+    def test_other_release_missing_version_or_layout_is_refused(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp = Path(temp)
+            for name, version in (("old", "vastdb.hs2.20.12.19\n"), ("unversioned", None)):
+                lab = self.library(temp / name, version)
+                with self.assertRaisesRegex(SystemExit, "not 23.06.20"):
+                    vt.link_db(lab, temp / ("db_" + name), "hg38", temp / "r.json", "23.06.20")
+            (temp / "empty" / "Hs2").mkdir(parents=True)
+            with self.assertRaisesRegex(SystemExit, "has no Hs2/FILES"):
+                vt.link_db(temp / "empty", temp / "db_empty", "hg38", temp / "r.json", "23.06.20")
+            self.assertFalse((temp / "r.json").exists())
+
+
 @unittest.skipUnless(os.environ.get("VASTTOOLS_TEST_DIR") and os.environ.get("VASTTOOLS_TEST_DB")
                      and shutil.which("bowtie"), "real vast-tools run: set VASTTOOLS_TEST_DIR/_DB/_SPECIES")
 class RealVastToolsTests(unittest.TestCase):

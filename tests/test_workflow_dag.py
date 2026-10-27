@@ -1012,6 +1012,12 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
                                                          "vasttools_vastdb_url: https://mirror.example/hs2.tar.gz"])
         self.assertEqual(mirror.returncode, 0, mirror.stdout)
         self.assertIn("https://mirror.example/hs2.tar.gz", mirror.stdout)
+        local = self.module_dry_run("quant_vasttools", ["umbrella_modules_mode: ingest",
+                                                        "vasttools_vastdb_dir: /lab/VASTDB"])
+        self.assertEqual(local.returncode, 0, local.stdout)
+        self.assertIn("run_vasttools.py link-db --existing /lab/VASTDB", local.stdout)
+        self.assertIn("--release 23.06.20", local.stdout)
+        self.assertNotIn("curl -fL", local.stdout)
         unknown = self.module_dry_run("quant_vasttools", ["vasttools_species: panTro4"])
         self.assertNotEqual(unknown.returncode, 0)
         self.assertIn("vasttools_species panTro4 has no VASTDB library here", unknown.stdout)
