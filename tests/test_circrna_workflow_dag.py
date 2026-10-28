@@ -192,5 +192,31 @@ class CircrnaDagTests(unittest.TestCase):
             self.assertNotIn("rule umbrella_" + absent, result.stdout)
 
 
+    def test_whippet_circ_quantifies_selected_runs_beside_the_core_whippet(self):
+        result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest",
+                                                     "whippet_flags: --biascorrect"],
+                              [selection_row("small", "whippet_circ")], catalogue=False)
+        self.assertEqual(result.returncode, 0, result.stdout[-4000:])
+        stats = self.stats(result)
+        self.assertEqual(stats.get("umbrella_whippet_circ_quant"), "2")            # run_b and run_c
+        self.assertEqual(stats.get("umbrella_whippet_circ_compare"), "1")
+        out = result.stdout
+        self.assertIn("run_whippet_circ.py quant", out)
+        self.assertIn("--flags --biascorrect", out)
+        self.assertRegex(out, r"--index /\S+/whippet\.jls ")                    # the existing index, absolute
+        for absent in ("rule umbrella_whippet_index:", "rule umbrella_whippet_quant:", "rule umbrella_hisat2:"):
+            self.assertNotIn(absent, out)                                           # core Whippet untouched
+
+    def test_whippet_circ_cached_only_compares_kept_caches(self):
+        def setup(folder):
+            twd.UmbrellaNativeQuantificationTests.write_module_caches(folder, ["whippet_circ"])
+        result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]"],
+                              [selection_row("small", "whippet_circ")], catalogue=False, prepare=setup)
+        self.assertEqual(result.returncode, 0, result.stdout[-4000:])
+        self.assertIn("run_whippet_circ.py compare", result.stdout)
+        self.assertNotIn("rule umbrella_stage", result.stdout)
+        self.assertNotIn("rule umbrella_whippet_circ_quant:", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

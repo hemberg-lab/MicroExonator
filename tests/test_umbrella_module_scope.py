@@ -11,7 +11,8 @@ HEADER = "\t".join(um.SELECTION_COLUMNS) + "\n"
 class ScopeTests(unittest.TestCase):
     def test_defaults_keep_existing_modules_on_every_comparison(self):
         scope = um.parse_scope({})
-        self.assertEqual({m for m, s in scope.items() if s == "selected"}, {"ciriquant", "circexplorer2", "dcc"})
+        self.assertEqual({m for m, s in scope.items() if s == "selected"},
+                         {"ciriquant", "circexplorer2", "dcc", "whippet_circ"})
         self.assertEqual(scope["vasttools"], "all")
         self.assertEqual(um.parse_scope({"umbrella_module_scope": {"ciriquant": "all"}})["ciriquant"], "all")
 

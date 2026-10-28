@@ -1164,6 +1164,28 @@
         "output": "logs/U.circrna_star.{wildcards.run_id}.out",
         "error": "logs/U.circrna_star.{wildcards.run_id}.err"
     },
+    "umbrella_whippet_circ_quant": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "12000",
+        "mem": "12000mb",
+        "walltime": "24:00:00",
+        "runtime": 86400,
+        "name": "U.whippet_circ_quant.{wildcards.run_id}",
+        "output": "logs/U.whippet_circ_quant.{wildcards.run_id}.out",
+        "error": "logs/U.whippet_circ_quant.{wildcards.run_id}.err"
+    },
+    "umbrella_whippet_circ_compare": {
+        "ppn": "1",
+        "threads": "1",
+        "mem_mb": "16000",
+        "mem": "16000mb",
+        "walltime": "12:00:00",
+        "runtime": 43200,
+        "name": "U.whippet_circ_compare.{wildcards.comparison_id}",
+        "output": "logs/U.whippet_circ_compare.{wildcards.comparison_id}.out",
+        "error": "logs/U.whippet_circ_compare.{wildcards.comparison_id}.err"
+    },
     "umbrella_ciriquant_prep": {
         "ppn": "8",
         "threads": "8",

@@ -1,5 +1,6 @@
 """Optional umbrella modules: MAJIQ v3, DaPars2, QAPA, vast-tools(+turbo), conservative rMATS,
-PSI-Sigma and the circRNA modules CIRIquant, CIRCexplorer2 and DCC (src/umbrella_modules.py).
+PSI-Sigma, the circRNA modules CIRIquant, CIRCexplorer2 and DCC, and Whippet --circ
+(src/umbrella_modules.py).
 
 Scope: umbrella_module_scope {tool: all | selected}; "selected" modules (the circRNA ones by
 default) run only on the comparisons listed for them in umbrella_module_selection.
@@ -837,6 +838,7 @@ include: 'umbrella_rmats_conservative.smk'
 include: 'umbrella_psisigma.smk'
 include: 'umbrella_vasttools_turbo.smk'
 include: 'umbrella_circrna.smk'
+include: 'umbrella_whippet_circ.smk'
 
 
 def umbrella_module_targets(wildcards=None):

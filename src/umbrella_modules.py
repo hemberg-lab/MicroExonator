@@ -26,13 +26,14 @@ import hashlib
 import json
 
 MODULES = ("majiq", "dapars2", "qapa", "vasttools", "vasttools_turbo", "rmats_conservative", "psisigma",
-           "ciriquant", "circexplorer2", "dcc")
+           "ciriquant", "circexplorer2", "dcc", "whippet_circ")
 # shared producers that are never selected on their own (their own IDs and caches)
 INTERNAL_MODULES = ("circrna_star",)
 MODES = ("cached_only", "ingest")
 SCOPES = ("all", "selected")
 # modules that run only on the comparisons of umbrella_module_selection unless told otherwise
-DEFAULT_SCOPE = {"ciriquant": "selected", "circexplorer2": "selected", "dcc": "selected"}
+DEFAULT_SCOPE = {"ciriquant": "selected", "circexplorer2": "selected", "dcc": "selected",
+                 "whippet_circ": "selected"}
 CIRCRNA_STAR = ("STAR 2.7.11b chimeric-only (--outSAMtype None, --chimOutType Junctions, legacy format); "
                 "DCC joint-mapping settings; profile v1")
 
@@ -53,6 +54,8 @@ SOFTWARE = {
     "circrna_star": CIRCRNA_STAR,
     "circexplorer2": "CIRCexplorer2 2.3.8 parse -t STAR + annotate; on " + CIRCRNA_STAR,
     "dcc": "DCC 0.5.0 (dieterich-lab/DCC@afd5cdd6) detection, CircSkip off; on " + CIRCRNA_STAR,
+    "whippet_circ": ("Whippet.jl whippet-quant --circ (whippet_bin_folder; version recorded per cache) on the "
+                     "umbrella Whippet index; keeps psi, jnc, gene and isoform TPM; profile v1"),
 }
 DAPARS2_COMMIT = "fb81c6cce1a1bbd8093cba327040f16e4ccc7cb6"
 # vast-tools master at 3 Oct 2026 (VERSION 2.5.1; tagged releases stop at v2.5.1, 2020)
@@ -221,6 +224,10 @@ def module_settings(config, module):
         return dict(module_settings(config, "circrna_star"), refflat="umbrella annotation_gtf, gene_name or gene_id")
     if module == "dcc":
         return dict(module_settings(config, "circrna_star"))
+    if module == "whippet_circ":
+        # the core Whippet quant's flags plus --circ, so linear events stay comparable to it
+        return {"flags": str(config.get("whippet_flags", "") or ""), "circ": True,
+                "whippet": str(config.get("whippet_bin_folder", "")), "index": "umbrella Whippet index"}
     if module == 'psisigma':
         # irmode 0 only: intron retention then depends on the annotation alone
         return {'canonical_only': flag(config.get('psisigma_canonical_only', True)), 'irmode': 0,
@@ -303,6 +310,7 @@ CACHE_FILES = {
     "circexplorer2": ("calls.tsv.gz", "circularRNA_known.txt.gz", "back_spliced_junction.bed.gz", "cache.json"),
     # DCC runs per comparison on circrna_star caches; it keeps nothing per run
     "dcc": (),
+    "whippet_circ": ("quant.psi.gz", "quant.jnc.gz", "quant.gene.tpm.gz", "quant.isoform.tpm.gz", "cache.json"),
 }
 
 
