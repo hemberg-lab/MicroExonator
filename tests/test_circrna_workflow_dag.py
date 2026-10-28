@@ -1,10 +1,15 @@
 """Snakemake dry runs of the circRNA modules and of per-comparison module scope."""
 import os
+import shlex
+import sys
+from pathlib import Path
 import gzip
 import re
 import unittest
 
 from tests import test_workflow_dag as twd
+
+REPOSITORY = Path(__file__).resolve().parent.parent
 
 ROWS = twd.UmbrellaNativeQuantificationTests.UMBRELLA_ROWS + [
     "sample_e\trun_e\trep_e\tproject\tbatch\tse_control\tfastq\tr1.fastq.gz\t\tSE\tunstranded\tref\ttrue",
@@ -202,7 +207,22 @@ class CircrnaDagTests(unittest.TestCase):
         self.assertEqual(stats.get("umbrella_whippet_circ_compare"), "1")
         out = result.stdout
         self.assertIn("run_whippet_circ.py quant", out)
-        self.assertIn("--flags --biascorrect", out)
+        self.assertIn("--flags=--biascorrect", out)
+        plain = self.dry_run("prepare_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest"],
+                             [selection_row("small", "whippet_circ")], catalogue=False)
+        self.assertEqual(plain.returncode, 0, plain.stdout[-3000:])
+        command = re.search(r"python3 src/run_whippet_circ\.py quant .*", plain.stdout).group(0)
+        self.assertIn("--flags= --identity", command)            # no whippet_flags: still one argument
+        sys.path.insert(0, str(REPOSITORY))
+        from src import run_whippet_circ
+        args = shlex.split(command.split(" > ")[0])[2:]
+        calls = []
+        original, run_whippet_circ.quant = run_whippet_circ.quant, lambda *a: calls.append(a)
+        try:
+            run_whippet_circ.main(args)
+        finally:
+            run_whippet_circ.quant = original
+        self.assertEqual(calls[0][6], "")                          # flags parsed as empty
         self.assertRegex(out, r"--index /\S+/whippet\.jls ")                    # the existing index, absolute
         for absent in ("rule umbrella_whippet_index:", "rule umbrella_whippet_quant:", "rule umbrella_hisat2:"):
             self.assertNotIn(absent, out)                                           # core Whippet untouched

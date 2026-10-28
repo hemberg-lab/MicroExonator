@@ -47,6 +47,7 @@ if MODULE_PRODUCERS:
             reads=lambda w: umbrella_read_arguments(w, "whippet"),
             julia=WHIPPET_CIRC_JULIA,
             whippet_bin=WHIPPET_CIRC_BIN,
+            # --flags=VALUE: an empty whippet_flags must still be one argument
             flags=str(config.get("whippet_flags", "") or ""),
             identity=lambda w: module_identity(w, WHIPPET_CIRC)
         threads: 1
@@ -57,7 +58,7 @@ if MODULE_PRODUCERS:
         shell:
             "python3 src/run_whippet_circ.py quant --reads {params.reads} --index {input.index:q} "
             "--out-dir {params.out:q} --run-id {wildcards.run_id:q} --julia {params.julia:q} "
-            "--whippet-bin {params.whippet_bin:q} --flags {params.flags:q} --identity {params.identity:q} "
+            "--whippet-bin {params.whippet_bin:q} --flags={params.flags:q} --identity {params.identity:q} "
             "> {log} 2>&1"
 
 
