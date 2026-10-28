@@ -24,7 +24,9 @@ Per run (ingest only): ciriquant reads the staged FASTQs and the shared temporar
 BAM (paired-end only); circrna_star runs STAR chimeric detection from the staged reads.
 circexplorer2 per-run calls are computed from the kept STAR cache, so they can be
 (re)made in cached_only. DCC runs per comparison on the kept STAR caches.
-Comparison outputs are descriptive or detection-only: no p-values are claimed.
+Comparison outputs are descriptive or detection counts; each tool's own differential test runs
+beside them (native_de/: CIRI_DE_replicate, CircTest), and the shared edgeR + HISAT2 step
+(differential/) only for tools without one (CIRCexplorer2), see the end of this file.
 """
 
 import shlex
@@ -484,3 +486,168 @@ rule umbrella_circrna_differential:
         "python3 src/circrna_hisat_delta.py --tool {wildcards.tool} --preflight {input.preflight:q} "
         "--source {params.source:q} --out {params.out:q} --settings {params.settings:q} {params.shards} "
         "&& Rscript src/circrna_abundance.R {params.out:q} {params.min_events}"
+
+
+# ------------------------------------------------------------ native differential tests
+# Each circRNA tool's own test where it has one (src/circrna_native_de.py): CIRIquant's
+# CIRI_DE_replicate and DCC's CircTest. CIRCexplorer2 has none, so the shared edgeR +
+# HISAT2 step above (umbrella_circrna_differential) is its test, and the backup for a DCC
+# comparison whose host-gene counts cannot be made (cached_only without a kept LinearCount).
+# circrna_differential_also_native: true runs that shared step beside the native tests too.
+
+from src import circrna_native_de as _native
+
+CIRC_NATIVE_ENABLED = flag(config.get("circrna_native_de", True))
+CIRC_DIFF_ALSO_NATIVE = flag(config.get("circrna_differential_also_native", False))
+CIRC_NATIVE_PINS = dict(ciri_de=_native.CIRI_DE_SHA256, circtest=_native.CIRCTEST_COMMIT)
+CIRC_NATIVE_ROOT = "umbrella/modules/software/circrna_native/" + hashlib.sha256(
+    _json.dumps(CIRC_NATIVE_PINS, sort_keys=True).encode()).hexdigest()[:16]
+CIRC_NATIVE_RECORD = CIRC_NATIVE_ROOT + "/software.json"
+CIRC_NATIVE_SETTINGS = {"circtest": {"filter_count": int(config.get("circtest_filter_count", 5)),
+                                     "filter_sample": int(config.get("circtest_filter_sample", 3)),
+                                     "percentage": float(config.get("circtest_percentage", 0.1))}}
+CIRC_NATIVE_ID = hashlib.sha256(_json.dumps(dict(version="native-de-v1", pins=CIRC_NATIVE_PINS,
+    settings=CIRC_NATIVE_SETTINGS), sort_keys=True).encode()).hexdigest()[:16]
+CIRC_NATIVE = "/native_de/{native_id}"
+
+
+def circ_native_dir(result, tool):
+    return module_analysis_dir(result, tool) + CIRC_NATIVE.format(native_id=CIRC_NATIVE_ID)
+
+
+def circ_native_available(tool, result):
+    """Whether this comparison gets the tool's own test (else the shared edgeR step)."""
+    if not CIRC_NATIVE_ENABLED or tool == "circexplorer2":
+        return False
+    if tool == "dcc":
+        # DCC's host-gene count reads the runs' genome BAMs: ingest, or an already kept LinearCount
+        return MODULE_PRODUCERS or _os.path.isfile(circ_native_dir(result, "dcc") + "/LinearCount.tsv.gz")
+    return True
+
+
+def circ_native_targets(tool, result):
+    native = circ_native_available(tool, result)
+    targets = [circ_native_dir(result, tool) + "/results.tsv.gz"] if native else []
+    if CIRC_DIFF_ENABLED and (not native or CIRC_DIFF_ALSO_NATIVE):
+        targets.append(module_analysis_dir(result, tool) + "/differential/" + CIRC_DIFF_ID + "/status.tsv")
+    return targets
+
+
+def circ_native_comparison(wildcards, tool):
+    if wildcards.native_id != CIRC_NATIVE_ID:
+        raise WorkflowError("circRNA native-test settings ID mismatch")
+    return module_comparison(wildcards, tool)
+
+
+def circ_gene_shards(wildcards):
+    """The core run's featureCounts shards for CIRI_DE_replicate's gene matrix (kept evidence)."""
+    result = circ_native_comparison(wildcards, "ciriquant")
+    records = [UMBRELLA_MANIFEST.by_run[unit] for unit in result["collapse"]]
+    paths = sorted(set("genes/{}/{}/{}/{}.featurecounts.tsv.gz".format(
+        r.reference_id, r.project_id, r.group, r.batch_id) for r in records))
+    missing = [path for path in paths if not _os.path.isfile(path)]
+    if missing:
+        raise WorkflowError("CIRI_DE_replicate reads the retained featureCounts gene shards; no read restaging is "
+                            "permitted for this step. Missing: " + ", ".join(missing))
+    # absolute: existing immutable shards are evidence, not something to rebuild from BAMs
+    return [_os.path.abspath(path) for path in paths]
+
+
+localrules: umbrella_circrna_native_software
+
+
+rule umbrella_circrna_native_software:
+    output:
+        CIRC_NATIVE_RECORD
+    params:
+        root=CIRC_NATIVE_ROOT
+    conda:
+        "../envs/umbrella-circrna-native-de.yaml"
+    shell:
+        "python3 src/circrna_native_de.py software --root {params.root} --record {output}"
+
+
+rule umbrella_ciriquant_de:
+    input:
+        preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
+        source=lambda w: [MODULE_ANALYSIS.format(tool="ciriquant", **w) + "/" + name
+                          for name in ("bsj_counts.tsv.gz", "library.tsv", "results.tsv.gz")
+                          if circ_native_comparison(w, "ciriquant")],
+        shards=circ_gene_shards,
+        software=CIRC_NATIVE_RECORD
+    output:
+        results=MODULE_ANALYSIS.replace("{tool}", "ciriquant") + CIRC_NATIVE + "/results.tsv.gz",
+        status=MODULE_ANALYSIS.replace("{tool}", "ciriquant") + CIRC_NATIVE + "/status.json"
+    wildcard_constraints:
+        native_id="[0-9a-f]{16}",
+        **MODULE_WILDCARDS
+    params:
+        source=MODULE_ANALYSIS.replace("{tool}", "ciriquant"),
+        out=MODULE_ANALYSIS.replace("{tool}", "ciriquant") + CIRC_NATIVE,
+        shards=lambda w, input: " ".join("--gene-shard " + shlex.quote(p) for p in input.shards),
+        ciri_de=CIRC_NATIVE_ROOT + "/CIRI_DE.R",
+        ids=lambda w: module_ids(w, "ciriquant", _native.SOFTWARE["ciriquant"])
+    conda:
+        "../envs/umbrella-circrna-native-de.yaml"
+    shell:
+        "python3 src/circrna_native_de.py ciriquant --preflight {input.preflight:q} --source {params.source:q} "
+        "{params.shards} --ciri-de {params.ciri_de:q} --out-dir {params.out:q} --ids {params.ids:q}"
+
+
+def dcc_bams(wildcards, suffix=""):
+    result = circ_native_comparison(wildcards, "dcc")
+    return [UMBRELLA_MANIFEST.by_run[unit].work_dir + "/align/aligned.bam" + suffix for unit in sorted(result["collapse"])]
+
+
+if MODULE_PRODUCERS:
+    rule umbrella_dcc_linear:
+        input:
+            preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
+            counts=MODULE_ANALYSIS.replace("{tool}", "dcc") + "/CircRNACount.tsv.gz",
+            bams=dcc_bams,
+            bais=lambda w: dcc_bams(w, ".bai"),
+            genome=CIRC_GENOME,
+            fai=CIRC_GENOME + ".fai"
+        output:
+            MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE + "/LinearCount.tsv.gz"
+        wildcard_constraints:
+            native_id="[0-9a-f]{16}",
+            **MODULE_WILDCARDS
+        params:
+            dcc=MODULE_ANALYSIS.replace("{tool}", "dcc"),
+            bams=lambda w: " ".join("--bam {}={}".format(unit, UMBRELLA_MANIFEST.by_run[unit].work_dir +
+                                                         "/align/aligned.bam")
+                                    for unit in sorted(circ_native_comparison(w, "dcc")["collapse"]))
+        log:
+            MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE + "/linear.log"
+        conda:
+            "../envs/umbrella-circrna-discovery.yaml"
+        shell:
+            "python3 src/circrna_native_de.py dcc-linear --preflight {input.preflight:q} --dcc-dir {params.dcc:q} "
+            "{params.bams} --genome {input.genome:q} --out {output:q} > {log} 2>&1"
+
+
+rule umbrella_dcc_circtest:
+    input:
+        preflight=UMBRELLA_COMPARISON_ROOT + "/preflight.json",
+        counts=MODULE_ANALYSIS.replace("{tool}", "dcc") + "/CircRNACount.tsv.gz",
+        linear=MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE + "/LinearCount.tsv.gz",
+        software=CIRC_NATIVE_RECORD
+    output:
+        results=MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE + "/results.tsv.gz",
+        status=MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE + "/status.json"
+    wildcard_constraints:
+        native_id="[0-9a-f]{16}",
+        **MODULE_WILDCARDS
+    params:
+        dcc=MODULE_ANALYSIS.replace("{tool}", "dcc"),
+        out=MODULE_ANALYSIS.replace("{tool}", "dcc") + CIRC_NATIVE,
+        lib=CIRC_NATIVE_ROOT + "/R",
+        settings=_json.dumps(CIRC_NATIVE_SETTINGS["circtest"], sort_keys=True),
+        ids=lambda w: module_ids(w, "dcc", _native.SOFTWARE["dcc"])
+    conda:
+        "../envs/umbrella-circrna-native-de.yaml"
+    shell:
+        "python3 src/circrna_native_de.py dcc-circtest --preflight {input.preflight:q} --dcc-dir {params.dcc:q} "
+        "--linear {input.linear:q} --circtest-lib {params.lib:q} --out-dir {params.out:q} "
+        "--settings {params.settings:q} --ids {params.ids:q}"

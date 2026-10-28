@@ -86,7 +86,10 @@ class CircrnaWorkflowNativeTests(unittest.TestCase):
             "umbrella_module_selection: selection.tsv",
             "circrna_catalogue_sources:", "  - {path: circatlas.bed, name: circAtlas}",
             "  - {path: circbase_hg19.bed, assembly: hg19, role: annotate, name: circBase}",
-            "circrna_liftover_chain: hg19ToHg38.over.chain.gz", "circrna_star_sa_index_nbases: 5"] +
+            "circrna_liftover_chain: hg19ToHg38.over.chain.gz", "circrna_star_sa_index_nbases: 5",
+            # the shared route only: the native tests (CIRI_DE_replicate, CircTest) have their own
+            # tests with the real tools in test_circrna_native_de.py
+            "circrna_native_de: false"] +
             (["circrna_differential: true", "circrna_hisat_delta: true", "circrna_delta_draws: 2000"]
              if DIFF_ENV else [])) + "\n")
         # the reference ID the workflow computes from umbrella_reference (reference_id: auto)

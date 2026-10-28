@@ -1,0 +1,17 @@
+# Native circRNA differential tests: CIRIquant's CIRI_DE_replicate (libs/CIRI_DE.R: edgeR,
+# optparse) and DCC's CircTest (beta-binomial, aod; plyr and ggplot2 are its imports).
+# CIRI_DE.R and CircTest are fetched at pinned versions by umbrella_circrna_native_software.
+name: microexonator-umbrella-circrna-native-de
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - r-base=4.3
+  - bioconductor-edger=4.0
+  - r-statmod
+  - r-optparse
+  - r-aod
+  - r-plyr
+  - r-ggplot2
+  - curl

@@ -785,9 +785,9 @@ def module_quant_targets(tool):
     targets = module_prepare_targets(tool) + [
         module_analysis_dir(result, tool) + "/" + MODULE_FINAL[tool]
         for _, result in module_comparisons(tool)]
-    if tool in ("ciriquant", "circexplorer2", "dcc") and CIRC_DIFF_ENABLED:
-        targets += [module_analysis_dir(result, tool) + "/differential/" + CIRC_DIFF_ID + "/status.tsv"
-                    for _, result in module_comparisons(tool)]
+    if tool in ("ciriquant", "circexplorer2", "dcc"):
+        # each tool's own test; the shared edgeR step only where there is none (umbrella_circrna.smk)
+        targets += [path for _, result in module_comparisons(tool) for path in circ_native_targets(tool, result)]
     return targets
 
 

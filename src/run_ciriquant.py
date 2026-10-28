@@ -317,7 +317,7 @@ def compare(preflight, caches, out_dir, ids=None, settings=None, selection=None)
         write_status(out / "status.json", "ciriquant", "empty", reasons + ["no catalogue circRNA reached min_bsj"],
                      **base)
         return
-    reasons.append("descriptive only: no differential test is validated for CIRIquant junction ratios in this release")
+    reasons.append("descriptive junction ratios; CIRIquant's own test (CIRI_DE_replicate) is in native_de/")
     write_status(out / "status.json", "ciriquant", "no_tests", reasons, circrnas=len(rows), **base)
 
 

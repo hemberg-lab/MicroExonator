@@ -399,7 +399,7 @@ def dcc(preflight, caches, gtf, out_dir, ids=None, settings=None, catalogue=None
                                                 "detection only: DCC chimeric reads per replicate after -Nr filtering")
     _write_results(out, rows, "dcc", "DCC 0.5.0")
     _write_support(out, support_header, table)
-    reasons = ["detection only: no differential test (DCC/CircTest linear counts are not part of this release)"]
+    reasons = ["detection counts; DCC's own test (CircTest with DCC host-gene counts) is in native_de/"]
     if len(set(preflight["collapse"].values())) != len(preflight["collapse"]):
         reasons.append("technical units pooled within biological replicates before DCC")
     write_status(out / "status.json", "dcc", "no_tests" if rows else "empty",

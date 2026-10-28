@@ -76,7 +76,7 @@ class CircrnaDagTests(unittest.TestCase):
         rows = [selection_row("small", tool) for tool in ("ciriquant", "circexplorer2", "dcc")]
         result = self.dry_run("quant_umbrella_modules", [
             "umbrella_modules: [vasttools, psisigma, ciriquant, circexplorer2, dcc]",
-            "umbrella_modules_mode: ingest"], rows)
+            "umbrella_modules_mode: ingest"], rows, prepare=self.retained_shards)
         self.assertEqual(result.returncode, 0, result.stdout[-4000:])
         stats = self.stats(result)
         # all-scope modules: every included run (5 PE + 4 SE) and every comparison
@@ -216,6 +216,54 @@ class CircrnaDagTests(unittest.TestCase):
         self.assertIn("run_whippet_circ.py compare", result.stdout)
         self.assertNotIn("rule umbrella_stage", result.stdout)
         self.assertNotIn("rule umbrella_whippet_circ_quant:", result.stdout)
+
+
+    @staticmethod
+    def retained_shards(folder):
+        for kind, header in (("junctions", "chrom\tstart\tend\tstrand\tlabel\tmax_anchor\tmulti_total\t"
+                                             "short_anchor_total\t"), ("genes", "gene_id\tlength\t")):
+            for group, runs in (("case", "run_c\trun_d"), ("control", "run_pe\trun_b")):
+                suffix = ".junctions.tsv.gz" if kind == "junctions" else ".featurecounts.tsv.gz"
+                path = os.path.join(folder, kind, "ref/project", group, "batch" + suffix)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with gzip.open(path, "wt") as stream:
+                    stream.write(header + runs + "\n")
+
+    def test_native_tests_first_and_edger_only_where_there_is_none(self):
+        rows = [selection_row("main", tool) for tool in ("ciriquant", "circexplorer2", "dcc")]
+        result = self.dry_run("quant_umbrella_modules", ["umbrella_modules: [ciriquant, circexplorer2, dcc]",
+                                                         "umbrella_modules_mode: ingest", "circrna_differential: true",
+                                                         "circrna_hisat_delta: true"], rows,
+                              prepare=self.retained_shards)
+        self.assertEqual(result.returncode, 0, result.stdout[-4000:])
+        stats = self.stats(result)
+        for rule in ("umbrella_ciriquant_de", "umbrella_dcc_linear", "umbrella_dcc_circtest",
+                     "umbrella_circrna_native_software"):
+            self.assertEqual(stats.get(rule), "1", rule)
+        self.assertEqual(stats.get("umbrella_circrna_differential"), "1")        # CIRCexplorer2 only
+        out = result.stdout
+        self.assertRegex(out, r"circrna_differential.*\n.*\n.*modules/circexplorer2/")
+        self.assertRegex(out, r"--gene-shard /\S+/genes/ref/project/case/batch\.featurecounts\.tsv\.gz")
+        self.assertIn("--bam run_b=umbrella/work/ref/project/batch/run_b/align/aligned.bam", out)
+        self.assertIn("CIRI_DE.R", out)
+
+    def test_edger_beside_native_on_request_and_dcc_falls_back_in_cached_only(self):
+        rows = [selection_row("main", "dcc")]
+        def setup(folder):
+            self.retained_shards(folder)
+            twd.UmbrellaNativeQuantificationTests.write_module_caches(folder, ["circrna_star"])
+        cached = self.dry_run("quant_dcc", ["umbrella_modules: [dcc]", "circrna_differential: true",
+                                            "circrna_hisat_delta: true"], rows, catalogue=False, prepare=setup)
+        self.assertEqual(cached.returncode, 0, cached.stdout[-4000:])
+        self.assertIn("rule umbrella_circrna_differential:", cached.stdout)     # no BAMs: edgeR backup
+        self.assertNotIn("rule umbrella_dcc_circtest:", cached.stdout)
+        both = self.dry_run("quant_dcc", ["umbrella_modules: [dcc]", "umbrella_modules_mode: ingest",
+                                          "circrna_differential: true", "circrna_hisat_delta: true",
+                                          "circrna_differential_also_native: true"], rows, catalogue=False,
+                            prepare=self.retained_shards)
+        self.assertEqual(both.returncode, 0, both.stdout[-4000:])
+        self.assertIn("rule umbrella_dcc_circtest:", both.stdout)
+        self.assertIn("rule umbrella_circrna_differential:", both.stdout)
 
 
 if __name__ == "__main__":
