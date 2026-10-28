@@ -5,13 +5,16 @@
 # DCC comes from its pinned v0.5.0 commit through pip: conda-forge carries an
 # unrelated package also named "dcc", which hides bioconda's under strict
 # channel priority.
+# STAR is pinned to bioconda build 6: from build 7 on, every x86 STAR variant
+# (STAR-plain included) is compiled with -march=x86-64-v3 and needs AVX2, so it
+# dies with "Illegal instruction" on cluster nodes without AVX.
 name: microexonator-umbrella-circrna-discovery
 channels:
   - conda-forge
   - bioconda
 dependencies:
   - python=3.10
-  - star=2.7.11b
+  - star=2.7.11b=h5ca1c30_6
   - circexplorer2=2.3.8
   - bedtools=2.31.1
   - pysam
