@@ -435,7 +435,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     method = "diff" if min(n_side.values()) <= diff_max_n else "mann_whitney"
     dbdir = str(Path(dbdir).resolve())
     with tempfile.TemporaryDirectory(prefix="vasttools-", dir=str(out_dir)) as directory:
-        work = Path(directory)
+        work = Path(directory).resolve()
         vast_out = work / "vast_out"
         (vast_out / "to_combine").mkdir(parents=True)
         for run in sorted(preflight["collapse"]):
