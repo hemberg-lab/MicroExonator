@@ -227,7 +227,7 @@ def dcc_linear(preflight, dcc_dir, bams, genome, out_path, tmp_root=None):
         with gzip.open(Path(dcc_dir) / "CircRNACount.tsv.gz", "rt") as stream:
             lines = [line for line in stream if line.strip()]
         header = lines[0].rstrip("\n").split("\t")
-        samples = header[4:]
+        samples = header[3:]                  # DCC: Chr, Start, End, then one column per sample
         if len(samples) != len(replicates):
             raise SystemExit("CircRNACount has {} samples, the comparison {} replicates".format(len(samples), len(replicates)))
         (work / "CircRNACount").write_text("".join(lines))
@@ -277,6 +277,16 @@ def dcc_circtest(preflight, dcc_dir, linear, circtest_lib, out_dir, settings=Non
                         str(settings["percentage"]), str(circtest_lib), str(out / "circtest.tsv")],
                        check=True, stdout=log, stderr=subprocess.STDOUT)
     table = read_table(out / "circtest.tsv")
+    # CircRNACount has no strand; DCC's CircCoordinates (same rows) carries it in column 6
+    strand = {}
+    coordinates = Path(dcc_dir) / "CircCoordinates.tsv.gz"
+    if coordinates.exists():
+        with gzip.open(coordinates, "rt") as stream:
+            next(stream, None)
+            for line in stream:
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) > 5:
+                    strand[tuple(fields[:3])] = fields[5]
     rows = []
     for row in table:
         if row["status"] != "tested":
@@ -285,7 +295,7 @@ def dcc_circtest(preflight, dcc_dir, linear, circtest_lib, out_dir, settings=Non
         a, b = number(row["ratio_a"]), number(row["ratio_b"])
         rows.append(dict(base, tool_version=SOFTWARE["dcc"], feature_id=circ_id(row["Chr"], start, end), gene_id="",
                          gene_name="", chrom=row["Chr"], start=start, end=end, coordinates=circ_id(row["Chr"], start, end),
-                         strand=row["Strand"], event_class="back_splice_junction",
+                         strand=strand.get((row["Chr"], row["Start"], row["End"]), ""), event_class="back_splice_junction",
                          effect="" if a is None or b is None else "{:.6f}".format(a - b),
                          effect_definition="mean circ / (circ + linear) ratio per replicate, A minus B (CircTest)",
                          n_a=n_a, n_b=n_b, coverage=row["circ_reads"], native_statistic=row["p_value"],

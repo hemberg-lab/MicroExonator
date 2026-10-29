@@ -167,7 +167,10 @@ class NativeTests(unittest.TestCase):
         dcc = directory / "dcc"
         dcc.mkdir()
         samples = ["s{:03d}.junction".format(i) for i in range(n_a + n_b)]
-        write_tsv(dcc / "CircRNACount.tsv.gz", ["Chr", "Start", "End", "Strand"] + samples, circ_rows)
+        write_tsv(dcc / "CircRNACount.tsv.gz", ["Chr", "Start", "End"] + samples,
+                  [row[:3] + row[4:] for row in circ_rows])
+        write_tsv(dcc / "CircCoordinates.tsv.gz", ["Chr", "Start", "End", "Gene", "JunctionType", "Strand"],
+                  [row[:3] + ["g", 1, row[3]] for row in circ_rows])
         write_tsv(directory / "LinearCount.tsv.gz", ["Chr", "Start", "End"] + samples, linear_rows)
         preflight = directory / "preflight.json"
         preflight.write_text(json.dumps({"replicates": {"a": ["a{}".format(i) for i in range(n_a)],
@@ -228,8 +231,8 @@ class DccLinearTests(unittest.TestCase):
                             str(genome)], check=True)
         dcc = directory / "dcc"
         dcc.mkdir()
-        write_tsv(dcc / "CircRNACount.tsv.gz", ["Chr", "Start", "End", "Strand", "s000.junction", "s001.junction"],
-                  [["chr1", 101, 900, "+", 5, 1]])
+        write_tsv(dcc / "CircRNACount.tsv.gz", ["Chr", "Start", "End", "s000.junction", "s001.junction"],
+                  [["chr1", 101, 900, 5, 1]])
         preflight = directory / "preflight.json"
         preflight.write_text(json.dumps({"replicates": {"a": ["ra1"], "b": ["rb1"]},
                                          "collapse": {"ua1": "ra1", "ub1": "rb1"}}))

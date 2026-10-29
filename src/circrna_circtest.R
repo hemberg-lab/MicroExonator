@@ -20,18 +20,17 @@ n_a <- as.integer(args[3]); n_b <- as.integer(args[4])
 filter_count <- as.numeric(args[5]); filter_sample <- as.numeric(args[6]); percentage <- as.numeric(args[7])
 
 if (nrow(circ) == 0) {
-    writeLines(paste(c(names(circ)[1:4], "circ_reads", "ratio_a", "ratio_b", "p_value", "q_value", "status"),
+    writeLines(paste(c(names(circ)[1:3], "circ_reads", "ratio_a", "ratio_b", "p_value", "q_value", "status"),
                      collapse = "\t"), args[9])
     quit(save = "no")
 }
 if (nrow(circ) != nrow(linear) || any(circ[, 1:3] != linear[, 1:3]))
     stop("CircRNACount and LinearCount rows differ")
-if (ncol(circ) - 4 != n_a + n_b || ncol(linear) - 3 != n_a + n_b)
+if (ncol(circ) - 3 != n_a + n_b || ncol(linear) - 3 != n_a + n_b)
     stop("sample columns do not match the comparison's replicates")
-# Circ.test wants both tables with the same description columns
-linear <- cbind(circ[, 1:4], linear[, -(1:3), drop = FALSE])
+# DCC's CircRNACount and LinearCount both start with Chr, Start, End (CircTest's default description)
 names(linear) <- names(circ)
-description <- 1:4
+description <- 1:3
 group <- c(rep(1, n_a), rep(2, n_b))
 counts <- as.matrix(circ[, -description, drop = FALSE])
 host <- as.matrix(linear[, -description, drop = FALSE])
