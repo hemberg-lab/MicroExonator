@@ -158,6 +158,7 @@ rule quant_umbrella:
         umbrella_selected("whippet", UMBRELLA_SPLICING_SHARDS["whippet"]),
         UMBRELLA_COMPARISON_TARGETS,
         UMBRELLA_SYNTHESIS_TARGETS,
+        UMBRELLA_PCA_TARGETS,
         UMBRELLA_QC_TARGETS,
         # the selected modules, through their inventory (which needs all their outputs)
         [UMBRELLA_MODULE_INVENTORY] if UMBRELLA_MODULES else [],

@@ -659,6 +659,33 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
         self.assertIn("--whippet-map umbrella/work", result.stdout)
         self.assertIn("whippet_delta.diff.gz", result.stdout)
 
+    def test_expression_pca_follows_the_quantified_expression_routes(self):
+        root = "comparisons/ref/project/case_vs_control/"
+        both = self.selection_dry_run("quant_umbrella")
+        self.assertEqual(both.returncode, 0, both.stdout)
+        self.assertIn("expression_pca.R --route tximport", both.stdout)
+        self.assertIn("--tpm " + root + "joined/salmon_tpm.tsv.gz", both.stdout)
+        self.assertIn("expression_pca.R --route featurecounts", both.stdout)
+        self.assertIn(root + "pca_tximport.pdf", both.stdout)
+        salmon = self.selection_dry_run(
+            "quant_umbrella", prebuilt=False,
+            extra=("umbrella_optional:", "  hisat2: false", "  whippet: false"))
+        self.assertEqual(salmon.returncode, 0, salmon.stdout)
+        self.assertIn(root + "pca_tximport.pdf", salmon.stdout)
+        self.assertNotIn("pca_featurecounts", salmon.stdout)
+        none = self.selection_dry_run(
+            "quant_umbrella", extra=("umbrella_optional:", "  salmon: false", "  hisat2: false",
+                                     "  multiqc: false"))
+        self.assertEqual(none.returncode, 0, none.stdout)
+        self.assertNotIn("expression_pca.R", none.stdout)
+        off = self.selection_dry_run("quant_umbrella", extra=("umbrella_pca_routes: []",))
+        self.assertEqual(off.returncode, 0, off.stdout)
+        self.assertNotIn("expression_pca.R", off.stdout)
+        needs = self.selection_dry_run(
+            "quant_umbrella", extra=("umbrella_pca_routes: [tximport]", "umbrella_optional:", "  salmon: false"))
+        self.assertNotEqual(needs.returncode, 0, needs.stdout)
+        self.assertIn("tximport needs salmon", needs.stdout)
+
     def test_tool_selection_errors_are_actionable(self):
         conflict = self.selection_dry_run(
             "quant_umbrella", extra=("umbrella_optional:", "  hisat2: false", "  leafcutter: true"))

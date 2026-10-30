@@ -10,6 +10,15 @@ snakemake -s ExpressionPCA.smk expression_pca --use-conda --cores 1 -n
 snakemake -s ExpressionPCA.smk expression_pca --use-conda --cores 1
 ```
 
+`quant_umbrella` also makes these plots itself, in the same call that quantifies
+the runs: every comparison gets `pca_tximport.*` when Salmon is on and
+`pca_featurecounts.*` when HISAT2 is on, with the same script and conda env. Set
+`umbrella_pca_routes` in the main config to choose routes, or `[]` for none:
+
+```yaml
+umbrella_pca_routes: [tximport]   # tximport needs salmon, featurecounts needs hisat2
+```
+
 The default uses featureCounts for every cached comparison under `comparisons/`.
 Use a separate optional YAML to select comparisons/routes:
 

@@ -335,6 +335,7 @@ if "umbrella_manifest" in config:
    include : "rules/umbrella_alignment.smk"
    include : "rules/umbrella_reducers.smk"
    include : "rules/umbrella_comparisons.smk"
+   include : "rules/umbrella_pca.smk"
    include : "rules/umbrella_qc.smk"
    include : "rules/umbrella_modules.smk"
    include : "rules/umbrella_quantifiers.smk"
