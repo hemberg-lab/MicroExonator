@@ -15,6 +15,8 @@ inferential command is run.
 
 import json
 
+from src.comparison_design import POOLED_POSTERIOR_TOOLS, input_weighting, tool_model
+
 
 UMBRELLA_RMATS_TYPES = ("SE", "A5SS", "A3SS", "MXE", "RI")
 UMBRELLA_SUPPA_TYPES = ("SE", "A5", "A3", "MX", "RI", "AF", "AL")
@@ -291,6 +293,12 @@ rule umbrella_synthesis:
             tools=[dict(name=name, readout=readout, family=family, upstream=upstream,
                         format=fmt, paths=paths)
                    for name, readout, family, upstream, fmt, paths in umbrella_tool_table(wildcards)])
+        # technical runs weigh more in the delta tools that pool per-run posteriors:
+        # recorded only when a replicate has several runs (src/comparison_design.py)
+        weighting = input_weighting(result)
+        pooled_tools = [tool["name"] for tool in config_out["tools"] if tool["name"] in POOLED_POSTERIOR_TOOLS]
+        if weighting and pooled_tools:
+            config_out["weighting"] = dict(weighting, tools=pooled_tools)
         Path(output.config).write_text(json.dumps(config_out, sort_keys=True, indent=2) + "\n")
         shell("python3 src/synthesize_umbrella.py --config {output.config} --output {output.report}")
 

@@ -17,8 +17,12 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from src import rmats_replicates
+    from src.comparison_design import tool_model
     from src.umbrella_modules import NORMALIZED, write_status
 else:
+    import rmats_replicates
+    from comparison_design import tool_model
     from umbrella_modules import NORMALIZED, write_status
 
 KINDS = ('SE', 'A5SS', 'A3SS', 'RI', 'MXE')
@@ -130,9 +134,10 @@ def compare(preflight, caches, gtf, out_dir, threads=4, ids=None):
     reasons = list(preflight['tools']['rmats'].get('reasons', []))
     if not preflight.get('inference_supported', False) or not preflight['tools']['rmats']['supported']:
         reasons += preflight.get('reasons', []) or ['unsupported comparison design']
-    replicates = list(preflight['collapse'].values())
-    if len(replicates) != len(set(replicates)):
-        reasons.append('multiple processing units per biological replicate; merge technical libraries before rMATS')
+    # several processing units of one replicate are pooled per replicate
+    # (src/rmats_replicates.py), so rMATS sees the biological n
+    model = tool_model(preflight, 'rmats_conservative')
+    base.update(rmats_replicates.pooling_record(preflight), **model)
     if any(len(preflight['replicates'][side]) < 2 for side in ('a','b')):
         reasons.append('at least two biological replicates per side are required')
     rows = []
@@ -156,16 +161,21 @@ def compare(preflight, caches, gtf, out_dir, threads=4, ids=None):
                 work=Path(directory).resolve(); (work/'tmp').mkdir(); (work/'od').mkdir()
                 for index, run in enumerate(sorted(records)):
                     shutil.copyfile(Path(caches[run])/'run.rmats', work/'tmp'/('{}-run.rmats'.format(index)))
-                for side in ('a','b'):
-                    (work/(side+'.txt')).write_text(','.join(records[run]['bam'] for run in preflight['runs'][side])+'\n')
+                runs_a, runs_b, _, _, _ = rmats_replicates.plan(preflight)
+                for side, runs in (('a', runs_a), ('b', runs_b)):
+                    (work/(side+'.txt')).write_text(','.join(records[run]['bam'] for run in runs)+'\n')
                 command=['rmats.py','--b1',str(work/'a.txt'),'--b2',str(work/'b.txt'),
                          '--gtf',str(Path(gtf).resolve()),'--od',str(work/'od'),'--tmp',str(work/'tmp'),
                          '-t','paired' if preflight['layouts']==['PE'] else 'single',
                          '--readLength',str(max(lengths)), '--variable-read-length',
                          '--nthread',str(threads),'--individual-counts']
                 with (out/'compare.log').open('w') as log:
-                    for task in ('inte','post'):
-                        subprocess.run(command+['--task',task],check=True,stdout=log,stderr=subprocess.STDOUT)
+                    for step in rmats_replicates.commands(command, preflight,
+                                                          model.get('model') == 'paired_native'):
+                        if step[0] == 'pool':
+                            rmats_replicates.pool_counts(work/'od', step[1], step[2])
+                        else:
+                            subprocess.run(step,check=True,stdout=log,stderr=subprocess.STDOUT)
                 for kind in KINDS:
                     rows += normalized_rows(work/'od'/('{}.MATS.JC.txt'.format(kind)),kind,preflight,base)
                 for path in sorted((work/'od').iterdir()):

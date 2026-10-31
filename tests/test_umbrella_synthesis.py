@@ -109,6 +109,24 @@ class ReportTests(unittest.TestCase):
             self.assertIn("a1\t0.97", text)
             self.assertNotIn("other", text)
 
+    def test_input_weighting_is_listed_only_when_a_replicate_has_several_runs(self):
+        from src.comparison_design import input_weighting
+        base = {"comparison_id": "c", "group_a": "case", "group_b": "ctrl", "inference_supported": True,
+                "reasons": [], "tools": [], "capture_rates": [], "runs": [], "qc": [], "groups": {}}
+        plain = report(dict(base))
+        self.assertNotIn("input weighting", plain)
+        preflight = {"collapse": {"a1": "A1", "a1b": "A1", "a2": "A2", "b1": "B1", "b2": "B2"},
+                     "replicates": {"a": ["A1", "A2"], "b": ["B1", "B2"]}}
+        self.assertEqual(input_weighting({"collapse": {"a1": "A1", "b1": "B1"},
+                                          "replicates": {"a": ["A1"], "b": ["B1"]}}), {})
+        weighting = dict(input_weighting(preflight), tools=["whippet_delta", "microexonator_delta"])
+        text = report(dict(base, weighting=weighting))
+        self.assertTrue(text.startswith(plain))             # appended; the tool table is unchanged
+        self.assertIn("# input weighting in whippet_delta,microexonator_delta: per-sample posteriors are pooled", text)
+        self.assertIn("a\tA1\t2\t0.666667\n", text)
+        self.assertIn("a\tA2\t1\t0.333333\n", text)
+        self.assertIn("b\tB1\t1\t0.5\n", text)
+
 
 if __name__ == "__main__":
     unittest.main()

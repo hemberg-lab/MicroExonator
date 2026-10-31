@@ -42,14 +42,16 @@ def fake_native(julia, whippet_bin, files, prefix):
 
 
 class CompareTests(unittest.TestCase):
-    def run_compare(self, per_run, runs):
+    def run_compare(self, per_run, runs, collapse=None, replicates=None):
         directory = tempfile.mkdtemp()
         caches = {}
         for run, lines in per_run.items():
             caches[run] = os.path.join(directory, "cache", run)
             write_cache(caches[run], run, lines)
         preflight = {"project_id": "p", "comparison_id": "c", "runs": runs,
-                     "collapse": {run: run for run in per_run}}
+                     "collapse": collapse or {run: run for run in per_run}}
+        if replicates:
+            preflight["replicates"] = replicates
         out = os.path.join(directory, "out")
         wc.compare(preflight, caches, out, ids={"analysis_id": "a" * 16}, native=fake_native)
         return Path(out), caches
@@ -80,6 +82,25 @@ class CompareTests(unittest.TestCase):
         files = json.loads((out / "native.args.json").read_text())
         self.assertEqual([Path(path).parent.name for path in files["a"]], ["r1", "r2"])
         self.assertTrue(all(path.endswith("quant.psi.gz") for path in files["a"] + files["b"]))
+
+    def test_replicates_with_several_runs_are_noted_with_their_weights(self):
+        bs = ("G1", "5-2", "chr1:500-200")
+        a = [back_splice(*bs, 0.8, 50)]
+        b = [back_splice(*bs, 0.2, 50)]
+        runs = {"a": ["r1", "r1b", "r2"], "b": ["r3", "r4"]}
+        out, _ = self.run_compare({"r1": a, "r1b": a, "r2": a, "r3": b, "r4": b}, runs,
+                                  collapse={"r1": "A1", "r1b": "A1", "r2": "A2", "r3": "B1", "r4": "B2"},
+                                  replicates={"a": ["A1", "A2"], "b": ["B1", "B2"]})
+        status = json.loads((out / "status.json").read_text())
+        self.assertEqual(status["status"], "ok")             # never blocked by technical runs
+        self.assertEqual(status["weighting"], {"A1": 2})
+        self.assertEqual(status["weights"]["a"], {"A1": 0.666667, "A2": 0.333333})
+        self.assertIn("replicates with more inputs weigh more", status["weighting_reason"])
+        files = json.loads((out / "native.args.json").read_text())
+        self.assertEqual(len(files["a"]), 3)                 # computation unchanged: one input per run
+        plain, _ = self.run_compare({"r1": a, "r2": a, "r3": b, "r4": b}, {"a": ["r1", "r2"], "b": ["r3", "r4"]},
+                                    replicates={"a": ["r1", "r2"], "b": ["r3", "r4"]})
+        self.assertNotIn("weighting", json.loads((plain / "status.json").read_text()))
 
     def test_a_sample_without_the_event_is_not_used_and_low_reads_are_skipped(self):
         bs = ("G1", "5-2", "chr1:500-200")

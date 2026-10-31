@@ -224,6 +224,25 @@ per tool, its status, calls, direction, calling rule and shared upstream data,
 plus per-run index capture and QC outliers computed across each group. It
 does not vote.
 
+**Technical runs of one biological replicate** (several manifest rows with
+one `biological_replicate_id` and no shared `library_id`) never block a
+comparison; `technical_run_replicates` in the preflight is informational.
+Count matrices are summed per replicate. rMATS (core and
+`rmats_conservative`) counts every BAM as a replicate, and the BAMs are gone
+by comparison time, so it pools the kept prep files instead: `post
+--statoff` on the per-run prep files, listed replicate by replicate, then
+the per-run junction counts in `JC.raw.input`/`JCEC.raw.input` are summed per
+replicate and `--task stat` tests one count per biological replicate
+(`src/rmats_replicates.py`). The per-run `individualCounts` files are dropped
+in that case. Which replicates were pooled from which runs is recorded as
+`pooled_replicates` in `status.json` (core rMATS writes
+`rmats/status.json` only when it pools or the comparison has a design).
+Whippet delta, MicroExonator delta, the ME-in-Whippet route and Whippet
+`--circ` are unchanged: each run is one sample whose posterior is pooled with
+the others of its side, so a replicate with more runs weighs more.
+`synthesis.tsv` (and the `whippet_circ` `status.json`) then lists each
+replicate's inputs and its share of its side (`weighting`, `weights`).
+
 ## Regrouping
 
 `group` is the storage label a run's shards are filed under, and `batch_id`

@@ -320,7 +320,8 @@ class DesignModelTests(unittest.TestCase):
         self.assertEqual(paired_runs(result), (["y2", "z1"], ["c1", "c2"]))
         technical = self.paired(rows + [("z1b", "A1", "case", "S2", "")])
         self.assertIsNone(paired_runs(technical))
-        self.assertEqual(tool_model(technical, "rmats")["model"], "unpaired_adaptation")
+        # rMATS pools technical runs per replicate (src/rmats_replicates.py), so it still pairs
+        self.assertEqual(tool_model(technical, "rmats")["model"], "paired_native")
         self.assertEqual(tool_model(technical, "suppa2")["model"], "paired_native")
 
     def test_signed_rank_and_block_differences(self):

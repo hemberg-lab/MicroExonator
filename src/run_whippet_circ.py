@@ -136,9 +136,12 @@ def native_delta(julia, whippet_bin, files, prefix):
 
 def compare(preflight, caches, out_dir, julia="julia", whippet_bin="", ids=None, settings=None, selection=None,
             native=native_delta):
+    from src.comparison_design import input_weighting
     from src.umbrella_modules import NORMALIZED, write_status
     if not isinstance(preflight, dict):
         preflight = json.loads(Path(preflight).read_text())
+    # replicates with several runs weigh more in the pooled posteriors: recorded, not changed
+    weighting = input_weighting(preflight) if "collapse" in preflight and "replicates" in preflight else {}
     settings = dict({"min_reads": 5, "min_samples": 1, "size": 1000, "seed": 123456}, **(settings or {}))
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -206,10 +209,10 @@ def compare(preflight, caches, out_dir, julia="julia", whippet_bin="", ids=None,
     if not rows:
         write_status(out / "status.json", "whippet_circ", "empty" if not detected else "no_tests",
                      reasons + ["no BS event had min_reads in min_samples runs of both sides"],
-                     bs_events=detected, settings=settings, **base)
+                     bs_events=detected, settings=settings, **base, **weighting)
         return
     write_status(out / "status.json", "whippet_circ", "ok", reasons, bs_events=detected, tested=len(rows),
-                 settings=settings, whippet_versions=versions, **base)
+                 settings=settings, whippet_versions=versions, **base, **weighting)
 
 
 def _empty(out):

@@ -190,5 +190,157 @@ class RmatsProfileTests(unittest.TestCase):
             status=json.loads((root/'new/status.json').read_text())
             self.assertEqual((status['status'],status['events'],status['tested']),('no_tests',1,0))
 
+RAW_HEADER = 'ID\tIJC_SAMPLE_1\tSJC_SAMPLE_1\tIJC_SAMPLE_2\tSJC_SAMPLE_2\tIncFormLen\tSkipFormLen\n'
+
+
+class TechnicalRunPoolingTests(unittest.TestCase):
+    """Technical runs of one biological replicate become one rMATS replicate (src/rmats_replicates.py)."""
+
+    def fixture(self, root, collapse, replicates, design=None, blocks=None):
+        import hashlib
+        runs = sorted(collapse)
+        preflight = {'inference_supported': True, 'tools': {'rmats': {'supported': True, 'reasons': []}},
+                     'collapse': collapse, 'replicates': replicates,
+                     'runs': {side: sorted(r for r in runs if collapse[r] in replicates[side]) for side in ('a', 'b')},
+                     'layouts': ['PE'], 'comparison_id': 'a_vs_b', 'project_id': 'project'}
+        if design:
+            preflight['design'] = design
+            preflight['blocks'] = blocks
+        caches = {}
+        for run in runs:
+            path = root / run
+            path.mkdir()
+            (path / 'run.rmats').write_text(run)
+            record = dict(profile.POLICY, run_id=run, bam='/original/' + run + '.bam', layout='PE',
+                          read_length=100, sha256=hashlib.sha256(run.encode()).hexdigest())
+            (path / 'cache.json').write_text(json.dumps(record))
+            caches[run] = str(path)
+        return preflight, caches
+
+    def run_native(self, root, preflight, caches):
+        calls = []
+        def native(command, **kwargs):
+            od = Path(command[command.index('--od') + 1])
+            task = command[-1]
+            calls.append((task, '--statoff' in command, '--paired-stats' in command,
+                          Path(command[command.index('--b1') + 1]).read_text().strip(),
+                          Path(command[command.index('--b2') + 1]).read_text().strip()))
+            if task == 'post':
+                n1 = len(calls[-1][3].split(','))
+                n2 = len(calls[-1][4].split(','))
+                (od / 'JC.raw.input.SE.txt').write_text(RAW_HEADER + '1\t{}\t{}\t{}\t{}\t2\t1\n'.format(
+                    ','.join(str(i + 1) for i in range(n1)), ','.join('1' * n1),
+                    ','.join(str(10 * (i + 1)) for i in range(n2)), ','.join('2' * n2)))
+                (od / 'individualCounts.SE.txt').write_text('per run\n')
+            if task in ('post', 'stat'):
+                for kind in profile.KINDS:
+                    (od / (kind + '.MATS.JC.txt')).write_text('ID\tGeneID\n')
+                if task == 'stat':
+                    calls[-1] = calls[-1] + ((od / 'JC.raw.input.SE.txt').read_text(),
+                                             (od / 'individualCounts.SE.txt').exists())
+        with patch.object(profile.subprocess, 'run', side_effect=native):
+            profile.compare(preflight, caches, 'annotation.gtf', root / 'new')
+        return calls, json.loads((root / 'new/status.json').read_text())
+
+    def test_technical_runs_are_pooled_per_replicate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            preflight, caches = self.fixture(root, {'r1': 'A1', 'r1b': 'A1', 'r2': 'A2', 'r3': 'B1', 'r4': 'B2'},
+                                             {'a': ['A1', 'A2'], 'b': ['B1', 'B2']})
+            calls, status = self.run_native(root, preflight, caches)
+        self.assertEqual([c[0] for c in calls], ['inte', 'post', 'stat'])
+        self.assertTrue(calls[1][1])                         # counts only: post --statoff
+        self.assertFalse(calls[2][1])
+        self.assertEqual(calls[0][3], '/original/r1.bam,/original/r1b.bam,/original/r2.bam')
+        # per-run counts 1,2,3 -> replicates A1 = 1 + 2, A2 = 3; B unchanged
+        self.assertEqual(calls[2][5], RAW_HEADER + '1\t3,3\t2,1\t10,20\t2,2\t2\t1\n')
+        self.assertFalse(calls[2][6])                        # per-run individual counts are not joined
+        self.assertEqual(status['pooled_replicates'], {'A1': ['r1', 'r1b']})
+        self.assertNotEqual(status['status'], 'unsupported')
+        self.assertNotIn('model', status)
+
+    def test_no_technical_runs_keep_the_two_step_route(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            preflight, caches = self.fixture(root, {'r1': 'A1', 'r2': 'A2', 'r3': 'B1', 'r4': 'B2'},
+                                             {'a': ['A1', 'A2'], 'b': ['B1', 'B2']})
+            calls, status = self.run_native(root, preflight, caches)
+        self.assertEqual([(c[0], c[1], c[2]) for c in calls], [('inte', False, False), ('post', False, False)])
+        self.assertNotIn('pooled_replicates', status)
+
+    def test_paired_design_lists_sides_in_block_order_with_paired_stats(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            design = {'type': 'paired', 'block': 'donor', 'replicate_block': {}}
+            blocks = [{'block': 'd1', 'a': ['A2'], 'b': ['B1']}, {'block': 'd2', 'a': ['A1'], 'b': ['B2']}]
+            preflight, caches = self.fixture(root, {'r1': 'A1', 'r1b': 'A1', 'r2': 'A2', 'r3': 'B1', 'r4': 'B2'},
+                                             {'a': ['A1', 'A2'], 'b': ['B1', 'B2']}, design, blocks)
+            calls, status = self.run_native(root, preflight, caches)
+        self.assertEqual(calls[0][3], '/original/r2.bam,/original/r1.bam,/original/r1b.bam')
+        self.assertEqual(calls[0][4], '/original/r3.bam,/original/r4.bam')
+        self.assertEqual([(c[0], c[2]) for c in calls], [('inte', False), ('post', False), ('stat', True)])
+        self.assertEqual(status['model'], 'paired_native')
+
+    def test_pool_counts_keeps_missing_values(self):
+        from src.rmats_replicates import _pool
+        self.assertEqual(_pool('1,2,3,4', [2, 1, 1]), '3,3,4')
+        self.assertEqual(_pool('NA,NA,5', [2, 1]), 'NA,5')
+        with self.assertRaisesRegex(ValueError, 'expected 4'):
+            _pool('1,2,3', [2, 2])
+
+
+class CoreRmatsTests(unittest.TestCase):
+    """src/run_comparison_tools.py rmats: the same pooling, plus rmats/status.json only when it matters."""
+
+    def run_core(self, collapse, design=None, blocks=None):
+        from src import run_comparison_tools
+        import argparse
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            replicates = {'a': sorted({v for k, v in collapse.items() if v.startswith('A')}),
+                          'b': sorted({v for k, v in collapse.items() if v.startswith('B')})}
+            preflight = {'tools': {'rmats': {'supported': True, 'reasons': []}}, 'collapse': collapse,
+                         'replicates': replicates, 'layouts': ['SE'],
+                         'runs': {s: sorted(r for r in collapse if collapse[r] in replicates[s]) for s in 'ab'}}
+            if design:
+                preflight.update(design=design, blocks=blocks)
+            prep = []
+            for run in sorted(collapse):
+                path = root / (run + '.rmats')
+                path.write_text(run)
+                Path(str(path) + '.json').write_text(json.dumps({'run_id': run, 'bam': '/bam/' + run,
+                                                                 'read_length': 75}))
+                prep.append(str(path))
+            outputs = [str(root / 'rmats' / '{}.MATS.JC.txt'.format(k)) for k in ('SE', 'A5SS', 'A3SS', 'MXE', 'RI')]
+            (root / 'rmats').mkdir()
+            tasks = []
+            def fake(command, log):
+                od = Path(command[command.index('--od') + 1])
+                tasks.append((command[-1], '--statoff' in command, '--paired-stats' in command))
+                if command[-1] == 'post':
+                    (od / 'JC.raw.input.SE.txt').write_text(RAW_HEADER + '1\t1,1,1\t1,1,1\t1,1\t1,1\t2\t1\n')
+                for name in outputs:
+                    (od / Path(name).name).write_text('ID\n')
+            args = argparse.Namespace(work=str(root / 'work'), log=str(root / 'log'), gtf='a.gtf', threads=1,
+                                      prep=prep, outputs=outputs)
+            with patch.object(run_comparison_tools, 'run', side_effect=fake):
+                run_comparison_tools.rmats(args, preflight)
+            status = root / 'rmats' / 'status.json'
+            return tasks, json.loads(status.read_text()) if status.exists() else None
+
+    def test_core_rmats_pools_and_records_it(self):
+        tasks, status = self.run_core({'a1': 'A1', 'a1b': 'A1', 'a2': 'A2', 'b1': 'B1', 'b2': 'B2'})
+        self.assertEqual(tasks, [('inte', False, False), ('post', True, False), ('stat', False, False)])
+        self.assertEqual(status, {'tool': 'rmats', 'pooled_replicates': {'A1': ['a1', 'a1b']}})
+        tasks, status = self.run_core({'a1': 'A1', 'a2': 'A2', 'b1': 'B1', 'b2': 'B2'})
+        self.assertEqual(tasks, [('inte', False, False), ('post', False, False)])
+        self.assertIsNone(status)                            # unchanged outputs without pooling or design
+        tasks, status = self.run_core({'a1': 'A1', 'a2': 'A2', 'b1': 'B1', 'b2': 'B2'},
+                                      {'type': 'paired', 'block': 'donor', 'replicate_block': {}},
+                                      [{'block': 'd1', 'a': ['A1'], 'b': ['B1']}, {'block': 'd2', 'a': ['A2'], 'b': ['B2']}])
+        self.assertEqual(tasks, [('inte', False, False), ('post', False, True)])
+        self.assertEqual(status['model'], 'paired_native')
+
+
 if __name__=='__main__':
     unittest.main()

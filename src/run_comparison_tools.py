@@ -5,7 +5,10 @@ output gets one comment line saying why, and no inferential command runs.
 
   rmats  stage the kept prep files in a fresh --tmp, write b1/b2 with the BAM
          paths recorded at prep time, run --task inte then --task post, keep
-         the *.MATS.JC.txt tables
+         the *.MATS.JC.txt tables. Technical runs of a replicate are pooled
+         (post --statoff, counts summed per replicate, --task stat; see
+         src/rmats_replicates.py); paired designs add --paired-stats. Either
+         case writes rmats/status.json (pooled replicates, model)
   suppa  per-replicate TPM tables for A and B, psiPerEvent per event type,
          diffSplice with conditions given B then A (so dPSI is A - B)
 """
@@ -19,8 +22,12 @@ import sys
 from pathlib import Path
 
 if __package__:
+    from src import rmats_replicates
+    from src.comparison_design import tool_model
     from src.umbrella_tool_inputs import suppa_tables, write_delta_inputs
 else:
+    import rmats_replicates
+    from comparison_design import tool_model
     from umbrella_tool_inputs import suppa_tables, write_delta_inputs
 
 
@@ -55,16 +62,25 @@ def rmats(args, preflight):
             record = json.load(stream)
         records[record["run_id"]] = record
         shutil.copyfile(prep, work / "tmp" / Path(prep).name)
-    for side, name in (("a", "b1"), ("b", "b2")):
-        (work / (name + ".txt")).write_text(",".join(
-            records[run_id]["bam"] for run_id in preflight["runs"][side]) + "\n")
-    common = ["--b1", str(work / "b1.txt"), "--b2", str(work / "b2.txt"), "--gtf", args.gtf,
+    # runs listed replicate by replicate (block order for a paired design);
+    # technical runs are pooled into one count per replicate before the test
+    runs_a, runs_b, _, _, _ = rmats_replicates.plan(preflight)
+    for runs, name in ((runs_a, "b1"), (runs_b, "b2")):
+        (work / (name + ".txt")).write_text(",".join(records[run_id]["bam"] for run_id in runs) + "\n")
+    common = ["rmats.py", "--b1", str(work / "b1.txt"), "--b2", str(work / "b2.txt"), "--gtf", args.gtf,
               "--od", str(work / "od"), "--tmp", str(work / "tmp"),
               "-t", "paired" if preflight["layouts"] == ["PE"] else "single",
               "--readLength", str(max(r["read_length"] for r in records.values())),
               "--variable-read-length", "--novelSS", "--nthread", str(args.threads)]
-    run(["rmats.py"] + common + ["--task", "inte"], args.log)
-    run(["rmats.py"] + common + ["--task", "post"], args.log)
+    model = tool_model(preflight, "rmats")
+    for step in rmats_replicates.commands(common, preflight, model.get("model") == "paired_native"):
+        if step[0] == "pool":
+            rmats_replicates.pool_counts(work / "od", step[1], step[2])
+        else:
+            run(step, args.log)
+    status = Path(args.outputs[0]).parent / "status.json"
+    if model or rmats_replicates.pooling_record(preflight):
+        rmats_replicates.write_status(status, preflight, model)
     for path in args.outputs:
         shutil.copyfile(work / "od" / Path(path).name, path)
     shutil.rmtree(work)

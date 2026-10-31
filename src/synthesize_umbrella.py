@@ -182,6 +182,15 @@ def report(config):
                  "group\trun_id\tmetric\tz\n".format(OUTLIER_Z))
     for row in qc_outliers(config.get("qc", []), config.get("groups", {})):
         lines.append("\t".join(map(str, row)) + "\n")
+    weighting = config.get("weighting")
+    if weighting:
+        # only when a replicate has several runs; nothing is recomputed
+        lines.append("\n# input weighting in {}: {}\nside\treplicate\tinputs\tweight\n".format(
+            ",".join(weighting["tools"]), weighting["weighting_reason"]))
+        for side in ("a", "b"):
+            for replicate, weight in sorted(weighting["weights"][side].items()):
+                lines.append("{}\t{}\t{}\t{}\n".format(side, replicate, weighting["weighting"].get(replicate, 1),
+                                                         weight))
     return "".join(lines)
 
 

@@ -60,8 +60,6 @@ PAIRED_NATIVE = {
     "vasttools": "vast-tools diff --paired, sides in block order",
     "vasttools_turbo": "vast-tools diff --paired, sides in block order",
 }
-# tools that pair runs, not replicates: technical runs leave nothing to pair
-PER_RUN = ("rmats", "rmats_conservative")
 NO_MODEL = "tool has no paired/blocked model"
 
 
@@ -192,9 +190,6 @@ def tool_model(preflight, tool):
         if design["type"] != "paired":
             return fields("unpaired_adaptation", "its paired mode needs design type paired "
                           "(one replicate per side per block); ran the ordinary two-group analysis")
-        if tool in PER_RUN and paired_runs(preflight) is None:
-            return fields("unpaired_adaptation", "it pairs runs and some replicates have several runs; "
-                          "ran the ordinary two-group analysis")
         return fields("paired_native", PAIRED_NATIVE[tool])
     return fields("unpaired_adaptation", NO_MODEL)
 
@@ -252,3 +247,30 @@ def wilcoxon_signed_rank(differences, exact_limit=50):
         return 1.0
     z = max(0.0, deviation / 2.0 - 0.5) / math.sqrt(variance)
     return min(1.0, math.erfc(z / math.sqrt(2)))
+
+
+WEIGHTING_REASON = ("per-sample posteriors are pooled; replicates with more inputs weigh more "
+                    "(each run is one input; the computation is unchanged)")
+# delta tools that take one input per run and pool per-sample posteriors per side
+POOLED_POSTERIOR_TOOLS = ("whippet_delta", "microexonator_delta", "microexonator_whippet_delta", "whippet_circ")
+
+
+def input_weighting(preflight):
+    """{} unless a replicate has several runs; else the inputs per replicate.
+
+    weighting: {replicate: inputs} for replicates with more than one input;
+    weights: {side: {replicate: inputs / inputs on that side}} for every
+    replicate. For tools that pool per-run posteriors (Whippet delta, the
+    MicroExonator delta port, Whippet --circ), this is each replicate's share
+    of its side."""
+    inputs = {}
+    for run, replicate in preflight["collapse"].items():
+        inputs[replicate] = inputs.get(replicate, 0) + 1
+    several = {replicate: n for replicate, n in sorted(inputs.items()) if n > 1}
+    if not several:
+        return {}
+    weights = {}
+    for side in ("a", "b"):
+        total = sum(inputs[r] for r in preflight["replicates"][side])
+        weights[side] = {r: round(inputs[r] / float(total), 6) for r in preflight["replicates"][side]}
+    return {"weighting": several, "weights": weights, "weighting_reason": WEIGHTING_REASON}
