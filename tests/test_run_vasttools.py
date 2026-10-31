@@ -150,6 +150,16 @@ class MockToolTests(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in out.iterdir()), ["align.log", "cache.json", "to_combine.tar"])
         self.assertEqual(list((self.temp / "tmp").iterdir()), [])   # split reads are gone
 
+    def test_align_with_a_relative_tmp_root(self):
+        # $TMPDIR unset: the private folder is relative while vast-tools runs inside it
+        cwd = os.getcwd()
+        os.chdir(self.temp)
+        try:
+            vt.align(self.tool, "db", "hg38", ["R1.fastq.gz"], "SRR1", "cache", threads=1, tmp_root="tmp")
+        finally:
+            os.chdir(cwd)
+        self.assertTrue((self.temp / "cache" / "to_combine.tar").exists())
+
     def test_align_refuses_missing_outputs(self):
         os.environ["MOCK_SKIP"] = ".micX"
         with self.assertRaisesRegex(RuntimeError, r"left no \.micX"):

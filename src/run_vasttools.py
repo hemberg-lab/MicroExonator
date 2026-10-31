@@ -164,7 +164,7 @@ def align(vast_tools, dbdir, species, reads, run_id, out_dir, threads=1, ir_vers
     tmp_root = tmp_root or os.environ.get("TMPDIR") or str(out_dir)
     Path(tmp_root).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="vasttools-align-", dir=tmp_root) as directory:
-        work = Path(directory)
+        work = Path(directory).resolve()
         (work / "tmp").mkdir()
         with open(out_dir / "align.log", "w") as log:
             args = ["align"] + [str(Path(r).resolve()) for r in reads] + [
