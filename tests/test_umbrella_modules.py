@@ -63,6 +63,14 @@ class IdentityTests(unittest.TestCase):
         other = {"runs": {"a": ["r1", "r2"], "b": ["r3"]}, "collapse": {"r1": "r1", "r2": "r2", "r3": "r3"}}
         self.assertNotEqual(analysis_id(preflight, "m", {}), analysis_id(other, "m", {}))
         self.assertEqual(analysis_id(preflight, "m", {}), analysis_id(dict(preflight), "m", {}))
+        # a pinned ID: unpaired comparisons keep the IDs they had before designs existed
+        self.assertEqual(analysis_id(preflight, "m", {}), "52cc54b8cc81b37b")
+        paired = dict(preflight, design={"type": "paired", "block": "subject_id"},
+                      blocks=[{"block": "S1", "a": ["r1"], "b": ["r3"]}, {"block": "S2", "a": ["r2"], "b": ["r4"]}])
+        self.assertNotEqual(analysis_id(paired, "m", {}), analysis_id(preflight, "m", {}))
+        repaired = dict(paired, blocks=[{"block": "S1", "a": ["r1"], "b": ["r4"]},
+                                        {"block": "S2", "a": ["r2"], "b": ["r3"]}])
+        self.assertNotEqual(analysis_id(repaired, "m", {}), analysis_id(paired, "m", {}))
 
     def test_missing_caches(self):
         with tempfile.TemporaryDirectory() as directory:

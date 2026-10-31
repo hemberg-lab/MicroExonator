@@ -47,6 +47,18 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(load_umbrella_manifest(self.write([row(phenotype="glia")])).shard_sha256(
             "ref", "project", "case", "batch"), shard)
 
+    def test_pairing_column_is_metadata_and_never_restages(self):
+        # a design's block column (src/comparison_design.py) is an extra column:
+        # adding it, or changing its values, leaves run and shard identities alone
+        base = load_umbrella_manifest(self.write([row()]))
+        columns = COLUMNS + ["subject_id"]
+        for subject in ("S1", "S2", ""):
+            paired = load_umbrella_manifest(self.write([row(subject_id=subject)], columns))
+            self.assertEqual(paired.run_sha256("run1"), base.run_sha256("run1"))
+            self.assertEqual(paired.shard_sha256("ref", "project", "case", "batch"),
+                             base.shard_sha256("ref", "project", "case", "batch"))
+            self.assertEqual(paired.included_runs()[0].metadata["subject_id"], subject)
+
     def test_paths_metadata_and_queries(self):
         manifest = load_umbrella_manifest(self.write([
             row(), row(run_id="run2", source_1="reads/X1.fastq.gz", source_2="reads/X2.fastq.gz"),

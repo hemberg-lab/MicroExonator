@@ -13,7 +13,8 @@ Identities, all computed, never typed by hand:
                        RUN_IDENTITY) plus the module_reference_id; labels,
                        comparisons and the selection list stay out
   analysis_id          the selected runs, their biological replicates, the
-                       module_reference_id and the analysis settings
+                       module_reference_id and the analysis settings, plus
+                       the paired/blocked design when one is declared
 
 Modes (`umbrella_modules_mode`):
   cached_only  (default) every selected run must already have its caches;
@@ -292,8 +293,13 @@ def cache_id(run, module_reference):
 
 
 def analysis_id(preflight, module_reference, settings):
-    return _digest({"runs": preflight["runs"], "collapse": preflight["collapse"],
-                    "module_reference_id": module_reference, "settings": settings})
+    payload = {"runs": preflight["runs"], "collapse": preflight["collapse"],
+               "module_reference_id": module_reference, "settings": settings}
+    # a paired/blocked design changes the model, so it is part of the ID; only
+    # when declared, so IDs of unpaired comparisons are unchanged
+    if preflight.get("design"):
+        payload["design"] = {"design": preflight["design"], "blocks": preflight["blocks"]}
+    return _digest(payload)
 
 
 # file names each module keeps per run (relative to its cache directory)

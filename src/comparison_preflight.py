@@ -33,6 +33,17 @@ outputs are made, when a group has fewer than two biological replicates, or
 when group is confounded with batch, layout or strandedness (the two groups
 share no value of that factor). No covariates are ever added silently.
 rMATS additionally needs every run of the comparison to have one layout.
+
+An optional `design` declares a paired or blocked comparison on a metadata
+column (src/comparison_design.py), e.g.
+
+  design: {type: paired, block: subject_id}
+  design: {type: blocked, block: donor, unbalanced: drop}
+
+It is checked here (the column exists, is set and constant within each
+biological replicate, every block spans both sides or is dropped, at least
+two complete blocks and one residual degree of freedom) and adds `design`
+and `blocks` to the preflight.
 """
 
 import argparse
@@ -40,8 +51,10 @@ import json
 from pathlib import Path
 
 if __package__:
+    from src.comparison_design import apply_design, normalise_design
     from src.umbrella_manifest import SAFE_ID, load_umbrella_manifest
 else:
+    from comparison_design import apply_design, normalise_design
     from umbrella_manifest import SAFE_ID, load_umbrella_manifest
 
 
@@ -128,6 +141,8 @@ def load_comparisons(path):
         comparison["group_a"] = sides["a"]["label"]
         comparison["group_b"] = sides["b"]["label"]
         comparison.setdefault("exclude", [])
+        if "design" in comparison:
+            comparison["design"] = normalise_design(comparison["comparison_id"], comparison["design"])
     return comparisons
 
 
@@ -155,6 +170,11 @@ def preflight(manifest, comparison):
         missing = set(selection[side].get("where", {})) - columns
         if missing:
             raise ValueError("{}: no manifest column {}".format(comparison_id, ", ".join(sorted(missing))))
+    design = comparison.get("design")
+    if design is not None:
+        design = normalise_design(comparison_id, design)
+        if design["block"] not in columns:
+            raise ValueError("{}: no manifest column {} (design block)".format(comparison_id, design["block"]))
     excluded = set(comparison.get("exclude", []))
     runs = {"a": [], "b": []}
     for run in manifest.included_runs():
@@ -178,6 +198,8 @@ def preflight(manifest, comparison):
     if split:
         raise ValueError("{}: biological replicates split across sides: {}".format(
             comparison_id, ", ".join(sorted(split))))
+    if design is not None:
+        runs, design_record, blocks = apply_design(comparison_id, design, runs)
     everything = runs["a"] + runs["b"]
     references = {run.reference_id for run in everything}
     if len(references) != 1:
@@ -229,6 +251,11 @@ def preflight(manifest, comparison):
                for run in sorted(everything, key=lambda r: r.run_id) if run.members}
     if members:
         result["library_members"] = members
+    # paired/blocked designs (src/comparison_design.py); only when declared, so
+    # preflights of unpaired comparisons stay byte-identical
+    if design is not None:
+        result["design"] = design_record
+        result["blocks"] = blocks
     return result
 
 
