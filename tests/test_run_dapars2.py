@@ -8,6 +8,7 @@ zero) gives DaPars2 exactly the same fitted sites and PDUI as whole-genome
 coverage with explicit zero intervals.
 """
 
+import csv
 import gzip
 import json
 import os
@@ -17,7 +18,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.run_dapars2 import FORK_RUNNER, benjamini_hochberg, compare, overlapping_opposite_strands, sum_bedgraphs, welch
+from src.run_dapars2 import (FORK_RUNNER, benjamini_hochberg, compare, overlapping_opposite_strands, paired_t,
+                             sum_bedgraphs, welch)
 
 CHROM_LENGTH = 20000
 # two 3' UTRs: + strand 2000-5000 (proximal site ~3500), - strand 10000-13000 (~11500)
@@ -72,6 +74,66 @@ class HelperTests(unittest.TestCase):
             bed.write_text("chr1\t100\t300\tA|a|chr1|+\t0\t+\nchr1\t250\t400\tB|b|chr1|-\t0\t-\n"
                            "chr1\t900\t950\tC|c|chr1|+\t0\t+\n")
             self.assertEqual(overlapping_opposite_strands(bed), {"chr1:100-300", "chr1:250-400"})
+
+
+class PairedDesignTests(unittest.TestCase):
+    """compare() with a fake DaPars2 run: paired t-test on block differences for designed comparisons."""
+
+    def run_compare(self, design):
+        replicates = {"a": ["A1", "A2", "A3"], "b": ["C1", "C2", "C3"]}
+        pdui = {"A1": 0.5, "A2": 0.75, "A3": 0.68, "C1": 0.4, "C2": 0.5, "C3": 0.5}
+        preflight = {"project_id": "p", "comparison_id": "c", "inference_supported": True, "reasons": [],
+                     "replicates": replicates, "collapse": {r: r for side in replicates.values() for r in side}}
+        if design:
+            preflight["design"] = {"type": "paired", "block": "subject_id",
+                                   "replicate_block": {"A1": "S1", "C1": "S1", "A2": "S2", "C2": "S2",
+                                                       "A3": "S3", "C3": "S3"}}
+            preflight["blocks"] = [{"block": "S{}".format(i), "a": ["A{}".format(i)], "b": ["C{}".format(i)]}
+                                   for i in (1, 2, 3)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            caches = {}
+            for replicate in pdui:
+                cache = root / "cache" / replicate
+                cache.mkdir(parents=True)
+                with gzip.open(cache / "utr_coverage.bedgraph.gz", "wt") as stream:
+                    stream.write("chr1\t2000\t5000\t10\n")
+                (cache / "depth.json").write_text(json.dumps({"mapped_reads": 1000}))
+                caches[replicate] = str(cache)
+            (root / "utr.bed").write_text("chr1\t2000\t5000\tENST1|GENEA|chr1|+\t0\t+\n")
+
+            def fake_dapars2(command, cwd, **kwargs):
+                folder = Path(cwd) / "dapars2_out_chr1"
+                folder.mkdir()
+                order = replicates["a"] + replicates["b"]
+                (folder / "dapars2_result_temp.chr1.txt").write_text(
+                    "Gene\tfit_value\tPredicted_Proximal_APA\tLoci\t" + "\t".join(r + "_PDUI" for r in order)
+                    + "\nENST1|GENEA|chr1|+\t3.2\t3500\tchr1:2000-5000\t"
+                    + "\t".join(str(pdui[r]) for r in order) + "\n")
+            from unittest import mock
+            with mock.patch("src.run_dapars2.subprocess.run", side_effect=fake_dapars2):
+                (root / "pf.json").write_text(json.dumps(preflight))
+                compare(root / "pf.json", caches, root / "utr.bed", root, root / "out")
+            with gzip.open(root / "out" / "results.tsv.gz", "rt") as stream:
+                rows = list(csv.DictReader(stream, delimiter="\t"))
+            return rows, json.loads((root / "out" / "status.json").read_text())
+
+    def test_paired_t_matches_reference(self):
+        # scipy.stats.ttest_1samp([0.1, 0.25, 0.18], 0).pvalue
+        self.assertAlmostEqual(paired_t([0.1, 0.25, 0.18]), 0.055226946144194836, places=8)
+        self.assertIsNone(paired_t([0.1]))
+        self.assertIsNone(paired_t([0.1, 0.1]))
+
+    def test_designed_comparison_uses_paired_t(self):
+        rows, status = self.run_compare(design=True)
+        self.assertAlmostEqual(float(rows[0]["p_value"]), 0.055226946144194836, places=5)
+        self.assertAlmostEqual(float(rows[0]["effect"]), (0.1 + 0.25 + 0.18) / 3, places=5)
+        self.assertIn("mean over blocks", rows[0]["effect_definition"])
+        self.assertEqual(status["model"], "paired_test")
+        unpaired_rows, unpaired_status = self.run_compare(design=False)
+        self.assertAlmostEqual(float(unpaired_rows[0]["p_value"]),
+                               welch([0.5, 0.75, 0.68], [0.4, 0.5, 0.5]), places=5)
+        self.assertNotIn("model", unpaired_status)
 
 
 @unittest.skipUnless(os.environ.get("DAPARS2_DIR"), "set DAPARS2_DIR to the pinned DaPars2 src folder")

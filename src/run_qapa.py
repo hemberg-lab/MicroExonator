@@ -27,8 +27,10 @@ from collections import OrderedDict, defaultdict
 from pathlib import Path
 
 if __package__:
+    from src.comparison_design import tool_model
     from src.umbrella_modules import NORMALIZED, write_status
 else:
+    from comparison_design import tool_model
     from umbrella_modules import NORMALIZED, write_status
 
 # QAPA's library names, as its create_merged_data.R splits them:
@@ -141,11 +143,14 @@ def pau(preflight_path, caches, db, out_dir):
         for site, by_replicate in sorted(counts.items()):
             values = "\t".join("{:.0f}".format(by_replicate[r]) for r in replicates)
             stream.write("{}\t{}\t{}\n".format("_".join(site), genes[site[0]], values))
+    # a paired/blocked design adds each replicate's block (DEXSeq block:exon term);
+    # without one the table is unchanged
+    blocks = (preflight.get("design") or {}).get("replicate_block")
     with open(out_dir / "samples.tsv", "w") as stream:
-        stream.write("sample\tcondition\n")
+        stream.write("sample\tcondition" + ("\tblock" if blocks else "") + "\n")
         for side in ("a", "b"):
             for replicate in preflight["replicates"][side]:
-                stream.write("{}\t{}\n".format(replicate, side))
+                stream.write("{}\t{}".format(replicate, side) + ("\t" + blocks[replicate] if blocks else "") + "\n")
 
 
 def normalize(preflight_path, pau_table, dexseq_table, out_dir, ids=None):
@@ -153,6 +158,7 @@ def normalize(preflight_path, pau_table, dexseq_table, out_dir, ids=None):
     ids = ids or {}
     out_dir = Path(out_dir)
     base = dict(project_id=preflight["project_id"], comparison_id=preflight["comparison_id"], **ids)
+    status_extra = tool_model(preflight, "qapa")
     dexseq = {}
     if Path(dexseq_table).exists():
         with gzip.open(dexseq_table, "rt") as stream:
@@ -197,7 +203,7 @@ def normalize(preflight_path, pau_table, dexseq_table, out_dir, ids=None):
         status, reasons = "no_tests", ["no site has a DEXSeq p-value (genes with >= 2 sites, "
                                        ">= 2 replicates per side)"]
     write_status(out_dir / "status.json", "qapa", status, reasons, sites=len(records),
-                 dexseq_rows=len(dexseq), tested=tested, **base)
+                 dexseq_rows=len(dexseq), tested=tested, **base, **status_extra)
 
 
 def _int(value):

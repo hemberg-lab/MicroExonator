@@ -139,11 +139,14 @@ def prepare(tool, preflight, source, out, shards=(), settings=None):
         writer.writerow(['circ_id'] + reps)
         for cid, values in matrices:
             writer.writerow([cid] + ['NA' if v is None else v for v in values])
+    # a paired/blocked design adds each replicate's block (edgeR ~ block + group);
+    # without one the table is unchanged
+    blocks = (preflight.get('design') or {}).get('replicate_block')
     with open(out / 'samples.tsv', 'w') as stream:
         writer = csv.writer(stream, delimiter='\t')
-        writer.writerow(['sample', 'group'])
+        writer.writerow(['sample', 'group'] + (['block'] if blocks else []))
         for side in ('a', 'b'):
-            writer.writerows((r, side) for r in preflight['replicates'][side])
+            writer.writerows([r, side] + ([blocks[r]] if blocks else []) for r in preflight['replicates'][side])
     result = []
     evidence_rows = []
     if shards:

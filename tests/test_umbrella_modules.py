@@ -345,6 +345,21 @@ class QapaTests(unittest.TestCase):
             run_qapa.normalize(preflight, root / "out" / "pau.tsv", root / "out" / "dexseq.tsv.gz", root / "out")
             status = json.loads((root / "out" / "status.json").read_text())
             self.assertEqual((status["status"], status["tested"], status["sites"]), ("no_tests", 0, 1))
+            self.assertNotIn("model", status)
+            self.assertEqual((root / "out" / "samples.tsv").read_text(),
+                             "sample\tcondition\nr1\ta\nr2\ta\nr3\tb\nr4\tb\n")
+            # a paired design: samples.tsv carries the block (DEXSeq block:exon), status the model
+            design = json.loads(preflight.read_text())
+            design["design"] = {"type": "paired", "block": "donor",
+                                "replicate_block": {"r1": "d1", "r3": "d1", "r2": "d2", "r4": "d2"}}
+            design["blocks"] = [{"block": "d1", "a": ["r1"], "b": ["r3"]}, {"block": "d2", "a": ["r2"], "b": ["r4"]}]
+            preflight.write_text(json.dumps(design))
+            with patch("src.run_qapa.subprocess.run", side_effect=fake_qapa):
+                run_qapa.pau("preflight.json", relative, "db.txt", "out")
+            self.assertEqual((root / "out" / "samples.tsv").read_text(),
+                             "sample\tcondition\tblock\nr1\ta\td1\nr2\ta\td2\nr3\tb\td1\nr4\tb\td2\n")
+            run_qapa.normalize(preflight, root / "out" / "pau.tsv", root / "out" / "dexseq.tsv.gz", root / "out")
+            self.assertEqual(json.loads((root / "out" / "status.json").read_text())["model"], "blocked_glm")
 
 
 # Fakes of the rna_majiq commands with the argument definitions of the real

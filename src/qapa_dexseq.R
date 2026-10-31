@@ -26,12 +26,21 @@ matrix <- round(as.matrix(counts[, samples$sample, drop = FALSE]))
 storage.mode(matrix) <- "integer"
 design <- data.frame(row.names = samples$sample,
                      condition = factor(samples$condition, levels = c("b", "a")))
-dxd <- DEXSeqDataSet(matrix, sampleData = design, design = ~ sample + exon + condition:exon,
+# paired/blocked comparisons (a block column in samples.tsv): the block's own
+# site usage is in both models, so the test is condition:exon within blocks
+full <- ~ sample + exon + condition:exon
+reduced <- ~ sample + exon
+if ("block" %in% colnames(samples)) {
+  design$block <- factor(samples$block)
+  full <- ~ sample + exon + block:exon + condition:exon
+  reduced <- ~ sample + exon + block:exon
+}
+dxd <- DEXSeqDataSet(matrix, sampleData = design, design = full,
                      featureID = counts$site_id, groupID = counts$gene_id)
 parallel <- if (threads > 1) MulticoreParam(threads) else SerialParam()
 dxd <- estimateSizeFactors(dxd)
-dxd <- estimateDispersions(dxd, BPPARAM = parallel)
-dxd <- testForDEU(dxd, BPPARAM = parallel)
+dxd <- estimateDispersions(dxd, formula = full, BPPARAM = parallel)
+dxd <- testForDEU(dxd, fullModel = full, reducedModel = reduced, BPPARAM = parallel)
 dxd <- estimateExonFoldChanges(dxd, fitExpToVar = "condition", BPPARAM = parallel)
 result <- DEXSeqResults(dxd)
 fold <- grep("^log2fold_", colnames(result), value = TRUE)[1]

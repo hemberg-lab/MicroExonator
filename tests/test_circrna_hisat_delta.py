@@ -57,6 +57,14 @@ class BoundaryDeltaTests(unittest.TestCase):
             rows = list(read_rows(root / 'diff/counts.tsv.gz'))
             self.assertEqual(rows[0]['b1'], '0')
             self.assertEqual(list(read_rows(root / 'diff/hisat_delta.tsv.gz')), [])
+            self.assertEqual((root / 'diff/samples.tsv').read_text().splitlines(),
+                             ['sample\tgroup', 'a1\ta', 'a2\ta', 'b1\tb', 'b2\tb'])
+            # a paired/blocked design adds the block column for edgeR ~ block + group
+            preflight['design'] = {'type': 'paired', 'block': 'donor',
+                                   'replicate_block': {'a1': 'd1', 'b1': 'd1', 'a2': 'd2', 'b2': 'd2'}}
+            prepare('dcc', preflight, root, root / 'paired')
+            self.assertEqual((root / 'paired/samples.tsv').read_text().splitlines(),
+                             ['sample\tgroup\tblock', 'a1\ta\td1', 'a2\ta\td2', 'b1\tb\td1', 'b2\tb\td2'])
 
     def test_minus_strand_and_technical_units_end_to_end(self):
         with tempfile.TemporaryDirectory() as tmp:

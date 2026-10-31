@@ -99,6 +99,13 @@ main <- function() {
                        PC1 = pca$x[, 1], PC2 = pca$x[, 2],
                        PC1_variance_pct = explained[1], PC2_variance_pct = explained[2],
                        group_distance_qc(transformed, groups, min_group), row.names = NULL)
+  # paired/blocked comparisons: the block is recorded and labelled, never modelled (PCA is descriptive)
+  if (!is.null(pf$design)) {
+    block_of <- unlist(pf$design$replicate_block)
+    scores$block <- unname(block_of[samples])
+  }
+  subtitle <- paste(opt$route, "|", length(samples), "biological replicates")
+  if (!is.null(pf$design)) subtitle <- paste(subtitle, "|", pf$design$type, "on", pf$design$block)
   qc_report <- identical(opt[["qc-report"]], "true")
   if (qc_report) {
     scores$qc_status <- "Not classified"
@@ -115,7 +122,7 @@ main <- function() {
     scale_colour_manual(values = setNames(c("#0072B2", "#D55E00"), c(pf$group_a, pf$group_b))) +
     scale_shape_manual(values = c("Unflagged" = 16, "Review" = 17, "Not assessed" = 1)) +
     labs(title = if (is.null(pf$comparison_id)) "Expression PCA" else pf$comparison_id,
-         subtitle = paste(opt$route, "|", length(samples), "biological replicates"),
+         subtitle = subtitle,
          x = sprintf("PC1 (%.1f%%)", explained[1]), y = sprintf("PC2 (%.1f%%)", explained[2]),
          colour = "Comparison group", shape = "QC status",
          caption = "VST; up to 500 most variable genes. Review flags are exploratory, not exclusions.") +

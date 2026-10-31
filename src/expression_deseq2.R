@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
-# Differential expression for one comparison, design ~ group (group_a vs group_b).
+# Differential expression for one comparison, design ~ group (group_a vs group_b),
+# or ~ block + group when the comparison declares a paired/blocked design (the
+# preflight's design.replicate_block gives each replicate's block).
 #
 # Two routes, one script:
 #   --route featurecounts  joined featureCounts matrix (gene_id, length, one
@@ -29,6 +31,14 @@ replicates <- c(preflight$replicates$a, preflight$replicates$b)
 group <- factor(c(rep("a", length(preflight$replicates$a)), rep("b", length(preflight$replicates$b))),
                 levels = c("b", "a"))
 col_data <- data.frame(group = group, row.names = replicates)
+blocked <- !is.null(preflight$design)
+formula <- ~ group
+if (blocked) {
+  block_of <- unlist(preflight$design$replicate_block)
+  if (!all(replicates %in% names(block_of))) stop("preflight design has no block for every replicate")
+  col_data$block <- factor(block_of[replicates])
+  formula <- ~ block + group
+}
 
 read_matrix <- function(path, key_columns) {
   table <- read.delim(gzfile(path), check.names = FALSE, stringsAsFactors = FALSE)
@@ -45,7 +55,7 @@ per_replicate_mean <- function(values) {
 
 if (opt$route == "featurecounts") {
   counts <- read_matrix(opt$counts, 2)[, replicates, drop = FALSE]
-  dds <- DESeqDataSetFromMatrix(round(counts), col_data, ~ group)
+  dds <- DESeqDataSetFromMatrix(round(counts), col_data, formula)
 } else if (opt$route == "tximport") {
   counts <- read_matrix(opt$counts, 1)[, replicates, drop = FALSE]
   genes <- rownames(counts)
@@ -53,7 +63,7 @@ if (opt$route == "featurecounts") {
   lengths <- per_replicate_mean(read_matrix(opt$length, 1))[genes, , drop = FALSE]
   txi <- list(abundance = abundance, counts = counts, length = lengths,
               countsFromAbundance = "no")
-  dds <- DESeqDataSetFromTximport(txi, col_data, ~ group)
+  dds <- DESeqDataSetFromTximport(txi, col_data, formula)
 } else {
   stop("unknown route: ", opt$route)
 }
@@ -75,7 +85,8 @@ if (isTRUE(preflight$inference_supported)) {
   result <- data.frame(gene_id = rownames(result), as.data.frame(result))
   write.table(result[order(result$padj), ], gzfile(results_path),
               sep = "\t", quote = FALSE, row.names = FALSE, na = "NA")
-  writeLines("supported", paste0(opt$out, ".status.txt"))
+  writeLines(c("supported", if (blocked) paste0("model: blocked_glm (~ ", preflight$design$block, " + group)")),
+             paste0(opt$out, ".status.txt"))
 } else {
   writeLines("# inference not supported", gzfile(results_path))
   writeLines(c("unsupported", unlist(preflight$reasons)), paste0(opt$out, ".status.txt"))

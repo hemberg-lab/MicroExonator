@@ -15,7 +15,9 @@ compare   Per comparison, from the caches only: sums technical runs into one
             results.tsv.gz  normalized rows: effect = mean PDUI(A) - mean PDUI(B);
                             two-sided Welch t-test where each side has >= 2 values
                             and some variance, BH over tested regions (exploratory:
-                            DaPars2 itself reports no p-values)
+                            DaPars2 itself reports no p-values). With a paired/
+                            blocked design: effect = mean per-block difference,
+                            two-sided paired t-test on those differences
             status.json
 """
 
@@ -32,8 +34,10 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from src.comparison_design import block_differences, tool_model
     from src.umbrella_modules import NORMALIZED, write_status
 else:
+    from comparison_design import block_differences, tool_model
     from umbrella_modules import NORMALIZED, write_status
 
 # DaPars2 starts worker processes at module level; it needs the "fork" start
@@ -41,6 +45,8 @@ else:
 FORK_RUNNER = ("import multiprocessing, runpy, sys; multiprocessing.set_start_method('fork'); "
                "script = sys.argv[1]; sys.argv = sys.argv[1:]; runpy.run_path(script, run_name='__main__')")
 PDUI_EFFECT = "mean PDUI(A) - mean PDUI(B); PDUI = distal poly(A) usage of the 3' UTR"
+PAIRED_EFFECT = ("mean over blocks of [mean PDUI(A) - mean PDUI(B)] within the block; "
+                 "PDUI = distal poly(A) usage of the 3' UTR")
 
 
 # ------------------------------------------------------------ per run
@@ -115,6 +121,21 @@ def welch(a, b):
     return _incomplete_beta(df / 2.0, 0.5, df / (df + t * t))
 
 
+def paired_t(differences):
+    """Two-sided one-sample t-test p-value of per-block differences, or None
+    when fewer than two differences or no variance."""
+    n = len(differences)
+    if n < 2:
+        return None
+    mean = sum(differences) / n
+    variance = sum((d - mean) ** 2 for d in differences) / (n - 1)
+    if variance <= 0:
+        return None
+    t = mean / math.sqrt(variance / n)
+    df = n - 1
+    return _incomplete_beta(df / 2.0, 0.5, df / (df + t * t))
+
+
 def _incomplete_beta(a, b, x):
     """Regularized incomplete beta I_x(a, b) (continued fraction, Numerical Recipes).
     With a = df/2, b = 1/2 and x = df/(df + t^2) it is the two-sided t p-value."""
@@ -178,9 +199,11 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
     ids = ids or {}
     status_path = out_dir / "status.json"
     base = dict(project_id=preflight["project_id"], comparison_id=preflight["comparison_id"], **ids)
+    # paired/blocked designs: paired t-test on per-block differences (empty otherwise)
+    model = tool_model(preflight, "dapars2")
     if not preflight["inference_supported"]:
         _empty_outputs(out_dir)
-        write_status(status_path, "dapars2", "unsupported", preflight["reasons"], **base)
+        write_status(status_path, "dapars2", "unsupported", preflight["reasons"], **base, **model)
         return
     chroms = []
     with open(utr_bed) as stream:
@@ -245,7 +268,16 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
                     values[side].append(float(raw))
         effect = (sum(values["a"]) / len(values["a"]) - sum(values["b"]) / len(values["b"])
                   if values["a"] and values["b"] else None)
-        p = welch(values["a"], values["b"])
+        if model:
+            by_replicate = {}
+            for replicate in replicates["a"] + replicates["b"]:
+                raw = row[column[replicate + "_PDUI"]]
+                by_replicate[replicate] = None if raw in ("", "NA", "nan", "None") else float(raw)
+            differences = block_differences(preflight, by_replicate)
+            effect = sum(differences) / len(differences) if differences else None
+            p = paired_t(differences)
+        else:
+            p = welch(values["a"], values["b"])
         if effect is None:
             status = "not_quantified"
         elif p is None:
@@ -264,7 +296,8 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
             "coordinates": "0-based half-open 3' UTR; proximal site " + row[column["Predicted_Proximal_APA"]],
             "strand": strand, "event_class": "tandem_3utr_apa",
             "effect": "" if effect is None else "{:.6g}".format(effect),
-            "effect_definition": PDUI_EFFECT, "n_a": len(values["a"]), "n_b": len(values["b"]),
+            "effect_definition": PAIRED_EFFECT if model else PDUI_EFFECT,
+            "n_a": len(values["a"]), "n_b": len(values["b"]),
             "coverage": "", "native_statistic": row[column["fit_value"]],
             "statistic_type": "DaPars2 fit_value (mean squared error of the two-isoform fit)",
             "p_value": "" if p is None else "{:.6g}".format(p), "status": status})
@@ -282,9 +315,11 @@ def compare(preflight_path, caches, utr_bed, dapars2_dir, out_dir, threads=1,
     if not rows:
         status, reasons = "empty", ["DaPars2 reported no 3' UTR regions"]
     elif not tested:
-        status, reasons = "no_tests", ["no region has varying PDUI values in >= 2 replicates per side"]
+        status, reasons = "no_tests", ([
+            "no region has PDUI values in >= 2 blocks with varying block differences"] if model else [
+            "no region has varying PDUI values in >= 2 replicates per side"])
     write_status(status_path, "dapars2", status, reasons, regions=len(rows), tested=tested,
-                 replicates={side: replicates[side] for side in ("a", "b")}, **base)
+                 replicates={side: replicates[side] for side in ("a", "b")}, **base, **model)
 
 
 def _empty_outputs(out_dir):

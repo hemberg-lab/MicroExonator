@@ -13,6 +13,12 @@ samples <- read.delim(file.path(folder, 'samples.tsv'), stringsAsFactors=FALSE)
 stopifnot(identical(names(counts)[-1], samples$sample), !anyDuplicated(samples$sample))
 group <- factor(samples$group, levels=c('b', 'a'))
 stopifnot(!anyNA(group))
+# paired/blocked comparisons: samples.tsv has a block column, and the model is ~ block + group
+blocked <- 'block' %in% names(samples)
+if (blocked) {
+    block <- factor(samples$block)
+    stopifnot(!anyNA(block))
+}
 status <- 'insufficient_data'
 reason <- ''
 warned <- character()
@@ -29,7 +35,7 @@ if (!all(table(group) >= 2)) {
 } else if (!all(colSums(x) > 0)) {
     reason <- 'a replicate has no BSJ read'
 } else {
-    design <- model.matrix(~group)
+    design <- if (blocked) model.matrix(~block + group) else model.matrix(~group)
     y <- DGEList(x)
     keep <- filterByExpr(y, design=design)
     y <- y[keep,,keep.lib.sizes=FALSE]
@@ -43,7 +49,7 @@ if (!all(table(group) >= 2)) {
             y <- calcNormFactors(y, method='TMMwsp')
             y <- estimateDisp(y, design)
             fit <- glmQLFit(y, design, robust=TRUE)
-            list(y=y, table=topTags(glmQLFTest(fit, coef=2), n=Inf, sort.by='none')$table)
+            list(y=y, table=topTags(glmQLFTest(fit, coef='groupa'), n=Inf, sort.by='none')$table)
         }, error=function(e) conditionMessage(e)),
         warning=function(w) {warned <<- c(warned, conditionMessage(w)); invokeRestart('muffleWarning')})
         if (is.character(fitted)) {
@@ -65,5 +71,6 @@ lines <- c(paste('status', status, sep='\t'), paste('reason', reason, sep='\t'),
            paste('edgeR', packageVersion('edgeR'), sep='\t'),
            'effect\tlog2 abundance A/B', 'normalization\tTMMwsp on retained BSJ counts',
            'multiplicity\tBH within tool/comparison tested universe')
+if (blocked) lines <- c(lines, paste('model', 'blocked_glm (~ block + group)', sep='\t'))
 if (length(warned)) lines <- c(lines, paste('warning', gsub('[\t\n]', ' ', unique(warned)), sep='\t'))
 writeLines(lines, file.path(folder, 'status.tsv'))
