@@ -170,6 +170,28 @@ rule umbrella_rmats_post:
         "--log {log} --gtf {input.gtf} --threads {threads} --prep {input.prep} --outputs {output}"
 
 
+# Paired designs: rMATS --paired-stats needs PAIRADISE (envs/umbrella-rmats-paired.yaml).
+# The same job in that environment, only for those comparisons, so the
+# environment of every other rMATS job (and of the alignment) stays as it was.
+UMBRELLA_RMATS_PAIRED = sorted(comparison_id for comparison_id, result in UMBRELLA_COMPARISONS.items()
+                               if tool_model(result, "rmats").get("model") == "paired_native")
+
+
+def umbrella_paired_ids(ids):
+    import re as _re
+    return "|".join(_re.escape(i) for i in ids)
+
+
+if UMBRELLA_RMATS_PAIRED:
+    ruleorder: umbrella_rmats_post_paired > umbrella_rmats_post
+
+    use rule umbrella_rmats_post as umbrella_rmats_post_paired with:
+        wildcard_constraints:
+            comparison_id=umbrella_paired_ids(UMBRELLA_RMATS_PAIRED)
+        conda:
+            "../envs/umbrella-rmats-paired.yaml"
+
+
 UMBRELLA_LEAFCUTTER_EXONS = UMBRELLA_REFERENCE_ROOT + "/leafcutter_exons.txt.gz"
 
 
@@ -296,6 +318,9 @@ rule umbrella_synthesis:
         # technical runs weigh more in the delta tools that pool per-run posteriors:
         # recorded only when a replicate has several runs (src/comparison_design.py)
         weighting = input_weighting(result)
+        if result.get('design'):
+            config_out['design_models'] = {tool['name']: tool_model(result, tool['name'])
+                                            for tool in config_out['tools']}
         pooled_tools = [tool["name"] for tool in config_out["tools"] if tool["name"] in POOLED_POSTERIOR_TOOLS]
         if weighting and pooled_tools:
             config_out["weighting"] = dict(weighting, tools=pooled_tools)

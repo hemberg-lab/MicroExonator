@@ -191,6 +191,10 @@ def report(config):
             for replicate, weight in sorted(weighting["weights"][side].items()):
                 lines.append("{}\t{}\t{}\t{}\n".format(side, replicate, weighting["weighting"].get(replicate, 1),
                                                          weight))
+    if config.get('design_models'):
+        lines.append('\n# statistical design actually used\ntool\tmodel\treason\n')
+        for tool, model in sorted(config['design_models'].items()):
+            lines.append('{}\t{}\t{}\n'.format(tool, model['model'], model['model_reason']))
     return "".join(lines)
 
 

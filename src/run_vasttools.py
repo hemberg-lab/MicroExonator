@@ -53,8 +53,10 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from src.comparison_design import paired_replicates, tool_model, wilcoxon_signed_rank
     from src.umbrella_modules import NORMALIZED, write_status
 else:
+    from comparison_design import paired_replicates, tool_model, wilcoxon_signed_rank
     from umbrella_modules import NORMALIZED, write_status
 
 EFFECT = "E[dPSI] from vast-tools diff, PSI(A) - PSI(B), PSI as a fraction"
@@ -404,12 +406,18 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     ids = ids or {}
     status_path = out_dir / "status.json"
     base = dict(project_id=preflight["project_id"], comparison_id=preflight["comparison_id"], **ids)
+    # paired designs: diff --paired, or a Wilcoxon signed-rank test in place of
+    # Mann-Whitney, with both sides in block order (pairs by position)
+    model = tool_model(preflight, tool_name)
+    paired = model.get("model") == "paired_native"
     if not preflight["inference_supported"]:
         _empty_outputs(out_dir)
-        write_status(status_path, tool_name, "unsupported", preflight["reasons"], **base)
+        write_status(status_path, tool_name, "unsupported", preflight["reasons"], **base, **model)
         return
     catalogue = read_catalog(dbdir, species)
     replicates = {side: list(preflight["replicates"][side]) for side in ("a", "b")}
+    if paired:
+        replicates = dict(zip(("a", "b"), map(list, paired_replicates(preflight))))
     members = {}
     for run, replicate in preflight["collapse"].items():
         members.setdefault(replicate, []).append(run)
@@ -433,6 +441,11 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     n_side = {side: len(replicates[side]) for side in ("a", "b")}
     samples_needed = max(1, min(min_samples, n_side["a"], n_side["b"]))
     method = "diff" if min(n_side.values()) <= diff_max_n else "mann_whitney"
+    if paired and method == "mann_whitney":
+        method = "wilcoxon_signed_rank"
+        model = dict(model, model="paired_test",
+                     model_reason="two-sided Wilcoxon signed-rank test on paired tidy PSI differences "
+                                  "(in place of Mann-Whitney), sides in block order")
     dbdir = str(Path(dbdir).resolve())
     with tempfile.TemporaryDirectory(prefix="vasttools-", dir=str(out_dir)) as directory:
         work = Path(directory).resolve()
@@ -471,9 +484,10 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
                      "-b", ",".join(column[r] for r in replicates["b"]), "--sampleNameA", "A",
                      "--sampleNameB", "B", "-i", inclusion, "-o", vast_out, "-d", "diff",
                      "-r", prob, "-m", min_dpsi, "-e", min_reads, "-S", samples_needed, "-c", threads,
-                     "--noPDF", cwd=work, log=log)
+                     "--noPDF", *(["--paired=TRUE"] if paired else []), cwd=work, log=log)
             else:
-                (vast_out / 'diff.tab').write_text('# Bayesian diff not run: using tidy + Mann-Whitney\n')
+                (vast_out / 'diff.tab').write_text('# Bayesian diff not run: using tidy + {}\n'.format(
+                    'Wilcoxon signed-rank' if paired else 'Mann-Whitney'))
         for source, target in ((inclusion, "inclusion.tsv.gz"), (work / "tidy.tab", "tidy.tsv.gz"),
                                (vast_out / "diff.tab", "diff.tsv.gz")):
             with open(source, "rb") as stream, gzip.open(out_dir / target, "wb") as sink:
@@ -490,12 +504,23 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
                        for side in ("a", "b")}
         tidy_values = {side: [v for v in vs if v is not None] for side, vs in tidy_values.items()}
         p = mann_whitney(tidy_values["a"], tidy_values["b"]) if (
-            tidy_row and min(len(tidy_values["a"]), len(tidy_values["b"])) >= 3) else None
+            not paired and tidy_row and min(len(tidy_values["a"]), len(tidy_values["b"])) >= 3) else None
+        differences = None
+        if method == "wilcoxon_signed_rank":
+            differences = []
+            if tidy_row:
+                for name_a, name_b in zip(names["a"], names["b"]):
+                    value_a, value_b = _float(tidy_row.get(name_a)), _float(tidy_row.get(name_b))
+                    if value_a is not None and value_b is not None:
+                        differences.append(value_a - value_b)
+            p = wilcoxon_signed_rank(differences) if len(differences) >= 3 else None
         diff_row = diff.get(event, {})
         expected = _float(diff_row.get("E[dPsi]"))
         mv = _float(next((v for k, v in diff_row.items() if k and k.startswith("MV")), None))
         mean_dpsi = ((sum(tidy_values["a"]) / len(tidy_values["a"]) - sum(tidy_values["b"]) / len(tidy_values["b"]))
                      / 100.0 if tidy_values["a"] and tidy_values["b"] else None)
+        if differences is not None:
+            mean_dpsi = sum(differences) / len(differences) / 100.0 if differences else None
         chrom, start, end = "", "", ""
         match = re.match(r"^(.+):(\d+)-(\d+)$", info["coord"])
         if match:
@@ -529,13 +554,15 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
             "strand": record["strand"], "event_class": event_class(record["event"], info["complexity"]),
             "effect": "" if effect is None else "{:.6g}".format(effect),
             "effect_definition": EFFECT if method == "diff" else
+            "mean paired tidy PSI(A) - PSI(B) over blocks, as a fraction" if method == "wilcoxon_signed_rank" else
             "mean tidy PSI(A) - mean tidy PSI(B), as a fraction",
             "n_a": sum(v is not None for v in record["values"]["a"]),
             "n_b": sum(v is not None for v in record["values"]["b"]),
             "coverage": "tidy_pass" if record["tidy"] else "tidy_fail",
             "native_statistic": "" if record["mv"] is None else "{:.6g}".format(record["mv"]),
             "statistic_type": ("vast-tools diff MV: |dPSI| exceeded with probability {}".format(prob)
-                               if method == 'diff' else 'Mann-Whitney p-value; BH q-value'),
+                               if method == 'diff' else 'Wilcoxon signed-rank p-value; BH q-value'
+                               if method == 'wilcoxon_signed_rank' else 'Mann-Whitney p-value; BH q-value'),
             "p_value": "" if record["p"] is None else "{:.6g}".format(record["p"]),
             "q_value": "" if record["q"] is None else "{:.6g}".format(record["q"]),
             "status": record["status"],
@@ -563,7 +590,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
     write_status(status_path, tool_name, status, reasons, method=method, events=len(records),
                  tested=tested, called=called, min_samples=samples_needed, merged_replicates=sorted(
                      {m[1] for m in merges}), microexons=by_status,
-                 replicates={side: replicates[side] for side in ("a", "b")}, **base)
+                 replicates={side: replicates[side] for side in ("a", "b")}, **base, **model)
 
 
 MICROEXON_COLUMNS = ("microexon_id", "vasttools_status", "vastdb_event", "vastdb_events", "gene_name",

@@ -8,6 +8,15 @@ from src.synthesize_umbrella import evaluate, qc_outliers, report
 from src.umbrella_tool_inputs import leafcutter_files, suppa_tables
 
 
+class DesignReportingTests(unittest.TestCase):
+    def test_unpaired_adaptations_are_visible_in_report(self):
+        config = dict(comparison_id='paired', group_a='A', group_b='B', inference_supported=True,
+                      tools=[], runs=[], design_models={'microexonator_delta': {
+                          'model': 'unpaired_adaptation', 'model_reason': 'group pooled; pairing not modelled'}})
+        text = report(config)
+        self.assertIn('microexonator_delta\tunpaired_adaptation\tgroup pooled; pairing not modelled', text)
+
+
 def gz(path, text):
     path.write_bytes(gzip.compress(text.encode()))
     return str(path)

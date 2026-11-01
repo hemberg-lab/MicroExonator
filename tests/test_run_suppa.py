@@ -1,5 +1,6 @@
 import argparse
 import gzip
+import json
 import os
 import stat
 import sys
@@ -112,6 +113,46 @@ class SuppaWrapperTests(unittest.TestCase):
                 run_comparison_tools.suppa(self.args, self.preflight)
         self.assertIn("SE", str(caught.exception.code))
         self.assertFalse((self.root / "suppa2" / "SE.dpsi").exists())
+
+    def test_paired_design_uses_the_paired_test_with_columns_in_block_order(self):
+        joined = self.root / "tx2.tsv.gz"
+        with gzip.open(joined, "wt") as stream:
+            stream.write("transcript_id\ta1\ta2\tb1\tb2\ntx1\t1\t2\t3\t4\n")
+        self.args.joined = str(joined)
+        preflight = {"inference_supported": True, "replicates": {"a": ["A1", "A2"], "b": ["B1", "B2"]},
+                     "collapse": {"a1": "A1", "a2": "A2", "b1": "B1", "b2": "B2"},
+                     "design": {"type": "paired", "block": "donor"},
+                     "blocks": [{"block": "d1", "a": ["A2"], "b": ["B1"]}, {"block": "d2", "a": ["A1"], "b": ["B2"]}]}
+        commands, tables = [], {}
+        real_run = run_comparison_tools.run
+
+        def spy(command, log):
+            commands.append(command)
+            if command[1] == "diffSplice" and not tables:
+                for path in command[command.index("-e") + 1:command.index("-e") + 3]:
+                    tables[Path(path).stem] = Path(path).read_text().splitlines()[0]
+            return real_run(command, log)
+        with patch.object(run_comparison_tools, "run", side_effect=spy):
+            run_comparison_tools.suppa(self.args, preflight)
+        diff = [c for c in commands if c[1] == "diffSplice"]
+        self.assertTrue(all(c[c.index("-m") + 1] == "classical" and "--paired" in c for c in diff))
+        self.assertEqual(tables, {"a": "A2\tA1", "b": "B1\tB2"})
+        status = json.loads((self.root / "suppa2" / "status.json").read_text())
+        self.assertEqual(status["model"], "paired_native")
+        # blocked designs keep the empirical test and record the adaptation
+        preflight["design"]["type"] = "blocked"
+        commands.clear()
+        tables["done"] = True
+        with patch.object(run_comparison_tools, "run", side_effect=spy):
+            run_comparison_tools.suppa(self.args, preflight)
+        self.assertTrue(all(c[c.index("-m") + 1] == "empirical" and "--paired" not in c
+                            for c in commands if c[1] == "diffSplice"))
+        status = json.loads((self.root / "suppa2" / "status.json").read_text())
+        self.assertEqual(status["model"], "unpaired_adaptation")
+
+    def test_unpaired_comparisons_write_no_status(self):
+        run_comparison_tools.suppa(self.args, self.preflight)
+        self.assertFalse((self.root / "suppa2" / "status.json").exists())
 
 
 if __name__ == "__main__":

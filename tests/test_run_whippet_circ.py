@@ -42,7 +42,7 @@ def fake_native(julia, whippet_bin, files, prefix):
 
 
 class CompareTests(unittest.TestCase):
-    def run_compare(self, per_run, runs, collapse=None, replicates=None):
+    def run_compare(self, per_run, runs, collapse=None, replicates=None, design=None):
         directory = tempfile.mkdtemp()
         caches = {}
         for run, lines in per_run.items():
@@ -52,9 +52,18 @@ class CompareTests(unittest.TestCase):
                      "collapse": collapse or {run: run for run in per_run}}
         if replicates:
             preflight["replicates"] = replicates
+        if design:
+            preflight['design'] = design
         out = os.path.join(directory, "out")
         wc.compare(preflight, caches, out, ids={"analysis_id": "a" * 16}, native=fake_native)
         return Path(out), caches
+
+    def test_design_is_explicitly_reported_as_unpaired(self):
+        lines = [back_splice('G', '5-2', 'chr1:500-200', .5, 30)]
+        out, _ = self.run_compare({r: lines for r in ('a1','a2','b1','b2')},
+                                 {'a':['a1','a2'], 'b':['b1','b2']},
+                                 design={'type':'paired', 'block':'donor'})
+        self.assertEqual(json.loads((out/'status.json').read_text()).get('model'), 'unpaired_adaptation')
 
     def rows(self, out):
         with gzip.open(out / "results.tsv.gz", "rt") as stream:

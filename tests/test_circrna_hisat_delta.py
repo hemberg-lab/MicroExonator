@@ -65,6 +65,9 @@ class BoundaryDeltaTests(unittest.TestCase):
             prepare('dcc', preflight, root, root / 'paired')
             self.assertEqual((root / 'paired/samples.tsv').read_text().splitlines(),
                              ['sample\tgroup\tblock', 'a1\ta\td1', 'a2\ta\td2', 'b1\tb\td1', 'b2\tb\td2'])
+            import json
+            self.assertEqual(json.loads((root/'paired/preparation.json').read_text()).get('usage_model'),
+                             'unpaired_adaptation')
 
     def test_minus_strand_and_technical_units_end_to_end(self):
         with tempfile.TemporaryDirectory() as tmp:

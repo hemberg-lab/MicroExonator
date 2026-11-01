@@ -19,6 +19,12 @@
     "umbrella_rmats_conservative_compare": {
         "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
     },
+    "umbrella_rmats_conservative_compare_paired": {
+        "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
+    },
+    "umbrella_rmats_post_paired": {
+        "ppn": "4", "threads": "4", "mem_mb": "16000", "mem": "16000mb"
+    },
     "Round1_bwa_mem_to_tags": {
         "ppn": "5",
         "threads": "5",

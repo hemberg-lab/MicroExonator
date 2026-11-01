@@ -185,6 +185,8 @@ def prepare(tool, preflight, source, out, shards=(), settings=None):
         writer.writerow(['circ_id', 'strand', 'boundary', 'replicate', 'bsj', 'linear_unique'])
         writer.writerows(evidence_rows)
     (out / 'preparation.json').write_text(json.dumps(dict(tool=tool, settings=settings,
+        **({'usage_model': 'unpaired_adaptation', 'usage_model_reason':
+            'Boundary posteriors are pooled by group; donor pairing is not modelled.'} if preflight.get('design') else {}),
         endpoint='BSJ/(BSJ+unique HISAT2 linear junction support), separate splice boundaries',
         bayesian_status='experimental_cross_aligner' if shards else 'disabled',
         abundance_universe='native retained calls; detection/annotation filtering applies',

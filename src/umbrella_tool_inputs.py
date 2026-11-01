@@ -79,8 +79,11 @@ def leafcutter_files(joined, preflight, directory):
     return written
 
 
-def suppa_tables(joined, preflight):
-    """{'a': text, 'b': text}: SUPPA2 TPM tables, one column per replicate."""
+def suppa_tables(joined, preflight, order=None):
+    """{'a': text, 'b': text}: SUPPA2 TPM tables, one column per replicate.
+
+    order: {'a': [...], 'b': [...]} replicate column order (block order for a
+    paired design); default the preflight's."""
     header, rows = _read(joined)
     runs = header[1:]
     members = defaultdict(list)
@@ -88,7 +91,7 @@ def suppa_tables(joined, preflight):
         members[preflight["collapse"][run]].append(column)
     tables = {}
     for side in ("a", "b"):
-        replicates = preflight["replicates"][side]
+        replicates = (order or preflight["replicates"])[side]
         lines = ["\t".join(replicates) + "\n"]      # SUPPA: no header for the ID column
         for row in rows:
             values = [sum(float(row[c]) for c in members[r]) / len(members[r]) for r in replicates]

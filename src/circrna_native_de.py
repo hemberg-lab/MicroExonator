@@ -104,8 +104,9 @@ def number(value):
 
 
 def base_fields(preflight, ids, tool):
+    from src.comparison_design import tool_model
     return dict(ids or {}, project_id=preflight.get("project_id", ""),
-                comparison_id=preflight.get("comparison_id", ""), tool=tool)
+                comparison_id=preflight.get("comparison_id", ""), tool=tool, **tool_model(preflight, tool))
 
 
 def status_fields(base):

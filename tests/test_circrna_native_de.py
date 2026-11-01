@@ -28,6 +28,14 @@ PREFLIGHT = {"project_id": "p", "comparison_id": "c",
              "collapse": {"ua1": "ra1", "ua2": "ra2", "ua3": "ra3", "ub1": "rb1", "ub2": "rb2", "ub3": "rb3"}}
 
 
+class DesignLabelsTests(unittest.TestCase):
+    def test_native_circrna_tests_do_not_claim_pairing(self):
+        paired = dict(PREFLIGHT, design={'type': 'paired', 'block': 'donor'})
+        for tool in ('ciriquant', 'dcc'):
+            self.assertEqual(nd.base_fields(paired, {}, tool).get('model'), 'unpaired_adaptation')
+        self.assertNotIn('model', nd.base_fields(PREFLIGHT, {}, 'dcc'))
+
+
 def write_tsv(path, header, rows):
     opener = gzip.open if str(path).endswith(".gz") else open
     with opener(path, "wt") as stream:

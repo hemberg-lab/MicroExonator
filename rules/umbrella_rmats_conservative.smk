@@ -53,6 +53,21 @@ rule umbrella_rmats_conservative_compare:
         '--gtf {input.gtf:q} --out-dir {params.out:q} --threads {threads} --ids {params.ids:q}'
 
 
+# paired designs: --paired-stats with PAIRADISE, in its own environment (see umbrella_comparisons.smk)
+RMATS_CONSERVATIVE_PAIRED = sorted(comparison_id for comparison_id, result in UMBRELLA_COMPARISONS.items()
+                                   if tool_model(result, "rmats_conservative").get("model") == "paired_native")
+
+if RMATS_CONSERVATIVE_PAIRED:
+    ruleorder: umbrella_rmats_conservative_compare_paired > umbrella_rmats_conservative_compare
+
+    use rule umbrella_rmats_conservative_compare as umbrella_rmats_conservative_compare_paired with:
+        wildcard_constraints:
+            comparison_id=umbrella_paired_ids(RMATS_CONSERVATIVE_PAIRED),
+            **MODULE_WILDCARDS
+        conda:
+            '../envs/umbrella-rmats-paired.yaml'
+
+
 rule prepare_rmats_conservative:
     input: module_target('rmats_conservative', module_prepare_targets)
 

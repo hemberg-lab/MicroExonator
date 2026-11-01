@@ -245,6 +245,45 @@ replicate's inputs and its share of its side (`weighting`, `weights`).
 
 ## Regrouping
 
+### Paired and blocked statistical comparisons
+
+Add a pairing column such as `subject_id` to manifest metadata, and opt in per comparison:
+
+```yaml
+design:
+  type: paired
+  block: subject_id
+  unbalanced: refuse
+```
+
+`paired` requires exactly one biological replicate per condition per subject,
+with at least two complete subjects. `blocked` permits several replicates per
+condition within a block. `unbalanced: drop` explicitly excludes incomplete
+blocks and records them in preflight; the default refuses them. Pair IDs are
+metadata, so they do not invalidate read-processing caches.
+
+DESeq2 and shared circRNA edgeR use `~ block + group`. QAPA uses block-adjusted
+DEXSeq models; DaPars2 tests per-block mean PDUI differences. For `paired`
+designs, both rMATS profiles use native PAIRADISE (`--paired-stats`) in the
+dedicated `umbrella-rmats-paired.yaml` environment. SUPPA2 switches to its
+classical paired test; vast-tools diff uses `--paired=TRUE`, with a paired
+signed-rank alternative for comparisons above the configured diff sample limit.
+Native paired modes receive biological replicates in matching block order.
+
+MicroExonator Delta, Whippet Delta/BS, HISAT2-boundary Bayesian usage, native
+CIRIquant/CircTest, MAJIQ, PSI-Sigma and LeafCutter retain their ordinary
+two-group models. Declaring pairing does not make these calculations paired.
+Core synthesis records `model` and `model_reason`; module status files and
+boundary preparation metadata label unsupported adaptations explicitly.
+Native paired modes also fall back to labelled unpaired analyses for `blocked`
+designs, where more than one replicate per side in a block precludes positional
+pairing. Review these labels when interpreting consensus.
+
+Update the active PBS profile with both paired rMATS rule entries. If using
+`--allowed-rules`, include `umbrella_rmats_post_paired` and/or
+`umbrella_rmats_conservative_compare_paired`. Validate the paired conda
+environment and a small native comparison before large runs.
+
 `group` is the storage label a run's shards are filed under, and `batch_id`
 the unit of addition; both are fixed once a run's shards exist. A run's
 identity, which decides whether it is staged, aligned or quantified again, is

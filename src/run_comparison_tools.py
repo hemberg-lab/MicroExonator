@@ -10,7 +10,8 @@ output gets one comment line saying why, and no inferential command runs.
          src/rmats_replicates.py); paired designs add --paired-stats. Either
          case writes rmats/status.json (pooled replicates, model)
   suppa  per-replicate TPM tables for A and B, psiPerEvent per event type,
-         diffSplice with conditions given B then A (so dPSI is A - B)
+         diffSplice with conditions given B then A (so dPSI is A - B);
+         paired designs use -m classical --paired with columns in block order
 """
 
 import argparse
@@ -23,11 +24,11 @@ from pathlib import Path
 
 if __package__:
     from src import rmats_replicates
-    from src.comparison_design import tool_model
+    from src.comparison_design import paired_replicates, tool_model
     from src.umbrella_tool_inputs import suppa_tables, write_delta_inputs
 else:
     import rmats_replicates
-    from comparison_design import tool_model
+    from comparison_design import paired_replicates, tool_model
     from umbrella_tool_inputs import suppa_tables, write_delta_inputs
 
 
@@ -93,9 +94,16 @@ def suppa(args, preflight):
     work = Path(args.work)
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
-    tables = suppa_tables(args.joined, preflight)
+    # paired design: SUPPA2's paired test (-m classical --paired, a Wilcoxon
+    # signed-rank test; the empirical method ignores --paired), with the
+    # replicate columns of A and B in block order so they pair by position
+    model = tool_model(preflight, "suppa2")
+    paired = model.get("model") == "paired_native"
+    pairs = paired_replicates(preflight) if paired else None
+    tables = suppa_tables(args.joined, preflight, {"a": pairs[0], "b": pairs[1]} if pairs else None)
     for side in ("a", "b"):
         (work / (side + ".tpm")).write_text(tables[side])
+    method = ["-m", "classical", "--paired"] if paired else ["-m", "empirical"]
     for events, output in zip(args.events, args.outputs):
         kind = Path(output).stem
         # one private folder per event type: SUPPA 2.3 merges every
@@ -108,7 +116,7 @@ def suppa(args, preflight):
         for side in ("a", "b"):
             run(["suppa.py", "psiPerEvent", "-i", events, "-e", str(work / (side + ".tpm")),
                  "-o", str(private / "{}_{}".format(kind, side))], args.log)
-        run(["suppa.py", "diffSplice", "-m", "empirical", "-gc", "-i", events,
+        run(["suppa.py", "diffSplice"] + method + ["-gc", "-i", events,
              "-p", str(private / (kind + "_b.psi")), str(private / (kind + "_a.psi")),
              "-e", str(work / "b.tpm"), str(work / "a.tpm"),
              "-o", str(private / "out")], args.log)
@@ -116,6 +124,10 @@ def suppa(args, preflight):
         check_dpsi_header(dpsi, kind)
         Path(output).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(dpsi, output)
+    if model:
+        # not a declared output: only designed comparisons record their model
+        (Path(args.outputs[0]).parent / "status.json").write_text(
+            json.dumps(dict(tool="suppa2", **model), sort_keys=True, indent=2) + "\n")
     shutil.rmtree(work)
 
 

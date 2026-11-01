@@ -220,9 +220,12 @@ def module_cache_arguments(wildcards, tool):
 
 def module_ids(wildcards, tool, version):
     result = module_comparison(wildcards, tool)
+    # These wrappers do not add a model label of their own. Carry the
+    # explicit unpaired adaptation in their status metadata too.
+    model = tool_model(result, tool) if tool in ('majiq', 'psisigma', 'circexplorer2') else {}
     return _json.dumps({"reference_id": result["reference_id"], "module_reference_id":
                         MODULE_REFERENCE_ID[tool], "analysis_id": wildcards.analysis_id,
-                        "tool_version": version}, sort_keys=True)
+                        "tool_version": version, **model}, sort_keys=True)
 
 
 # ------------------------------------------------------------ DaPars2

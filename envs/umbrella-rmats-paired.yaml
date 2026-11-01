@@ -1,0 +1,16 @@
+name: microexonator-umbrella-rmats-paired
+# rMATS --paired-stats runs rMATS_R/paired_model.R with Rscript and PAIRADISE.
+# The post-deploy hook installs the original Xinglab PAIRADISE 1.0 used by
+# rMATS. Bioconductor PAIRADISE 1.18 has an incompatible PDseDataSet API.
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - rmats=4.3.0
+  - r-base=4.3
+  - r-nloptr
+  - r-doparallel
+  - r-foreach
+  - r-iterators
+  - git

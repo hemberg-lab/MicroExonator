@@ -108,6 +108,36 @@ class ParsingTests(unittest.TestCase):
 
 
 class MockToolTests(unittest.TestCase):
+    def test_paired_diff_uses_explicit_native_flag_and_block_order(self):
+        a, b = ['a1', 'a2', 'a3'], ['b1', 'b2', 'b3']
+        caches = self.caches(a + b)
+        path = self.preflight(a, b)
+        record = json.loads(path.read_text())
+        record.update(design={'type': 'paired', 'block': 'donor'},
+                      blocks=[{'block': 'd1', 'a': ['a2'], 'b': ['b1']},
+                              {'block': 'd2', 'a': ['a1'], 'b': ['b2']},
+                              {'block': 'd3', 'a': ['a3'], 'b': ['b3']}])
+        path.write_text(json.dumps(record))
+        self.write_tables(a+b, [('G', 'HsaEX1', 'chr1:11-20', '10', 'chr1:1,11-20,40', 'MIC', [80,70,90,20,10,30])],
+                          [('HsaEX1', [80,70,90,20,10,30])], [('G','HsaEX1',.75,.15,.6,.3)])
+        bed = self.temp / 'me.bed'; bed.write_text('chr1\t10\t20\tME\t0\t+\n')
+        vt.compare(path, caches, self.tool, self.temp/'db', 'hg38', bed, self.temp/'out')
+        command = next(c for c in self.calls() if c[0] == 'diff')
+        self.assertIn('--paired=TRUE', command)
+        self.assertEqual(command[command.index('-a')+1], 'a2,a1,a3')
+        self.assertEqual(command[command.index('-b')+1], 'b1,b2,b3')
+        with gzip.open(self.temp/'out/results.tsv.gz', 'rt') as stream:
+            row = next(__import__('csv').DictReader(stream, delimiter='\t'))
+        self.assertEqual((row['p_value'], row['q_value']), ('', ''))
+        # Exercise the paired large-sample alternative on the same ordered pairs.
+        vt.compare(path, caches, self.tool, self.temp/'db', 'hg38', bed,
+                   self.temp/'rank', diff_max_n=1)
+        with gzip.open(self.temp/'rank/results.tsv.gz', 'rt') as stream:
+            row = next(__import__('csv').DictReader(stream, delimiter='\t'))
+        self.assertAlmostEqual(float(row['p_value']), .25)
+        self.assertAlmostEqual(float(row['effect']), .6)
+        self.assertEqual(json.loads((self.temp/'rank/status.json').read_text())['model'], 'paired_test')
+
     def setUp(self):
         self.temp = Path(tempfile.mkdtemp())
         self.tool = self.temp / "vast-tools-src"

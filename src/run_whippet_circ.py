@@ -136,7 +136,7 @@ def native_delta(julia, whippet_bin, files, prefix):
 
 def compare(preflight, caches, out_dir, julia="julia", whippet_bin="", ids=None, settings=None, selection=None,
             native=native_delta):
-    from src.comparison_design import input_weighting
+    from src.comparison_design import input_weighting, tool_model
     from src.umbrella_modules import NORMALIZED, write_status
     if not isinstance(preflight, dict):
         preflight = json.loads(Path(preflight).read_text())
@@ -146,7 +146,8 @@ def compare(preflight, caches, out_dir, julia="julia", whippet_bin="", ids=None,
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     base = dict(ids or {}, project_id=preflight.get("project_id", ""),
-                comparison_id=preflight.get("comparison_id", ""), selection=selection or {})
+                comparison_id=preflight.get("comparison_id", ""), selection=selection or {},
+                **tool_model(preflight, 'whippet_circ'))
     runs = {side: list(preflight["runs"][side]) for side in ("a", "b")}
     if not all(runs.values()):
         _empty(out)
