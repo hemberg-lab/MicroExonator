@@ -1,9 +1,9 @@
-"""Optional Whippet --circ module: a parallel Whippet quant that also reports back-splicing.
+"""Whippet BS analysis from retained core --circ outputs by default.
 
 Select it with umbrella_modules: [whippet_circ]. Its scope is "selected" by default, like
-the circRNA modules. Per run, `whippet-quant --circ` on the staged reads and the umbrella
-Whippet index (whippet_flags as in the core quant); the core Whippet outputs and shards are
-never touched. Per comparison: whippet-delta on those psi files (native.diff.gz, linear
+the circRNA modules. Per run, import the checked core quantification into a cache.
+whippet_circ_source: parallel explicitly retains the former independent quant.
+Per comparison: whippet-delta on those psi files (native.diff.gz, linear
 events only) and whippet-delta's model on the BS events (results.tsv.gz). See
 src/run_whippet_circ.py.
 
@@ -30,8 +30,51 @@ def whippet_circ_check():
 MODULE_EXTRA_CHECKS[WHIPPET_CIRC] = whippet_circ_check
 
 
-# the index path is absolute: the existing index is evidence, never a reason to rebuild the reference
-if MODULE_PRODUCERS:
+WHIPPET_CIRC_SOURCE = config.get("whippet_circ_source", "core")
+
+
+def whippet_core_identity(wildcards):
+    import shlex
+    identity = _json.loads(module_identity(wildcards, WHIPPET_CIRC))
+    identity["flags"] = shlex.split(str(config.get("whippet_flags", "") or ""))
+    identity["processing_sha256"] = UMBRELLA_MANIFEST.run_sha256(umbrella_quant_run(wildcards).run_id)
+    return _json.dumps(identity, sort_keys=True)
+
+
+def whippet_core_inputs(wildcards):
+    record = module_run(wildcards, WHIPPET_CIRC)
+    return [record.work_dir + "/whippet/quant." + suffix for suffix in
+            ("psi.gz", "jnc.gz", "gene.tpm.gz", "isoform.tpm.gz", "provenance.json")]
+
+
+WHIPPET_CORE_WILDCARDS = dict(MODULE_WILDCARDS)
+WHIPPET_CORE_IMPORT_RUNS = []
+if not MODULE_PRODUCERS and WHIPPET_CIRC_SOURCE == "core":
+    import re
+    WHIPPET_CORE_IMPORT_RUNS = [record.run_id for record in module_runs(WHIPPET_CIRC)
+                               if not _os.path.exists(module_cache_dir(record, WHIPPET_CIRC) + "/cache.json")]
+    WHIPPET_CORE_WILDCARDS["run_id"] = "(?:" + "|".join(re.escape(run) for run in WHIPPET_CORE_IMPORT_RUNS) + ")"
+
+if WHIPPET_CIRC_SOURCE == "core" and (MODULE_PRODUCERS or WHIPPET_CORE_IMPORT_RUNS):
+    rule umbrella_whippet_circ_from_core:
+        input:
+            whippet_core_inputs
+        output:
+            [protected(MODULE_CACHE.replace("{tool}", WHIPPET_CIRC) + "/" + name)
+             for name in CACHE_FILES[WHIPPET_CIRC]]
+        wildcard_constraints:
+            **WHIPPET_CORE_WILDCARDS
+        params:
+            source=lambda w: umbrella_quant_run(w).work_dir + "/whippet",
+            out=MODULE_CACHE.replace("{tool}", WHIPPET_CIRC),
+            identity=whippet_core_identity
+        shell:
+            "python3 src/whippet_core.py import --source {params.source:q} --out-dir {params.out:q} "
+            "--run-id {wildcards.run_id:q} --identity {params.identity:q}"
+
+
+# Explicit compatibility route for an independently quantified legacy cache.
+if MODULE_PRODUCERS and WHIPPET_CIRC_SOURCE == "parallel":
     rule umbrella_whippet_circ_quant:
         input:
             reads=module_ingest(WHIPPET_CIRC, lambda w: umbrella_quant_reads(w)),

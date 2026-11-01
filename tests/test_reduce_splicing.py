@@ -62,6 +62,19 @@ class WhippetShardTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "not the same index"):
                 whippet_shard_text({"r1": self.psi(root, "1.gz", "0.4", "9"), "r2": other})
 
+    def test_sample_specific_bs_rows_do_not_change_linear_shard(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            files = {"r1": self.psi(root, "1.gz", "0.4", "9"),
+                     "r2": self.psi(root, "2.gz", "0.7", "12")}
+            expected = whippet_shard_text(files)
+            bs = "g1\t3-2\tchr1:30-1\t+\tBS\t0.2\t0.1\t0.1,0.3\t10\tK1\t0.5\tNA\tNA\tNA\n"
+            original = gzip.decompress(Path(files["r1"]).read_bytes()).decode()
+            gz(Path(files["r1"]), original + bs)
+            self.assertEqual(whippet_shard_text(files), expected)
+            # Complete source remains available for a later BS analysis.
+            self.assertIn(bs, gzip.decompress(Path(files["r1"]).read_bytes()).decode())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,51 @@
 # MegaSearch umbrella mode
 
+## Whippet circular output, 1 November 2026
+
+For an existing run and circular backfill, follow
+[the Git-based continuation guide](umbrella-continuation.md). Runtime helpers
+are versioned in `src/`; only configuration and approved run data are copied
+outside Git.
+
+New Whippet quantifications now include `--circ` by default, preserving any
+other configured `whippet_flags`. This applies to the ordinary and umbrella
+Whippet quantifiers. It uses the same Whippet build/index; no separate Julia
+branch is required. Full protected per-input `quant.psi.gz` files retain the
+sample-specific BS rows. Linear group shards omit BS rows and still require
+every non-BS row to match across inputs; native linear Delta reconstruction
+therefore keeps its existing event order and values.
+
+Core umbrella quantification also keeps `quant.provenance.json`: run/reference
+identity, actual flags, Whippet version, event/BS counts and retained-file
+checksums. A run with zero BS events is a valid circular run only when that
+record certifies `--circ`; legacy outputs without it require explicit backfill.
+
+The `whippet_circ` module defaults to `whippet_circ_source: core`. It imports
+the retained PSI, junction and TPM files after checking provenance and hashes,
+using hard links where possible. In `cached_only` mode those core files must
+already exist; no reads, native quantification or index work is scheduled.
+Missing derived caches can be built from retained core files; existing caches
+remain leaf inputs. In ingest mode the same core producer supplies them, so
+there is one Whippet quantification per input, not a separate circular run.
+`whippet_circ_source: parallel` explicitly retains the former parallel route.
+Other circRNA tools still require their own processing; library selection
+remains relevant to sensitivity.
+
+Existing completed runs without `--circ` are not retroactively circular runs.
+Changing their flags may schedule quantification again. Adopt this default in
+a reviewed run packet and inspect a dry run before resuming old work. To
+backfill completed libraries without invalidating shared ME/Salmon validation
+markers, set their manifest metadata `whippet_read_source: backfill` and keep
+that value on subsequent resumes. Whippet alone stages and validates private
+temporary reads under `umbrella/whippet_backfill/`; its protected quantification
+outputs keep the normal `umbrella/work/.../whippet/` location. New libraries
+use `shared` (the default). Back up the old Whippet directory and linear
+Whippet shards before backfill, verify the regenerated non-BS values and the
+unchanged ME/Salmon files, and inspect the continuation DAG. The ordinary
+`quant_whippet` aggregate also requests MicroExonator work: use explicit core
+provenance/shard targets for a Whippet-only backfill. Never clear metadata or
+overwrite protected files to force it through.
+
 Umbrella mode runs several quantification and differential tools side by side
 on the same samples, keeps only compact group-by-batch tables, and supports
 adding batches of samples over time. It is opt-in: without `umbrella_manifest`

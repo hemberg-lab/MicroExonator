@@ -820,6 +820,21 @@ def module_check(tool):
                                 len(incomplete), tool, incomplete[0]))
     if UMBRELLA_MODULES_MODE == "cached_only":
         missing = missing_caches(runs, module_cache_dir, [MODULE_PARENT_CACHES.get(tool, tool)])
+        if tool == "whippet_circ" and config.get("whippet_circ_source", "core") == "core":
+            from src.whippet_core import validate_core
+            import shlex
+            for record in runs:
+                if _os.path.exists(module_cache_dir(record, tool) + "/cache.json"):
+                    continue
+                try:
+                    validate_core(record.work_dir + "/whippet", record.run_id,
+                                  {"reference_id": record.reference_id,
+                                   "processing_sha256": UMBRELLA_MANIFEST.run_sha256(record.run_id),
+                                   "flags": shlex.split(str(config.get("whippet_flags", "") or ""))},
+                                  verify_hashes=False)
+                except (ValueError, OSError) as error:
+                    raise WorkflowError("cached_only Whippet BS reuse requires retained core --circ outputs: " + str(error))
+            missing = []  # a derived cache can be made without reads or Whippet
         if missing:
             raise WorkflowError(
                 "umbrella_modules_mode is cached_only, but {} run/tool caches are missing (first: run {}, "

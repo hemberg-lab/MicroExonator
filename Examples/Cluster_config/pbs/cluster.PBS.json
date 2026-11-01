@@ -14,10 +14,16 @@
         "runtime": 86400
     },
     "umbrella_rmats_conservative_prep": {
-        "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "10000",
+        "mem": "10000mb"
     },
     "umbrella_rmats_conservative_compare": {
-        "ppn": "4", "threads": "4", "mem_mb": "10000", "mem": "10000mb"
+        "ppn": "4",
+        "threads": "4",
+        "mem_mb": "10000",
+        "mem": "10000mb"
     },
     "Round1_bwa_mem_to_tags": {
         "ppn": "5",
@@ -1292,5 +1298,34 @@
         "mem": "8000mb",
         "walltime": "04:00:00",
         "runtime": 14400
+    },
+    "umbrella_whippet_backfill_pe": {
+        "ppn": 4,
+        "threads": 4,
+        "mem_mb": "3000",
+        "mem": "3000mb",
+        "name": "U.whippet_backfill_pe.{wildcards.run_id}",
+        "output": "logs/U.whippet_backfill_pe.{wildcards.run_id}.out",
+        "error": "logs/U.whippet_backfill_pe.{wildcards.run_id}.err"
+    },
+    "umbrella_whippet_backfill_se": {
+        "ppn": 4,
+        "threads": 4,
+        "mem_mb": "3000",
+        "mem": "3000mb",
+        "name": "U.whippet_backfill_se.{wildcards.run_id}",
+        "output": "logs/U.whippet_backfill_se.{wildcards.run_id}.out",
+        "error": "logs/U.whippet_backfill_se.{wildcards.run_id}.err"
+    },
+    "umbrella_whippet_backfill_validate": {
+        "ppn": 1,
+        "threads": 1,
+        "mem_mb": "2000",
+        "mem": "2000mb",
+        "walltime": "04:00:00",
+        "runtime": 14400,
+        "name": "U.whippet_backfill_validate.{wildcards.run_id}",
+        "output": "logs/U.whippet_backfill_validate.{wildcards.run_id}.out",
+        "error": "logs/U.whippet_backfill_validate.{wildcards.run_id}.err"
     }
 }

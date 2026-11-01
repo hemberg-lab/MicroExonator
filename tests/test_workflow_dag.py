@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 
 REPOSITORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -361,6 +362,28 @@ class QuantificationOnlyRouteTests(unittest.TestCase):
 
 
 class UmbrellaNativeQuantificationTests(unittest.TestCase):
+    def test_circular_backfill_isolated_from_shared_staging_and_other_quantifiers(self):
+        for layout in ("PE", "SE"):
+            def setup(folder):
+                path = Path(folder) / "umbrella.tsv"
+                lines = path.read_text().splitlines()
+                cells = lines[1].split("\t")
+                cells[-1] = "backfill"
+                path.write_text(lines[0] + "\n" + "\t".join(cells) + "\n")
+            # Keep the old public core output location, with dedicated backfill reads.
+            result = WorkflowSelectionTests.run_quant_dry_run(
+                self, umbrella=True, umbrella_layout=layout, umbrella_extra_column="whippet_read_source",
+                prepare=setup, print_shell=True,
+                target="umbrella/work/ref/project/batch/run_{}/whippet/quant.provenance.json".format(layout.lower()))
+            self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+            self.assertIn("rule umbrella_whippet_backfill_{}:".format(layout.lower()), result.stdout)
+            self.assertIn("rule umbrella_whippet_backfill_validate:", result.stdout)
+            self.assertIn("--allow-restage", result.stdout)
+            for forbidden in ("rule umbrella_stage_reads:", "rule umbrella_stage_single:",
+                              "rule umbrella_validate_reads:", "rule umbrella_salmon_quant:",
+                              "rule Round2_bowtie_to_tags:"):
+                self.assertNotIn(forbidden, result.stdout)
+
     def test_minimal_reference_derives_transcripts_decoys_and_splice_hints(self):
         result = WorkflowSelectionTests.run_quant_dry_run(
             self, umbrella=True, umbrella_prebuilt=False,
@@ -393,7 +416,8 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
             self, umbrella=True, print_shell=True, target="quant_umbrella"
         )
         self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn("whippet-quant.jl umbrella/work/ref/project/batch/run_pe/R1.fastq.gz umbrella/work/ref/project/batch/run_pe/R2.fastq.gz", result.stdout)
+        self.assertIn("whippet_core.py quant --reads umbrella/work/ref/project/batch/run_pe/R1.fastq.gz umbrella/work/ref/project/batch/run_pe/R2.fastq.gz", result.stdout)
+        self.assertIn("--flags=--circ", result.stdout)
         self.assertIn("salmon quant", result.stdout)
         self.assertIn("-1 umbrella/work/ref/project/batch/run_pe/R1.fastq.gz", result.stdout)
         self.assertIn("-2 umbrella/work/ref/project/batch/run_pe/R2.fastq.gz", result.stdout)
@@ -1147,7 +1171,7 @@ class UmbrellaNativeQuantificationTests(unittest.TestCase):
                      "ciriquant": "umbrella_ciriquant_prep", "circexplorer2": "umbrella_circexplorer2_calls",
                      "whippet_circ": "umbrella_whippet_circ_quant"}
         settings = {"majiq": {"majiq_bin_folder": "/opt/majiq/bin"},
-                    "whippet_circ": {"whippet_bin_folder": "/opt/whippet/bin"}}
+                    "whippet_circ": {"whippet_bin_folder": "/opt/whippet/bin", "whippet_flags": "--circ"}}
         for tool in tools:
             reference = module_reference_id("ref", tool, settings.get(tool, {}))
             for record in load_umbrella_manifest(os.path.join(temp_dir, "umbrella.tsv")).included_runs():

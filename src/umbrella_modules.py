@@ -226,8 +226,14 @@ def module_settings(config, module):
         return dict(module_settings(config, "circrna_star"))
     if module == "whippet_circ":
         # the core Whippet quant's flags plus --circ, so linear events stay comparable to it
-        return {"flags": str(config.get("whippet_flags", "") or ""), "circ": True,
-                "whippet": str(config.get("whippet_bin_folder", "")), "index": "umbrella Whippet index"}
+        settings = {"flags": str(config.get("whippet_flags", "") or ""), "circ": True,
+                    "whippet": str(config.get("whippet_bin_folder", "")), "index": "umbrella Whippet index"}
+        source = config.get("whippet_circ_source", "core")
+        if source not in ("core", "parallel"):
+            raise ValueError("whippet_circ_source must be core or parallel")
+        if source == "core":
+            settings["core_import"] = "whippet-core-v1"
+        return settings
     if module == 'psisigma':
         # irmode 0 only: intron retention then depends on the annotation alone
         return {'canonical_only': flag(config.get('psisigma_canonical_only', True)), 'irmode': 0,

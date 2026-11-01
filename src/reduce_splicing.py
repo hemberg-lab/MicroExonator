@@ -13,6 +13,8 @@ reformatting), so each run's delta input can be rebuilt from them:
                  Total_Reads, Complexity and Entropy (columns 6-11, the ones
                  whippet-delta reads). The path columns (Inc_Paths, Exc_Paths,
                  Edges) are not kept; rebuilt files carry NA there.
+                 Sample-specific BS rows are omitted from this linear shard;
+                 the protected per-run quant.psi.gz retains them in full.
 
 Per-run inputs are not deleted here.
 """
@@ -114,6 +116,8 @@ def read_whippet(path):
             raise ValueError("unexpected Whippet psi header in {}".format(path))
         for line in stream:
             fields = line.rstrip("\n").split("\t")
+            if fields[4] == "BS":
+                continue
             events.append(fields[:5])
             values.append(fields[5:11] + [""] * max(0, 11 - len(fields)))
     return events, values

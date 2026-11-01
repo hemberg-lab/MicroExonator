@@ -33,6 +33,11 @@ import zlib
 from collections import defaultdict
 from pathlib import Path
 
+if __package__:
+    from src.whippet_flags import quant_flags
+else:
+    from whippet_flags import quant_flags
+
 KEPT = ("psi.gz", "jnc.gz", "gene.tpm.gz", "isoform.tpm.gz")
 BS_COLUMNS = ("gene", "node", "coord", "strand")
 DIFF_HEADER = ("Gene\tNode\tCoord\tStrand\tType\tPsi_A\tPsi_B\tDeltaPsi\tProbability\tComplexity\tEntropy\n")
@@ -65,7 +70,7 @@ def quant(reads, index, out_dir, run_id, julia="julia", whippet_bin="", flags=""
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir()
     command = ([julia, str(Path(whippet_bin) / "whippet-quant.jl")] + list(reads) +
-               ["-x", str(index), "-o", str(work / "quant")] + flags.split() + ["--circ"])
+               ["-x", str(index), "-o", str(work / "quant")] + quant_flags(flags).split())
     with (out / "quant.log").open("w") as log:
         subprocess.run(command, check=True, stdout=log, stderr=subprocess.STDOUT)
     for suffix in KEPT:

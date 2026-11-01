@@ -18,7 +18,7 @@ def rule_outputs(path, rule):
 class ProtectionTests(unittest.TestCase):
     def test_outputs_needing_the_reads_or_hours_to_rebuild_are_protected(self):
         for path, rule, count in (
-                ("umbrella_quantifiers.smk", "umbrella_whippet_quant", 5),
+                ("umbrella_quantifiers.smk", "umbrella_whippet_quant", 6),
                 ("umbrella_inputs.smk", "umbrella_validate_reads", 1),
                 ("umbrella_reference.smk", "umbrella_reference_identity", 1),
                 ("umbrella_reference.smk", "umbrella_hisat2_index", 1),
