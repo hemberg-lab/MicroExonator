@@ -354,7 +354,7 @@ def dcc(preflight, caches, gtf, out_dir, ids=None, settings=None, catalogue=None
     tmp_root = tmp_root or os.environ.get("TMPDIR") or str(out)
     Path(tmp_root).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="dcc-", dir=tmp_root) as directory, open(out / "dcc.log", "w") as log:
-        work = Path(directory)
+        work = Path(directory).resolve()
         sheet = []
         for index, replicate in enumerate(replicates):
             # DCC names samples by file name; a plain index keeps them parseable
