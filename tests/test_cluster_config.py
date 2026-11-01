@@ -12,11 +12,15 @@ PBS = os.path.join(REPOSITORY, "Examples", "Cluster_config", "pbs", "cluster.PBS
 def rule_threads():
     """rule name -> highest `threads:` among its definitions (1 when unset)."""
     threads = {}
+    aliases = []
     for path in glob.glob(os.path.join(REPOSITORY, "rules", "*.smk")) + [os.path.join(REPOSITORY, "MicroExonator.smk")]:
         text = open(path).read()
+        aliases.extend(re.findall(r'^\s*use rule (\w+) as (\w+) with:', text, re.M))
         for match in re.finditer(r"^\s*rule\s+(\w+)\s*:(.*?)(?=^\s*rule\s+\w+\s*:|\Z)", text, re.S | re.M):
             value = re.search(r"^\s*threads:\s*(\d+)", match.group(2), re.M)
             threads[match.group(1)] = max(threads.get(match.group(1), 1), int(value.group(1)) if value else 1)
+    for original, alias in aliases:
+        threads[alias] = threads[original]
     return threads
 
 
