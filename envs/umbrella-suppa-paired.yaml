@@ -1,0 +1,11 @@
+name: microexonator-umbrella-suppa-paired
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - suppa=2.4
+  - statsmodels=0.13.5
+  - pandas=1.5
+  - numpy=1.23
+  - scipy=1.10

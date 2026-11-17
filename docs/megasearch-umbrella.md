@@ -293,26 +293,38 @@ replicate's inputs and its share of its side (`weighting`, `weights`).
 
 ### Paired and blocked statistical comparisons
 
-Add a pairing column such as `subject_id` to manifest metadata, and opt in per comparison:
+Add a pairing column such as `subject_id` to the manifest. Use the same value
+for both conditions from that subject and across technical runs of the same
+biological replicate. Set `design` on the comparisons that need pairing. A
+comparisons file can contain both kinds in one `quant_umbrella` run:
 
 ```yaml
-design:
-  type: paired
-  block: subject_id
-  unbalanced: refuse
+comparisons:
+  - comparison_id: treatment_matched
+    project_id: study_with_matches
+    group_a: treated
+    group_b: control
+    design: {type: paired, block: subject_id}
+  - comparison_id: treatment_independent
+    project_id: independent_study
+    group_a: treated
+    group_b: control
 ```
 
 `paired` requires exactly one biological replicate per condition per subject,
 with at least two complete subjects. `blocked` permits several replicates per
 condition within a block. `unbalanced: drop` explicitly excludes incomplete
 blocks and records them in preflight; the default refuses them. Pair IDs are
-metadata, so they do not invalidate read-processing caches.
+metadata, so they do not invalidate read-processing caches. Unpaired comparisons
+can omit the pairing metadata. Statistical pairing is independent of the
+single-end or paired-end sequencing layout.
 
 DESeq2 and shared circRNA edgeR use `~ block + group`. QAPA uses block-adjusted
 DEXSeq models; DaPars2 tests per-block mean PDUI differences. For `paired`
 designs, both rMATS profiles use native PAIRADISE (`--paired-stats`) in the
-dedicated `umbrella-rmats-paired.yaml` environment. SUPPA2 switches to its
-classical paired test; vast-tools diff uses `--paired=TRUE`, with a paired
+dedicated `umbrella-rmats-paired.yaml` environment. Paired SUPPA comparisons
+use SUPPA 2.4 in `umbrella-suppa-paired.yaml` for the classical paired test.
+vast-tools diff uses `--paired`, with a paired
 signed-rank alternative for comparisons above the configured diff sample limit.
 Native paired modes receive biological replicates in matching block order.
 
@@ -325,9 +337,10 @@ Native paired modes also fall back to labelled unpaired analyses for `blocked`
 designs, where more than one replicate per side in a block precludes positional
 pairing. Review these labels when interpreting consensus.
 
-Update the active PBS profile with both paired rMATS rule entries. If using
-`--allowed-rules`, include `umbrella_rmats_post_paired` and/or
-`umbrella_rmats_conservative_compare_paired`. Validate the paired conda
+Update the active PBS profile with the paired rMATS and SUPPA rule entries.
+If using `--allowed-rules`, include the paired aliases for the tools being run
+(`umbrella_rmats_post_paired`, `umbrella_rmats_conservative_compare_paired`,
+and `umbrella_suppa_paired`). Validate the paired conda
 environment and a small native comparison before large runs.
 
 `group` is the storage label a run's shards are filed under, and `batch_id`

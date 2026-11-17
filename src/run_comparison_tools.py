@@ -106,6 +106,13 @@ def suppa(args, preflight):
     method = ["-m", "classical", "--paired"] if paired else ["-m", "empirical"]
     for events, output in zip(args.events, args.outputs):
         kind = Path(output).stem
+        if paired:
+            with open(events) as stream:
+                next(stream, None)  # IOE header
+                if not any(line.strip() for line in stream):
+                    # SUPPA's classical correction divides by zero on an empty event set.
+                    marker([output], "\t".join(suppa_dpsi_header(kind)))
+                    continue
         # one private folder per event type: SUPPA 2.3 merges every
         # *.dpsi.temp.* in the prefix's folder (the current directory when the
         # prefix is relative), whatever their prefix, so a shared folder lets
@@ -131,12 +138,16 @@ def suppa(args, preflight):
     shutil.rmtree(work)
 
 
+def suppa_dpsi_header(kind):
+    return ["{0}_b-{0}_a_dPSI".format(kind), "{0}_b-{0}_a_p-val".format(kind)]
+
+
 def check_dpsi_header(path, kind):
     if not path.exists():
         sys.exit("SUPPA2 diffSplice wrote no {} for {}".format(path, kind))
     with open(path) as stream:
         header = stream.readline().rstrip("\n").split("\t")
-    expected = ["{0}_b-{0}_a_dPSI".format(kind), "{0}_b-{0}_a_p-val".format(kind)]
+    expected = suppa_dpsi_header(kind)
     if header != expected:
         sys.exit("SUPPA2 {} for {} has header {}, expected {}".format(path, kind, header, expected))
 

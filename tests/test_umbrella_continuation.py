@@ -68,6 +68,23 @@ class ContinuationTests(unittest.TestCase):
                 compose(root, root / "continuation", **args)
             self.assertFalse((root / "continuation").exists())
 
+    def test_can_continue_with_paired_and_unpaired_comparisons(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "run"
+            args = self.fixture(root)
+            plan = root / "continuation"
+            result = compose(root, plan, preserve_comparison_designs=True, **args)
+            self.assertTrue(result["paired_mode"])
+            self.assertEqual(result["old_processing_identities_unchanged"], 4)
+            preflights = {p["comparison_id"]: p for p in json.loads((plan / "preflights.json").read_text())}
+            self.assertNotIn("design", preflights["old"])
+            self.assertEqual(preflights["new"]["design"]["type"], "paired")
+            self.assertEqual(preflights["new"]["blocks"], [
+                {"block": "donor0", "a": ["SRR2000"], "b": ["SRR2002"]},
+                {"block": "donor1", "a": ["SRR2001"], "b": ["SRR2003"]},
+            ])
+            self.assertEqual(json.loads((plan / "suspended-paired-designs.json").read_text()), {})
+
     def test_resume_gate_catches_old_producer_and_ignores_new(self):
         log = "rule umbrella_salmon_quant:\n    wildcards: run_id=old, project_id=P\n\nrule correct_quant:\n    wildcards: sample=new\n"
         self.assertEqual(audit(log, {"old"}), [("umbrella_salmon_quant", "old")])

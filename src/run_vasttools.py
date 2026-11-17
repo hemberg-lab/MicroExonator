@@ -484,7 +484,7 @@ def compare(preflight_path, caches, vast_tools, dbdir, species, me_db, out_dir, 
                      "-b", ",".join(column[r] for r in replicates["b"]), "--sampleNameA", "A",
                      "--sampleNameB", "B", "-i", inclusion, "-o", vast_out, "-d", "diff",
                      "-r", prob, "-m", min_dpsi, "-e", min_reads, "-S", samples_needed, "-c", threads,
-                     "--noPDF", *(["--paired=TRUE"] if paired else []), cwd=work, log=log)
+                     "--noPDF", *(["--paired"] if paired else []), cwd=work, log=log)
             else:
                 (vast_out / 'diff.tab').write_text('# Bayesian diff not run: using tidy + {}\n'.format(
                     'Wilcoxon signed-rank' if paired else 'Mann-Whitney'))

@@ -66,9 +66,13 @@ class SuppaWrapperTests(unittest.TestCase):
         self.preflight = {"inference_supported": True, "replicates": {"a": ["A1"], "b": ["B1"]},
                           "collapse": {"a1": "A1", "b1": "B1"}}
         self.kinds = ("SE", "A5", "AL")
+        events = [self.root / "events_{}_strict.ioe".format(kind) for kind in self.kinds]
+        for path in events:
+            path.write_text("seqname\tgene_id\tevent_id\talternative_transcripts\ttotal_transcripts\n"
+                            "chr1\tg\tg;SE:1-2\ttx1\ttx1,tx2\n")
         self.args = argparse.Namespace(
             work=str(self.root / "work"), joined=str(joined), log=str(self.root / "log"),
-            events=["events_{}_strict.ioe".format(k) for k in self.kinds],
+            events=[str(path) for path in events],
             outputs=["suppa2/{}.dpsi".format(k) for k in self.kinds])
         self.env = patch.dict(os.environ, {"PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]})
         self.env.start()
@@ -149,6 +153,16 @@ class SuppaWrapperTests(unittest.TestCase):
                             for c in commands if c[1] == "diffSplice"))
         status = json.loads((self.root / "suppa2" / "status.json").read_text())
         self.assertEqual(status["model"], "unpaired_adaptation")
+
+    def test_paired_empty_event_type_writes_header_only(self):
+        preflight = dict(self.preflight, design={"type": "paired", "block": "donor"},
+                         blocks=[{"block": "d1", "a": ["A1"], "b": ["B1"]}])
+        events = Path(self.args.events[0])
+        events.write_text(events.read_text().splitlines()[0] + "\n")
+        run_comparison_tools.suppa(self.args, preflight)
+        self.assertEqual((self.root / "suppa2/SE.dpsi").read_text(), "SE_b-SE_a_dPSI\tSE_b-SE_a_p-val\n")
+        self.assertNotIn(events.name, Path(self.args.log).read_text())
+        self.assertTrue((self.root / "suppa2/A5.dpsi").is_file())
 
     def test_unpaired_comparisons_write_no_status(self):
         run_comparison_tools.suppa(self.args, self.preflight)

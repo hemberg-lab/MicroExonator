@@ -123,7 +123,7 @@ class MockToolTests(unittest.TestCase):
         bed = self.temp / 'me.bed'; bed.write_text('chr1\t10\t20\tME\t0\t+\n')
         vt.compare(path, caches, self.tool, self.temp/'db', 'hg38', bed, self.temp/'out')
         command = next(c for c in self.calls() if c[0] == 'diff')
-        self.assertIn('--paired=TRUE', command)
+        self.assertIn('--paired', command)
         self.assertEqual(command[command.index('-a')+1], 'a2,a1,a3')
         self.assertEqual(command[command.index('-b')+1], 'b1,b2,b3')
         with gzip.open(self.temp/'out/results.tsv.gz', 'rt') as stream:

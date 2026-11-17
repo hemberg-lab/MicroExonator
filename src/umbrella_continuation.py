@@ -1,4 +1,4 @@
-"""Compose an in-place, unpaired continuation without modifying the live run."""
+"""Compose an in-place continuation without modifying the live run."""
 import argparse
 import csv
 import hashlib
@@ -30,7 +30,8 @@ def local_path(root, value, previous_root, destination_root):
 
 
 def compose(existing_root, out, *, additional_manifest, additional_comparisons,
-            approved_manifest, approved_comparisons, reference_id, previous_root=None, destination_root=None):
+            approved_manifest, approved_comparisons, reference_id, previous_root=None, destination_root=None,
+            preserve_comparison_designs=False):
     existing_root, out = Path(existing_root), Path(out)
     if out.exists():
         raise FileExistsError(out)
@@ -86,7 +87,9 @@ def compose(existing_root, out, *, additional_manifest, additional_comparisons,
         raise ValueError("Overlapping intake runs need an explicit reuse review")
     combined = [{c: row.get(c, "") for c in columns} for row in old_rows + new_rows]
     new_comps = yaml.safe_load(Path(additional_comparisons).read_text())["comparisons"]
-    suspended = {c["comparison_id"]: c.pop("design") for c in new_comps if "design" in c}
+    suspended = {}
+    if not preserve_comparison_designs:
+        suspended = {c["comparison_id"]: c.pop("design") for c in new_comps if "design" in c}
     comparisons = old_comps + new_comps
     if len({c["comparison_id"] for c in comparisons}) != len(comparisons):
         raise ValueError("Duplicate comparison ID")
@@ -146,7 +149,8 @@ def compose(existing_root, out, *, additional_manifest, additional_comparisons,
     (out / "backfill-archive.json").write_text(json.dumps(archives, indent=2) + "\n")
     summary = dict(reference_id=reference_id, old_raw_runs=len(old_rows), new_raw_runs=len(new_rows), raw_runs=len(combined),
                    processing_inputs=len(manifest.included_runs()), comparisons=len(comparisons),
-                   old_comparisons=len(old_comps), new_comparisons=len(new_comps), paired_mode=False,
+                   old_comparisons=len(old_comps), new_comparisons=len(new_comps),
+                   paired_mode=any(p.get("design") for p in preflights),
                    old_processing_identities_unchanged=len(baseline.included_runs()),
                    source_config_sha256=hashlib.sha256(original).hexdigest(),
                    source_manifest_sha256=hashlib.sha256(old_manifest_path.read_bytes()).hexdigest(),
@@ -167,9 +171,12 @@ if __name__ == "__main__":
     parser.add_argument("--reference-id", required=True)
     parser.add_argument("--previous-root")
     parser.add_argument("--destination-root", type=Path)
+    parser.add_argument("--preserve-comparison-designs", action="store_true",
+                        help="Keep paired or blocked designs declared in the additional comparison YAML")
     args = parser.parse_args()
     print(json.dumps(compose(args.root, args.out or args.root / "continuation",
                             additional_manifest=args.additional_manifest, additional_comparisons=args.additional_comparisons,
                             approved_manifest=args.approved_manifest, approved_comparisons=args.approved_comparisons,
                             reference_id=args.reference_id, previous_root=args.previous_root,
-                            destination_root=args.destination_root), indent=2))
+                            destination_root=args.destination_root,
+                            preserve_comparison_designs=args.preserve_comparison_designs), indent=2))

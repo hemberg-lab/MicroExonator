@@ -11,7 +11,7 @@ compatibility symlink for the former root while historical absolute paths
 remain in the config or staging provenance. Do not clear metadata or bypass
 protected outputs to force reuse.
 
-## Compose an unpaired continuation
+## Compose a continuation
 
 `src/umbrella_continuation.py` takes an existing run and separately approved
 additional inputs. It verifies the old cohort against explicit approved
@@ -29,11 +29,13 @@ rewritten. Unexpected old inputs or an existing plan directory are refused.
   --approved-comparisons umbrella_continuation_inputs/approved-existing-comparisons.yaml
 ```
 
-This helper deliberately emits unpaired comparisons. It keeps any deferred
-`design` declarations in `suspended-paired-designs.json`; it does not silently
-enable another model. Only source inputs already approved for that unpaired
-adaptation should be supplied. Metadata admission/preflight does not validate
-experimental independence or native-tool sequencing QC.
+By default, new comparisons use the unpaired continuation route. Any deferred
+`design` declarations are saved in `suspended-paired-designs.json`. Pass
+`--preserve-comparison-designs` to keep the designs declared in the additional
+comparisons YAML. This lets one continuation combine paired, blocked and ordinary
+comparisons. The pairing metadata must be in the manifest column referenced by
+each design. Preflight validates the declared pairs. Assess experimental
+independence and sequencing QC during review.
 
 The plan includes baseline and combined manifests, comparisons, prior and
 proposed configs, a path-only migration config, explicit Whippet backfill

@@ -260,6 +260,20 @@ rule umbrella_suppa:
         "--log {log} --joined {input.joined} --events {input.events} --outputs {output}"
 
 
+# SUPPA 2.4 fixes the classical test used by paired comparisons.
+UMBRELLA_SUPPA_PAIRED = sorted(comparison_id for comparison_id, result in UMBRELLA_COMPARISONS.items()
+                               if tool_model(result, "suppa2").get("model") == "paired_native")
+
+if UMBRELLA_SUPPA_PAIRED:
+    ruleorder: umbrella_suppa_paired > umbrella_suppa
+
+    use rule umbrella_suppa as umbrella_suppa_paired with:
+        wildcard_constraints:
+            comparison_id=umbrella_paired_ids(UMBRELLA_SUPPA_PAIRED)
+        conda:
+            "../envs/umbrella-suppa-paired.yaml"
+
+
 def umbrella_tool_table(wildcards):
     root = UMBRELLA_COMPARISON_ROOT.format(**wildcards)
     tools = [
