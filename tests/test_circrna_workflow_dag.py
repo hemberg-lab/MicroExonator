@@ -199,7 +199,7 @@ class CircrnaDagTests(unittest.TestCase):
 
     def test_whippet_circ_quantifies_selected_runs_beside_the_core_whippet(self):
         result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest",
-                                                     "whippet_flags: --biascorrect"],
+                                                     "whippet_circ_source: parallel", "whippet_flags: --biascorrect"],
                               [selection_row("small", "whippet_circ")], catalogue=False)
         self.assertEqual(result.returncode, 0, result.stdout[-4000:])
         stats = self.stats(result)
@@ -207,12 +207,13 @@ class CircrnaDagTests(unittest.TestCase):
         self.assertEqual(stats.get("umbrella_whippet_circ_compare"), "1")
         out = result.stdout
         self.assertIn("run_whippet_circ.py quant", out)
-        self.assertIn("--flags=--biascorrect", out)
-        plain = self.dry_run("prepare_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest"],
+        self.assertIn("--biascorrect --circ", out)
+        plain = self.dry_run("prepare_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest",
+                                                   "whippet_circ_source: parallel"],
                              [selection_row("small", "whippet_circ")], catalogue=False)
         self.assertEqual(plain.returncode, 0, plain.stdout[-3000:])
         command = re.search(r"python3 src/run_whippet_circ\.py quant .*", plain.stdout).group(0)
-        self.assertIn("--flags= --identity", command)            # no whippet_flags: still one argument
+        self.assertIn("--flags=--circ --identity", command)
         sys.path.insert(0, str(REPOSITORY))
         from src import run_whippet_circ
         args = shlex.split(command.split(" > ")[0])[2:]
@@ -222,10 +223,47 @@ class CircrnaDagTests(unittest.TestCase):
             run_whippet_circ.main(args)
         finally:
             run_whippet_circ.quant = original
-        self.assertEqual(calls[0][6], "")                          # flags parsed as empty
+        self.assertEqual(calls[0][6], "--circ")
         self.assertRegex(out, r"--index /\S+/whippet\.jls ")                    # the existing index, absolute
         for absent in ("rule umbrella_whippet_index:", "rule umbrella_whippet_quant:", "rule umbrella_hisat2:"):
             self.assertNotIn(absent, out)                                           # core Whippet untouched
+
+    def test_whippet_bs_reuses_core_files_in_cached_only_without_reads_or_index_work(self):
+        def setup(folder):
+            import json
+            from src.umbrella_manifest import load_umbrella_manifest
+            manifest = load_umbrella_manifest(Path(folder) / "umbrella.tsv")
+            for run in ("run_b", "run_c"):
+                core = Path(folder, "umbrella/work/ref/project/batch", run, "whippet")
+                core.mkdir(parents=True)
+                for suffix in ("psi.gz", "jnc.gz", "gene.tpm.gz", "isoform.tpm.gz", "map.gz"):
+                    with gzip.open(core / ("quant." + suffix), "wt") as stream:
+                        stream.write("kept\n")
+                (core / "quant.provenance.json").write_text(json.dumps(dict(
+                    schema="whippet-core-v1", run_id=run, reference_id="ref", circ=True, flags=["--circ"],
+                    processing_sha256=manifest.run_sha256(run))))
+        result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]"],
+                              [selection_row("small", "whippet_circ")], catalogue=False, prepare=setup)
+        self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+        self.assertEqual(self.stats(result).get("umbrella_whippet_circ_from_core"), "2")
+        self.assertIn("whippet_core.py import", result.stdout)
+        for forbidden in ("rule umbrella_stage", "rule umbrella_whippet_quant:",
+                          "rule umbrella_whippet_index:", "run_whippet_circ.py quant"):
+            self.assertNotIn(forbidden, result.stdout)
+
+    def test_new_circular_module_uses_one_core_quantification_per_run(self):
+        result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]", "umbrella_modules_mode: ingest"],
+                              [selection_row("small", "whippet_circ")], catalogue=False)
+        self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+        self.assertEqual(self.stats(result).get("umbrella_whippet_quant"), "2")
+        self.assertEqual(self.stats(result).get("umbrella_whippet_circ_from_core"), "2")
+        self.assertNotIn("run_whippet_circ.py quant", result.stdout)
+
+    def test_cached_core_reuse_refuses_uncertified_legacy_outputs(self):
+        result = self.dry_run("quant_whippet_circ", ["umbrella_modules: [whippet_circ]"],
+                              [selection_row("small", "whippet_circ")], catalogue=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Missing core --circ provenance", result.stdout)
 
     def test_whippet_circ_cached_only_compares_kept_caches(self):
         def setup(folder):

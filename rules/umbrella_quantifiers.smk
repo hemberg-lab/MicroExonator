@@ -1,6 +1,7 @@
 """Manifest-routed native quantifiers and guarded group Salmon reduction."""
 
 from src.reduce_salmon import reduce_group
+from src.whippet_flags import read_paths as whippet_read_paths
 def umbrella_quant_run(wildcards):
     record = UMBRELLA_MANIFEST.by_run.get(wildcards.run_id)
     if record is None or not record.include:
@@ -25,10 +26,80 @@ def umbrella_read_arguments(wildcards, tool):
 
 # Whippet's per-run outputs are kept and protected: junction counts and gene
 # and isoform TPM exist nowhere else, and remaking any of them needs the reads.
+# Explicit old-library backfill stages a separate copy of the reads. It never
+# changes the shared validation marker or input paths of ME/Salmon producers.
+WHIPPET_BACKFILL = "umbrella/whippet_backfill/{reference_id}/{project_id}/{batch_id}/{run_id}"
+import re as _whippet_re
+WHIPPET_BACKFILL_PATTERNS = {
+    layout: "(?:" + "|".join(_whippet_re.escape(r.run_id) for r in UMBRELLA_MANIFEST.included_runs()
+                                if r.layout == layout and r.metadata.get("whippet_read_source") == "backfill") + ")"
+    for layout in ("PE", "SE")}
+
+
+def whippet_backfill_run(wildcards):
+    record = umbrella_quant_run(wildcards)
+    if record.metadata.get("whippet_read_source") != "backfill":
+        raise WorkflowError("Whippet backfill staging requires whippet_read_source=backfill")
+    return record
+
+
+rule umbrella_whippet_backfill_pe:
+    input:
+        sources=umbrella_sources
+    output:
+        r1=temp(WHIPPET_BACKFILL + "/R1.fastq.gz"),
+        r2=temp(WHIPPET_BACKFILL + "/R2.fastq.gz")
+    wildcard_constraints:
+        run_id=WHIPPET_BACKFILL_PATTERNS["PE"]
+    params:
+        identity=lambda w: UMBRELLA_MANIFEST.run_sha256(whippet_backfill_run(w).run_id),
+        tmpdir=UMBRELLA_STAGE_TMPDIR
+    threads: 4
+    resources:
+        get_data=1
+    conda:
+        "../envs/umbrella-inputs.yaml"
+    shell:
+        "python3 src/umbrella_stage_reads.py --manifest {UMBRELLA_MANIFEST.path:q} --run-id {wildcards.run_id:q} "
+        "--r1 {output.r1:q} --r2 {output.r2:q} --threads {threads} {params.tmpdir} --allow-restage"
+
+
+rule umbrella_whippet_backfill_se:
+    input:
+        sources=umbrella_sources
+    output:
+        r1=temp(WHIPPET_BACKFILL + "/R1.fastq.gz")
+    wildcard_constraints:
+        run_id=WHIPPET_BACKFILL_PATTERNS["SE"]
+    params:
+        identity=lambda w: UMBRELLA_MANIFEST.run_sha256(whippet_backfill_run(w).run_id),
+        tmpdir=UMBRELLA_STAGE_TMPDIR
+    threads: 4
+    resources:
+        get_data=1
+    conda:
+        "../envs/umbrella-inputs.yaml"
+    shell:
+        "python3 src/umbrella_stage_reads.py --manifest {UMBRELLA_MANIFEST.path:q} --run-id {wildcards.run_id:q} "
+        "--r1 {output.r1:q} --threads {threads} {params.tmpdir} --allow-restage"
+
+
+rule umbrella_whippet_backfill_validate:
+    input:
+        reads=lambda w: whippet_read_paths(whippet_backfill_run(w))
+    output:
+        protected(WHIPPET_BACKFILL + "/reads.valid")
+    shell:
+        "python3 src/validate_fastq_pairs.py {input.reads:q} --marker {output:q} --run-id {wildcards.run_id:q}"
+
+
+ruleorder: umbrella_whippet_backfill_pe > umbrella_whippet_backfill_se
+
+
 rule umbrella_whippet_quant:
     input:
-        reads=umbrella_quant_reads,
-        valid=lambda w: umbrella_quant_run(w).work_dir + "/reads.valid",
+        reads=lambda w: whippet_read_paths(umbrella_quant_run(w)),
+        valid=lambda w: whippet_read_paths(umbrella_quant_run(w))[0].rsplit("/", 1)[0] + "/reads.valid",
         index=UMBRELLA_WHIPPET_MEMBERS[0],
         reference=UMBRELLA_REFERENCE_MANIFEST
     output:
@@ -36,18 +107,22 @@ rule umbrella_whippet_quant:
         isoform=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.isoform.tpm.gz"),
         jnc=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.jnc.gz"),
         mapping=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.map.gz"),
-        psi=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.psi.gz")
+        psi=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.psi.gz"),
+        provenance=protected("umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant.provenance.json")
     params:
         julia=config.get("julia", "julia"),
         whippet_bin=config.get("whippet_bin_folder", ""),
-        reads=lambda w: umbrella_read_arguments(w, "whippet"),
+        reads=lambda w: " ".join(whippet_read_paths(umbrella_quant_run(w))),
         prefix="umbrella/work/{reference_id}/{project_id}/{batch_id}/{run_id}/whippet/quant",
+        processing_sha256=lambda w: UMBRELLA_MANIFEST.run_sha256(umbrella_quant_run(w).run_id),
         flags=config.get("whippet_flags", "")
     log:
         "umbrella/logs/{reference_id}/{project_id}/{batch_id}/{run_id}.whippet.log"
     shell:
-        "{params.julia} {params.whippet_bin}/whippet-quant.jl {params.reads} "
-        "-x {input.index} -o {params.prefix} {params.flags} 2> {log}"
+        "python3 src/whippet_core.py quant --reads {params.reads} "
+        "--index {input.index:q} --prefix {params.prefix:q} --run-id {wildcards.run_id:q} "
+        "--reference-id {wildcards.reference_id:q} --processing-sha256 {params.processing_sha256:q} --julia {params.julia:q} "
+        "--whippet-bin {params.whippet_bin:q} --flags={params.flags:q} > {log} 2>&1"
 
 
 rule umbrella_salmon_quant:
