@@ -39,6 +39,11 @@ class CoreTests(unittest.TestCase):
             self.assertEqual(imported["bs_events"], 1)
             self.assertEqual((root / "cache/quant.psi.gz").read_bytes(), before)
             self.assertEqual((source / "quant.psi.gz").read_bytes(), before)
+            for suffix in ("psi.gz", "jnc.gz", "gene.tpm.gz", "isoform.tpm.gz"):
+                copied, origin = (root / "cache" / ("quant." + suffix)).stat(), (source / ("quant." + suffix)).stat()
+                self.assertNotEqual(copied.st_ino, origin.st_ino)
+                self.assertGreaterEqual(copied.st_mtime_ns, max((source / ("quant." + s)).stat().st_mtime_ns
+                                                                for s in ("psi.gz", "jnc.gz", "gene.tpm.gz", "isoform.tpm.gz", "provenance.json")))
 
     def test_zero_bs_run_is_valid_and_legacy_or_changed_input_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:

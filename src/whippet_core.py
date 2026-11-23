@@ -2,7 +2,6 @@
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import shlex
 import shutil
@@ -78,11 +77,9 @@ def import_core(source, out_dir, run_id, identity):
         raise ValueError("Cache destination is not empty: " + str(out))
     out.mkdir(parents=True, exist_ok=True)
     for suffix in KEPT:
-        origin, target = Path(source) / ("quant." + suffix), out / ("quant." + suffix)
-        try:
-            os.link(origin, target)  # no extra copy of the retained quantifications
-        except OSError:
-            shutil.copy2(origin, target)
+        # A real copy, not a hard link: a link shares the core file's mtime, so the cache never
+        # looks newer than its inputs and Snakemake (rerun-triggers: mtime) rebuilds it on every launch.
+        shutil.copyfile(Path(source) / ("quant." + suffix), out / ("quant." + suffix))
     result = dict(identity, run_id=run_id, tool="whippet_circ", source="core --circ",
                   whippet_version=record["whippet_version"], events=record["events"],
                   bs_events=record["bs_events"], core_provenance=record)
